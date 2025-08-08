@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,22 +65,23 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Cores específicas do tema Cresci & Perdi - ATUALIZADO
+				// Cores profissionais atualizadas
 				'brand': {
-					'yellow': '#FFD21E',
-					'orange': '#F79C00', 
-					'blue': '#00AEEF',
-					'brown': '#5C2D0C',
-					'brown-light': '#8B4513',
+					'blue': 'hsl(var(--brand-blue))',
+					'blue-light': 'hsl(var(--brand-blue-light))', 
+					'blue-dark': 'hsl(var(--brand-blue-dark))',
+					'gray': 'hsl(var(--brand-gray))',
+					'gray-light': 'hsl(var(--brand-gray-light))',
+					'gray-dark': 'hsl(var(--brand-gray-dark))',
 				}
 			},
 			borderRadius: {
-				lg: '1.25rem',
-				md: '1rem',
-				sm: '0.75rem',
-				xl: '1.5rem',
-				'2xl': '2rem',
-				'3xl': '2.5rem'
+				lg: '1rem',
+				md: '0.75rem',
+				sm: '0.5rem',
+				xl: '1.25rem',
+				'2xl': '1.5rem',
+				'3xl': '20px'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -122,7 +122,7 @@ export default {
 				},
 				'bounce-soft': {
 					'0%, 100%': {
-						transform: 'translateY(-4%)',
+						transform: 'translateY(-4px)',
 						animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
 					},
 					'50%': {
@@ -130,34 +130,20 @@ export default {
 						animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
 					}
 				},
-				'wiggle': {
+				'wiggle-subtle': {
 					'0%, 100%': {
-						transform: 'rotate(-5deg)'
+						transform: 'rotate(-2deg)'
 					},
 					'50%': {
-						transform: 'rotate(5deg)'
+						transform: 'rotate(2deg)'
 					}
 				},
-				'bounce-playful': {
+				'float-gentle': {
 					'0%, 100%': {
-						transform: 'translateY(-8px) rotate(-3deg)'
+						transform: 'translateY(0)'
 					},
 					'50%': {
-						transform: 'translateY(0) rotate(3deg)'
-					}
-				},
-				'float': {
-					'0%, 100%': {
-						transform: 'translateY(0) rotate(0deg)'
-					},
-					'25%': {
-						transform: 'translateY(-10px) rotate(2deg)'
-					},
-					'50%': {
-						transform: 'translateY(-5px) rotate(-1deg)'
-					},
-					'75%': {
-						transform: 'translateY(-15px) rotate(1deg)'
+						transform: 'translateY(-6px)'
 					}
 				}
 			},
@@ -167,9 +153,8 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out',
 				'slide-in': 'slide-in 0.5s ease-out',
 				'bounce-soft': 'bounce-soft 2s infinite',
-				'wiggle': 'wiggle 1.5s ease-in-out infinite',
-				'bounce-playful': 'bounce-playful 3s ease-in-out infinite',
-				'float': 'float 4s ease-in-out infinite'
+				'wiggle-subtle': 'wiggle-subtle 2s ease-in-out infinite',
+				'float-gentle': 'float-gentle 3s ease-in-out infinite'
 			}
 		}
 	},

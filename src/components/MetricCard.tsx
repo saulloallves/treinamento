@@ -11,41 +11,41 @@ interface MetricCardProps {
 
 const MetricCard = ({ title, value, change, changeType, icon: Icon }: MetricCardProps) => {
   const changeColor = {
-    positive: "text-accent bg-accent/10 border-accent/30",
-    negative: "text-destructive bg-destructive/10 border-destructive/30",
-    neutral: "text-muted-foreground bg-muted/30 border-muted/30"
+    positive: "text-accent bg-accent/10 border-accent/20",
+    negative: "text-destructive bg-destructive/10 border-destructive/20",
+    neutral: "text-muted-foreground bg-muted/50 border-muted/20"
   };
 
   return (
-    <div className="metric-card group hover:scale-110 transition-all duration-500 hover:shadow-glow hover:rotate-1">
-      <div className="flex items-center justify-between mb-8 relative">
-        <div className="w-20 h-20 rounded-3xl flex items-center justify-center group-hover:scale-125 group-hover:animate-wiggle transition-all duration-500 shadow-large relative overflow-hidden">
-          <div className="absolute inset-0 gradient-warm"></div>
-          <Icon className="w-10 h-10 text-white relative z-10" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-white/30 to-transparent rounded-3xl"></div>
+    <div className="metric-card group hover:scale-[1.02] transition-all duration-300">
+      <div className="flex items-center justify-between mb-6 relative">
+        <div className="w-16 h-16 rounded-[20px] flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-medium relative overflow-hidden">
+          <div className="absolute inset-0 gradient-primary"></div>
+          <Icon className="w-8 h-8 text-white relative z-10" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent rounded-[20px]"></div>
         </div>
-        <div className={`px-5 py-3 rounded-full text-sm font-black shadow-medium border-2 transition-all duration-300 group-hover:scale-110 ${changeColor[changeType]}`}>
+        <div className={`px-3 py-2 rounded-[16px] text-xs font-semibold shadow-soft border transition-all duration-200 group-hover:scale-105 ${changeColor[changeType]}`}>
           {change}
         </div>
       </div>
       
       <div className="text-center relative">
-        <h3 className="text-5xl font-black text-brand-brown mb-3 group-hover:scale-110 transition-transform duration-300">
+        <h3 className="text-3xl font-bold text-brand-gray-dark mb-2 group-hover:scale-105 transition-transform duration-200">
           {value}
         </h3>
-        <p className="text-lg text-brand-brown-light font-bold">
+        <p className="text-base text-brand-gray font-medium">
           {title}
         </p>
         
         {/* Elemento decorativo */}
-        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-2 rounded-full opacity-60 group-hover:opacity-100 group-hover:w-20 transition-all duration-300">
+        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-12 h-1 rounded-full opacity-40 group-hover:opacity-100 group-hover:w-16 transition-all duration-300">
           <div className="w-full h-full gradient-primary rounded-full"></div>
         </div>
       </div>
 
       {/* Forma orgânica decorativa */}
-      <div className="absolute top-6 right-6 w-10 h-10 organic-shape-3 opacity-30 group-hover:opacity-60 transition-opacity duration-300">
-        <div className="w-full h-full bg-accent/20"></div>
+      <div className="absolute top-4 right-4 w-6 h-6 organic-shape-3 opacity-20 group-hover:opacity-40 transition-opacity duration-300">
+        <div className="w-full h-full bg-primary/10"></div>
       </div>
     </div>
   );
