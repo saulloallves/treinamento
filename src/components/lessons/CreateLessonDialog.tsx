@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { Edit, Save, X } from "lucide-react";
+import { useState } from "react";
+import { Plus, Save, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,33 +13,61 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCourses } from "@/hooks/useCourses";
-import { useUpdateLesson, Lesson } from "@/hooks/useLessons";
+import { useCreateLesson, LessonInput } from "@/hooks/useLessons";
 
-interface EditLessonDialogProps {
-  lesson: Lesson | null;
+interface CreateLessonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps) => {
+const CreateLessonDialog = ({ open, onOpenChange }: CreateLessonDialogProps) => {
   const { data: courses = [] } = useCourses();
-  const updateLessonMutation = useUpdateLesson();
-  const [formData, setFormData] = useState<Lesson | null>(null);
-
-  useEffect(() => {
-    if (lesson) {
-      setFormData({ ...lesson });
-    }
-  }, [lesson]);
-
-  if (!formData) return null;
+  const createLessonMutation = useCreateLesson();
+  
+  const [formData, setFormData] = useState<LessonInput>({
+    course_id: "",
+    title: "",
+    description: "",
+    video_url: "",
+    content: "",
+    duration_minutes: 0,
+    order_index: 1,
+    status: "Ativo"
+  });
 
   const handleSave = async () => {
-    if (!formData.title.trim()) {
+    if (!formData.title.trim() || !formData.course_id) {
       return;
     }
 
-    await updateLessonMutation.mutateAsync(formData);
+    await createLessonMutation.mutateAsync(formData);
+    
+    // Reset form
+    setFormData({
+      course_id: "",
+      title: "",
+      description: "",
+      video_url: "",
+      content: "",
+      duration_minutes: 0,
+      order_index: 1,
+      status: "Ativo"
+    });
+    
+    onOpenChange(false);
+  };
+
+  const handleClose = () => {
+    setFormData({
+      course_id: "",
+      title: "",
+      description: "",
+      video_url: "",
+      content: "",
+      duration_minutes: 0,
+      order_index: 1,
+      status: "Ativo"
+    });
     onOpenChange(false);
   };
 
@@ -48,11 +76,11 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Edit className="w-5 h-5" />
-            Editar Aula
+            <Plus className="w-5 h-5" />
+            Nova Aula
           </DialogTitle>
           <DialogDescription>
-            Edite as informações da aula abaixo
+            Crie uma nova aula preenchendo as informações abaixo
           </DialogDescription>
         </DialogHeader>
 
@@ -75,6 +103,7 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
                 onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
                 className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
+                <option value="">Selecione um curso</option>
                 {courses.map(course => (
                   <option key={course.id} value={course.id}>
                     {course.name}
@@ -102,7 +131,7 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             <Label htmlFor="description">Descrição</Label>
             <Input
               id="description"
-              value={formData.description || ""}
+              value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
@@ -133,7 +162,7 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             <Label htmlFor="video_url">Link do Vídeo</Label>
             <Input
               id="video_url"
-              value={formData.video_url || ""}
+              value={formData.video_url}
               onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
             />
           </div>
@@ -142,23 +171,23 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             <Label htmlFor="content">Conteúdo</Label>
             <Input
               id="content"
-              value={formData.content || ""}
+              value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={handleClose}>
             <X className="w-4 h-4" />
             Cancelar
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={updateLessonMutation.isPending || !formData.title.trim()}
+            disabled={createLessonMutation.isPending || !formData.title.trim() || !formData.course_id}
           >
             <Save className="w-4 h-4" />
-            {updateLessonMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            {createLessonMutation.isPending ? "Criando..." : "Criar Aula"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -166,4 +195,4 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
   );
 };
 
-export default EditLessonDialog;
+export default CreateLessonDialog;
