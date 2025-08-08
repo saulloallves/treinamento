@@ -1,14 +1,31 @@
 
 import { useState } from "react";
-import { Plus, Search, Filter, Edit, Trash2, Users, BookOpen } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import EditCourseDialog from "./EditCourseDialog";
+
+interface Course {
+  id: number;
+  name: string;
+  description: string;
+  theme: string;
+  publicTarget: string;
+  mandatory: boolean;
+  hasQuiz: boolean;
+  generatesCertificate: boolean;
+  studentsCount: number;
+  lessonsCount: number;
+  status: string;
+}
 
 const CoursesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPublic, setFilterPublic] = useState("todos");
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  const courses = [
+  const [courses, setCourses] = useState<Course[]>([
     {
       id: 1,
       name: "Segurança no Trabalho",
@@ -48,13 +65,25 @@ const CoursesList = () => {
       lessonsCount: 12,
       status: "Em revisão"
     }
-  ];
+  ]);
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterPublic === "todos" || course.publicTarget === filterPublic;
     return matchesSearch && matchesFilter;
   });
+
+  const handleEditCourse = (course: Course) => {
+    setEditingCourse(course);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveCourse = (updatedCourse: Course) => {
+    setCourses(courses.map(course => 
+      course.id === updatedCourse.id ? updatedCourse : course
+    ));
+    console.log("Curso atualizado:", updatedCourse);
+  };
 
   return (
     <div className="space-y-6">
@@ -166,7 +195,11 @@ const CoursesList = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditCourse(course)}
+                >
                   <Edit className="w-4 h-4" />
                 </Button>
                 <Button variant="outline" size="sm">
@@ -177,6 +210,14 @@ const CoursesList = () => {
           </div>
         ))}
       </div>
+
+      {/* Dialog de Edição */}
+      <EditCourseDialog
+        course={editingCourse}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleSaveCourse}
+      />
     </div>
   );
 };
