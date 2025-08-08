@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
 import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
+import RecordedLessonsDialog from "./RecordedLessonsDialog";
 import { useCourses, useDeleteCourse, Course } from "@/hooks/useCourses";
 
 const CoursesList = () => {
@@ -17,6 +18,7 @@ const CoursesList = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedCourseName, setSelectedCourseName] = useState<string>("");
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
+  const [recordedLessonsDialogOpen, setRecordedLessonsDialogOpen] = useState(false);
 
   const { data: courses = [], isLoading } = useCourses();
   const deleteCourseMutation = useDeleteCourse();
@@ -42,6 +44,12 @@ const CoursesList = () => {
     setSelectedCourseId(courseId);
     setSelectedCourseName(courseName);
     setStudentsDialogOpen(true);
+  };
+
+  const handleViewRecordedLessons = (courseId: string, courseName: string) => {
+    setSelectedCourseId(courseId);
+    setSelectedCourseName(courseName);
+    setRecordedLessonsDialogOpen(true);
   };
 
   const getPublicTargetLabel = (target: string) => {
@@ -174,6 +182,14 @@ const CoursesList = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  onClick={() => handleViewRecordedLessons(course.id, course.name)}
+                  title="Aulas Gravadas"
+                >
+                  <Video className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => handleViewStudents(course.id, course.name)}
                   title="Visualizar Alunos"
                 >
@@ -229,6 +245,13 @@ const CoursesList = () => {
         courseName={selectedCourseName}
         open={studentsDialogOpen}
         onOpenChange={setStudentsDialogOpen}
+      />
+
+      <RecordedLessonsDialog
+        courseId={selectedCourseId}
+        courseName={selectedCourseName}
+        open={recordedLessonsDialogOpen}
+        onOpenChange={setRecordedLessonsDialogOpen}
       />
     </div>
   );
