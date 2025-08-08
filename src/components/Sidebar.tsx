@@ -15,20 +15,23 @@ import {
   MessageSquare,
   ClipboardList
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
+  const location = useLocation();
+  
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", active: true },
-    { icon: GraduationCap, label: "Cursos", active: false },
-    { icon: BookOpen, label: "Aulas", active: false },
-    { icon: ClipboardList, label: "Inscrições", active: false },
-    { icon: UserCheck, label: "Presenças", active: false },
-    { icon: TrendingUp, label: "Progresso", active: false },
-    { icon: Award, label: "Certificados", active: false },
-    { icon: MessageSquare, label: "Disparos WhatsApp", active: false },
-    { icon: Users, label: "Usuários", active: false },
-    { icon: Building2, label: "Unidades", active: false },
-    { icon: Settings, label: "Configurações", active: false },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: GraduationCap, label: "Cursos", path: "/courses" },
+    { icon: BookOpen, label: "Aulas", path: "/lessons" },
+    { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
+    { icon: UserCheck, label: "Presenças", path: "/attendance" },
+    { icon: TrendingUp, label: "Progresso", path: "/progress" },
+    { icon: Award, label: "Certificados", path: "/certificates" },
+    { icon: MessageSquare, label: "Disparos WhatsApp", path: "/whatsapp" },
+    { icon: Users, label: "Usuários", path: "/users" },
+    { icon: Building2, label: "Unidades", path: "/units" },
+    { icon: Settings, label: "Configurações", path: "/settings" },
   ];
 
   return (
@@ -36,14 +39,14 @@ const Sidebar = () => {
       {/* Header da sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-brand-blue flex items-center justify-center shadow-clean">
-            <GraduationCap className="w-6 h-6 text-brand-white" />
+          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-clean">
+            <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-brand-black">
+            <h1 className="text-xl font-bold text-foreground">
               EduManager
             </h1>
-            <p className="text-xs text-brand-gray-dark">
+            <p className="text-xs text-muted-foreground">
               Sistema de Treinamentos
             </p>
           </div>
@@ -54,29 +57,36 @@ const Sidebar = () => {
       <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          
           return (
-            <button
+            <Link
               key={index}
-              className={item.active ? "sidebar-item-active w-full" : "sidebar-item w-full"}
+              to={item.path}
+              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+                isActive 
+                  ? "bg-primary text-white font-medium" 
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
             >
               <div className="w-8 h-8 rounded-sm flex items-center justify-center">
                 <Icon className="w-5 h-5" />
               </div>
               <span className="text-sm">{item.label}</span>
-            </button>
+            </Link>
           );
         })}
       </nav>
 
       {/* Footer da sidebar */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 p-3 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center">
-            <span className="text-sm font-medium text-brand-white">A</span>
+        <div className="flex items-center gap-3 p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-sm font-medium text-white">A</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-brand-black">Admin</p>
-            <p className="text-xs text-brand-gray-dark">Gestor do Sistema</p>
+            <p className="text-sm font-medium text-foreground">Admin</p>
+            <p className="text-xs text-muted-foreground">Gestor do Sistema</p>
           </div>
         </div>
       </div>
