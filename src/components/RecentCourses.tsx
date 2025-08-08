@@ -1,170 +1,102 @@
 
-import { BookOpen, Clock, Users, CheckCircle, Star, Play } from "lucide-react";
+import { Clock, Users, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const RecentCourses = () => {
   const courses = [
     {
       id: 1,
-      name: "Atendimento ao Cliente Excelente",
-      category: "Atendimento",
-      enrolled: 45,
-      completed: 32,
-      status: "active",
-      lastUpdated: "2 dias atrás",
-      progress: Math.round((32 / 45) * 100),
-      color: "from-purple-500 to-purple-600"
+      title: "Segurança no Trabalho",
+      description: "Curso obrigatório sobre normas de segurança",
+      students: 234,
+      duration: "2h 30min",
+      status: "Ativo",
+      progress: 85,
     },
     {
       id: 2,
-      name: "Gestão Financeira para Franqueados",
-      category: "Gestão",
-      enrolled: 23,
-      completed: 18,
-      status: "active", 
-      lastUpdated: "1 semana atrás",
-      progress: Math.round((18 / 23) * 100),
-      color: "from-pink-500 to-pink-600"
+      title: "Atendimento ao Cliente",
+      description: "Técnicas de relacionamento e vendas",
+      students: 156,
+      duration: "1h 45min",
+      status: "Ativo",
+      progress: 92,
     },
     {
       id: 3,
-      name: "Segurança no Trabalho",
-      category: "Compliance",
-      enrolled: 67,
-      completed: 67,
-      status: "completed",
-      lastUpdated: "3 dias atrás",
-      progress: 100,
-      color: "from-green-500 to-green-600"
+      title: "Gestão de Estoque",
+      description: "Controle e organização do inventário",
+      students: 89,
+      duration: "3h 15min",
+      status: "Em revisão",
+      progress: 67,
     },
-    {
-      id: 4,
-      name: "Vendas e Relacionamento",
-      category: "Vendas",
-      enrolled: 34,
-      completed: 12,
-      status: "active",
-      lastUpdated: "5 dias atrás",
-      progress: Math.round((12 / 34) * 100),
-      color: "from-blue-500 to-blue-600"
-    }
   ];
 
   return (
-    <div className="card-modern">
-      <div className="relative z-10 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-              <BookOpen className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Cursos Recentes</h2>
-              <p className="text-gray-600 text-sm">Acompanhe o progresso dos seus cursos</p>
-            </div>
-          </div>
-          <Button variant="gradient" className="shadow-lg">
-            Ver todos
-          </Button>
+    <div className="card-clean p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-brand-black mb-2">
+            Cursos Recentes
+          </h2>
+          <p className="text-brand-gray-dark">
+            Últimos cursos adicionados ao sistema
+          </p>
         </div>
+        <Button className="btn-primary">
+          <BookOpen className="w-4 h-4" />
+          Novo Curso
+        </Button>
+      </div>
 
-        {/* Lista de cursos */}
-        <div className="space-y-6">
-          {courses.map((course, index) => (
-            <div 
-              key={course.id} 
-              className="group relative bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/70 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="flex items-center gap-6">
-                {/* Ícone do curso */}
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${course.color} flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 relative overflow-hidden`}>
-                  <BookOpen className="w-8 h-8 text-white relative z-10" />
-                  <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                
-                {/* Conteúdo principal */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-lg group-hover:text-purple-700 transition-colors">
-                        {course.name}
-                      </h3>
-                      <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs font-semibold rounded-full mt-1">
-                        {course.category}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/80 px-3 py-2 rounded-lg shadow-sm">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-semibold text-gray-700">4.8</span>
-                    </div>
-                  </div>
-                  
-                  {/* Estatísticas */}
-                  <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg">
-                      <Users className="w-4 h-4 text-purple-500" />
-                      <span className="font-medium">{course.enrolled} inscritos</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="font-medium">{course.completed} concluídos</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span>{course.lastUpdated}</span>
-                    </div>
-                  </div>
-
-                  {/* Barra de progresso moderna */}
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Progresso</span>
-                      <span className="text-sm font-bold text-purple-600">{course.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className={`h-2 bg-gradient-to-r ${course.color} rounded-full transition-all duration-500 shadow-sm relative overflow-hidden`}
-                        style={{ width: `${course.progress}%` }}
-                      >
-                        <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botão de ação */}
-                <div className="flex flex-col items-center gap-2">
-                  <Button
-                    variant={course.status === 'completed' ? 'success' : 'default'}
-                    size="sm"
-                    className="min-w-[100px]"
+      <div className="space-y-4">
+        {courses.map((course) => (
+          <div
+            key={course.id}
+            className="p-4 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow duration-200"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="font-medium text-brand-black">
+                    {course.title}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      course.status === "Ativo"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
                   >
-                    {course.status === 'completed' ? (
-                      <>
-                        <CheckCircle className="w-4 h-4" />
-                        Concluído
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4" />
-                        Continuar
-                      </>
-                    )}
-                  </Button>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    course.status === 'active' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {course.status === 'active' ? 'Ativo' : 'Concluído'}
+                    {course.status}
                   </span>
+                </div>
+                <p className="text-brand-gray-dark text-sm mb-3">
+                  {course.description}
+                </p>
+                <div className="flex items-center gap-6 text-sm text-brand-gray-dark">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {course.students} alunos
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {course.duration}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-brand-blue mb-1">
+                  {course.progress}%
+                </div>
+                <div className="text-xs text-brand-gray-dark">
+                  Progresso médio
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

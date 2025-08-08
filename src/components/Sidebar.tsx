@@ -7,7 +7,13 @@ import {
   BookOpen, 
   Award,
   BarChart3,
-  Settings 
+  Settings,
+  UserCheck,
+  Calendar,
+  TrendingUp,
+  HelpCircle,
+  MessageSquare,
+  ClipboardList
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -15,10 +21,13 @@ const Sidebar = () => {
     { icon: LayoutDashboard, label: "Dashboard", active: true },
     { icon: GraduationCap, label: "Cursos", active: false },
     { icon: BookOpen, label: "Aulas", active: false },
+    { icon: ClipboardList, label: "Inscrições", active: false },
+    { icon: UserCheck, label: "Presenças", active: false },
+    { icon: TrendingUp, label: "Progresso", active: false },
+    { icon: Award, label: "Certificados", active: false },
+    { icon: MessageSquare, label: "Disparos WhatsApp", active: false },
     { icon: Users, label: "Usuários", active: false },
     { icon: Building2, label: "Unidades", active: false },
-    { icon: Award, label: "Certificados", active: false },
-    { icon: BarChart3, label: "Relatórios", active: false },
     { icon: Settings, label: "Configurações", active: false },
   ];
 
