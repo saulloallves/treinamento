@@ -37,48 +37,48 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-brand-yellow/5 to-brand-blue/5">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-yellow"></div>
+      <div className="min-h-screen flex items-center justify-center bg-brand-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-brand-yellow/5 to-brand-blue/5 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-brand-yellow to-brand-orange rounded-2xl mb-4 shadow-lg">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-blue rounded-lg mb-4">
             <GraduationCap className="h-8 w-8 text-brand-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gradient mb-2">
+          <h1 className="text-3xl font-bold text-brand-black mb-2">
             Franchise Learn Flow
           </h1>
-          <p className="text-brand-brown/70">
+          <p className="text-brand-gray-dark">
             Sistema de Treinamentos Corporativos
           </p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-white/90 border-brand-yellow/20 shadow-xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-brand-brown">Acesse sua conta</CardTitle>
-            <CardDescription className="text-brand-brown/70">
+        <Card className="bg-brand-white shadow-clean-lg border-gray-200">
+          <CardHeader className="text-center space-y-2 pb-4">
+            <CardTitle className="text-2xl text-brand-black">Acesse sua conta</CardTitle>
+            <CardDescription className="text-brand-gray-dark">
               Faça login ou crie uma nova conta para continuar
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-brand-yellow/10 border border-brand-yellow/20">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100">
                 <TabsTrigger 
                   value="login" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-yellow data-[state=active]:text-brand-white"
+                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
                 >
                   <LogIn className="h-4 w-4" />
                   Login
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-yellow data-[state=active]:text-brand-white"
+                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
                 >
                   <UserPlus className="h-4 w-4" />
                   Cadastro
@@ -88,7 +88,7 @@ const Auth = () => {
               <TabsContent value="login">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-brand-brown">Email</Label>
+                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -96,11 +96,11 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-brand-yellow/30 focus:border-brand-yellow focus:ring-brand-yellow/20"
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-brand-brown">Senha</Label>
+                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha</Label>
                     <Input
                       id="password"
                       type="password"
@@ -108,7 +108,7 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-brand-yellow/30 focus:border-brand-yellow focus:ring-brand-yellow/20"
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <Button 
@@ -124,7 +124,7 @@ const Auth = () => {
               <TabsContent value="register">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-brand-brown">Nome Completo</Label>
+                    <Label htmlFor="fullName" className="text-brand-gray-dark font-medium">Nome Completo</Label>
                     <Input
                       id="fullName"
                       type="text"
@@ -132,11 +132,11 @@ const Auth = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
-                      className="border-brand-yellow/30 focus:border-brand-yellow focus:ring-brand-yellow/20"
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-brand-brown">Email</Label>
+                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -144,11 +144,11 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-brand-yellow/30 focus:border-brand-yellow focus:ring-brand-yellow/20"
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-brand-brown">Senha</Label>
+                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha</Label>
                     <Input
                       id="password"
                       type="password"
@@ -157,7 +157,7 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="border-brand-yellow/30 focus:border-brand-yellow focus:ring-brand-yellow/20"
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <Button 
@@ -173,7 +173,7 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6 text-sm text-brand-brown/60">
+        <div className="text-center text-sm text-brand-gray-dark">
           Ao continuar, você concorda com nossos termos de uso
         </div>
       </div>
