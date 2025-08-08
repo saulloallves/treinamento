@@ -21,12 +21,12 @@ const Index = () => {
       
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-card border-b border-border px-8 py-4">
+        <header className="bg-card border-b border-border px-8 py-4 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Visão geral dos treinamentos da rede
+              <h1 className="text-3xl font-bold text-primary">Dashboard</h1>
+              <p className="text-muted-foreground font-medium">
+                Visão geral dos treinamentos da rede Cresci & Perdi
               </p>
             </div>
             
@@ -35,10 +35,10 @@ const Index = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="Buscar cursos, usuários..."
-                  className="pl-10 w-80"
+                  className="pl-10 w-80 border-primary/30 focus:border-primary"
                 />
               </div>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-secondary/50 hover:text-primary">
                 <Bell className="w-5 h-5" />
               </Button>
             </div>
@@ -91,21 +91,22 @@ const Index = () => {
 
           {/* Quick Actions */}
           <div className="training-card">
-            <h2 className="text-xl font-semibold text-card-foreground mb-6">
+            <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+              <Award className="w-6 h-6" />
               Ações Rápidas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button className="h-20 flex flex-col gap-2 gradient-primary border-0">
+              <Button className="h-20 flex flex-col gap-2 gradient-primary border-0 hover:scale-105 transition-transform shadow-medium hover:shadow-large">
                 <GraduationCap className="w-6 h-6" />
-                <span>Criar Curso</span>
+                <span className="font-semibold">Criar Curso</span>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
+              <Button variant="outline" className="h-20 flex flex-col gap-2 border-primary/30 hover:bg-secondary/50 hover:text-primary hover:scale-105 transition-all">
                 <Users className="w-6 h-6" />
-                <span>Adicionar Usuários</span>
+                <span className="font-semibold">Adicionar Usuários</span>
               </Button>
-              <Button variant="outline" className="h-20 flex flex-col gap-2">
+              <Button variant="outline" className="h-20 flex flex-col gap-2 border-primary/30 hover:bg-secondary/50 hover:text-primary hover:scale-105 transition-all">
                 <Award className="w-6 h-6" />
-                <span>Emitir Certificados</span>
+                <span className="font-semibold">Emitir Certificados</span>
               </Button>
             </div>
           </div>
