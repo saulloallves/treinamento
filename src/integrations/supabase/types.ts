@@ -541,6 +541,54 @@ export type Database = {
           },
         ]
       }
+      whatsapp_dispatches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delivered_count: number
+          failed_count: number
+          id: string
+          item_id: string
+          item_name: string
+          message: string
+          recipients_count: number
+          sent_date: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          item_id: string
+          item_name: string
+          message: string
+          recipients_count?: number
+          sent_date?: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          item_id?: string
+          item_name?: string
+          message?: string
+          recipients_count?: number
+          sent_date?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

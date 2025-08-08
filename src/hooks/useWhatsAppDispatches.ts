@@ -61,11 +61,13 @@ export const useCreateWhatsAppDispatch = () => {
 
   return useMutation({
     mutationFn: async (dispatchData: DispatchInput) => {
+      const user = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('whatsapp_dispatches')
         .insert([{
           ...dispatchData,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: user.data.user?.id
         }])
         .select()
         .single();
