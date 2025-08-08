@@ -3,12 +3,29 @@ import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Video, Calendar, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import EditLessonDialog from "./EditLessonDialog";
+
+interface Lesson {
+  id: number;
+  name: string;
+  courseId: number;
+  courseName: string;
+  type: string;
+  link: string;
+  order: number;
+  duration: string;
+  status: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
+}
 
 const LessonsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const lessons = [
+  const [lessons, setLessons] = useState<Lesson[]>([
     {
       id: 1,
       name: "Introdução à Segurança",
@@ -55,7 +72,7 @@ const LessonsList = () => {
       duration: "20min",
       status: "Ativo"
     }
-  ];
+  ]);
 
   const courses = [
     { id: 1, name: "Segurança no Trabalho" },
@@ -63,13 +80,24 @@ const LessonsList = () => {
     { id: 3, name: "Gestão Franqueado" }
   ];
 
+  const handleEditLesson = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveLesson = (updatedLesson: Lesson) => {
+    setLessons(lessons.map(lesson => 
+      lesson.id === updatedLesson.id ? updatedLesson : lesson
+    ));
+  };
+
   const filteredLessons = lessons.filter(lesson => {
     const matchesSearch = lesson.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCourse = selectedCourse === "todos" || lesson.courseId.toString() === selectedCourse;
     return matchesSearch && matchesCourse;
   });
 
-  const isLinkActive = (lesson: any) => {
+  const isLinkActive = (lesson: Lesson) => {
     if (lesson.type === "gravada") return true;
     if (lesson.type === "ao_vivo" && lesson.scheduledDate) {
       const now = new Date();
@@ -203,7 +231,7 @@ const LessonsList = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => handleEditLesson(lesson)}>
                   <Edit className="w-4 h-4" />
                 </Button>
                 <Button variant="outline" size="sm">
@@ -214,6 +242,13 @@ const LessonsList = () => {
           </div>
         ))}
       </div>
+
+      <EditLessonDialog
+        lesson={editingLesson}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={handleSaveLesson}
+      />
     </div>
   );
 };
