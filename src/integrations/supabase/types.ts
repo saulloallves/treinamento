@@ -62,6 +62,59 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollments: {
+        Row: {
+          completed_lessons: string[] | null
+          course_id: string
+          created_at: string
+          created_by: string | null
+          enrollment_date: string
+          id: string
+          progress_percentage: number
+          status: string
+          student_email: string
+          student_name: string
+          student_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_lessons?: string[] | null
+          course_id: string
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          id?: string
+          progress_percentage?: number
+          status?: string
+          student_email: string
+          student_name: string
+          student_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_lessons?: string[] | null
+          course_id?: string
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          id?: string
+          progress_percentage?: number
+          status?: string
+          student_email?: string
+          student_name?: string
+          student_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           content: string | null
@@ -111,6 +164,54 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          enrollment_id: string
+          id: string
+          lesson_id: string
+          status: string
+          updated_at: string
+          watch_time_minutes: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          lesson_id: string
+          status?: string
+          updated_at?: string
+          watch_time_minutes?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          lesson_id?: string
+          status?: string
+          updated_at?: string
+          watch_time_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_progress_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]

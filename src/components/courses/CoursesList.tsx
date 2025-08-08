@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Users, BookOpen } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
+import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
 import { useCourses, useDeleteCourse, Course } from "@/hooks/useCourses";
 
 const CoursesList = () => {
@@ -13,6 +14,9 @@ const CoursesList = () => {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedCourseName, setSelectedCourseName] = useState<string>("");
+  const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
 
   const { data: courses = [], isLoading } = useCourses();
   const deleteCourseMutation = useDeleteCourse();
@@ -32,6 +36,12 @@ const CoursesList = () => {
     if (window.confirm("Tem certeza que deseja excluir este curso?")) {
       await deleteCourseMutation.mutateAsync(courseId);
     }
+  };
+
+  const handleViewStudents = (courseId: string, courseName: string) => {
+    setSelectedCourseId(courseId);
+    setSelectedCourseName(courseName);
+    setStudentsDialogOpen(true);
   };
 
   const getPublicTargetLabel = (target: string) => {
@@ -164,6 +174,14 @@ const CoursesList = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  onClick={() => handleViewStudents(course.id, course.name)}
+                  title="Visualizar Alunos"
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => handleEditCourse(course)}
                   disabled={deleteCourseMutation.isPending}
                 >
@@ -204,6 +222,13 @@ const CoursesList = () => {
         course={editingCourse}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+      />
+
+      <StudentEnrollmentsDialog
+        courseId={selectedCourseId}
+        courseName={selectedCourseName}
+        open={studentsDialogOpen}
+        onOpenChange={setStudentsDialogOpen}
       />
     </div>
   );
