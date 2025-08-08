@@ -243,7 +243,7 @@
   }
 
   .activity-item {
-    @apply relative pl-16 pb-8 border-l-3 border-secondary/30 last:border-l-0 last:pb-0;
+    @apply relative pl-16 pb-8 border-l-4 border-secondary/30 last:border-l-0 last:pb-0;
   }
 
   .activity-item::before {
