@@ -23,46 +23,56 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-sidebar border-r border-sidebar-border h-screen flex flex-col">
-      <div className="p-6 border-b border-sidebar-border">
+    <div className="w-64 bg-sidebar border-r-4 border-secondary/30 h-screen flex flex-col relative overflow-hidden">
+      {/* Formas decorativas de fundo */}
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-secondary/20 to-primary/20 organic-shape-3"></div>
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-accent/10 to-transparent organic-shape-2"></div>
+
+      <div className="relative p-6 border-b-2 border-secondary/20">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center shadow-medium animate-bounce-soft">
-            <GraduationCap className="w-7 h-7 text-primary-foreground" />
+          <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center shadow-medium animate-bounce-playful">
+            <GraduationCap className="w-8 h-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">
+            <h1 className="text-xl font-black text-brand-brown bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Cresci & Perdi
             </h1>
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm text-brand-brown font-bold">
               Treinamentos
             </p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 relative z-10">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
           return (
             <button
               key={index}
-              className={item.active ? "sidebar-item-active w-full font-semibold" : "sidebar-item w-full hover:scale-105 transition-all duration-200"}
+              className={item.active ? "sidebar-item-active w-full" : "sidebar-item w-full group"}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                item.active 
+                  ? 'bg-white/20' 
+                  : 'bg-gradient-to-br from-secondary/20 to-primary/20 group-hover:from-secondary/40 group-hover:to-primary/40'
+              }`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className="font-bold">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
-          <div className="w-8 h-8 gradient-accent rounded-full flex items-center justify-center">
-            <span className="text-xs font-bold text-accent-foreground">A</span>
+      <div className="p-4 border-t-2 border-secondary/20 relative z-10">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-secondary/10 to-primary/10 hover:from-secondary/20 hover:to-primary/20 transition-all duration-300 hover:scale-105">
+          <div className="w-10 h-10 gradient-accent rounded-full flex items-center justify-center shadow-medium">
+            <span className="text-sm font-black text-accent-foreground">A</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-sidebar-foreground">Admin</p>
-            <p className="text-xs text-muted-foreground">Gestor da Rede</p>
+            <p className="text-sm font-black text-brand-brown">Admin</p>
+            <p className="text-xs text-brand-brown-light font-bold">Gestor da Rede</p>
           </div>
         </div>
       </div>

@@ -11,30 +11,37 @@ interface MetricCardProps {
 
 const MetricCard = ({ title, value, change, changeType, icon: Icon }: MetricCardProps) => {
   const changeColor = {
-    positive: "text-accent",
-    negative: "text-destructive",
-    neutral: "text-muted-foreground"
+    positive: "text-accent bg-accent/10 border-accent/30",
+    negative: "text-destructive bg-destructive/10 border-destructive/30",
+    neutral: "text-muted-foreground bg-muted/30 border-muted/30"
   };
 
   return (
-    <div className="metric-card group hover:scale-105 transition-transform duration-300 hover:shadow-large">
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-14 h-14 gradient-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200 shadow-medium">
-          <Icon className="w-7 h-7 text-primary-foreground" />
+    <div className="metric-card group hover:scale-110 transition-all duration-500 hover:shadow-glow hover:rotate-1">
+      <div className="flex items-center justify-between mb-6 relative">
+        <div className="w-16 h-16 gradient-warm rounded-3xl flex items-center justify-center group-hover:scale-125 group-hover:animate-wiggle transition-all duration-500 shadow-large relative overflow-hidden">
+          <Icon className="w-8 h-8 text-white relative z-10" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent rounded-3xl"></div>
         </div>
-        <span className={`text-sm font-bold px-2 py-1 rounded-full bg-background/50 ${changeColor[changeType]}`}>
+        <div className={`px-4 py-2 rounded-full text-sm font-black shadow-soft border-2 transition-all duration-300 group-hover:scale-110 ${changeColor[changeType]}`}>
           {change}
-        </span>
+        </div>
       </div>
       
-      <div>
-        <h3 className="text-3xl font-bold text-primary mb-1">
+      <div className="text-center relative">
+        <h3 className="text-4xl font-black text-brand-brown mb-2 group-hover:scale-110 transition-transform duration-300">
           {value}
         </h3>
-        <p className="text-sm text-muted-foreground font-medium">
+        <p className="text-base text-brand-brown-light font-bold">
           {title}
         </p>
+        
+        {/* Elemento decorativo */}
+        <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-secondary to-primary rounded-full opacity-60 group-hover:opacity-100 group-hover:w-16 transition-all duration-300"></div>
       </div>
+
+      {/* Forma orgânica decorativa */}
+      <div className="absolute top-4 right-4 w-8 h-8 bg-accent/20 organic-shape-3 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
     </div>
   );
 };

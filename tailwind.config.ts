@@ -66,12 +66,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Cores personalizadas do tema Cresci & Perdi
+				// Cores específicas do tema Cresci & Perdi
 				'brand': {
-					'orange': 'hsl(24 95% 53%)',
-					'yellow': 'hsl(39 100% 57%)',
-					'blue': 'hsl(199 89% 48%)',
-					'brown': 'hsl(120 53% 15%)',
+					'yellow': '#FFB400',
+					'orange': '#F79C00',
+					'blue': '#00AEEF',
+					'brown': '#5C2D0C',
+					'brown-light': '#8B4513',
 				}
 			},
 			borderRadius: {
@@ -125,6 +126,22 @@ export default {
 						transform: 'translateY(0)',
 						animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
 					}
+				},
+				'wiggle': {
+					'0%, 100%': {
+						transform: 'rotate(-3deg)'
+					},
+					'50%': {
+						transform: 'rotate(3deg)'
+					}
+				},
+				'bounce-playful': {
+					'0%, 100%': {
+						transform: 'translateY(-5px) rotate(-2deg)'
+					},
+					'50%': {
+						transform: 'translateY(0) rotate(2deg)'
+					}
 				}
 			},
 			animation: {
@@ -132,7 +149,9 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'slide-in': 'slide-in 0.3s ease-out',
-				'bounce-soft': 'bounce-soft 1s infinite'
+				'bounce-soft': 'bounce-soft 1s infinite',
+				'wiggle': 'wiggle 1s ease-in-out infinite',
+				'bounce-playful': 'bounce-playful 2s ease-in-out infinite'
 			}
 		}
 	},
