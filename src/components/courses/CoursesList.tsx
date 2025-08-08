@@ -4,72 +4,22 @@ import { Plus, Search, Edit, Trash2, Users, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EditCourseDialog from "./EditCourseDialog";
-
-interface Course {
-  id: number;
-  name: string;
-  description: string;
-  theme: string;
-  publicTarget: string;
-  mandatory: boolean;
-  hasQuiz: boolean;
-  generatesCertificate: boolean;
-  studentsCount: number;
-  lessonsCount: number;
-  status: string;
-}
+import CreateCourseDialog from "./CreateCourseDialog";
+import { useCourses, useDeleteCourse, Course } from "@/hooks/useCourses";
 
 const CoursesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPublic, setFilterPublic] = useState("todos");
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: 1,
-      name: "Segurança no Trabalho",
-      description: "Curso obrigatório sobre normas de segurança e prevenção de acidentes",
-      theme: "Segurança",
-      publicTarget: "ambos",
-      mandatory: true,
-      hasQuiz: true,
-      generatesCertificate: true,
-      studentsCount: 234,
-      lessonsCount: 8,
-      status: "Ativo"
-    },
-    {
-      id: 2,
-      name: "Atendimento ao Cliente",
-      description: "Técnicas de relacionamento, vendas e fidelização",
-      theme: "Vendas",
-      publicTarget: "colaborador",
-      mandatory: false,
-      hasQuiz: true,
-      generatesCertificate: true,
-      studentsCount: 156,
-      lessonsCount: 5,
-      status: "Ativo"
-    },
-    {
-      id: 3,
-      name: "Gestão Franqueado",
-      description: "Curso específico para gestão de franquias",
-      theme: "Gestão",
-      publicTarget: "franqueado",
-      mandatory: true,
-      hasQuiz: false,
-      generatesCertificate: true,
-      studentsCount: 45,
-      lessonsCount: 12,
-      status: "Em revisão"
-    }
-  ]);
+  const { data: courses = [], isLoading } = useCourses();
+  const deleteCourseMutation = useDeleteCourse();
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterPublic === "todos" || course.publicTarget === filterPublic;
+    const matchesFilter = filterPublic === "todos" || course.public_target === filterPublic;
     return matchesSearch && matchesFilter;
   });
 
@@ -78,12 +28,28 @@ const CoursesList = () => {
     setEditDialogOpen(true);
   };
 
-  const handleSaveCourse = (updatedCourse: Course) => {
-    setCourses(courses.map(course => 
-      course.id === updatedCourse.id ? updatedCourse : course
-    ));
-    console.log("Curso atualizado:", updatedCourse);
+  const handleDeleteCourse = async (courseId: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este curso?")) {
+      await deleteCourseMutation.mutateAsync(courseId);
+    }
   };
+
+  const getPublicTargetLabel = (target: string) => {
+    switch (target) {
+      case "franqueado": return "Franqueado";
+      case "colaborador": return "Colaborador";
+      case "ambos": return "Ambos";
+      default: return target;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-brand-gray-dark">Carregando cursos...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -93,7 +59,10 @@ const CoursesList = () => {
           <h1 className="text-2xl font-bold text-brand-black">Cursos</h1>
           <p className="text-brand-gray-dark">Gerencie os cursos de treinamento</p>
         </div>
-        <Button className="btn-primary">
+        <Button 
+          className="btn-primary"
+          onClick={() => setCreateDialogOpen(true)}
+        >
           <Plus className="w-4 h-4" />
           Criar Novo Curso
         </Button>
@@ -156,38 +125,35 @@ const CoursesList = () => {
                     className={`px-2 py-1 text-xs rounded-full ${
                       course.status === "Ativo"
                         ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
+                        : course.status === "Em revisão"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {course.status}
                   </span>
                 </div>
                 
-                <p className="text-brand-gray-dark mb-4">{course.description}</p>
+                <p className="text-brand-gray-dark mb-4">{course.description || "Sem descrição"}</p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-brand-blue" />
                     <span className="text-brand-gray-dark">
-                      Público: {course.publicTarget === "ambos" ? "Ambos" : 
-                      course.publicTarget === "franqueado" ? "Franqueado" : "Colaborador"}
+                      Público: {getPublicTargetLabel(course.public_target)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-brand-blue" />
-                    <span className="text-brand-gray-dark">{course.lessonsCount} aulas</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-brand-blue" />
-                    <span className="text-brand-gray-dark">{course.studentsCount} inscritos</span>
+                    <span className="text-brand-gray-dark">{course.lessons_count} aulas</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-xs">
-                      <span className={course.hasQuiz ? "text-green-600" : "text-red-600"}>
-                        {course.hasQuiz ? "✓" : "✗"} Quiz
+                      <span className={course.has_quiz ? "text-green-600" : "text-red-600"}>
+                        {course.has_quiz ? "✓" : "✗"} Quiz
                       </span>
-                      <span className={course.generatesCertificate ? "text-green-600" : "text-red-600"}>
-                        {course.generatesCertificate ? "✓" : "✗"} Certificado
+                      <span className={course.generates_certificate ? "text-green-600" : "text-red-600"}>
+                        {course.generates_certificate ? "✓" : "✗"} Certificado
                       </span>
                     </div>
                   </div>
@@ -199,10 +165,16 @@ const CoursesList = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => handleEditCourse(course)}
+                  disabled={deleteCourseMutation.isPending}
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDeleteCourse(course.id)}
+                  disabled={deleteCourseMutation.isPending}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -211,12 +183,27 @@ const CoursesList = () => {
         ))}
       </div>
 
-      {/* Dialog de Edição */}
+      {filteredCourses.length === 0 && !isLoading && (
+        <div className="text-center py-8">
+          <p className="text-brand-gray-dark">
+            {courses.length === 0 
+              ? "Nenhum curso encontrado. Crie o primeiro curso!" 
+              : "Nenhum curso corresponde aos filtros aplicados."
+            }
+          </p>
+        </div>
+      )}
+
+      {/* Dialogs */}
+      <CreateCourseDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
+      
       <EditCourseDialog
         course={editingCourse}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
-        onSave={handleSaveCourse}
       />
     </div>
   );
