@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Send, MessageSquare, Users, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useCourses } from "@/hooks/useCourses";
+import { useLessons } from "@/hooks/useLessons";
 
 const WhatsAppDispatch = () => {
   const [selectedType, setSelectedType] = useState("curso");
@@ -10,16 +11,9 @@ const WhatsAppDispatch = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [message, setMessage] = useState("");
 
-  const courses = [
-    { id: 1, name: "Segurança no Trabalho" },
-    { id: 2, name: "Atendimento ao Cliente" },
-    { id: 3, name: "Gestão Franqueado" }
-  ];
-
-  const lessons = [
-    { id: 1, name: "Introdução à Segurança", courseName: "Segurança no Trabalho" },
-    { id: 2, name: "Técnicas de Abordagem", courseName: "Atendimento ao Cliente" }
-  ];
+  // Fetch real data from Supabase
+  const { data: courses = [] } = useCourses();
+  const { data: lessons = [] } = useLessons();
 
   const users = [
     { id: 1, name: "João Silva", whatsapp: "(11) 99999-0001", unit: "SP-001" },
@@ -134,13 +128,13 @@ const WhatsAppDispatch = () => {
                   <option value="">Selecione...</option>
                   {selectedType === "curso" 
                     ? courses.map(course => (
-                        <option key={course.id} value={course.id.toString()}>
+                        <option key={course.id} value={course.id}>
                           {course.name}
                         </option>
                       ))
                     : lessons.map(lesson => (
-                        <option key={lesson.id} value={lesson.id.toString()}>
-                          {lesson.name} ({lesson.courseName})
+                        <option key={lesson.id} value={lesson.id}>
+                          {lesson.title} {lesson.courses?.name && `(${lesson.courses.name})`}
                         </option>
                       ))
                   }
