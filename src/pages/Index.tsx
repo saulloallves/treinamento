@@ -38,45 +38,51 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
-        {/* Header profissional */}
-        <header className="header-bg border-b border-border p-6">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold text-brand-gray-dark mb-2">
+        {/* Header moderno com gradiente */}
+        <header className="relative bg-white/80 backdrop-blur-md border-b border-white/20 p-6 shadow-sm">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5"></div>
+          <div className="relative max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-gradient mb-2">
               Dashboard de Treinamentos
             </h1>
-            <p className="text-brand-gray font-medium">
+            <p className="text-gray-600 font-medium">
               Gerencie e acompanhe o progresso dos treinamentos da sua organização
             </p>
           </div>
         </header>
 
-        {/* Conteúdo principal centralizado */}
+        {/* Conteúdo principal */}
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-8">
-            {/* Cards de métricas */}
+            {/* Cards de métricas com animação */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {metrics.map((metric, index) => (
-                <MetricCard
-                  key={index}
-                  title={metric.title}
-                  value={metric.value}
-                  change={metric.change}
-                  changeType={metric.changeType}
-                  icon={metric.icon}
-                />
+                <div 
+                  key={index} 
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <MetricCard
+                    title={metric.title}
+                    value={metric.value}
+                    change={metric.change}
+                    changeType={metric.changeType}
+                    icon={metric.icon}
+                  />
+                </div>
               ))}
             </div>
 
-            {/* Seção principal */}
+            {/* Seção principal com layout moderno */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              <div className="xl:col-span-2">
+              <div className="xl:col-span-2 animate-scale-in">
                 <RecentCourses />
               </div>
-              <div>
+              <div className="animate-slide-right">
                 <ActivityFeed />
               </div>
             </div>
