@@ -66,17 +66,21 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Cores modernas da marca
+				// Nova paleta de cores personalizada
 				'brand': {
-					'purple': 'hsl(var(--brand-purple))',
-					'purple-light': 'hsl(var(--brand-purple-light))', 
-					'purple-dark': 'hsl(var(--brand-purple-dark))',
-					'pink': 'hsl(var(--brand-pink))',
-					'pink-light': 'hsl(var(--brand-pink-light))',
-					'pink-dark': 'hsl(var(--brand-pink-dark))',
-					'blue': 'hsl(var(--brand-blue))',
+					'yellow': 'hsl(var(--brand-yellow))',
+					'yellow-light': 'hsl(var(--brand-yellow-light))',
+					'yellow-dark': 'hsl(var(--brand-yellow-dark))',
 					'orange': 'hsl(var(--brand-orange))',
-					'green': 'hsl(var(--brand-green))',
+					'orange-light': 'hsl(var(--brand-orange-light))',
+					'orange-dark': 'hsl(var(--brand-orange-dark))',
+					'blue': 'hsl(var(--brand-blue))',
+					'blue-light': 'hsl(var(--brand-blue-light))',
+					'blue-dark': 'hsl(var(--brand-blue-dark))',
+					'brown': 'hsl(var(--brand-brown))',
+					'brown-light': 'hsl(var(--brand-brown-light))',
+					'brown-dark': 'hsl(var(--brand-brown-dark))',
+					'white': 'hsl(var(--brand-white))',
 				}
 			},
 			borderRadius: {
@@ -158,10 +162,10 @@ export default {
 				},
 				'pulse-glow': {
 					'0%, 100%': {
-						boxShadow: '0 0 20px hsl(var(--brand-purple) / 0.3)'
+						boxShadow: '0 0 20px hsl(var(--brand-yellow) / 0.3)'
 					},
 					'50%': {
-						boxShadow: '0 0 40px hsl(var(--brand-purple) / 0.6)'
+						boxShadow: '0 0 40px hsl(var(--brand-yellow) / 0.6)'
 					}
 				}
 			},

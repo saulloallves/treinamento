@@ -10,17 +10,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "btn-primary shadow-purple-500/25 hover:shadow-purple-500/40",
+        default: "btn-primary shadow-brand-yellow/25 hover:shadow-brand-yellow/40",
         destructive:
-          "bg-gradient-to-r from-red-500 to-red-600 text-destructive-foreground hover:from-red-600 hover:to-red-700 shadow-red-500/25 hover:shadow-red-500/40",
+          "bg-gradient-to-r from-red-500 to-red-600 text-brand-white hover:from-red-600 hover:to-red-700 shadow-red-500/25 hover:shadow-red-500/40",
         outline:
-          "border-2 border-purple-200 bg-white/80 backdrop-blur-sm hover:bg-purple-50 hover:border-purple-300 text-purple-700 hover:text-purple-800",
+          "border-2 border-brand-yellow/30 bg-white/90 backdrop-blur-sm hover:bg-brand-yellow/10 hover:border-brand-yellow/50 text-brand-brown hover:text-brand-brown",
         secondary:
-          "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 shadow-gray-200/50",
-        ghost: "hover:bg-purple-100/80 hover:text-purple-700 rounded-xl backdrop-blur-sm",
-        link: "text-purple-600 underline-offset-4 hover:underline hover:text-purple-700",
-        gradient: "bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white shadow-lg hover:shadow-xl",
-        success: "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-green-500/25 hover:shadow-green-500/40",
+          "bg-gradient-to-r from-brand-blue/10 to-brand-blue/20 text-brand-brown hover:from-brand-blue/20 hover:to-brand-blue/30 shadow-brand-blue/20",
+        ghost: "hover:bg-brand-yellow/10 hover:text-brand-brown rounded-xl backdrop-blur-sm",
+        link: "text-brand-blue underline-offset-4 hover:underline hover:text-brand-blue/80",
+        gradient: "bg-gradient-to-r from-brand-yellow via-brand-orange to-brand-blue text-brand-white shadow-lg hover:shadow-xl",
+        success: "bg-gradient-to-r from-green-500 to-green-600 text-brand-white shadow-green-500/25 hover:shadow-green-500/40",
       },
       size: {
         default: "h-10 px-6 py-2",
