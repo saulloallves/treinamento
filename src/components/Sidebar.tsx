@@ -35,18 +35,18 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 sidebar-clean h-screen flex flex-col">
+    <div className="w-64 bg-white h-screen flex flex-col border-r border-gray-200 shadow-sm">
       {/* Header da sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-clean">
+          <div className="w-10 h-10 rounded-md bg-[#007BFF] flex items-center justify-center shadow-sm">
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">
-              EduManager
+            <h1 className="text-xl font-bold text-[#000000]">
+              Cresci e Perdi
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-[#333333]">
               Sistema de Treinamentos
             </p>
           </div>
@@ -65,8 +65,8 @@ const Sidebar = () => {
               to={item.path}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
                 isActive 
-                  ? "bg-primary text-white font-medium" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-[#007BFF] text-white font-medium" 
+                  : "text-[#333333] hover:bg-[#E6F0FF] hover:text-[#007BFF]"
               }`}
             >
               <div className="w-8 h-8 rounded-sm flex items-center justify-center">
@@ -80,13 +80,13 @@ const Sidebar = () => {
 
       {/* Footer da sidebar */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors duration-200 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+        <div className="flex items-center gap-3 p-3 rounded-md bg-[#E6F0FF] hover:bg-[#E6F0FF]/80 transition-colors duration-200 cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-[#007BFF] flex items-center justify-center">
             <span className="text-sm font-medium text-white">A</span>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">Admin</p>
-            <p className="text-xs text-muted-foreground">Gestor do Sistema</p>
+            <p className="text-sm font-medium text-[#000000]">Admin</p>
+            <p className="text-xs text-[#333333]">Gestor do Sistema</p>
           </div>
         </div>
       </div>
