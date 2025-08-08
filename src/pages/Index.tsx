@@ -1,11 +1,15 @@
 
-import { Users, BookOpen, Award, TrendingUp } from "lucide-react";
+import { Users, BookOpen, Award, TrendingUp, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import MetricCard from "@/components/MetricCard";
 import RecentCourses from "@/components/RecentCourses";
 import ActivityFeed from "@/components/ActivityFeed";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+
   const metrics = [
     {
       title: "Usuários Ativos",
@@ -45,13 +49,23 @@ const Index = () => {
         {/* Header moderno com gradiente */}
         <header className="relative bg-white/80 backdrop-blur-md border-b border-white/20 p-6 shadow-sm">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5"></div>
-          <div className="relative max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-gradient mb-2">
-              Dashboard de Treinamentos
-            </h1>
-            <p className="text-gray-600 font-medium">
-              Gerencie e acompanhe o progresso dos treinamentos da sua organização
-            </p>
+          <div className="relative max-w-7xl mx-auto flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gradient mb-2">
+                Dashboard de Treinamentos
+              </h1>
+              <p className="text-gray-600 font-medium">
+                Bem-vindo, {user?.user_metadata?.full_name || user?.email}!
+              </p>
+            </div>
+            <Button 
+              onClick={signOut}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
           </div>
         </header>
 
