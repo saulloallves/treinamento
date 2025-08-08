@@ -1,4 +1,3 @@
-
 import { Award, UserCheck, BookOpen, Users, Heart } from "lucide-react";
 
 const ActivityFeed = () => {
@@ -47,41 +46,43 @@ const ActivityFeed = () => {
 
   return (
     <div className="training-card">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-black text-brand-brown flex items-center gap-3">
-          <div className="w-10 h-10 gradient-primary rounded-2xl flex items-center justify-center shadow-medium">
-            <Heart className="w-6 h-6 text-white" />
+      <div className="flex items-center justify-between mb-10">
+        <h2 className="text-3xl font-black text-brand-brown flex items-center gap-4">
+          <div className="w-14 h-14 rounded-3xl flex items-center justify-center shadow-large">
+            <div className="absolute inset-0 gradient-primary rounded-3xl"></div>
+            <Heart className="w-8 h-8 text-white relative z-10" />
           </div>
           Atividades Recentes
         </h2>
-        <button className="playful-button px-4 py-2 text-sm text-primary font-black rounded-xl hover:bg-secondary/20 transition-all duration-300">
+        <button className="playful-button px-6 py-3 text-sm text-primary font-black rounded-3xl hover:bg-primary/20 transition-all duration-300">
           Ver histórico
         </button>
       </div>
 
-      <div className="space-y-6 relative">
+      <div className="space-y-8 relative">
         {activities.map((activity, index) => {
           const Icon = activity.icon;
           return (
             <div key={activity.id} className="activity-item group">
-              <div className="absolute left-[-12px] top-3 w-6 h-6 rounded-full shadow-medium group-hover:scale-125 transition-all duration-300" 
-                   style={{ background: `linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))` }}>
-                <div className="w-full h-full rounded-full flex items-center justify-center">
-                  <Icon className="w-3 h-3 text-white" />
+              <div className="absolute left-[-15px] top-4 w-8 h-8 rounded-full shadow-large group-hover:scale-125 transition-all duration-300 overflow-hidden">
+                <div className="w-full h-full gradient-primary rounded-full flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-white" />
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-white to-secondary/5 p-4 rounded-2xl border-2 border-secondary/20 hover:border-primary/30 hover:shadow-medium transition-all duration-300 group-hover:scale-105">
-                <p className="text-sm text-brand-brown font-bold mb-2">
+              <div className="bg-gradient-to-r from-white to-primary/5 p-6 rounded-3xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-large transition-all duration-300 group-hover:scale-105">
+                <p className="text-base text-brand-brown font-bold mb-3">
                   <span className="text-primary font-black">{activity.user}</span>
                   {" "}{activity.action}{" "}
                   <span className="text-accent font-black">{activity.course}</span>
                 </p>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-brand-brown-light font-bold">
+                  <p className="text-sm text-brand-brown-light font-bold">
                     {activity.time}
                   </p>
-                  <div className="w-2 h-2 bg-gradient-to-r from-secondary to-primary rounded-full group-hover:scale-150 transition-transform duration-300"></div>
+                  <div className="w-3 h-3 rounded-full group-hover:scale-150 transition-transform duration-300">
+                    <div className="w-full h-full gradient-secondary rounded-full"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -89,7 +90,9 @@ const ActivityFeed = () => {
         })}
         
         {/* Linha conectora decorativa */}
-        <div className="absolute left-[-1px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-secondary via-primary to-accent opacity-30"></div>
+        <div className="absolute left-[-1px] top-0 bottom-0 w-1 rounded-full opacity-40">
+          <div className="w-full h-full gradient-warm"></div>
+        </div>
       </div>
     </div>
   );
