@@ -160,7 +160,8 @@
   }
 
   .metric-card {
-    @apply training-card gradient-card border-primary/30 hover:border-primary/50;
+    @apply training-card border-primary/30 hover:border-primary/50;
+    background: var(--gradient-card);
   }
 
   .metric-card::after {
@@ -173,7 +174,8 @@
   }
 
   .sidebar-item-active {
-    @apply sidebar-item gradient-primary text-primary-foreground shadow-medium font-bold;
+    @apply sidebar-item text-primary-foreground shadow-medium font-bold;
+    background: var(--gradient-primary);
   }
 
   .playful-button {
@@ -205,7 +207,8 @@
 
   .activity-item::before {
     content: '';
-    @apply absolute left-[-9px] top-2 w-4 h-4 bg-gradient-primary rounded-full shadow-soft;
+    @apply absolute left-[-9px] top-2 w-4 h-4 rounded-full shadow-soft;
+    background: var(--gradient-primary);
   }
 }
 
