@@ -52,10 +52,10 @@ const Auth = () => {
             <GraduationCap className="h-8 w-8 text-brand-white" />
           </div>
           <h1 className="text-3xl font-bold text-brand-black mb-2">
-            Franchise Learn Flow
+            Cresci e Perdi
           </h1>
           <p className="text-brand-gray-dark">
-            Sistema de Treinamentos Corporativos
+            Sistema de Treinamentos
           </p>
         </div>
 
