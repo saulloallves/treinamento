@@ -1,9 +1,11 @@
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Send, MessageSquare, Users, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWhatsAppDispatches";
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
@@ -13,6 +15,9 @@ const WhatsAppDispatch = () => {
   const [selectedType, setSelectedType] = useState<'curso' | 'aula'>('curso');
   const [selectedItem, setSelectedItem] = useState('');
   const [message, setMessage] = useState('');
+  const [recipientMode, setRecipientMode] = useState<'all' | 'selected'>('all');
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [recipientSearch, setRecipientSearch] = useState('');
 
   const { data: dispatches = [], isLoading: loadingDispatches } = useWhatsAppDispatches();
   const { data: courses = [] } = useCourses();
@@ -20,24 +25,48 @@ const WhatsAppDispatch = () => {
   const { data: enrollments = [] } = useEnrollments();
   const createDispatchMutation = useCreateWhatsAppDispatch();
 
+  const relevantEnrollments = useMemo(() => {
+    if (!selectedItem) return [] as typeof enrollments;
+    if (selectedType === 'curso') {
+      return enrollments.filter(e => e.course_id === selectedItem);
+    } else {
+      const lesson = lessons.find(l => l.id === selectedItem);
+      if (!lesson) return [] as typeof enrollments;
+      return enrollments.filter(e => e.course_id === lesson.course_id);
+    }
+  }, [selectedItem, selectedType, enrollments, lessons]);
+
+  const filteredRecipients = useMemo(() => {
+    const q = recipientSearch.trim().toLowerCase();
+    if (!q) return relevantEnrollments;
+    return relevantEnrollments.filter(e =>
+      (e.student_name || '').toLowerCase().includes(q) ||
+      (e.student_email || '').toLowerCase().includes(q) ||
+      (e.student_phone || '').toLowerCase().includes(q)
+    );
+  }, [relevantEnrollments, recipientSearch]);
+
+  useEffect(() => {
+    setSelectedRecipients([]);
+    setRecipientMode('all');
+    setRecipientSearch('');
+  }, [selectedItem, selectedType]);
+
+  const recipientsCount = recipientMode === 'all' ? relevantEnrollments.length : selectedRecipients.length;
+
   const handleSendDispatch = async () => {
-    if (!selectedItem || !message.trim()) {
+    if (!selectedItem || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0)) {
       return;
     }
 
     let itemName = '';
-    let recipientsCount = 0;
 
     if (selectedType === 'curso') {
       const course = courses.find(c => c.id === selectedItem);
       itemName = course?.name || '';
-      recipientsCount = enrollments.filter(e => e.course_id === selectedItem).length;
     } else {
       const lesson = lessons.find(l => l.id === selectedItem);
       itemName = lesson?.title || '';
-      // Count enrollments for the course that contains this lesson
-      const courseEnrollments = enrollments.filter(e => e.course_id === lesson?.course_id);
-      recipientsCount = courseEnrollments.length;
     }
 
     try {
@@ -47,13 +76,16 @@ const WhatsAppDispatch = () => {
         item_name: itemName,
         recipients_count: recipientsCount,
         message: message.trim(),
-        delivered_count: Math.floor(recipientsCount * 0.9), // Simulate 90% delivery rate
-        failed_count: Math.ceil(recipientsCount * 0.1), // Simulate 10% failure rate
+        delivered_count: Math.floor(recipientsCount * 0.9),
+        failed_count: Math.ceil(recipientsCount * 0.1),
       });
 
       // Reset form
       setSelectedItem('');
       setMessage('');
+      setSelectedRecipients([]);
+      setRecipientMode('all');
+      setRecipientSearch('');
     } catch (error) {
       console.error('Error sending dispatch:', error);
     }
@@ -131,6 +163,71 @@ const WhatsAppDispatch = () => {
 
           <div>
             <label className="block text-sm font-medium text-brand-black mb-1">
+              Destinatários
+            </label>
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="recipientMode"
+                    value="all"
+                    checked={recipientMode === 'all'}
+                    onChange={() => setRecipientMode('all')}
+                  />
+                  <span>Todos os {selectedType === 'curso' ? 'inscritos do curso' : 'inscritos do curso da aula'}</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="recipientMode"
+                    value="selected"
+                    checked={recipientMode === 'selected'}
+                    onChange={() => setRecipientMode('selected')}
+                  />
+                  <span>Escolher destinatários</span>
+                </label>
+              </div>
+
+              {recipientMode === 'selected' && selectedItem && (
+                <>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input
+                      value={recipientSearch}
+                      onChange={(e) => setRecipientSearch(e.target.value)}
+                      placeholder="Buscar por nome, email ou telefone"
+                    />
+                    <Button variant="outline" onClick={() => setSelectedRecipients(filteredRecipients.map(e => e.id))} disabled={filteredRecipients.length === 0}>Selecionar todos</Button>
+                    <Button variant="ghost" onClick={() => setSelectedRecipients([])} disabled={selectedRecipients.length === 0}>Limpar</Button>
+                  </div>
+                  <div className="mt-2 max-h-56 overflow-y-auto border border-gray-200 rounded-md">
+                    {filteredRecipients.length === 0 ? (
+                      <div className="text-sm text-brand-gray-dark p-2">Nenhum destinatário encontrado.</div>
+                    ) : (
+                      filteredRecipients.map((e) => (
+                        <label key={e.id} className="flex items-center gap-3 p-2 border-b last:border-b-0">
+                          <Checkbox
+                            checked={selectedRecipients.includes(e.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelectedRecipients((prev) => prev.includes(e.id) ? prev : [...prev, e.id]);
+                              else setSelectedRecipients((prev) => prev.filter((id) => id !== e.id));
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-brand-black">{e.student_name}</div>
+                            <div className="text-xs text-brand-gray-dark">{e.student_email || ''}{e.student_phone ? ` • ${e.student_phone}` : ''}</div>
+                          </div>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brand-black mb-1">
               Mensagem
             </label>
             <textarea
@@ -150,14 +247,7 @@ const WhatsAppDispatch = () => {
               <div className="flex items-center gap-2 text-sm text-brand-gray-dark">
                 <Users className="w-4 h-4" />
                 <span>
-                  Destinatários: {
-                    selectedType === 'curso' 
-                      ? enrollments.filter(e => e.course_id === selectedItem).length
-                      : enrollments.filter(e => {
-                          const lesson = lessons.find(l => l.id === selectedItem);
-                          return lesson && e.course_id === lesson.course_id;
-                        }).length
-                  } inscritos
+                  Destinatários: {recipientsCount} {recipientMode === 'all' ? 'inscritos' : 'selecionados'}
                 </span>
               </div>
             </div>
@@ -165,7 +255,7 @@ const WhatsAppDispatch = () => {
 
           <Button
             onClick={handleSendDispatch}
-            disabled={!selectedItem || !message.trim() || createDispatchMutation.isPending}
+            disabled={!selectedItem || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0) || createDispatchMutation.isPending}
             className="btn-primary w-full"
           >
             <Send className="w-4 h-4" />
