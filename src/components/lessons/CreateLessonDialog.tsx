@@ -12,8 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useCourses } from "@/hooks/useCourses";
 import { useCreateLesson, LessonInput } from "@/hooks/useLessons";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreateLessonDialogProps {
   open: boolean;
@@ -24,7 +28,122 @@ const CreateLessonDialog = ({ open, onOpenChange }: CreateLessonDialogProps) => 
   const { data: courses = [] } = useCourses();
   const createLessonMutation = useCreateLesson();
   
-  const [formData, setFormData] = useState<LessonInput>({
+const [formData, setFormData] = useState<LessonInput>({
+  course_id: "",
+  title: "",
+  description: "",
+  video_url: "",
+  content: "",
+  duration_minutes: 0,
+  order_index: 1,
+  status: "Ativo"
+});
+
+const [isLiveZoom, setIsLiveZoom] = useState(false);
+const [liveDate, setLiveDate] = useState<string>("");
+const [liveTime, setLiveTime] = useState<string>("");
+const [isCreatingLive, setIsCreatingLive] = useState(false);
+const queryClient = useQueryClient();
+const { toast } = useToast();
+
+const handleSave = async () => {
+  if (!formData.title.trim() || !formData.course_id) {
+    return;
+  }
+
+  if (isLiveZoom) {
+    if (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0) {
+      toast({
+        title: "Dados incompletos",
+        description: "Informe data, hora e duração para criar a aula ao vivo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      setIsCreatingLive(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const res = await fetch(
+        `https://tctkacgbhqvkqovctrzf.functions.supabase.co/api/zoom/aulas/criar`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            curso_id: formData.course_id,
+            titulo: formData.title,
+            data: liveDate,
+            hora: liveTime,
+            duracao: formData.duration_minutes,
+            descricao: formData.description || "",
+            ordem: formData.order_index ?? 1,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Falha ao criar reunião no Zoom");
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["lessons"] });
+      await queryClient.invalidateQueries({ queryKey: ["courses"] });
+
+      toast({
+        title: "Aula ao vivo criada!",
+        description: "Link do Zoom gerado e salvo automaticamente.",
+      });
+
+      setFormData({
+        course_id: "",
+        title: "",
+        description: "",
+        video_url: "",
+        content: "",
+        duration_minutes: 0,
+        order_index: 1,
+        status: "Ativo",
+      });
+      setIsLiveZoom(false);
+      setLiveDate("");
+      setLiveTime("");
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar aula ao vivo",
+        description: error.message || "Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingLive(false);
+    }
+    return;
+  }
+
+  await createLessonMutation.mutateAsync(formData);
+
+  setFormData({
+    course_id: "",
+    title: "",
+    description: "",
+    video_url: "",
+    content: "",
+    duration_minutes: 0,
+    order_index: 1,
+    status: "Ativo",
+  });
+  setIsLiveZoom(false);
+  setLiveDate("");
+  setLiveTime("");
+  onOpenChange(false);
+};
+
+const handleClose = () => {
+  setFormData({
     course_id: "",
     title: "",
     description: "",
@@ -34,42 +153,11 @@ const CreateLessonDialog = ({ open, onOpenChange }: CreateLessonDialogProps) => 
     order_index: 1,
     status: "Ativo"
   });
-
-  const handleSave = async () => {
-    if (!formData.title.trim() || !formData.course_id) {
-      return;
-    }
-
-    await createLessonMutation.mutateAsync(formData);
-    
-    // Reset form
-    setFormData({
-      course_id: "",
-      title: "",
-      description: "",
-      video_url: "",
-      content: "",
-      duration_minutes: 0,
-      order_index: 1,
-      status: "Ativo"
-    });
-    
-    onOpenChange(false);
-  };
-
-  const handleClose = () => {
-    setFormData({
-      course_id: "",
-      title: "",
-      description: "",
-      video_url: "",
-      content: "",
-      duration_minutes: 0,
-      order_index: 1,
-      status: "Ativo"
-    });
-    onOpenChange(false);
-  };
+  setIsLiveZoom(false);
+  setLiveDate("");
+  setLiveTime("");
+  onOpenChange(false);
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,14 +246,46 @@ const CreateLessonDialog = ({ open, onOpenChange }: CreateLessonDialogProps) => 
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="video_url">Link do Vídeo</Label>
-            <Input
-              id="video_url"
-              value={formData.video_url}
-              onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-            />
-          </div>
+<div className="grid gap-2">
+  <div className="flex items-center justify-between">
+    <div>
+      <Label htmlFor="isLiveZoom">Aula ao vivo (Zoom)</Label>
+      <p className="text-sm text-muted-foreground">Geraremos o link automaticamente no horário definido.</p>
+    </div>
+    <Switch id="isLiveZoom" checked={isLiveZoom} onCheckedChange={setIsLiveZoom} />
+  </div>
+</div>
+{isLiveZoom && (
+  <div className="grid grid-cols-2 gap-4">
+    <div className="grid gap-2">
+      <Label htmlFor="liveDate">Data</Label>
+      <Input
+        id="liveDate"
+        type="date"
+        value={liveDate}
+        onChange={(e) => setLiveDate(e.target.value)}
+      />
+    </div>
+    <div className="grid gap-2">
+      <Label htmlFor="liveTime">Hora</Label>
+      <Input
+        id="liveTime"
+        type="time"
+        value={liveTime}
+        onChange={(e) => setLiveTime(e.target.value)}
+      />
+    </div>
+  </div>
+)}
+
+<div className="grid gap-2">
+  <Label htmlFor="video_url">Link do Vídeo</Label>
+  <Input
+    id="video_url"
+    value={formData.video_url}
+    onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+  />
+</div>
 
           <div className="grid gap-2">
             <Label htmlFor="content">Conteúdo</Label>
@@ -182,13 +302,19 @@ const CreateLessonDialog = ({ open, onOpenChange }: CreateLessonDialogProps) => 
             <X className="w-4 h-4" />
             Cancelar
           </Button>
-          <Button 
-            onClick={handleSave}
-            disabled={createLessonMutation.isPending || !formData.title.trim() || !formData.course_id}
-          >
-            <Save className="w-4 h-4" />
-            {createLessonMutation.isPending ? "Criando..." : "Criar Aula"}
-          </Button>
+<Button 
+  onClick={handleSave}
+  disabled={
+    isCreatingLive ||
+    createLessonMutation.isPending ||
+    !formData.title.trim() ||
+    !formData.course_id ||
+    (isLiveZoom && (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0))
+  }
+>
+  <Save className="w-4 h-4" />
+  {(isCreatingLive || createLessonMutation.isPending) ? "Criando..." : "Criar Aula"}
+</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
