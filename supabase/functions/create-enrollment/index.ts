@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, x-api-key, content-type, x-webhook-secret',
 }
 
 serve(async (req: Request) => {
@@ -17,15 +17,32 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const secretHeaderRaw = req.headers.get('x-webhook-secret') ?? ''
-    const secretHeader = secretHeaderRaw.trim()
     const expectedSecretRaw = Deno.env.get('TYPEBOT_WEBHOOK_SECRET') ?? ''
     const expectedSecret = expectedSecretRaw.trim()
-    if (!expectedSecret || secretHeader !== expectedSecret) {
+
+    // Try multiple header options to reduce client misconfig issues
+    const h = req.headers
+    const candidatesRaw = [
+      h.get('x-webhook-secret') ?? '',
+      h.get('x-api-key') ?? '',
+      h.get('apikey') ?? '',
+      ((h.get('authorization') ?? '').match(/^Bearer\s+(.+)$/i)?.[1] ?? ''),
+    ]
+    const candidates = candidatesRaw.map((s) => s.trim()).filter(Boolean)
+    const providedSecret = candidates[0] ?? ''
+
+    const ok = !!expectedSecret && providedSecret === expectedSecret
+    if (!ok) {
       console.log('auth_mismatch', {
-        headerLen: secretHeader.length,
+        providedKeys: Array.from(new Set([
+          h.has('x-webhook-secret') ? 'x-webhook-secret' : null,
+          h.has('x-api-key') ? 'x-api-key' : null,
+          h.has('apikey') ? 'apikey' : null,
+          h.has('authorization') ? 'authorization' : null,
+        ].filter(Boolean))),
+        candidateLens: candidates.map((s) => s.length),
         expectedLen: expectedSecret.length,
-        headerSuffix: secretHeader.slice(-6),
+        candidateSuffixes: candidates.map((s) => s.slice(-6)),
         expectedSuffix: expectedSecret.slice(-6),
       })
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
