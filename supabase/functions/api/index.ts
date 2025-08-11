@@ -931,9 +931,12 @@ async function handleWhatsApp(request: Request, path: string[]) {
 // Zoom endpoints (Zoom integration)
 async function handleZoom(request: Request, path: string[]) {
   // Helpers scoped to this handler to minimize file changes
-  const getAdminClient = () => {
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    return createClient(supabaseUrl, serviceKey || supabaseKey)
+  const getUserClient = (request: Request) => {
+    const authHeader = request.headers.get('authorization') || ''
+    // Use the caller's JWT so RLS policies apply as if the user performed the action
+    return createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { authorization: authHeader } }
+    })
   }
 
   const getZoomAccessToken = async (): Promise<string> => {
@@ -957,7 +960,7 @@ async function handleZoom(request: Request, path: string[]) {
 
   // POST /zoom/aulas/criar
   if (request.method === 'POST' && path[1] === 'aulas' && path[2] === 'criar') {
-    await verifyAuth(request)
+    const user = await verifyAuth(request)
     const body = await request.json()
     const { curso_id, titulo, data, hora, duracao, agenda, timezone, host_email } = body
 
@@ -996,22 +999,24 @@ async function handleZoom(request: Request, path: string[]) {
         return new Response(JSON.stringify({ error: 'Zoom create meeting failed', details: zJson }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
 
-      const admin = getAdminClient()
-      // Determine next order index
-      const { data: orderRows } = await admin
+      const db = getUserClient(request)
+      // Determine next order index (use provided ordem if present)
+      const { data: orderRows } = await db
         .from('lessons')
         .select('order_index')
         .eq('course_id', curso_id)
         .order('order_index', { ascending: false })
         .limit(1)
-      const nextOrder = ((orderRows && orderRows[0]?.order_index) || 0) + 1
+      const nextOrder = (typeof body?.ordem === 'number' && body.ordem > 0)
+        ? body.ordem
+        : (((orderRows && orderRows[0]?.order_index) || 0) + 1)
 
-      const { data: lesson, error } = await admin
+      const { data: lesson, error } = await db
         .from('lessons')
         .insert([{
           course_id: curso_id,
           title: titulo,
-          description: agenda || '',
+          description: (agenda ?? body?.descricao ?? ''),
           duration_minutes: duracao,
           order_index: nextOrder,
           status: 'Ativo',
@@ -1019,7 +1024,8 @@ async function handleZoom(request: Request, path: string[]) {
           zoom_meeting_id: String(zJson.id),
           zoom_start_url: zJson.start_url,
           zoom_join_url: zJson.join_url,
-          zoom_start_time: zJson.start_time || start_time
+          zoom_start_time: zJson.start_time || start_time,
+          created_by: user.id
         }])
         .select()
         .single()
@@ -1047,7 +1053,7 @@ async function handleZoom(request: Request, path: string[]) {
     if (!lesson_id) {
       return new Response(JSON.stringify({ error: 'lesson_id é obrigatório' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
-    const admin = getAdminClient()
+    const admin = getUserClient(request)
 
     const { data: lesson, error: lerr } = await admin
       .from('lessons')
