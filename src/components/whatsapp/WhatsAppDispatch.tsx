@@ -74,10 +74,9 @@ const WhatsAppDispatch = () => {
         type: selectedType,
         item_id: selectedItem,
         item_name: itemName,
-        recipients_count: recipientsCount,
         message: message.trim(),
-        delivered_count: Math.floor(recipientsCount * 0.9),
-        failed_count: Math.ceil(recipientsCount * 0.1),
+        recipient_mode: recipientMode,
+        recipient_ids: recipientMode === 'selected' ? selectedRecipients : undefined,
       });
 
       // Reset form

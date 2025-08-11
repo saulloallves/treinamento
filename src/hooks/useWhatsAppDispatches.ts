@@ -23,10 +23,9 @@ export interface DispatchInput {
   type: 'curso' | 'aula';
   item_id: string;
   item_name: string;
-  recipients_count: number;
   message: string;
-  delivered_count?: number;
-  failed_count?: number;
+  recipient_mode?: 'all' | 'selected';
+  recipient_ids?: string[]; // enrollment ids when mode is 'selected'
 }
 
 export const useWhatsAppDispatches = () => {
@@ -61,23 +60,17 @@ export const useCreateWhatsAppDispatch = () => {
 
   return useMutation({
     mutationFn: async (dispatchData: DispatchInput) => {
-      const user = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase
-        .from('whatsapp_dispatches')
-        .insert([{
-          ...dispatchData,
-          created_by: user.data.user?.id
-        }])
-        .select()
-        .maybeSingle();
+      // Invoke edge function to send and record dispatch
+      const { data, error } = await supabase.functions.invoke('whatsapp-disparo', {
+        body: dispatchData,
+      });
 
       if (error) {
         console.error('Error creating WhatsApp dispatch:', error);
         throw error;
       }
 
-      return data;
+      return data?.dispatch;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp_dispatches'] });
