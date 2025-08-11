@@ -548,8 +548,8 @@ export type Database = {
           delivered_count: number
           failed_count: number
           id: string
-          item_id: string
-          item_name: string
+          item_id: string | null
+          item_name: string | null
           message: string
           recipients_count: number
           sent_date: string
@@ -563,8 +563,8 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
-          item_id: string
-          item_name: string
+          item_id?: string | null
+          item_name?: string | null
           message: string
           recipients_count?: number
           sent_date?: string
@@ -578,8 +578,8 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
-          item_id?: string
-          item_name?: string
+          item_id?: string | null
+          item_name?: string | null
           message?: string
           recipients_count?: number
           sent_date?: string
