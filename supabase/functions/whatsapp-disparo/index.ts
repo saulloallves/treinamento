@@ -22,13 +22,14 @@ serve(async (req: Request) => {
 
     // Forward caller's auth so RLS applies as if user made the request
     const authHeader = req.headers.get('authorization') || ''
+    const token = authHeader.replace(/^Bearer\s+/i, '')
     const supabase = createClient(supabaseUrl, supabaseAnon, {
       global: { headers: { authorization: authHeader } }
     })
 
-    const { data: userResp } = await supabase.auth.getUser()
+    const { data: userResp, error: userErr } = await supabase.auth.getUser(token)
     const user = userResp?.user
-    if (!user) {
+    if (userErr || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
