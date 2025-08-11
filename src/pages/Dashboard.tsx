@@ -113,7 +113,7 @@ const Dashboard = () => {
               Atividade Recente
             </h2>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
+              {(recentActivity ?? []).map((activity) => (
                 <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     activity.type === 'course' ? 'bg-blue-100' :
@@ -144,7 +144,7 @@ const Dashboard = () => {
               Próximas Aulas Ao Vivo
             </h2>
             <div className="space-y-4">
-              {upcomingLessons.map((lesson) => (
+              {(upcomingLessons ?? []).map((lesson) => (
                 <div key={lesson.id} className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="font-medium text-brand-black text-sm mb-1">
                     {lesson.title}
