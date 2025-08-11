@@ -17,9 +17,17 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const secretHeader = req.headers.get('x-webhook-secret') || ''
-    const expectedSecret = Deno.env.get('TYPEBOT_WEBHOOK_SECRET') || ''
+    const secretHeaderRaw = req.headers.get('x-webhook-secret') ?? ''
+    const secretHeader = secretHeaderRaw.trim()
+    const expectedSecretRaw = Deno.env.get('TYPEBOT_WEBHOOK_SECRET') ?? ''
+    const expectedSecret = expectedSecretRaw.trim()
     if (!expectedSecret || secretHeader !== expectedSecret) {
+      console.log('auth_mismatch', {
+        headerLen: secretHeader.length,
+        expectedLen: expectedSecret.length,
+        headerSuffix: secretHeader.slice(-6),
+        expectedSuffix: expectedSecret.slice(-6),
+      })
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
