@@ -10,65 +10,71 @@ import {
   UserCheck
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Dashboard = () => {
+  const { data, isLoading } = useDashboardStats();
+
+  const formatNumber = (n: number | undefined) =>
+    typeof n === "number" ? n.toLocaleString("pt-BR") : "0";
+
   const metrics = [
     {
       title: "Usuários Ativos",
-      value: "1,234",
-      change: "+12%",
-      changeType: "positive" as const,
-      icon: Users
+      value: isLoading ? "..." : formatNumber(data?.usersActive),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: Users,
     },
     {
       title: "Cursos Disponíveis",
-      value: "87",
-      change: "+5",
-      changeType: "positive" as const,
-      icon: BookOpen
+      value: isLoading ? "..." : formatNumber(data?.coursesAvailable),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: BookOpen,
     },
     {
       title: "Certificados Emitidos",
-      value: "456",
-      change: "+23%",
-      changeType: "positive" as const,
-      icon: Award
+      value: isLoading ? "..." : formatNumber(data?.certificatesIssued),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: Award,
     },
     {
       title: "Taxa de Conclusão",
-      value: "89%",
-      change: "+3%",
-      changeType: "positive" as const,
-      icon: TrendingUp
+      value: isLoading ? "..." : `${data?.completionRate ?? 0}%`,
+      change: "—",
+      changeType: "neutral" as const,
+      icon: TrendingUp,
     },
     {
       title: "Unidades Ativas",
-      value: "723",
-      change: "+8",
-      changeType: "positive" as const,
-      icon: Building2
+      value: isLoading ? "..." : formatNumber(data?.unitsActive),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: Building2,
     },
     {
       title: "Disparos WhatsApp",
-      value: "2,341",
-      change: "+15%",
-      changeType: "positive" as const,
-      icon: MessageSquare
+      value: isLoading ? "..." : formatNumber(data?.whatsappDispatches),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: MessageSquare,
     },
     {
       title: "Aulas Agendadas",
-      value: "34",
-      change: "+12",
-      changeType: "positive" as const,
-      icon: Calendar
+      value: isLoading ? "..." : formatNumber(data?.lessonsScheduled),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: Calendar,
     },
     {
       title: "Presenças do Mês",
-      value: "5,678",
-      change: "+18%",
-      changeType: "positive" as const,
-      icon: UserCheck
-    }
+      value: isLoading ? "..." : formatNumber(data?.attendancesThisMonth),
+      change: "—",
+      changeType: "neutral" as const,
+      icon: UserCheck,
+    },
   ];
 
   const recentActivity = [
