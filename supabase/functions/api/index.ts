@@ -928,14 +928,226 @@ async function handleWhatsApp(request: Request, path: string[]) {
   })
 }
 
-// Zoom endpoints (future integration)
+// Zoom endpoints (Zoom integration)
 async function handleZoom(request: Request, path: string[]) {
-  if (request.method === 'POST' && path[1] === 'aula') {
-    await verifyAuth(request)
-    return new Response(JSON.stringify({
-      error: 'Integração com Zoom não configurada. Adicione ZOOM_API_KEY/ZOOM_API_SECRET como secrets para habilitar.'
-    }), { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  // Helpers scoped to this handler to minimize file changes
+  const getAdminClient = () => {
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    return createClient(supabaseUrl, serviceKey || supabaseKey)
   }
+
+  const getZoomAccessToken = async (): Promise<string> => {
+    const accountId = Deno.env.get('ZOOM_ACCOUNT_ID')
+    const clientId = Deno.env.get('ZOOM_CLIENT_ID')
+    const clientSecret = Deno.env.get('ZOOM_CLIENT_SECRET')
+    if (!accountId || !clientId || !clientSecret) {
+      throw new Error('Missing Zoom secrets. Configure ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET')
+    }
+    const basic = btoa(`${clientId}:${clientSecret}`)
+    const res = await fetch(`https://zoom.us/oauth/token?grant_type=account_credentials&account_id=${accountId}` , {
+      method: 'POST',
+      headers: { Authorization: `Basic ${basic}` }
+    })
+    const json = await res.json()
+    if (!res.ok) {
+      throw new Error(json.error_description || json.reason || 'Failed to get Zoom access token')
+    }
+    return json.access_token
+  }
+
+  // POST /zoom/aulas/criar
+  if (request.method === 'POST' && path[1] === 'aulas' && path[2] === 'criar') {
+    await verifyAuth(request)
+    const body = await request.json()
+    const { curso_id, titulo, data, hora, duracao, agenda, timezone, host_email } = body
+
+    if (!curso_id || !titulo || !data || !hora || !duracao) {
+      return new Response(JSON.stringify({ error: 'Campos obrigatórios: curso_id, titulo, data, hora, duracao' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const tz = timezone || 'America/Sao_Paulo'
+    const start_time = `${data}T${hora}:00`
+
+    try {
+      const accessToken = await getZoomAccessToken()
+      const userId = host_email || Deno.env.get('ZOOM_HOST_EMAIL') || 'me'
+
+      const zoomPayload = {
+        topic: titulo,
+        type: 2,
+        start_time,
+        duration: duracao,
+        timezone: tz,
+        agenda: agenda || titulo,
+        settings: {
+          join_before_host: false,
+          mute_upon_entry: true,
+          waiting_room: true
+        }
+      }
+
+      const zRes = await fetch(`https://api.zoom.us/v2/users/${encodeURIComponent(userId)}/meetings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify(zoomPayload)
+      })
+      const zJson = await zRes.json()
+      if (!zRes.ok) {
+        return new Response(JSON.stringify({ error: 'Zoom create meeting failed', details: zJson }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const admin = getAdminClient()
+      // Determine next order index
+      const { data: orderRows } = await admin
+        .from('lessons')
+        .select('order_index')
+        .eq('course_id', curso_id)
+        .order('order_index', { ascending: false })
+        .limit(1)
+      const nextOrder = ((orderRows && orderRows[0]?.order_index) || 0) + 1
+
+      const { data: lesson, error } = await admin
+        .from('lessons')
+        .insert([{
+          course_id: curso_id,
+          title: titulo,
+          description: agenda || '',
+          duration_minutes: duracao,
+          order_index: nextOrder,
+          status: 'Ativo',
+          video_url: zJson.join_url,
+          zoom_meeting_id: String(zJson.id),
+          zoom_start_url: zJson.start_url,
+          zoom_join_url: zJson.join_url,
+          zoom_start_time: zJson.start_time || start_time
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      return new Response(JSON.stringify({
+        aula_id: lesson.id,
+        zoom_meeting_id: zJson.id,
+        join_url: zJson.join_url,
+        start_url: zJson.start_url,
+        dados_aula: lesson
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    } catch (e: any) {
+      return new Response(JSON.stringify({ error: e.message || 'Erro ao criar aula no Zoom' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+  }
+
+  // POST /zoom/aulas/sincronizar-presenca
+  if (request.method === 'POST' && path[1] === 'aulas' && path[2] === 'sincronizar-presenca') {
+    await verifyAuth(request)
+    const { lesson_id } = await request.json()
+    if (!lesson_id) {
+      return new Response(JSON.stringify({ error: 'lesson_id é obrigatório' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    const admin = getAdminClient()
+
+    const { data: lesson, error: lerr } = await admin
+      .from('lessons')
+      .select('id, course_id, zoom_meeting_id')
+      .eq('id', lesson_id)
+      .single()
+    if (lerr || !lesson?.zoom_meeting_id) {
+      return new Response(JSON.stringify({ error: 'Aula não encontrada ou sem zoom_meeting_id' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    try {
+      const accessToken = await getZoomAccessToken()
+      // Try Reports API first
+      let pRes = await fetch(`https://api.zoom.us/v2/report/meetings/${encodeURIComponent(lesson.zoom_meeting_id)}/participants?page_size=300`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      let pJson = await pRes.json()
+      if (!pRes.ok) {
+        // Fallback to past_meetings API
+        pRes = await fetch(`https://api.zoom.us/v2/past_meetings/${encodeURIComponent(lesson.zoom_meeting_id)}/participants?page_size=300`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        pJson = await pRes.json()
+        if (!pRes.ok) {
+          return new Response(JSON.stringify({ error: 'Falha ao obter participantes do Zoom', details: pJson }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+      }
+      const participants = pJson.participants || []
+
+      let saved = 0
+      for (const part of participants) {
+        const email = part.user_email || ''
+        if (!email) continue
+        // Find enrollment by email and course
+        const { data: enrollment } = await admin
+          .from('enrollments')
+          .select('id, student_email')
+          .eq('course_id', lesson.course_id)
+          .eq('student_email', email)
+          .single()
+        if (!enrollment) continue
+        // Find user by email to get user_id
+        const { data: user } = await admin
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .single()
+        if (!user) continue
+        // Insert attendance
+        const { error: aerr } = await admin
+          .from('attendance')
+          .insert([{ user_id: user.id, lesson_id: lesson.id, enrollment_id: enrollment.id, attendance_type: 'automatica_zoom', confirmed_at: new Date().toISOString() }])
+        if (!aerr) saved++
+        // Upsert student progress
+        const { data: sp } = await admin
+          .from('student_progress')
+          .select('id')
+          .eq('enrollment_id', enrollment.id)
+          .eq('lesson_id', lesson.id)
+          .single()
+        if (sp) {
+          await admin
+            .from('student_progress')
+            .update({ status: 'completed', completed_at: new Date().toISOString() })
+            .eq('id', sp.id)
+        } else {
+          await admin
+            .from('student_progress')
+            .insert([{ enrollment_id: enrollment.id, lesson_id: lesson.id, status: 'completed', completed_at: new Date().toISOString() }])
+        }
+        // Recalculate enrollment progress
+        const { count: totalLessons } = await admin
+          .from('lessons')
+          .select('*', { count: 'exact', head: true })
+          .eq('course_id', lesson.course_id)
+        const { count: completedCount } = await admin
+          .from('student_progress')
+          .select('*', { count: 'exact', head: true })
+          .eq('enrollment_id', enrollment.id)
+          .eq('status', 'completed')
+        const percentage = totalLessons && totalLessons > 0 ? Math.round((completedCount || 0) * 100 / totalLessons) : 0
+        // Update enrollment progress and completed_lessons (append current lesson id)
+        const { data: enr } = await admin
+          .from('enrollments')
+          .select('completed_lessons')
+          .eq('id', enrollment.id)
+          .single()
+        const setCompleted = Array.from(new Set([...(enr?.completed_lessons || []), lesson.id]))
+        await admin
+          .from('enrollments')
+          .update({ progress_percentage: percentage, completed_lessons: setCompleted })
+          .eq('id', enrollment.id)
+      }
+
+      return new Response(JSON.stringify({ participantes: participants.length, presencas_registradas: saved }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    } catch (e: any) {
+      return new Response(JSON.stringify({ error: e.message || 'Erro ao sincronizar presenças' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+  }
+
   return new Response(JSON.stringify({ error: 'Not found' }), {
     status: 404,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -981,7 +1193,8 @@ function generateOpenApiSpec() {
       '/certificados/{usuario_id}/{curso_id}': { get: { summary: 'Obter certificado' } },
       '/certificados/emitidos': { get: { summary: 'Listar certificados emitidos' } },
       '/whatsapp/disparo': { post: { summary: 'Registrar e disparar mensagem (placeholder)' } },
-      '/zoom/aula': { post: { summary: 'Criar reunião no Zoom (placeholder)' } }
+      '/zoom/aulas/criar': { post: { summary: 'Criar reunião no Zoom e salvar aula' } },
+      '/zoom/aulas/sincronizar-presenca': { post: { summary: 'Sincronizar presenças com Zoom' } }
     }
   }
 }
@@ -1079,7 +1292,8 @@ serve(async (req) => {
             'GET /certificados/{usuario_id}/{curso_id}',
             'GET /certificados/emitidos',
             'POST /whatsapp/disparo',
-            'POST /zoom/aula'
+            'POST /zoom/aulas/criar',
+            'POST /zoom/aulas/sincronizar-presenca'
           ]
         }), { 
           status: 404,

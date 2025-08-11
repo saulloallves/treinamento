@@ -269,6 +269,10 @@ export type Database = {
           title: string
           updated_at: string
           video_url: string | null
+          zoom_join_url: string | null
+          zoom_meeting_id: string | null
+          zoom_start_time: string | null
+          zoom_start_url: string | null
         }
         Insert: {
           content?: string | null
@@ -283,6 +287,10 @@ export type Database = {
           title: string
           updated_at?: string
           video_url?: string | null
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_start_time?: string | null
+          zoom_start_url?: string | null
         }
         Update: {
           content?: string | null
@@ -297,6 +305,10 @@ export type Database = {
           title?: string
           updated_at?: string
           video_url?: string | null
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_start_time?: string | null
+          zoom_start_url?: string | null
         }
         Relationships: [
           {
