@@ -101,7 +101,10 @@ export const useCreateEnrollment = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      // Invalida todas as queries relacionadas a 'enrollments' (qualquer courseId)
+      queryClient.invalidateQueries({
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'enrollments',
+      });
       toast({
         title: "Inscrição criada com sucesso!",
         description: "O aluno foi inscrito no curso.",
