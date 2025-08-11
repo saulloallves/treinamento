@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useRecentActivity } from "@/hooks/useRecentActivity";
+import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 
 const Dashboard = () => {
   const { data, isLoading } = useDashboardStats();
@@ -77,63 +79,9 @@ const Dashboard = () => {
     },
   ];
 
-  const recentActivity = [
-    {
-      id: 1,
-      action: "Novo curso criado",
-      description: "Segurança Digital foi adicionado ao sistema",
-      time: "2 horas atrás",
-      type: "course"
-    },
-    {
-      id: 2,
-      action: "Usuário cadastrado",
-      description: "Maria Silva foi adicionada à Unidade SP-001",
-      time: "4 horas atrás",
-      type: "user"
-    },
-    {
-      id: 3,
-      action: "Certificado emitido",
-      description: "João Santos concluiu Atendimento ao Cliente",
-      time: "6 horas atrás",
-      type: "certificate"
-    },
-    {
-      id: 4,
-      action: "Disparo WhatsApp",
-      description: "123 usuários foram notificados sobre nova aula",
-      time: "8 horas atrás",
-      type: "whatsapp"
-    }
-  ];
+  const { data: recentActivity, isLoading: isActivityLoading } = useRecentActivity();
 
-  const upcomingLessons = [
-    {
-      id: 1,
-      title: "Workshop - Vendas Avançadas",
-      course: "Técnicas de Vendas",
-      date: "15/01/2024",
-      time: "14:00",
-      participants: 45
-    },
-    {
-      id: 2,
-      title: "Treinamento - Liderança",
-      course: "Gestão de Equipes",
-      date: "16/01/2024",
-      time: "09:00",
-      participants: 28
-    },
-    {
-      id: 3,
-      title: "Apresentação - Resultados Q4",
-      course: "Gestão Franqueado",
-      date: "18/01/2024",
-      time: "16:00",
-      participants: 15
-    }
-  ];
+  const { data: upcomingLessons, isLoading: isUpcomingLoading } = useUpcomingLessons();
 
   return (
     <div className="space-y-8">
