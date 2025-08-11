@@ -76,7 +76,7 @@ export const useCreateLesson = () => {
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating lesson:', error);
@@ -114,7 +114,7 @@ export const useUpdateLesson = () => {
         .update(lessonData)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating lesson:', error);

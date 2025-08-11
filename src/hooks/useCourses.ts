@@ -68,7 +68,7 @@ export const useCreateCourse = () => {
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating course:', error);
@@ -105,7 +105,7 @@ export const useUpdateCourse = () => {
         .update(courseData)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating course:', error);

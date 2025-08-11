@@ -70,7 +70,7 @@ export const useCreateWhatsAppDispatch = () => {
           created_by: user.data.user?.id
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating WhatsApp dispatch:', error);

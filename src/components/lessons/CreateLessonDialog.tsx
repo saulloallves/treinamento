@@ -231,7 +231,7 @@ const handleClose = () => {
                 id="order_index"
                 type="number"
                 value={formData.order_index}
-                onChange={(e) => setFormData({ ...formData, order_index: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, order_index: Number.isNaN(parseInt(e.target.value, 10)) ? 0 : parseInt(e.target.value, 10) })}
               />
             </div>
 
@@ -241,7 +241,7 @@ const handleClose = () => {
                 id="duration_minutes"
                 type="number"
                 value={formData.duration_minutes}
-                onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, duration_minutes: Number.isNaN(parseInt(e.target.value, 10)) ? 0 : parseInt(e.target.value, 10) })}
               />
             </div>
           </div>

@@ -79,7 +79,7 @@ export const useCreateEnrollment = () => {
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating enrollment:', error);
@@ -116,7 +116,7 @@ export const useUpdateEnrollment = () => {
         .update(enrollmentData)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error updating enrollment:', error);
