@@ -30,6 +30,7 @@ export interface LessonInput {
   duration_minutes: number;
   order_index: number;
   status?: string;
+  zoom_start_time?: string;
 }
 
 export const useLessons = () => {
