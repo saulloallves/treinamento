@@ -1221,7 +1221,12 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url)
-    const path = url.pathname.split('/').filter(Boolean)
+    // Normalize path for Supabase routing (production and local):
+    // - Strip "/functions/v1" if present
+    // - Strip the function name segment "/api" if present
+    let path = url.pathname.split('/').filter(Boolean)
+    if (path[0] === 'functions' && path[1] === 'v1') path = path.slice(2)
+    if (path[0] === 'api') path = path.slice(1)
 
     console.log(`${req.method} /${path.join('/')}`)
 
