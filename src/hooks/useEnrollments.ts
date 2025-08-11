@@ -72,6 +72,18 @@ export const useCreateEnrollment = () => {
 
   return useMutation({
     mutationFn: async (enrollmentData: EnrollmentInput) => {
+      // Evita duplicidade: mesmo email + curso
+      const { data: existing } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('student_email', enrollmentData.student_email)
+        .eq('course_id', enrollmentData.course_id)
+        .maybeSingle();
+
+      if (existing?.id) {
+        throw new Error('Aluno já inscrito neste curso.');
+      }
+
       const { data, error } = await supabase
         .from('enrollments')
         .insert([{
