@@ -62,31 +62,40 @@ const handleSave = async () => {
     }
     try {
       setIsCreatingLive(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
 
-      // Monta data/hora agendada (ISO)
-      const scheduled = new Date(`${liveDate}T${liveTime}:00`);
+      const res = await fetch(
+        `https://tctkacgbhqvkqovctrzf.functions.supabase.co/api/zoom/aulas/criar`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            curso_id: formData.course_id,
+            titulo: formData.title,
+            data: liveDate,
+            hora: liveTime,
+            duracao: formData.duration_minutes,
+            descricao: formData.description || "",
+            ordem: formData.order_index ?? 1,
+          }),
+        }
+      );
 
-      // Gera link de reunião Jitsi (sem dependências externas)
-      const base = (formData.title || "aula").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-      const uniq = Math.random().toString(36).slice(2, 8);
-      const slug = `${base}-${liveDate.replace(/-/g, '')}-${liveTime.replace(':', '')}-${uniq}`;
-      const meetingLink = `https://meet.jit.si/${slug}`;
-
-      await createLessonMutation.mutateAsync({
-        ...formData,
-        video_url: meetingLink,
-        order_index: formData.order_index || 1,
-        status: formData.status || 'Ativo',
-        duration_minutes: formData.duration_minutes,
-        zoom_start_time: scheduled.toISOString(),
-      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Falha ao criar reunião no Zoom");
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
       await queryClient.invalidateQueries({ queryKey: ["courses"] });
 
       toast({
         title: "Aula ao vivo criada!",
-        description: "Link de reunião gerado automaticamente (Jitsi).",
+        description: "Link do Zoom gerado e salvo automaticamente.",
       });
 
 

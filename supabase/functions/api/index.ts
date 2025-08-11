@@ -973,7 +973,7 @@ async function handleZoom(request: Request, path: string[]) {
 
     try {
       const accessToken = await getZoomAccessToken()
-      const userId = host_email || Deno.env.get('ZOOM_HOST_EMAIL') || 'me'
+      const userId = host_email ? host_email : 'me'
 
       const zoomPayload = {
         topic: titulo,
