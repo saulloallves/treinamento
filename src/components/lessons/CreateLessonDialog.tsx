@@ -90,11 +90,16 @@ const handleSave = async () => {
         throw new Error(errText || "Falha ao criar reunião no Zoom");
       }
 
-      // Parse response to capture Zoom join URL and reflect it in the UI state
       const json = await res.json().catch(() => null);
       if (json?.join_url) {
         setFormData((prev) => ({ ...prev, video_url: json.join_url }));
       }
+
+      // Persist the lesson with the Zoom link
+      await createLessonMutation.mutateAsync({
+        ...formData,
+        video_url: json?.join_url || formData.video_url,
+      });
 
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
       await queryClient.invalidateQueries({ queryKey: ["courses"] });
