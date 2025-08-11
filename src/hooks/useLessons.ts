@@ -16,6 +16,11 @@ export interface Lesson {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  // Zoom fields (when aula é ao vivo)
+  zoom_meeting_id?: string | null;
+  zoom_start_url?: string | null;
+  zoom_join_url?: string | null;
+  zoom_start_time?: string | null;
   courses?: {
     name: string;
   };

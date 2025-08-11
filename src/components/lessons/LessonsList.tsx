@@ -164,6 +164,17 @@ const LessonsList = () => {
               </div>
               
               <div className="flex gap-2">
+                {(lesson.zoom_join_url || lesson.video_url) && (
+                  <Button
+                    className="btn-primary"
+                    size="sm"
+                    onClick={() =>
+                      window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                    }
+                  >
+                    Acessar Reunião
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   size="sm" 
