@@ -178,6 +178,15 @@ async function handleUsuarios(request: Request, path: string[]) {
   
   if (request.method === 'GET' && userId && path[2] === 'historico') {
     // GET /usuarios/{id}/historico
+    // Find user's primary key to map to enrollments (which store student_email)
+    const { data: userRecord } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('id', userId)
+      .single()
+
+    const emailKey = userRecord?.email || userId
+
     const { data: enrollments } = await supabase
       .from('enrollments')
       .select(`
@@ -185,7 +194,7 @@ async function handleUsuarios(request: Request, path: string[]) {
         courses (name, theme),
         certificates (*)
       `)
-      .eq('student_name', userId) // Assuming userId maps to student_name for now
+      .eq('student_email', emailKey)
 
     const { data: progress } = await supabase
       .from('student_progress')
@@ -887,6 +896,109 @@ async function handleCertificados(request: Request, path: string[]) {
   })
 }
 
+// WhatsApp endpoints (placeholder integration with Z-API)
+async function handleWhatsApp(request: Request, path: string[]) {
+  if (request.method === 'POST' && path[1] === 'disparo') {
+    const user = await verifyAuth(request)
+    const body = await request.json()
+    const { type, item_id, item_name, recipients = [], message } = body
+    const recipients_count = Array.isArray(recipients) ? recipients.length : (body.recipients_count || 0)
+
+    const { data, error } = await supabase
+      .from('whatsapp_dispatches')
+      .insert([{ type, item_id, item_name, recipients_count, message, created_by: user.id, status: 'enviado' }])
+      .select()
+      .single()
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    return new Response(JSON.stringify({
+      dispatch: data,
+      note: 'Envio via Z-API não habilitado neste endpoint ainda.'
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+  return new Response(JSON.stringify({ error: 'Not found' }), {
+    status: 404,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  })
+}
+
+// Zoom endpoints (future integration)
+async function handleZoom(request: Request, path: string[]) {
+  if (request.method === 'POST' && path[1] === 'aula') {
+    await verifyAuth(request)
+    return new Response(JSON.stringify({
+      error: 'Integração com Zoom não configurada. Adicione ZOOM_API_KEY/ZOOM_API_SECRET como secrets para habilitar.'
+    }), { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+  return new Response(JSON.stringify({ error: 'Not found' }), {
+    status: 404,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  })
+}
+
+// OpenAPI spec and Swagger UI
+function generateOpenApiSpec() {
+  const serverUrl = 'https://tctkacgbhqvkqovctrzf.supabase.co/functions/v1/api'
+  return {
+    openapi: '3.0.3',
+    info: {
+      title: 'Treinamentos API',
+      version: '1.0.0',
+      description: 'API REST para gestão de treinamentos da franquia.'
+    },
+    servers: [{ url: serverUrl }],
+    paths: {
+      '/auth/login': { post: { summary: 'Login admin', requestBody: { required: true }, responses: { '200': { description: 'Sessão' } } } },
+      '/auth/me': { get: { summary: 'Dados do admin logado', responses: { '200': { description: 'Usuário' } } } },
+      '/unidades/{codigo}': { get: { summary: 'Buscar unidade por código', parameters: [{ name: 'codigo', in: 'path', required: true }], responses: { '200': { description: 'Unidade' } } } },
+      '/unidades/{codigo}/colaboradores': { get: { summary: 'Listar colaboradores da unidade', parameters: [{ name: 'codigo', in: 'path', required: true }], responses: { '200': { description: 'Lista de usuários' } } } },
+      '/unidades': { post: { summary: 'Criar unidade', responses: { '200': { description: 'Unidade criada' } } } },
+      '/usuarios/{id}': { get: { summary: 'Detalhes do usuário', parameters: [{ name: 'id', in: 'path', required: true }], responses: { '200': { description: 'Usuário' } } } },
+      '/usuarios/{id}/historico': { get: { summary: 'Histórico do usuário', parameters: [{ name: 'id', in: 'path', required: true }], responses: { '200': { description: 'Histórico' } } } },
+      '/usuarios': { post: { summary: 'Cadastrar usuário', responses: { '200': { description: 'Usuário criado' } } } },
+      '/usuarios/{id}#put': { put: { summary: 'Atualizar usuário', parameters: [{ name: 'id', in: 'path', required: true }], responses: { '200': { description: 'Usuário atualizado' } } } },
+      '/usuarios/search': { get: { summary: 'Buscar por CPF', parameters: [{ name: 'cpf', in: 'query', required: true }], responses: { '200': { description: 'Usuário' } } } },
+      '/cursos': { get: { summary: 'Listar cursos' }, post: { summary: 'Criar curso' } },
+      '/cursos/{id}': { get: { summary: 'Detalhe do curso' }, put: { summary: 'Atualizar curso' }, delete: { summary: 'Desativar curso' } },
+      '/cursos/{curso_id}/aulas': { get: { summary: 'Aulas do curso' } },
+      '/aulas': { post: { summary: 'Criar aula' } },
+      '/aulas/{id}': { put: { summary: 'Editar aula' }, delete: { summary: 'Remover aula' } },
+      '/inscricoes': { post: { summary: 'Inscrever usuário' } },
+      '/inscricoes/validar': { get: { summary: 'Validar inscrição', parameters: [{ name: 'usuario_id', in: 'query' }, { name: 'curso_id', in: 'query' }] } },
+      '/inscricoes/curso/{curso_id}': { get: { summary: 'Inscritos do curso' } },
+      '/presencas': { post: { summary: 'Registrar presença' } },
+      '/presencas/aula/{aula_id}': { get: { summary: 'Presenças por aula' } },
+      '/progresso': { get: { summary: 'Obter progresso' }, put: { summary: 'Atualizar progresso' } },
+      '/quiz/{curso_id}': { get: { summary: 'Perguntas do quiz' } },
+      '/quiz/{curso_id}/responder': { post: { summary: 'Enviar respostas do quiz' } },
+      '/certificados/gerar': { post: { summary: 'Gerar certificado' } },
+      '/certificados/{usuario_id}/{curso_id}': { get: { summary: 'Obter certificado' } },
+      '/certificados/emitidos': { get: { summary: 'Listar certificados emitidos' } },
+      '/whatsapp/disparo': { post: { summary: 'Registrar e disparar mensagem (placeholder)' } },
+      '/zoom/aula': { post: { summary: 'Criar reunião no Zoom (placeholder)' } }
+    }
+  }
+}
+
+async function handleDocs(request: Request, path: string[]) {
+  if (path[0] === 'openapi.json') {
+    return new Response(JSON.stringify(generateOpenApiSpec()), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+  if (path[0] === 'docs') {
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Treinamentos API Docs</title><link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"/></head><body><div id="swagger-ui"></div><script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script><script>window.ui=SwaggerUIBundle({url:'./openapi.json',dom_id:'#swagger-ui'});</script></body></html>`
+    return new Response(html, { headers: { ...corsHeaders, 'Content-Type': 'text/html' } })
+  }
+  return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+}
+
 // Main request handler
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -902,6 +1014,9 @@ serve(async (req) => {
 
     // Route requests
     switch (path[0]) {
+      case 'openapi.json':
+      case 'docs':
+        return await handleDocs(req, path)
       case 'auth':
         return await handleAuth(req, path)
       case 'unidades':
@@ -922,10 +1037,16 @@ serve(async (req) => {
         return await handleQuiz(req, path)
       case 'certificados':
         return await handleCertificados(req, path)
+      case 'whatsapp':
+        return await handleWhatsApp(req, path)
+      case 'zoom':
+        return await handleZoom(req, path)
       default:
         return new Response(JSON.stringify({ 
           error: 'Not found',
           available_endpoints: [
+            'GET /openapi.json',
+            'GET /docs',
             'POST /auth/login',
             'GET /auth/me',
             'GET /unidades/{codigo}',
@@ -956,7 +1077,9 @@ serve(async (req) => {
             'POST /quiz/{curso_id}/responder',
             'POST /certificados/gerar',
             'GET /certificados/{usuario_id}/{curso_id}',
-            'GET /certificados/emitidos'
+            'GET /certificados/emitidos',
+            'POST /whatsapp/disparo',
+            'POST /zoom/aula'
           ]
         }), { 
           status: 404,
