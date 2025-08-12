@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Edit, Trash2, Building2, Phone, User } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("todas");
-  const [selectedRole, setSelectedRole] = useState("todos");
 
   useEffect(() => {
     document.title = "Gerenciar Usuários | Admin";
@@ -49,23 +48,15 @@ const UsersList = () => {
     return m;
   }, [units]);
 
-  const roles = useMemo(() => {
-    const set = new Set<string>();
-    for (const u of ((usersQuery.data ?? []) as any[])) {
-      if (u?.position) set.add(u.position as string);
-    }
-    return Array.from(set).sort();
-  }, [usersQuery.data]);
+// Cargo fixo, filtro de cargo removido
 
   const users = useMemo(() => {
     return ((usersQuery.data ?? []) as any[]).map((u) => ({
       id: u.id,
       name: u.name ?? "Sem nome",
-      cpf: u.cpf ?? "",
-      role: u.position ?? "—",
+      role: "Franqueado",
       unitId: u.unit_id ?? null,
       unitName: unitNameById.get(u.unit_id) ?? "—",
-      whatsapp: u.phone ?? "",
       status: u.active ? "Ativo" : "Inativo",
       lastAccess: "—",
     }));
@@ -73,12 +64,11 @@ const UsersList = () => {
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
-      const matchesSearch = (user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (user.cpf || "").includes(searchTerm);
+      const matchesSearch = (user.name || "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesUnit = selectedUnit === "todas" || String(user.unitId ?? "") === selectedUnit;
-      const matchesRole = selectedRole === "todos" || user.role === selectedRole;
-      return matchesSearch && matchesUnit && matchesRole;
+      return matchesSearch && matchesUnit;
     });
-  }, [users, searchTerm, selectedUnit, selectedRole]);
+  }, [users, searchTerm, selectedUnit]);
 
   return (
     <div className="space-y-6">
@@ -96,7 +86,7 @@ const UsersList = () => {
 
       {/* Filtros */}
       <div className="card-clean p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-brand-black mb-1">
               Buscar usuário
@@ -104,7 +94,7 @@ const UsersList = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-gray-dark w-4 h-4" />
               <Input
-                placeholder="Nome ou CPF..."
+                placeholder="Nome..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -128,23 +118,6 @@ const UsersList = () => {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Cargo
-            </label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-            >
-              <option value="todos">Todos os cargos</option>
-              {roles.map(role => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
@@ -155,10 +128,8 @@ const UsersList = () => {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="text-left p-4 font-medium text-brand-black">Usuário</th>
-                <th className="text-left p-4 font-medium text-brand-black">CPF</th>
                 <th className="text-left p-4 font-medium text-brand-black">Cargo</th>
                 <th className="text-left p-4 font-medium text-brand-black">Unidade</th>
-                <th className="text-left p-4 font-medium text-brand-black">WhatsApp</th>
                 <th className="text-left p-4 font-medium text-brand-black">Status</th>
                 <th className="text-left p-4 font-medium text-brand-black">Último Acesso</th>
                 <th className="text-left p-4 font-medium text-brand-black">Ações</th>
@@ -175,7 +146,7 @@ const UsersList = () => {
                       <span className="font-medium text-brand-black">{user.name}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-brand-gray-dark">{user.cpf}</td>
+                  
                   <td className="p-4">
                     <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
                       {user.role}
@@ -185,12 +156,6 @@ const UsersList = () => {
                     <div className="flex items-center gap-1">
                       <Building2 className="w-4 h-4" />
                       <span className="text-sm">{user.unitName}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-brand-gray-dark">
-                    <div className="flex items-center gap-1">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm">{user.whatsapp}</span>
                     </div>
                   </td>
                   <td className="p-4">
