@@ -75,20 +75,34 @@ export const useCreateLesson = () => {
 
   return useMutation({
     mutationFn: async (lessonData: LessonInput) => {
-      const { data, error } = await supabase
+      // Anti-duplicação: verifica se já existe aula com mesmo curso + título (normalizado) + ordem
+      const title = (lessonData.title || '').trim();
+      const { data: existing, error: existErr } = await supabase
         .from('lessons')
-        .insert([{
-          ...lessonData,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select()
+        .select('id')
+        .eq('course_id', lessonData.course_id)
+        .eq('title', title)
+        .eq('order_index', lessonData.order_index)
         .maybeSingle();
+      if (existErr) throw existErr;
 
-      if (error) {
-        console.error('Error creating lesson:', error);
-        throw error;
+      if (existing?.id) {
+        const { data, error } = await supabase
+          .from('lessons')
+          .update({ ...lessonData, title, created_by: (await supabase.auth.getUser()).data.user?.id })
+          .eq('id', existing.id)
+          .select()
+          .maybeSingle();
+        if (error) throw error;
+        return data;
       }
 
+      const { data, error } = await supabase
+        .from('lessons')
+        .insert([{ ...lessonData, title, created_by: (await supabase.auth.getUser()).data.user?.id }])
+        .select()
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
