@@ -120,9 +120,13 @@ export const useMarkAttendance = () => {
       }
     },
     onSuccess: () => {
-      // Atualiza progresso por consequência do gatilho (student_progress -> enrollment progress)
+      // Invalida queries relacionadas para refletir imediatamente
       queryClient.invalidateQueries({
-        predicate: (q) => Array.isArray(q.queryKey) && (q.queryKey[0] === 'attendance' || q.queryKey[0] === 'enrollments'),
+        predicate: (q) => {
+          if (!Array.isArray(q.queryKey)) return false;
+          const key0 = q.queryKey[0];
+          return key0 === 'attendance' || key0 === 'enrollments' || key0 === 'my-enrollment';
+        },
       });
       toast({
         title: 'Presença confirmada!',

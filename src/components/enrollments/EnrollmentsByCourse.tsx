@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 const EnrollmentsByCourse = () => {
   const { data: enrollments = [], isLoading } = useEnrollments();
@@ -53,6 +54,7 @@ const EnrollmentsByCourse = () => {
                   <th className="py-2 pr-4 font-medium">Email</th>
                   <th className="py-2 pr-4 font-medium">Telefone</th>
                   <th className="py-2 pr-4 font-medium">Status</th>
+                  <th className="py-2 pr-4 font-medium">Progresso</th>
                   <th className="py-2 pr-4 font-medium">Data</th>
                 </tr>
               </thead>
@@ -66,6 +68,14 @@ const EnrollmentsByCourse = () => {
                       <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
                         {e.status}
                       </span>
+                    </td>
+                    <td className="py-3 pr-4 min-w-[160px]">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <Progress value={e.progress_percentage ?? 0} />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{e.progress_percentage ?? 0}%</span>
+                      </div>
                     </td>
                     <td className="py-3 pr-4 text-muted-foreground">
                       {e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString("pt-BR") : "-"}

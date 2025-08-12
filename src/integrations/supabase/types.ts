@@ -613,6 +613,10 @@ export type Database = {
         Args: { _user: string }
         Returns: boolean
       }
+      recalc_enrollment_progress: {
+        Args: { p_enrollment_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
