@@ -23,26 +23,34 @@ export const useUpcomingLessons = () => {
         return [];
       }
 
-      // 2) Busca as matrículas do usuário para filtrar as aulas por curso
-      const { data: enrollmentsData } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .eq("user_id", userResp.user.id);
+      // 2) Verifica se é admin e coleta cursos do usuário quando necessário
+      const { data: isAdminData } = await supabase.rpc('is_admin', { _user: userResp.user.id });
+      const isAdmin = !!isAdminData;
 
-      const enrolledCourseIds = Array.from(
-        new Set((enrollmentsData ?? []).map((e: any) => e.course_id).filter(Boolean))
-      );
+      let enrolledCourseIds: string[] = [];
+      if (!isAdmin) {
+        const { data: enrollmentsData } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userResp.user.id);
+        enrolledCourseIds = Array.from(new Set((enrollmentsData ?? []).map((e: any) => e.course_id).filter(Boolean)));
+        if (enrolledCourseIds.length === 0) return [];
+      }
 
-      if (enrolledCourseIds.length === 0) return [];
+      // 3) Busca aulas futuras; inclui aulas sem link do Zoom
+      const nowIso = new Date().toISOString();
+      let lessonsQuery = supabase
+        .from('lessons')
+        .select('id,title,course_id,zoom_start_time,zoom_join_url,status,created_at')
+        .eq('status', 'Ativo')
+        .or(`zoom_start_time.is.null,zoom_start_time.gte.${nowIso}`)
+        .order('zoom_start_time', { ascending: true, nullsFirst: false });
 
-      // 3) Busca aulas apenas dos cursos do aluno, com link do Zoom disponível
-      const lessonsRes = await supabase
-        .from("lessons")
-        .select("id,title,course_id,zoom_start_time,zoom_join_url,status,created_at")
-        .eq("status", "Ativo")
-        .in("course_id", enrolledCourseIds)
-        .not("zoom_join_url", "is", null)
-        .order("zoom_start_time", { ascending: true, nullsFirst: false });
+      if (!isAdmin) {
+        lessonsQuery = lessonsQuery.in('course_id', enrolledCourseIds);
+      }
+
+      const lessonsRes = await lessonsQuery;
 
       const lessons = (lessonsRes.data as any[]) ?? [];
       if (lessons.length === 0) return [];
@@ -56,10 +64,11 @@ export const useUpcomingLessons = () => {
         .in("lesson_id", lessonIds);
 
       // 5) Busca nomes dos cursos envolvidos
+      const courseIds = Array.from(new Set(lessons.map((l: any) => l.course_id).filter(Boolean)));
       const coursesRes = await supabase
-        .from("courses")
-        .select("id,name")
-        .in("id", enrolledCourseIds);
+        .from('courses')
+        .select('id,name')
+        .in('id', courseIds);
 
       const countsByLesson = new Map<string, number>();
       for (const a of ((attendanceRes.data as any[]) ?? [])) {
