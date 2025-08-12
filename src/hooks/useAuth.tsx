@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: authUser.email,
         user_type: (meta.user_type as string) || 'Aluno',
         unit_id: unitId,
+        unit_code: unitCode,
         active: true,
       } as any;
 

@@ -25,13 +25,26 @@ const UsersList = () => {
     },
   });
 
-  // Apenas alunos
+  // Tabela 'unidades' (fallback via código)
+  const unidadesQuery = useQuery({
+    queryKey: ["unidades"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unidades")
+        .select("codigo_grupo,grupo")
+        .not("codigo_grupo", "is", null);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Apenas alunos e administradores (para mostrar tipo real)
   const usersQuery = useQuery({
     queryKey: ["users", "alunos"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("id,name,cpf,position,unit_id,phone,active,user_type,updated_at,created_at")
+        .select("id,name,cpf,position,unit_id,unit_code,phone,active,user_type,updated_at,created_at")
         .eq("user_type", "Aluno")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -48,19 +61,30 @@ const UsersList = () => {
     return m;
   }, [units]);
 
+  const unidades = unidadesQuery.data ?? [];
+  const unidadeNameByCode = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const u of (unidades as any[])) {
+      const code = u?.codigo_grupo;
+      if (code !== undefined && code !== null) m.set(String(code), (u.grupo as string) ?? "—");
+    }
+    return m;
+  }, [unidades]);
+
 // Cargo fixo, filtro de cargo removido
 
   const users = useMemo(() => {
     return ((usersQuery.data ?? []) as any[]).map((u) => ({
       id: u.id,
       name: u.name ?? "Sem nome",
+      type: u.user_type ?? "Aluno",
       role: "Franqueado",
       unitId: u.unit_id ?? null,
-      unitName: unitNameById.get(u.unit_id) ?? "—",
+      unitName: unitNameById.get(u.unit_id) ?? unidadeNameByCode.get(String(u.unit_code ?? '')) ?? "—",
       status: u.active ? "Ativo" : "Inativo",
       lastAccess: "—",
     }));
-  }, [usersQuery.data, unitNameById]);
+  }, [usersQuery.data, unitNameById, unidadeNameByCode]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -128,6 +152,7 @@ const UsersList = () => {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="text-left p-4 font-medium text-brand-black">Usuário</th>
+                <th className="text-left p-4 font-medium text-brand-black">Tipo</th>
                 <th className="text-left p-4 font-medium text-brand-black">Cargo</th>
                 <th className="text-left p-4 font-medium text-brand-black">Unidade</th>
                 <th className="text-left p-4 font-medium text-brand-black">Status</th>
@@ -147,6 +172,11 @@ const UsersList = () => {
                     </div>
                   </td>
                   
+                  <td className="p-4">
+                    <span className={`px-2 py-1 text-xs rounded-full ${user.type === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {user.type}
+                    </span>
+                  </td>
                   <td className="p-4">
                     <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
                       {user.role}

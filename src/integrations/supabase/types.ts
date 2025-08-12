@@ -654,6 +654,7 @@ export type Database = {
           name: string
           phone: string | null
           position: string | null
+          unit_code: string | null
           unit_id: string | null
           updated_at: string
           user_type: string
@@ -667,6 +668,7 @@ export type Database = {
           name: string
           phone?: string | null
           position?: string | null
+          unit_code?: string | null
           unit_id?: string | null
           updated_at?: string
           user_type: string
@@ -680,6 +682,7 @@ export type Database = {
           name?: string
           phone?: string | null
           position?: string | null
+          unit_code?: string | null
           unit_id?: string | null
           updated_at?: string
           user_type?: string
@@ -747,6 +750,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_users_unit_code: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       is_admin: {
         Args: { _user: string }
         Returns: boolean
