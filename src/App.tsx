@@ -24,6 +24,7 @@ import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
+import RoleRedirect from "@/components/RoleRedirect";
 
 const queryClient = new QueryClient();
 
@@ -37,11 +38,7 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={
-                <AdminRoute>
-                  <Index />
-                </AdminRoute>
-              } />
+              <Route path="/" element={<RoleRedirect />} />
               <Route path="/courses" element={
                 <AdminRoute>
                   <CoursesPage />
