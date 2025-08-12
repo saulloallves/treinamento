@@ -29,7 +29,7 @@ const Sidebar = () => {
   const menuItems = isAdmin
     ? [
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-        { icon: User, label: "Área do Aluno", path: "/aluno" },
+        
         { icon: GraduationCap, label: "Cursos", path: "/courses" },
         { icon: BookOpen, label: "Aulas", path: "/lessons" },
         { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
