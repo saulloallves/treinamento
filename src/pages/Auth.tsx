@@ -27,6 +27,26 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // SEO: título e descrição da página
+  useEffect(() => {
+    document.title = 'Login e Cadastro | Sistema de Treinamentos';
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', 'Acesse sua conta ou crie um cadastro no sistema de treinamentos Cresci e Perdi.');
+
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', window.location.origin + '/auth');
+  }, []);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -82,31 +102,34 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login-student" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6 p-1 rounded-full bg-muted">
-                <TabsTrigger 
-                  value="login-student" 
-                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+              <TabsList
+                aria-label="Seleção de tipo de acesso"
+                className="flex md:grid md:grid-cols-4 w-full overflow-x-auto gap-2 mb-6 p-1 rounded-full bg-muted"
+              >
+                <TabsTrigger
+                  value="login-student"
+                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <LogIn className="h-4 w-4" />
                   Login Aluno
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="register-student" 
-                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                <TabsTrigger
+                  value="register-student"
+                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <UserPlus className="h-4 w-4" />
                   Cadastro Aluno
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="login-admin" 
-                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                <TabsTrigger
+                  value="login-admin"
+                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <Shield className="h-4 w-4" />
                   Login Admin
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="register-admin" 
-                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                <TabsTrigger
+                  value="register-admin"
+                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <ShieldPlus className="h-4 w-4" />
                   Cadastro Admin
