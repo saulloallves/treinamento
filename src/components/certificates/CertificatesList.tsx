@@ -27,14 +27,25 @@ const CertificatesList = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("courses")
-        .select("id,name")
+        .select("id,name,status")
         .order("name", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const enrollmentsQuery = useQuery({
+  const enrollmentsStatsQuery = useQuery({
+    queryKey: ["enrollments", "stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id,progress_percentage");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const enrollmentsForCertsQuery = useQuery({
     queryKey: ["enrollments", "for-certs", certsQuery.data?.length ?? 0],
     enabled: !!certsQuery.data,
     queryFn: async () => {
@@ -57,9 +68,9 @@ const CertificatesList = () => {
 
   const enrollmentsMap = useMemo(() => {
     const m = new Map<string, any>();
-    for (const e of (enrollmentsQuery.data ?? []) as any[]) m.set(e.id, e);
+    for (const e of (enrollmentsForCertsQuery.data ?? []) as any[]) m.set(e.id, e);
     return m;
-  }, [enrollmentsQuery.data]);
+  }, [enrollmentsForCertsQuery.data]);
 
   const rows = useMemo(() => {
     const all = (certsQuery.data ?? []) as any[];
@@ -82,6 +93,21 @@ const CertificatesList = () => {
       return matchesSearch && matchesCourse;
     });
   }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
+
+  const stats = useMemo(() => {
+    const total = (certsQuery.data ?? []).length;
+    const now = new Date();
+    const month = (certsQuery.data ?? []).filter((c: any) => {
+      const d = new Date(c.generated_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+    const enr = (enrollmentsStatsQuery.data ?? []) as any[];
+    const totalEnr = enr.length || 0;
+    const completed = enr.filter((e) => (e.progress_percentage ?? 0) >= 100).length;
+    const rate = totalEnr ? Math.round((completed / totalEnr) * 100) : 0;
+    const activeCourses = ((coursesQuery.data ?? []) as any[]).filter((c) => c.status === 'Ativo').length;
+    return { total, month, rate, activeCourses };
+  }, [certsQuery.data, enrollmentsStatsQuery.data, coursesQuery.data]);
 
   return (
     <div className="space-y-6">
@@ -188,22 +214,22 @@ const CertificatesList = () => {
         </div>
       </div>
 
-      {/* Estatísticas */}
+      {/* Estatísticas (reais) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card-clean p-4 text-center">
-          <div className="text-2xl font-bold text-brand-blue mb-1">456</div>
+          <div className="text-2xl font-bold text-brand-blue mb-1">{stats.total}</div>
           <div className="text-sm text-brand-gray-dark">Total Emitidos</div>
         </div>
         <div className="card-clean p-4 text-center">
-          <div className="text-2xl font-bold text-green-600 mb-1">23</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{stats.month}</div>
           <div className="text-sm text-brand-gray-dark">Este Mês</div>
         </div>
         <div className="card-clean p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600 mb-1">89%</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.rate}%</div>
           <div className="text-sm text-brand-gray-dark">Taxa Conclusão</div>
         </div>
         <div className="card-clean p-4 text-center">
-          <div className="text-2xl font-bold text-purple-600 mb-1">12</div>
+          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.activeCourses}</div>
           <div className="text-sm text-brand-gray-dark">Cursos Ativos</div>
         </div>
       </div>
