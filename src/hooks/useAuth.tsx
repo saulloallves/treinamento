@@ -32,7 +32,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Defer DB work to avoid deadlocks
         if (session?.user) {
           setTimeout(() => {
-            ensureProfile(session.user).catch(() => {/* noop */});
+            (async () => {
+              try {
+                await ensureProfile(session.user!);
+                await supabase.rpc('ensure_admin_bootstrap');
+              } catch {}
+            })();
           }, 0);
         }
       }
@@ -45,7 +50,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       if (session?.user) {
         setTimeout(() => {
-          ensureProfile(session.user).catch(() => {/* noop */});
+          (async () => {
+            try {
+              await ensureProfile(session.user!);
+              await supabase.rpc('ensure_admin_bootstrap');
+            } catch {}
+          })();
         }, 0);
       }
     });
