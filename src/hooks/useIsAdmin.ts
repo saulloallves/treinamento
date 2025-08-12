@@ -31,6 +31,17 @@ export const useIsAdmin = (userId?: string) => {
         if (!error && typeof data === 'boolean') return data;
       }
 
+      // 4) Fallback: direct table check (admins can read admin_users via RLS)
+      try {
+        const { data: rows, error: tblErr } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('active', true)
+          .limit(1);
+        if (!tblErr && rows && rows.length > 0) return true;
+      } catch {}
+
       return false;
     },
     enabled: !!userId,

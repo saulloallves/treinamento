@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, UserPlus, GraduationCap, Shield, ShieldPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -20,20 +20,11 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Redireciona após autenticar verificando RPC diretamente (evita cache)
+  // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
   useEffect(() => {
-    if (!user) return;
-    let mounted = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase.rpc('is_admin', { _user: user.id });
-        const admin = !error && !!data;
-        if (mounted) navigate(admin ? '/' : '/aluno', { replace: true });
-      } catch {
-        if (mounted) navigate('/aluno', { replace: true });
-      }
-    })();
-    return () => { mounted = false };
+    if (user) {
+      navigate('/', { replace: true });
+    }
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
