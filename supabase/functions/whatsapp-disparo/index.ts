@@ -21,16 +21,14 @@ serve(async (req: Request) => {
     const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')!
 
     // Forward caller's auth so RLS applies as if user made the request
-    const authHeader = req.headers.get('authorization') || ''
-    const token = authHeader.replace(/^Bearer\s+/i, '')
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization') || ''
     const supabase = createClient(supabaseUrl, supabaseAnon, {
-      global: { headers: { authorization: authHeader } }
+      global: { headers: { Authorization: authHeader } }
     })
 
-    const { data: userResp, error: userErr } = await supabase.auth.getUser(token)
-    const user = userResp?.user
+    const { data: { user }, error: userErr } = await supabase.auth.getUser()
     if (userErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: 'Unauthorized', details: userErr?.message || 'No user' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const {
