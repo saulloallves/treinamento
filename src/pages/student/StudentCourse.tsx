@@ -61,6 +61,23 @@ const StudentCourse = () => {
   const enrollment = enrollmentQuery.data;
   const lessons = lessonsQuery.data ?? [];
 
+  // Count how many lessons have attendance confirmed for this enrollment
+  const attendanceCountQuery = useQuery({
+    queryKey: ['attendance', 'count', enrollment?.id, courseId, (lessons?.map(l => l.id) ?? []).join(',')],
+    enabled: Boolean(enrollment?.id && lessons.length > 0),
+    queryFn: async () => {
+      const lessonIds = lessons.map((l: any) => l.id);
+      const { count, error } = await supabase
+        .from('attendance')
+        .select('id', { count: 'exact', head: true })
+        .eq('enrollment_id', enrollment!.id)
+        .in('lesson_id', lessonIds);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const allAttended = lessons.length > 0 && (attendanceCountQuery.data ?? 0) >= lessons.length;
   return (
     <BaseLayout title="Detalhes do Curso">
       <header className="mb-6 flex items-center justify-between">
@@ -89,7 +106,7 @@ const StudentCourse = () => {
           <div className="text-sm text-muted-foreground">
             Progresso: <span className="font-medium">{enrollment.progress_percentage ?? 0}%</span>
           </div>
-          {enrollment.progress_percentage >= 100 ? (
+          {(allAttended || (enrollment.progress_percentage ?? 0) >= 100) ? (
             <RequestCertificateButton
               enrollmentId={enrollment.id}
               courseId={enrollment.course_id}
