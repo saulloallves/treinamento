@@ -14,6 +14,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [unitCode, setUnitCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if already authenticated
@@ -28,10 +29,17 @@ const Auth = () => {
     setIsLoading(false);
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleStudentSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signUp(email, password, fullName);
+    await signUp(email, password, fullName, { userType: 'Aluno', unitCode });
+    setIsLoading(false);
+  };
+
+  const handleAdminSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await signUp(email, password, fullName, { userType: 'Admin' });
     setIsLoading(false);
   };
 
@@ -137,7 +145,19 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="register-student">
-                <form onSubmit={handleSignUp} className="space-y-4">
+                <form onSubmit={handleStudentSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="unitCode" className="text-brand-gray-dark font-medium">Código da Unidade</Label>
+                    <Input
+                      id="unitCode"
+                      type="text"
+                      placeholder="Ex.: ABC123"
+                      value={unitCode}
+                      onChange={(e) => setUnitCode(e.target.value)}
+                      required
+                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-brand-gray-dark font-medium">Nome Completo</Label>
                     <Input
@@ -223,7 +243,7 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="register-admin">
-                <form onSubmit={handleSignUp} className="space-y-4">
+                <form onSubmit={handleAdminSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName-admin" className="text-brand-gray-dark font-medium">Nome Completo</Label>
                     <Input
