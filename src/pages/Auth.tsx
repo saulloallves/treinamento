@@ -44,22 +44,23 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
+      {/* Subtle gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]">
+        <div className="absolute -top-24 -left-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
+      </div>
+      <div className="w-full max-w-xl space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-blue rounded-lg mb-4">
-            <GraduationCap className="h-8 w-8 text-brand-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary/10 ring-1 ring-primary/15 mb-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)]">
+            <GraduationCap className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-brand-black mb-2">
-            Cresci e Perdi
-          </h1>
-          <p className="text-brand-gray-dark">
-            Sistema de Treinamentos
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Cresci e Perdi</h1>
+          <p className="text-muted-foreground">Sistema de Treinamentos</p>
         </div>
 
-        <Card className="bg-brand-white shadow-clean-lg border-gray-200">
+        <Card className="border border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70 shadow-xl ring-1 ring-primary/10 rounded-2xl">
           <CardHeader className="text-center space-y-2 pb-4">
             <CardTitle className="text-2xl text-brand-black">Acesse sua conta</CardTitle>
             <CardDescription className="text-brand-gray-dark">
@@ -68,31 +69,31 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login-student" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6 bg-gray-100">
+              <TabsList className="grid w-full grid-cols-4 mb-6 p-1 rounded-full bg-muted">
                 <TabsTrigger 
                   value="login-student" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
+                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <LogIn className="h-4 w-4" />
                   Login Aluno
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register-student" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
+                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <UserPlus className="h-4 w-4" />
                   Cadastro Aluno
                 </TabsTrigger>
                 <TabsTrigger 
                   value="login-admin" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
+                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <Shield className="h-4 w-4" />
                   Login Admin
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register-admin" 
-                  className="flex items-center gap-2 data-[state=active]:bg-brand-white data-[state=active]:text-brand-blue data-[state=active]:shadow-clean"
+                  className="rounded-full flex items-center justify-center gap-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <ShieldPlus className="h-4 w-4" />
                   Cadastro Admin
