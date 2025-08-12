@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, UserPlus, GraduationCap, Shield, ShieldPlus } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -17,9 +19,27 @@ const Auth = () => {
   const [unitCode, setUnitCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: isAdmin = false, isLoading: checkingAdmin } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data, error } = await supabase.rpc('is_admin', { _user: user.id });
+      return !error && !!data;
+    },
+    enabled: !!user,
+    initialData: false,
+  });
+
   // Redirect if already authenticated
   if (user) {
-    return <Navigate to="/" replace />;
+    if (checkingAdmin) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-brand-white">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+        </div>
+      );
+    }
+    return <Navigate to={isAdmin ? '/' : '/aluno'} replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent) => {

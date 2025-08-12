@@ -22,6 +22,7 @@ import SettingsPage from "./pages/SettingsPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -36,59 +37,59 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <Index />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/courses" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <CoursesPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/lessons" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <LessonsPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/enrollments" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <EnrollmentsPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/attendance" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <AttendancePage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/progress" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <ProgressPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/certificates" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <CertificatesPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/whatsapp" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <WhatsAppPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/users" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <UsersPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/units" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <UnitsPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/settings" element={
-                <ProtectedRoute requiredRole="Admin">
+                <AdminRoute>
                   <SettingsPage />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               <Route path="/aluno" element={
                 <ProtectedRoute>
