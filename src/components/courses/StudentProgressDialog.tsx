@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookOpen, Play, CheckCircle, Clock, Save } from "lucide-react";
 import {
@@ -131,28 +130,9 @@ const StudentProgressDialog = ({ student, courseLessons, open, onOpenChange }: S
         throw insertError;
       }
 
-      // Calculate overall progress percentage
-      const completedLessons = Object.values(lessonProgress).filter(p => p.status === 'completed').length;
-      const progressPercentage = courseLessons.length > 0 ? Math.round((completedLessons / courseLessons.length) * 100) : 0;
-
-      // Update enrollment progress
-      const { error: updateError } = await supabase
-        .from('enrollments')
-        .update({
-          progress_percentage: progressPercentage,
-          completed_lessons: Object.values(lessonProgress)
-            .filter(p => p.status === 'completed')
-            .map(p => p.lesson_id),
-        })
-        .eq('id', student.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
       toast({
         title: "Progresso salvo com sucesso!",
-        description: "O progresso do aluno foi atualizado.",
+        description: "As alterações foram registradas.",
       });
 
       onOpenChange(false);
