@@ -13,6 +13,7 @@ import MetricCard from "@/components/MetricCard";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const { data, isLoading } = useDashboardStats();
@@ -144,28 +145,45 @@ const Dashboard = () => {
               Próximas Aulas Ao Vivo
             </h2>
             <div className="space-y-4">
-              {(upcomingLessons ?? []).map((lesson) => (
-                <div key={lesson.id} className="p-4 border border-gray-200 rounded-lg">
-                  <h3 className="font-medium text-brand-black text-sm mb-1">
-                    {lesson.title}
-                  </h3>
-                  <p className="text-xs text-brand-gray-dark mb-2">
-                    {lesson.course}
-                  </p>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-brand-blue" />
-                      <span className="text-brand-gray-dark">
-                        {lesson.date} às {lesson.time}
-                      </span>
+              {isUpcomingLoading ? (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 border border-gray-200 rounded-lg">
+                      <Skeleton className="h-4 w-3/4 mb-2" />
+                      <Skeleton className="h-3 w-1/2 mb-4" />
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 w-8" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{lesson.participants}</span>
+                  ))}
+                </>
+              ) : upcomingLessons && upcomingLessons.length > 0 ? (
+                (upcomingLessons ?? []).map((lesson) => (
+                  <div key={lesson.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
+                    <h3 className="font-medium text-brand-black text-sm mb-1">
+                      {lesson.title}
+                    </h3>
+                    <p className="text-xs text-brand-gray-dark mb-2">
+                      {lesson.course}
+                    </p>
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-brand-blue" />
+                        <span className="text-brand-gray-dark">
+                          {lesson.date} às {lesson.time}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-brand-blue" />
+                        <span className="text-brand-gray-dark">{lesson.participants}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
+              )}
             </div>
           </div>
         </div>

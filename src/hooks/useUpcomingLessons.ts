@@ -18,9 +18,11 @@ export const useUpcomingLessons = () => {
     queryFn: async () => {
       const lessonsRes = await supabase
         .from("lessons")
-        .select("id,title,course_id,created_at,status")
+        .select("id,title,course_id,zoom_start_time,status")
         .eq("status", "Ativo")
-        .order("created_at", { ascending: false })
+        .not("zoom_start_time", "is", null)
+        .gte("zoom_start_time", new Date().toISOString())
+        .order("zoom_start_time", { ascending: true })
         .limit(3);
 
       const lessons = (lessonsRes.data as any[]) ?? [];
@@ -55,7 +57,8 @@ export const useUpcomingLessons = () => {
       }
 
       return lessons.map((l) => {
-        const dt = new Date(l.created_at);
+        const dtSrc = (l as any).zoom_start_time ?? (l as any).created_at;
+        const dt = dtSrc ? new Date(dtSrc) : new Date();
         return {
           id: l.id,
           title: l.title,
