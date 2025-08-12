@@ -12,6 +12,8 @@ const AttendancePage = () => {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 
 const AttendanceList = () => {
   const attendanceQuery = useQuery({
@@ -69,37 +71,38 @@ const AttendanceList = () => {
   const rows = attendanceQuery.data ?? [];
 
   return (
-    <div className="bg-card p-6 rounded-lg border">
-      <h2 className="text-2xl font-bold text-foreground mb-4">Presenças confirmadas</h2>
-      {attendanceQuery.isLoading ? (
-        <p className="text-muted-foreground">Carregando...</p>
-      ) : rows.length === 0 ? (
-        <p className="text-muted-foreground">Nenhuma presença confirmada ainda.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left p-3">Aluno</th>
-                <th className="text-left p-3">Curso</th>
-                <th className="text-left p-3">Aula</th>
-                <th className="text-left p-3">Confirmado em</th>
-              </tr>
-            </thead>
-            <tbody>
+    <Card>
+      <CardHeader>
+        <CardTitle>Presenças confirmadas</CardTitle>
+        <p className="text-sm text-muted-foreground">{attendanceQuery.isLoading ? "Carregando..." : `${rows.length} registro(s)`}</p>
+      </CardHeader>
+      <CardContent>
+        {attendanceQuery.isLoading ? null : rows.length === 0 ? (
+          <p className="text-muted-foreground">Nenhuma presença confirmada ainda.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Aluno</TableHead>
+                <TableHead>Curso</TableHead>
+                <TableHead>Aula</TableHead>
+                <TableHead>Confirmado em</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((r: any) => (
-                <tr key={r.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{r.student}</td>
-                  <td className="p-3">{r.course}</td>
-                  <td className="p-3">{r.lesson}</td>
-                  <td className="p-3">{new Date(r.confirmedAt).toLocaleString()}</td>
-                </tr>
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.student}</TableCell>
+                  <TableCell>{r.course}</TableCell>
+                  <TableCell>{r.lesson}</TableCell>
+                  <TableCell>{new Date(r.confirmedAt).toLocaleString('pt-BR')}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
