@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -96,12 +95,20 @@ export const useMarkAttendance = () => {
 
   return useMutation({
     mutationFn: async ({ enrollment_id, lesson_id }: MarkAttendanceInput) => {
+      // Garante que há um usuário autenticado e captura seu id
+      const { data: userResp, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userResp.user) {
+        throw new Error('É necessário estar autenticado para marcar presença.');
+      }
+      const userId = userResp.user.id;
+
       const { error } = await supabase
         .from('attendance')
         .insert([{
           enrollment_id,
           lesson_id,
           attendance_type: 'manual',
+          user_id: userId,
         }]);
 
       if (error) {
@@ -158,12 +165,20 @@ export const useRequestCertificate = () => {
 
   return useMutation({
     mutationFn: async ({ enrollment_id, course_id }: RequestCertificateInput) => {
+      // Garante que há um usuário autenticado e captura seu id
+      const { data: userResp, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userResp.user) {
+        throw new Error('É necessário estar autenticado para solicitar certificado.');
+      }
+      const userId = userResp.user.id;
+
       const { data, error } = await supabase
         .from('certificates')
         .insert([{
           enrollment_id,
           course_id,
           status: 'active',
+          user_id: userId,
         }])
         .select()
         .maybeSingle();
