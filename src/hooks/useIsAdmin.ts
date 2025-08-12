@@ -63,7 +63,6 @@ export const useIsAdmin = (userId?: string) => {
       return false;
     },
     enabled: !!userId,
-    initialData: false,
     staleTime: 1000 * 30,
   });
 };
