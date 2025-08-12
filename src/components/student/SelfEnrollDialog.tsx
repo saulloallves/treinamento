@@ -20,6 +20,7 @@ interface SelfEnrollDialogProps {
 
 const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const [courseId, setCourseId] = useState<string>('');
+  const [unitCode, setUnitCode] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentPhone, setStudentPhone] = useState('');
@@ -29,17 +30,19 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!courseId || !studentName.trim() || !studentEmail.trim()) return;
+    if (!courseId || !unitCode.trim() || !studentName.trim() || !studentEmail.trim()) return;
 
     await selfEnroll.mutateAsync({
       course_id: courseId,
       student_name: studentName.trim(),
       student_email: studentEmail.trim(),
+      unit_code: unitCode.trim(),
       student_phone: studentPhone.trim() || undefined,
     });
 
     if (!selfEnroll.isError) {
       setCourseId('');
+      setUnitCode('');
       setStudentName('');
       setStudentEmail('');
       setStudentPhone('');
@@ -76,6 +79,18 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-brand-black mb-1">
+              Código da Unidade *
+            </label>
+            <Input
+              value={unitCode}
+              onChange={(e) => setUnitCode(e.target.value)}
+              placeholder="Informe o código da sua unidade"
+              required
+            />
           </div>
 
           <div>
@@ -126,7 +141,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={!courseId || !studentName.trim() || !studentEmail.trim() || selfEnroll.isPending}
+              disabled={!courseId || !unitCode.trim() || !studentName.trim() || !studentEmail.trim() || selfEnroll.isPending}
             >
               {selfEnroll.isPending ? 'Inscrevendo...' : 'Confirmar Inscrição'}
             </Button>

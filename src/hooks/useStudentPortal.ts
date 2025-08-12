@@ -8,6 +8,7 @@ export interface SelfEnrollmentInput {
   course_id: UUID;
   student_name: string;
   student_email: string;
+  unit_code: string; // código da unidade informado pelo aluno
   student_phone?: string;
 }
 
@@ -32,6 +33,21 @@ export const useSelfEnroll = () => {
         throw new Error('É necessário estar autenticado para se inscrever.');
       }
       const userId = userResp.user.id;
+
+      // Valida o código da unidade informado
+      const { data: unit, error: unitErr } = await supabase
+        .from('units')
+        .select('id, code')
+        .eq('code', input.unit_code)
+        .maybeSingle();
+
+      if (unitErr) {
+        console.error('Erro ao validar código da unidade:', unitErr);
+        throw unitErr;
+      }
+      if (!unit) {
+        throw new Error('Código da unidade inválido. Verifique com sua unidade.');
+      }
 
       // Evita duplicidade: mesmo user ou mesmo email no mesmo curso
       const { data: existing, error: dupErr } = await supabase

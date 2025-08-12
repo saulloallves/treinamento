@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,7 +21,7 @@ export interface MyEnrollment {
   course?: MyEnrollmentCourse | null;
 }
 
-export const useMyEnrollments = () => {
+export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
   const { toast } = useToast();
 
   return useQuery<MyEnrollment[]>({
@@ -71,12 +71,5 @@ export const useMyEnrollments = () => {
       }
     },
     staleTime: 1000 * 60,
-    onError: (err: any) => {
-      toast({
-        title: "Erro ao carregar inscrições",
-        description: err?.message ?? "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
   });
 };

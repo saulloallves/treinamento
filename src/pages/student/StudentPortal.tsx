@@ -3,12 +3,13 @@ import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useMyEnrollments } from "@/hooks/useMyEnrollments";
+import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
 
 const StudentPortal = () => {
-  const { data: enrollments, isLoading } = useMyEnrollments();
+  const { data, isLoading } = useMyEnrollments();
+  const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
   const [openEnroll, setOpenEnroll] = useState(false);
 
   useEffect(() => {
