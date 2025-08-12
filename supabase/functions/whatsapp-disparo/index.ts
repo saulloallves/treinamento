@@ -93,14 +93,14 @@ serve(async (req: Request) => {
       .map(e => ({ id: e.id, phone: normalizePhone(e.student_phone), name: e.student_name, email: e.student_email }))
       .filter(r => !!r.phone) as { id: string; phone: string; name?: string; email?: string }[]
 
-    const instanceId = Deno.env.get('ZAPI_INSTANCE_ID')
-    const token = Deno.env.get('ZAPI_TOKEN')
-    if (!instanceId || !token) {
+    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
+    const zapiToken = Deno.env.get('ZAPI_TOKEN')
+    if (!zapiInstanceId || !zapiToken) {
       return new Response(JSON.stringify({ error: 'WhatsApp não configurado. Defina ZAPI_INSTANCE_ID e ZAPI_TOKEN.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Send via Z-API
-    const baseUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}`
+    const baseUrl = `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}`
 
     let delivered = 0
     let failed = 0
