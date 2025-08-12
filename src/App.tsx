@@ -79,11 +79,6 @@ const App = () => (
                   <UsersPage />
                 </AdminRoute>
               } />
-              <Route path="/units" element={
-                <AdminRoute>
-                  <UnitsPage />
-                </AdminRoute>
-              } />
               <Route path="/settings" element={
                 <AdminRoute>
                   <SettingsPage />

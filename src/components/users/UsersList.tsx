@@ -37,8 +37,7 @@ const UsersList = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("unidades")
-        .select("codigo_grupo,grupo")
-        .not("codigo_grupo", "is", null);
+        .select("codigo_grupo,grupo");
       if (error) throw error;
       return data ?? [];
     },
