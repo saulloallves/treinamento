@@ -34,20 +34,7 @@ export const useSelfEnroll = () => {
       }
       const userId = userResp.user.id;
 
-      // Valida o código da unidade informado
-      const { data: unit, error: unitErr } = await supabase
-        .from('units')
-        .select('id, code')
-        .eq('code', input.unit_code)
-        .maybeSingle();
-
-      if (unitErr) {
-        console.error('Erro ao validar código da unidade:', unitErr);
-        throw unitErr;
-      }
-      if (!unit) {
-        throw new Error('Código da unidade inválido. Verifique com sua unidade.');
-      }
+      // Observação: validação de código da unidade removida a pedido do cliente; aceitar qualquer texto.
 
       // Evita duplicidade: mesmo user ou mesmo email no mesmo curso
       const { data: existing, error: dupErr } = await supabase
