@@ -119,13 +119,25 @@ export const useMarkAttendance = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: async (_data, variables) => {
+      // Recalcula o progresso no banco imediatamente
+      try {
+        await supabase.rpc('recalc_enrollment_progress', { p_enrollment_id: variables.enrollment_id });
+      } catch (e) {
+        console.warn('Falha ao recalcular progresso via RPC (seguindo com invalidate):', e);
+      }
+
       // Invalida queries relacionadas para refletir imediatamente
       queryClient.invalidateQueries({
         predicate: (q) => {
           if (!Array.isArray(q.queryKey)) return false;
           const key0 = q.queryKey[0];
-          return key0 === 'attendance' || key0 === 'enrollments' || key0 === 'my-enrollment';
+          return (
+            key0 === 'attendance' ||
+            key0 === 'enrollments' ||
+            key0 === 'my-enrollment' ||
+            key0 === 'my-enrollments'
+          );
         },
       });
       toast({

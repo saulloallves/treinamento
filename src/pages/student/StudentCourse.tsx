@@ -78,6 +78,18 @@ const StudentCourse = () => {
   });
 
   const allAttended = lessons.length > 0 && (attendanceCountQuery.data ?? 0) >= lessons.length;
+
+  // Backfill: se o progresso estiver desatualizado, recalcula no backend e refaz o fetch
+  useEffect(() => {
+    if (!enrollment || lessons.length === 0) return;
+    const attended = attendanceCountQuery.data ?? 0;
+    const expected = lessons.length > 0 ? Math.floor((attended * 100) / lessons.length) : 0;
+    if ((enrollment.progress_percentage ?? 0) !== expected) {
+      supabase.rpc('recalc_enrollment_progress', { p_enrollment_id: enrollment.id })
+        .then(() => { enrollmentQuery.refetch(); });
+    }
+  }, [enrollment?.id, enrollment?.progress_percentage, lessons.length, attendanceCountQuery.data]);
+
   return (
     <BaseLayout title="Detalhes do Curso">
       <header className="mb-6 flex items-center justify-between">
