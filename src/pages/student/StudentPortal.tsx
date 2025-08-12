@@ -5,17 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
   const [openEnroll, setOpenEnroll] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
 
   useEffect(() => {
     document.title = "Área do Aluno | Cresci e Perdi";
   }, []);
 
+  useEffect(() => {
+    if (!checkingAdmin && isAdmin) {
+      navigate('/', { replace: true });
+    }
+  }, [checkingAdmin, isAdmin, navigate]);
   return (
     <BaseLayout title="Área do Aluno">
       <header className="mb-6 flex items-center justify-between">

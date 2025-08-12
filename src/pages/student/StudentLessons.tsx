@@ -3,14 +3,24 @@ import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
-
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
 
   useEffect(() => {
     document.title = "Aulas Agendadas | Área do Aluno";
   }, []);
 
+  useEffect(() => {
+    if (!checkingAdmin && isAdmin) {
+      navigate('/', { replace: true });
+    }
+  }, [checkingAdmin, isAdmin, navigate]);
   return (
     <BaseLayout title="Aulas Agendadas">
       <header className="mb-6 flex items-center justify-between">
