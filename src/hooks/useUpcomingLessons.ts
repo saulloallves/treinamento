@@ -37,13 +37,14 @@ export const useUpcomingLessons = () => {
         if (enrolledCourseIds.length === 0) return [];
       }
 
-      // 3) Busca aulas futuras; inclui aulas sem link do Zoom
+      // 3) Busca aulas futuras (apenas com data de início definida)
       const nowIso = new Date().toISOString();
       let lessonsQuery = supabase
         .from('lessons')
         .select('id,title,course_id,zoom_start_time,zoom_join_url,status,created_at')
         .eq('status', 'Ativo')
-        .or(`zoom_start_time.is.null,zoom_start_time.gte.${nowIso}`)
+        .not('zoom_start_time', 'is', null)
+        .gte('zoom_start_time', nowIso)
         .order('zoom_start_time', { ascending: true, nullsFirst: false });
 
       if (!isAdmin) {
