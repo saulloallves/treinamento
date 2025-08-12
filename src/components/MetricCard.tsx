@@ -23,9 +23,11 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon }: MetricCard
         <div className="w-12 h-12 rounded-lg bg-brand-blue-light flex items-center justify-center">
           <Icon className="w-6 h-6 text-brand-blue" />
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
-          {change}
-        </div>
+        {change && change !== "—" && (
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
+            {change}
+          </div>
+        )}
       </div>
       
       {/* Conteúdo principal */}
