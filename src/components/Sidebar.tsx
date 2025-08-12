@@ -13,7 +13,8 @@ import {
   TrendingUp,
   HelpCircle,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  User
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -22,6 +23,7 @@ const Sidebar = () => {
   
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: User, label: "Área do Aluno", path: "/aluno" },
     { icon: GraduationCap, label: "Cursos", path: "/courses" },
     { icon: BookOpen, label: "Aulas", path: "/lessons" },
     { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },

@@ -19,6 +19,8 @@ import WhatsAppPage from "./pages/WhatsAppPage";
 import UsersPage from "./pages/UsersPage";
 import UnitsPage from "./pages/UnitsPage";
 import SettingsPage from "./pages/SettingsPage";
+import StudentPortal from "./pages/student/StudentPortal";
+import StudentCourse from "./pages/student/StudentCourse";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -86,6 +88,16 @@ const App = () => (
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno" element={
+                <ProtectedRoute>
+                  <StudentPortal />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/curso/:courseId" element={
+                <ProtectedRoute>
+                  <StudentCourse />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
