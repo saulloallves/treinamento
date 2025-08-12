@@ -93,17 +93,17 @@ const App = () => (
                 </AdminRoute>
               } />
               <Route path="/aluno" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Aluno">
                   <StudentPortal />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/aulas" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Aluno">
                   <StudentLessons />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/curso/:courseId" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Aluno">
                   <StudentCourse />
                 </ProtectedRoute>
               } />
