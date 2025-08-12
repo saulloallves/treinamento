@@ -34,6 +34,16 @@ export const useSelfEnroll = () => {
       }
       const userId = userResp.user.id;
 
+      // Grava o código da unidade no perfil do usuário (para exibir o nome da unidade)
+      try {
+        await supabase
+          .from('users')
+          .update({ unit_code: input.unit_code })
+          .eq('id', userId);
+      } catch (e) {
+        console.warn('Falha ao atualizar unit_code do usuário (seguindo com a inscrição):', e);
+      }
+
       // Observação: validação de código da unidade removida a pedido do cliente; aceitar qualquer texto.
 
       // Evita duplicidade: mesmo user ou mesmo email no mesmo curso

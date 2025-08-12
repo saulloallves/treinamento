@@ -4,9 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("todas");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [unitCode, setUnitCode] = useState("");
+  const [userType, setUserType] = useState("Aluno");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     document.title = "Gerenciar Usuários | Admin";
@@ -40,12 +46,11 @@ const UsersList = () => {
 
   // Apenas alunos e administradores (para mostrar tipo real)
   const usersQuery = useQuery({
-    queryKey: ["users", "alunos"],
+    queryKey: ["users", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
         .select("id,name,cpf,position,unit_id,unit_code,phone,active,user_type,updated_at,created_at")
-        .eq("user_type", "Aluno")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -81,6 +86,7 @@ const UsersList = () => {
       role: "Franqueado",
       unitId: u.unit_id ?? null,
       unitName: unitNameById.get(u.unit_id) ?? unidadeNameByCode.get(String(u.unit_code ?? '')) ?? "—",
+      unitCode: String(u.unit_code ?? ''),
       status: u.active ? "Ativo" : "Inativo",
       lastAccess: "—",
     }));
@@ -202,7 +208,7 @@ const UsersList = () => {
                   <td className="p-4 text-brand-gray-dark text-sm">{user.lastAccess}</td>
                   <td className="p-4">
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => { setEditingUser(user); setUnitCode(user.unitCode ?? ""); setUserType(user.type ?? "Aluno"); setEditOpen(true); }}>
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button variant="outline" size="sm">
@@ -234,6 +240,57 @@ const UsersList = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-brand-black mb-1">Código da Unidade</label>
+              <Input value={unitCode} onChange={(e) => setUnitCode(e.target.value)} placeholder="Ex: 1659" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-brand-black mb-1">Tipo</label>
+              <select
+                className="w-full h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+              >
+                <option value="Aluno">Aluno</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button
+              className="btn-primary"
+              disabled={saving || !editingUser}
+              onClick={async () => {
+                if (!editingUser) return;
+                try {
+                  setSaving(true);
+                  const { error } = await supabase
+                    .from('users')
+                    .update({ unit_code: unitCode || null, user_type: userType })
+                    .eq('id', editingUser.id);
+                  if (error) throw error;
+                  await usersQuery.refetch();
+                  setEditOpen(false);
+                } catch (e) {
+                  console.error('Erro ao salvar usuário:', e);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
