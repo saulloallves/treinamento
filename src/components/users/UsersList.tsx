@@ -70,8 +70,9 @@ const UsersList = () => {
   const unidadeNameByCode = useMemo(() => {
     const m = new Map<string, string>();
     for (const u of (unidades as any[])) {
-      const code = u?.codigo_grupo;
-      if (code !== undefined && code !== null) m.set(String(code), (u.grupo as string) ?? "—");
+      const codeRaw = u?.codigo_grupo;
+      const key = String(codeRaw ?? '').trim();
+      if (key) m.set(key, (u.grupo as string) ?? "—");
     }
     return m;
   }, [unidades]);
@@ -85,8 +86,8 @@ const UsersList = () => {
       type: u.user_type ?? "Aluno",
       role: "Franqueado",
       unitId: u.unit_id ?? null,
-      unitName: unitNameById.get(u.unit_id) ?? unidadeNameByCode.get(String(u.unit_code ?? '')) ?? "—",
-      unitCode: String(u.unit_code ?? ''),
+      unitName: unitNameById.get(u.unit_id) ?? unidadeNameByCode.get(String(u.unit_code ?? '').trim()) ?? "—",
+      unitCode: String(u.unit_code ?? '').trim(),
       status: u.active ? "Ativo" : "Inativo",
       lastAccess: "—",
     }));
