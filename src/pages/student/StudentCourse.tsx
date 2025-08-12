@@ -46,7 +46,7 @@ const StudentCourse = () => {
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!courseId,
+    enabled: !!courseId && !!enrollmentQuery.data,
   });
 
   const enrollment = enrollmentQuery.data;
@@ -61,7 +61,9 @@ const StudentCourse = () => {
         </Button>
       </header>
 
-      {enrollment ? (
+      {enrollmentQuery.isLoading ? (
+        <p className="mb-6">Carregando sua matrícula...</p>
+      ) : enrollment ? (
         <div className="mb-6 flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Progresso: <span className="font-medium">{enrollment.progress_percentage ?? 0}%</span>
@@ -78,33 +80,45 @@ const StudentCourse = () => {
           )}
         </div>
       ) : (
-        <p className="mb-6">Carregando sua matrícula...</p>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Inscrição necessária</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Você não está inscrito neste curso. Solicite sua inscrição para acessar as aulas.
+            </p>
+            <Button asChild>
+              <Link to="/aluno">Solicitar inscrição</Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      <section className="grid gap-4">
-        {lessons.map((lesson: any) => (
-          <Card key={lesson.id}>
-            <CardHeader>
-              <CardTitle>{lesson.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground max-w-[70%]">
-                  {lesson.description ?? ""}
-                </p>
-                {enrollment && (
+      {enrollment && (
+        <section className="grid gap-4">
+          {lessons.map((lesson: any) => (
+            <Card key={lesson.id}>
+              <CardHeader>
+                <CardTitle>{lesson.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground max-w-[70%]">
+                    {lesson.description ?? ""}
+                  </p>
                   <AttendanceButton
                     enrollmentId={enrollment.id}
                     lessonId={lesson.id}
                   >
                     Marcar Presença
                   </AttendanceButton>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </section>
+      )}
     </BaseLayout>
   );
 };

@@ -36,57 +36,57 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <Index />
                 </ProtectedRoute>
               } />
               <Route path="/courses" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <CoursesPage />
                 </ProtectedRoute>
               } />
               <Route path="/lessons" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <LessonsPage />
                 </ProtectedRoute>
               } />
               <Route path="/enrollments" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <EnrollmentsPage />
                 </ProtectedRoute>
               } />
               <Route path="/attendance" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <AttendancePage />
                 </ProtectedRoute>
               } />
               <Route path="/progress" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <ProgressPage />
                 </ProtectedRoute>
               } />
               <Route path="/certificates" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <CertificatesPage />
                 </ProtectedRoute>
               } />
               <Route path="/whatsapp" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <WhatsAppPage />
                 </ProtectedRoute>
               } />
               <Route path="/users" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <UsersPage />
                 </ProtectedRoute>
               } />
               <Route path="/units" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <UnitsPage />
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="Admin">
                   <SettingsPage />
                 </ProtectedRoute>
               } />

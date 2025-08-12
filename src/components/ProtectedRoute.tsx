@@ -5,9 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  requiredRole?: 'Admin' | 'Aluno';
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,6 +21,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  const role = (user.user_metadata?.user_type as string) || 'Aluno';
+  if (requiredRole && role !== requiredRole) {
+    return <Navigate to={role === 'Admin' ? '/' : '/aluno'} replace />;
   }
 
   return <>{children}</>;
