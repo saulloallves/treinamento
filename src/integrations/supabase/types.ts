@@ -470,6 +470,144 @@ export type Database = {
           },
         ]
       }
+      unidades: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          codigo_grupo: number | null
+          complemento: string | null
+          contrato: string | null
+          created_at: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          etapa_loja: string | null
+          fase_loja: string | null
+          func_dom: string | null
+          func_sab: string | null
+          func_seg_sex: string | null
+          grupo: string | null
+          has_parking: string | null
+          has_partner_parking: string | null
+          id: string | null
+          id_agente_ia: string | null
+          id_grupo_amarelo: string | null
+          id_grupo_azul: string | null
+          id_grupo_branco: string | null
+          id_grupo_colab: string | null
+          id_grupo_compras: string | null
+          id_grupo_notificacoes: string | null
+          id_grupo_reclame_aqui: string | null
+          id_grupo_vermelho: string | null
+          id_page_notion: string | null
+          id_pasta_documentos: string | null
+          id_pasta_unidade: string | null
+          instagram: string | null
+          link_pasta_documentos: string | null
+          link_pasta_unidade: string | null
+          modelo_loja: string | null
+          numero: string | null
+          parking_spots: string | null
+          partner_parking_address: string | null
+          purchases_active: Json | null
+          sales_active: Json | null
+          telefone: number | null
+          uf: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          codigo_grupo?: number | null
+          complemento?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          etapa_loja?: string | null
+          fase_loja?: string | null
+          func_dom?: string | null
+          func_sab?: string | null
+          func_seg_sex?: string | null
+          grupo?: string | null
+          has_parking?: string | null
+          has_partner_parking?: string | null
+          id?: string | null
+          id_agente_ia?: string | null
+          id_grupo_amarelo?: string | null
+          id_grupo_azul?: string | null
+          id_grupo_branco?: string | null
+          id_grupo_colab?: string | null
+          id_grupo_compras?: string | null
+          id_grupo_notificacoes?: string | null
+          id_grupo_reclame_aqui?: string | null
+          id_grupo_vermelho?: string | null
+          id_page_notion?: string | null
+          id_pasta_documentos?: string | null
+          id_pasta_unidade?: string | null
+          instagram?: string | null
+          link_pasta_documentos?: string | null
+          link_pasta_unidade?: string | null
+          modelo_loja?: string | null
+          numero?: string | null
+          parking_spots?: string | null
+          partner_parking_address?: string | null
+          purchases_active?: Json | null
+          sales_active?: Json | null
+          telefone?: number | null
+          uf?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          codigo_grupo?: number | null
+          complemento?: string | null
+          contrato?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          etapa_loja?: string | null
+          fase_loja?: string | null
+          func_dom?: string | null
+          func_sab?: string | null
+          func_seg_sex?: string | null
+          grupo?: string | null
+          has_parking?: string | null
+          has_partner_parking?: string | null
+          id?: string | null
+          id_agente_ia?: string | null
+          id_grupo_amarelo?: string | null
+          id_grupo_azul?: string | null
+          id_grupo_branco?: string | null
+          id_grupo_colab?: string | null
+          id_grupo_compras?: string | null
+          id_grupo_notificacoes?: string | null
+          id_grupo_reclame_aqui?: string | null
+          id_grupo_vermelho?: string | null
+          id_page_notion?: string | null
+          id_pasta_documentos?: string | null
+          id_pasta_unidade?: string | null
+          instagram?: string | null
+          link_pasta_documentos?: string | null
+          link_pasta_unidade?: string | null
+          modelo_loja?: string | null
+          numero?: string | null
+          parking_spots?: string | null
+          partner_parking_address?: string | null
+          purchases_active?: Json | null
+          sales_active?: Json | null
+          telefone?: number | null
+          uf?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       units: {
         Row: {
           active: boolean
