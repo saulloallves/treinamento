@@ -60,7 +60,6 @@ export const useCreateWhatsAppDispatch = () => {
 
   return useMutation({
     mutationFn: async (dispatchData: DispatchInput) => {
-      // Invoke edge function to send and record dispatch
       const { data, error } = await supabase.functions.invoke('whatsapp-disparo', {
         body: dispatchData,
       });
@@ -70,13 +69,20 @@ export const useCreateWhatsAppDispatch = () => {
         throw error;
       }
 
-      return data?.dispatch;
+      return data as any; // { ok, dispatch, delivered, failed, recipients_count, results }
     },
-    onSuccess: () => {
+    onSuccess: (resp) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp_dispatches'] });
+      const delivered = resp?.delivered ?? 0;
+      const failed = resp?.failed ?? 0;
+      const firstErr = resp?.results?.find?.((r: any) => !r.ok)?.error;
+      const description = failed > 0
+        ? `Entregues: ${delivered} • Falhas: ${failed}${firstErr ? ` • Primeiro erro: ${String(firstErr).slice(0, 200)}` : ''}`
+        : `Entregues: ${delivered} de ${resp?.recipients_count ?? 0}`;
       toast({
-        title: "Disparo registrado com sucesso!",
-        description: "O histórico foi atualizado.",
+        title: failed > 0 ? 'Disparo concluído com falhas' : 'Disparo realizado com sucesso!',
+        description,
+        ...(failed > 0 ? { variant: 'destructive' as const } : {}),
       });
     },
     onError: (error: any) => {
