@@ -22,7 +22,13 @@ export const useIsAdmin = (userId?: string) => {
       // 2) Fast-path por metadados do auth
       const { data: ures } = await supabase.auth.getUser();
       const metaType = (ures?.user?.user_metadata?.user_type as string) || '';
-      if (ures?.user?.id === userId && metaType.toLowerCase() === 'admin') {
+      const email = (ures?.user?.email || '').toLowerCase();
+      if (
+        ures?.user?.id === userId && (
+          metaType.toLowerCase() === 'admin' ||
+          email.endsWith('@crescieperdi.com.br')
+        )
+      ) {
         return true;
       }
 
