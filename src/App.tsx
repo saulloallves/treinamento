@@ -21,6 +21,7 @@ import UnitsPage from "./pages/UnitsPage";
 import SettingsPage from "./pages/SettingsPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
+import StudentLessons from "./pages/student/StudentLessons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 
@@ -94,6 +95,11 @@ const App = () => (
               <Route path="/aluno" element={
                 <ProtectedRoute>
                   <StudentPortal />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/aulas" element={
+                <ProtectedRoute>
+                  <StudentLessons />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/curso/:courseId" element={

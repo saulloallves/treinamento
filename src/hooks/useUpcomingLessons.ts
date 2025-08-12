@@ -10,6 +10,7 @@ export interface UpcomingLessonItem {
   date: string; // dd/MM/yyyy
   time: string; // HH:mm
   participants: number;
+  joinUrl?: string;
 }
 
 export const useUpcomingLessons = () => {
@@ -18,7 +19,7 @@ export const useUpcomingLessons = () => {
     queryFn: async () => {
       const lessonsRes = await supabase
         .from("lessons")
-        .select("id,title,course_id,zoom_start_time,status")
+        .select("id,title,course_id,zoom_start_time,zoom_join_url,status")
         .eq("status", "Ativo")
         .not("zoom_start_time", "is", null)
         .gte("zoom_start_time", new Date().toISOString())
@@ -66,6 +67,7 @@ export const useUpcomingLessons = () => {
           date: format(dt, "dd/MM/yyyy", { locale: ptBR }),
           time: format(dt, "HH:mm", { locale: ptBR }),
           participants: countsByLesson.get(l.id) ?? 0,
+          joinUrl: (l as any).zoom_join_url ?? undefined,
         } as UpcomingLessonItem;
       });
     },

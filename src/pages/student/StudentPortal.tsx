@@ -8,7 +8,7 @@ import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
 
 const StudentPortal = () => {
-  const { data, isLoading } = useMyEnrollments();
+  const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
   const [openEnroll, setOpenEnroll] = useState(false);
 
@@ -20,7 +20,12 @@ const StudentPortal = () => {
     <BaseLayout title="Área do Aluno">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Minhas Inscrições</h1>
-        <Button onClick={() => setOpenEnroll(true)}>Autoinscrição</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => refetch()} disabled={isRefetching}>
+            {isRefetching ? "Recarregando..." : "Recarregar"}
+          </Button>
+          <Button onClick={() => setOpenEnroll(true)}>Autoinscrição</Button>
+        </div>
       </header>
 
       <SelfEnrollDialog open={openEnroll} onOpenChange={setOpenEnroll} />

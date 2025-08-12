@@ -56,9 +56,21 @@ const StudentCourse = () => {
     <BaseLayout title="Detalhes do Curso">
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Aulas</h1>
-        <Button asChild variant="outline">
-          <Link to="/aluno">Voltar</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              enrollmentQuery.refetch();
+              lessonsQuery.refetch();
+            }}
+            disabled={enrollmentQuery.isRefetching || lessonsQuery.isRefetching}
+          >
+            {(enrollmentQuery.isRefetching || lessonsQuery.isRefetching) ? "Recarregando..." : "Recarregar"}
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/aluno">Voltar</Link>
+          </Button>
+        </div>
       </header>
 
       {enrollmentQuery.isLoading ? (
