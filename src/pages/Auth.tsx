@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, UserPlus, GraduationCap, Shield, ShieldPlus } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -18,19 +18,23 @@ const Auth = () => {
   const [unitCode, setUnitCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id);
+  const navigate = useNavigate();
 
-  // Redirect if already authenticated
-  if (user) {
-    if (checkingAdmin) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-brand-white">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
-        </div>
-      );
-    }
-    return <Navigate to={isAdmin ? '/' : '/aluno'} replace />;
-  }
+  // Redireciona após autenticar verificando RPC diretamente (evita cache)
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('is_admin', { _user: user.id });
+        const admin = !error && !!data;
+        if (mounted) navigate(admin ? '/' : '/aluno', { replace: true });
+      } catch {
+        if (mounted) navigate('/aluno', { replace: true });
+      }
+    })();
+    return () => { mounted = false };
+  }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
