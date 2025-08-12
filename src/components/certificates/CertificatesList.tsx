@@ -1,58 +1,87 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Download, RefreshCw, Award, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const CertificatesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
 
-  const certificates = [
-    {
-      id: 1,
-      studentName: "João Silva",
-      courseName: "Segurança no Trabalho",
-      issuedDate: "2024-01-10",
-      certificateCode: "CERT-2024-001",
-      status: "Emitido",
-      downloadLink: "#",
-      unit: "SP-001"
+  const certsQuery = useQuery({
+    queryKey: ["certificates", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("certificates")
+        .select("id,generated_at,status,certificate_url,course_id,enrollment_id,user_id")
+        .order("generated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
-    {
-      id: 2,
-      studentName: "Maria Santos",
-      courseName: "Atendimento ao Cliente",
-      issuedDate: "2024-01-09",
-      certificateCode: "CERT-2024-002",
-      status: "Emitido",
-      downloadLink: "#",
-      unit: "SP-001"
-    },
-    {
-      id: 3,
-      studentName: "Carlos Oliveira",
-      courseName: "Gestão Franqueado",
-      issuedDate: "2024-01-08",
-      certificateCode: "CERT-2024-003",
-      status: "Emitido",
-      downloadLink: "#",
-      unit: "RJ-002"
-    }
-  ];
-
-  const courses = [
-    { id: 1, name: "Segurança no Trabalho" },
-    { id: 2, name: "Atendimento ao Cliente" },
-    { id: 3, name: "Gestão Franqueado" }
-  ];
-
-  const filteredCertificates = certificates.filter(cert => {
-    const matchesSearch = cert.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cert.certificateCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = selectedCourse === "todos" || cert.courseName === selectedCourse;
-    return matchesSearch && matchesCourse;
   });
+
+  const coursesQuery = useQuery({
+    queryKey: ["courses", "for-certs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id,name")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const enrollmentsQuery = useQuery({
+    queryKey: ["enrollments", "for-certs", certsQuery.data?.length ?? 0],
+    enabled: !!certsQuery.data,
+    queryFn: async () => {
+      const ids = Array.from(new Set((certsQuery.data ?? []).map((c: any) => c.enrollment_id).filter(Boolean)));
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id,student_name,course_id")
+        .in("id", ids);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const coursesMap = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const c of (coursesQuery.data ?? []) as any[]) m.set(c.id, c);
+    return m;
+  }, [coursesQuery.data]);
+
+  const enrollmentsMap = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const e of (enrollmentsQuery.data ?? []) as any[]) m.set(e.id, e);
+    return m;
+  }, [enrollmentsQuery.data]);
+
+  const rows = useMemo(() => {
+    const all = (certsQuery.data ?? []) as any[];
+    const enriched = all.map((c) => {
+      const enr = enrollmentsMap.get(c.enrollment_id);
+      const course = coursesMap.get(c.course_id ?? enr?.course_id);
+      return {
+        id: c.id,
+        studentName: enr?.student_name ?? "—",
+        courseName: course?.name ?? "—",
+        generatedAt: c.generated_at,
+        status: c.status,
+        url: c.certificate_url as string | null,
+      };
+    });
+    const q = searchTerm.trim().toLowerCase();
+    return enriched.filter((r) => {
+      const matchesSearch = !q || r.studentName.toLowerCase().includes(q);
+      const matchesCourse = selectedCourse === "todos" || r.courseName === selectedCourse;
+      return matchesSearch && matchesCourse;
+    });
+  }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
 
   return (
     <div className="space-y-6">
@@ -74,7 +103,7 @@ const CertificatesList = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-gray-dark w-4 h-4" />
               <Input
-                placeholder="Nome do aluno ou código do certificado..."
+                placeholder="Nome do aluno..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -91,7 +120,7 @@ const CertificatesList = () => {
               className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
             >
               <option value="todos">Todos os cursos</option>
-              {courses.map(course => (
+              {(coursesQuery.data ?? []).map((course: any) => (
                 <option key={course.id} value={course.name}>
                   {course.name}
                 </option>
@@ -109,53 +138,45 @@ const CertificatesList = () => {
               <tr>
                 <th className="text-left p-4 font-medium text-brand-black">Aluno</th>
                 <th className="text-left p-4 font-medium text-brand-black">Curso</th>
-                <th className="text-left p-4 font-medium text-brand-black">Código</th>
-                <th className="text-left p-4 font-medium text-brand-black">Data de Emissão</th>
-                <th className="text-left p-4 font-medium text-brand-black">Unidade</th>
+                <th className="text-left p-4 font-medium text-brand-black">Data da Solicitação</th>
                 <th className="text-left p-4 font-medium text-brand-black">Status</th>
                 <th className="text-left p-4 font-medium text-brand-black">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCertificates.map((certificate) => (
-                <tr key={certificate.id} className="border-b hover:bg-gray-50">
+              {rows.map((r) => (
+                <tr key={r.id as any} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center">
                         <User className="w-4 h-4 text-brand-white" />
                       </div>
-                      <span className="font-medium text-brand-black">{certificate.studentName}</span>
+                      <span className="font-medium text-brand-black">{r.studentName}</span>
                     </div>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Award className="w-4 h-4 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{certificate.courseName}</span>
+                      <span className="text-brand-gray-dark">{r.courseName}</span>
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <code className="px-2 py-1 bg-gray-100 rounded text-sm text-brand-black">
-                      {certificate.certificateCode}
-                    </code>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{certificate.issuedDate}</span>
+                      <span className="text-brand-gray-dark">{new Date(r.generatedAt).toLocaleDateString('pt-BR')}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-brand-gray-dark">{certificate.unit}</td>
                   <td className="p-4">
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
-                      {certificate.status}
+                    <span className={`px-2 py-1 text-xs rounded-full ${String(r.status).toLowerCase() === 'emitido' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                      {r.status}
                     </span>
                   </td>
                   <td className="p-4">
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" title="Baixar PDF">
+                      <Button variant="outline" size="sm" title="Baixar PDF" disabled={!r.url} onClick={() => { if (r.url) window.open(r.url, '_blank'); }}>
                         <Download className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm" title="Reemitir">
+                      <Button variant="outline" size="sm" title="Atualizar" onClick={() => certsQuery.refetch()}>
                         <RefreshCw className="w-4 h-4" />
                       </Button>
                     </div>
