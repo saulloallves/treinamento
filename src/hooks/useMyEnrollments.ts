@@ -57,10 +57,36 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           });
         }
 
-        return list.map((e) => ({
-          ...e,
-          course: e.course_id ? coursesMap[e.course_id] : null,
-        })) as MyEnrollment[];
+        // Calcula o progresso real a partir das presenças registradas
+        const enrollmentIds = list.map((e) => e.id);
+        let countsByEnrollment = new Map<string, number>();
+        if (enrollmentIds.length > 0) {
+          const { data: attRows, error: attErr } = await supabase
+            .from('attendance')
+            .select('enrollment_id')
+            .in('enrollment_id', enrollmentIds);
+          if (attErr) throw attErr;
+          for (const row of (attRows ?? [])) {
+            const k = (row as any).enrollment_id as string;
+            countsByEnrollment.set(k, (countsByEnrollment.get(k) ?? 0) + 1);
+          }
+        }
+
+        const result = list.map((e) => {
+          const courseInfo = e.course_id ? coursesMap[e.course_id] : null;
+          const totalLessons = Math.max(0, Number(courseInfo?.lessons_count ?? 0));
+          const attended = countsByEnrollment.get(e.id) ?? 0;
+          const expected = totalLessons > 0
+            ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
+            : (e.progress_percentage ?? 0);
+          return {
+            ...e,
+            progress_percentage: expected,
+            course: courseInfo,
+          } as MyEnrollment;
+        });
+
+        return result;
       } catch (err: any) {
         toast({
           title: "Erro ao carregar inscrições",
