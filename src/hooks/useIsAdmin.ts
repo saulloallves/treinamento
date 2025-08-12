@@ -7,7 +7,19 @@ export const useIsAdmin = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return false;
 
-      // 1) Fast-path by metadata
+      // 1) Checagem na tabela users (fonte autoritativa)
+      try {
+        const { data: prof } = await supabase
+          .from('users')
+          .select('user_type')
+          .eq('id', userId)
+          .maybeSingle();
+        if (prof?.user_type && String(prof.user_type).toLowerCase() === 'admin') {
+          return true;
+        }
+      } catch {}
+
+      // 2) Fast-path por metadados do auth
       const { data: ures } = await supabase.auth.getUser();
       const metaType = (ures?.user?.user_metadata?.user_type as string) || '';
       if (ures?.user?.id === userId && metaType.toLowerCase() === 'admin') {
