@@ -7,20 +7,30 @@ export const useIsAdmin = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return false;
 
-      // Try common argument names to avoid mismatch with SQL function signature
+      // 1) Fast-path by metadata
+      const { data: ures } = await supabase.auth.getUser();
+      const metaType = (ures?.user?.user_metadata?.user_type as string) || '';
+      if (ures?.user?.id === userId && metaType.toLowerCase() === 'admin') {
+        return true;
+      }
+
+      // 2) RPC using declared signature is_admin(_user uuid)
+      const preferred = await supabase.rpc('is_admin', { _user: userId });
+      if (!preferred.error && typeof preferred.data === 'boolean') {
+        return preferred.data;
+      }
+
+      // 3) Try alternative argument names (defensive)
       const argVariants = [
         { uid: userId },
         { user_id: userId },
-        { _user: userId },
         { p_user_id: userId },
       ];
-
       for (const args of argVariants) {
-        const { data, error } = await supabase.rpc("is_admin", args as any);
-        if (!error && typeof data === "boolean") return data;
+        const { data, error } = await supabase.rpc('is_admin', args as any);
+        if (!error && typeof data === 'boolean') return data;
       }
 
-      // As a final fallback, assume not admin
       return false;
     },
     enabled: !!userId,
