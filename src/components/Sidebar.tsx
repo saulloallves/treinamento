@@ -18,27 +18,13 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const Sidebar = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  const { data: isAdmin = false } = useQuery({
-    queryKey: ["is-admin", user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data, error } = await supabase.rpc("is_admin", { _user: user.id });
-      if (error) {
-        console.warn("is_admin rpc error", error);
-        return false;
-      }
-      return !!data;
-    },
-    enabled: !!user,
-    initialData: false,
-  });
+  const { data: isAdmin = false } = useIsAdmin(user?.id);
   
   const menuItems = isAdmin
     ? [

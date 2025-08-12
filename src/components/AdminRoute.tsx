@@ -1,8 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface AdminRouteProps {
   children: ReactNode;
@@ -11,16 +10,7 @@ interface AdminRouteProps {
 const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, loading } = useAuth();
 
-  const { data: isAdmin = false, isLoading } = useQuery({
-    queryKey: ['is-admin', user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data, error } = await supabase.rpc('is_admin', { _user: user.id });
-      return !error && !!data;
-    },
-    enabled: !!user,
-    initialData: false,
-  });
+  const { data: isAdmin = false, isLoading } = useIsAdmin(user?.id || undefined);
 
   if (loading || isLoading) {
     return (
