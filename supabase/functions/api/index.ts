@@ -408,6 +408,8 @@ async function handleCursos(request: Request, path: string[]) {
     const url = new URL(request.url)
     const email = url.searchParams.get('email')
     
+    console.log('Buscando cursos por email:', email)
+    
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email é obrigatório' }), { 
         status: 400,
@@ -435,6 +437,8 @@ async function handleCursos(request: Request, path: string[]) {
       `)
       .eq('student_email', email)
       .order('created_at', { ascending: false })
+
+    console.log('Resultado da busca:', { encontrados: enrollments?.length || 0, erro: error?.message })
 
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), { 
