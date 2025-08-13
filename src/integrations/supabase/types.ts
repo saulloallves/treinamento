@@ -483,51 +483,6 @@ export type Database = {
           },
         ]
       }
-      system_settings: {
-        Row: {
-          auto_certificate_generation: boolean
-          certificate_template: string
-          course_approval_required: boolean
-          created_at: string
-          email_notifications: boolean
-          id: string
-          max_enrollment_per_course: number | null
-          system_description: string
-          system_name: string
-          timezone: string
-          updated_at: string
-          whatsapp_notifications: boolean
-        }
-        Insert: {
-          auto_certificate_generation?: boolean
-          certificate_template?: string
-          course_approval_required?: boolean
-          created_at?: string
-          email_notifications?: boolean
-          id?: string
-          max_enrollment_per_course?: number | null
-          system_description?: string
-          system_name?: string
-          timezone?: string
-          updated_at?: string
-          whatsapp_notifications?: boolean
-        }
-        Update: {
-          auto_certificate_generation?: boolean
-          certificate_template?: string
-          course_approval_required?: boolean
-          created_at?: string
-          email_notifications?: boolean
-          id?: string
-          max_enrollment_per_course?: number | null
-          system_description?: string
-          system_name?: string
-          timezone?: string
-          updated_at?: string
-          whatsapp_notifications?: boolean
-        }
-        Relationships: []
-      }
       unidades: {
         Row: {
           bairro: string | null
@@ -816,23 +771,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      get_system_settings: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          id: string
-          system_name: string
-          system_description: string
-          email_notifications: boolean
-          whatsapp_notifications: boolean
-          auto_certificate_generation: boolean
-          certificate_template: string
-          course_approval_required: boolean
-          max_enrollment_per_course: number
-          timezone: string
-          created_at: string
-          updated_at: string
-        }[]
-      }
       is_admin: {
         Args: { _user: string }
         Returns: boolean
@@ -840,23 +778,6 @@ export type Database = {
       recalc_enrollment_progress: {
         Args: { p_enrollment_id: string }
         Returns: undefined
-      }
-      update_system_settings: {
-        Args: { settings_data: Json }
-        Returns: {
-          id: string
-          system_name: string
-          system_description: string
-          email_notifications: boolean
-          whatsapp_notifications: boolean
-          auto_certificate_generation: boolean
-          certificate_template: string
-          course_approval_required: boolean
-          max_enrollment_per_course: number
-          timezone: string
-          created_at: string
-          updated_at: string
-        }[]
       }
     }
     Enums: {
