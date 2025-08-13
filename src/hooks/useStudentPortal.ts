@@ -6,10 +6,6 @@ type UUID = string;
 
 export interface SelfEnrollmentInput {
   course_id: UUID;
-  student_name: string;
-  student_email: string;
-  unit_code: string; // código da unidade informado pelo aluno
-  student_phone?: string;
 }
 
 export interface MarkAttendanceInput {
@@ -34,24 +30,28 @@ export const useSelfEnroll = () => {
       }
       const userId = userResp.user.id;
 
-      // Grava o código da unidade no perfil do usuário (para exibir o nome da unidade)
-      try {
-        await supabase
-          .from('users')
-          .update({ unit_code: input.unit_code })
-          .eq('id', userId);
-      } catch (e) {
-        console.warn('Falha ao atualizar unit_code do usuário (seguindo com a inscrição):', e);
+      // Busca dados do usuário logado
+      const { data: userData, error: userDataErr } = await supabase
+        .from('users')
+        .select('name, email, phone, unit_code')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userDataErr) {
+        console.error('Erro ao buscar dados do usuário:', userDataErr);
+        throw new Error('Erro ao carregar dados do usuário.');
       }
 
-      // Observação: validação de código da unidade removida a pedido do cliente; aceitar qualquer texto.
+      if (!userData) {
+        throw new Error('Dados do usuário não encontrados.');
+      }
 
-      // Evita duplicidade: mesmo user ou mesmo email no mesmo curso
+      // Evita duplicidade: mesmo user no mesmo curso
       const { data: existing, error: dupErr } = await supabase
         .from('enrollments')
         .select('id')
         .eq('course_id', input.course_id)
-        .or(`user_id.eq.${userId},student_email.eq.${input.student_email}`)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (dupErr) {
@@ -66,9 +66,9 @@ export const useSelfEnroll = () => {
         .from('enrollments')
         .insert([{
           course_id: input.course_id,
-          student_name: input.student_name,
-          student_email: input.student_email,
-          student_phone: input.student_phone ?? null,
+          student_name: userData.name,
+          student_email: userData.email,
+          student_phone: userData.phone,
           user_id: userId,
           status: 'Ativo',
         }])

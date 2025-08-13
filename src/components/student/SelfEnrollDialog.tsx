@@ -20,32 +20,20 @@ interface SelfEnrollDialogProps {
 
 const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const [courseId, setCourseId] = useState<string>('');
-  const [unitCode, setUnitCode] = useState('');
-  const [studentName, setStudentName] = useState('');
-  const [studentEmail, setStudentEmail] = useState('');
-  const [studentPhone, setStudentPhone] = useState('');
 
   const { data: courses = [] } = useCourses();
   const selfEnroll = useSelfEnroll();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!courseId || !unitCode.trim() || !studentName.trim() || !studentEmail.trim()) return;
+    if (!courseId) return;
 
     await selfEnroll.mutateAsync({
       course_id: courseId,
-      student_name: studentName.trim(),
-      student_email: studentEmail.trim(),
-      unit_code: unitCode.trim(),
-      student_phone: studentPhone.trim() || undefined,
     });
 
     if (!selfEnroll.isError) {
       setCourseId('');
-      setUnitCode('');
-      setStudentName('');
-      setStudentEmail('');
-      setStudentPhone('');
       onOpenChange(false);
     }
   };
@@ -81,54 +69,6 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Código da Unidade *
-            </label>
-            <Input
-              value={unitCode}
-              onChange={(e) => setUnitCode(e.target.value)}
-              placeholder="Informe o código da sua unidade"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Nome Completo *
-            </label>
-            <Input
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              placeholder="Seu nome completo"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Email *
-            </label>
-            <Input
-              type="email"
-              value={studentEmail}
-              onChange={(e) => setStudentEmail(e.target.value)}
-              placeholder="voce@exemplo.com"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Telefone
-            </label>
-            <Input
-              value={studentPhone}
-              onChange={(e) => setStudentPhone(e.target.value)}
-              placeholder="(11) 99999-9999"
-            />
-          </div>
-
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
@@ -141,7 +81,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={!courseId || !unitCode.trim() || !studentName.trim() || !studentEmail.trim() || selfEnroll.isPending}
+              disabled={!courseId || selfEnroll.isPending}
             >
               {selfEnroll.isPending ? 'Inscrevendo...' : 'Confirmar Inscrição'}
             </Button>
