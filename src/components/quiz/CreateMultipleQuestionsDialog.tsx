@@ -263,15 +263,18 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
                     <Label>Tipo de Pergunta *</Label>
                     <Select
                       value={question.question_type}
-                      onValueChange={(value) => {
-                        updateQuestion(question.id, "question_type", value);
-                        if (value === "essay") {
-                          updateQuestion(question.id, "option_a", "");
-                          updateQuestion(question.id, "option_b", "");
-                          updateQuestion(question.id, "option_c", "");
-                          updateQuestion(question.id, "option_d", "");
-                          updateQuestion(question.id, "correct_answer", "");
-                        }
+                      onValueChange={(value: "multiple_choice" | "essay") => {
+                        setQuestions(questions.map(q => 
+                          q.id === question.id ? { 
+                            ...q, 
+                            question_type: value,
+                            option_a: value === "essay" ? "" : q.option_a,
+                            option_b: value === "essay" ? "" : q.option_b,
+                            option_c: value === "essay" ? "" : q.option_c,
+                            option_d: value === "essay" ? "" : q.option_d,
+                            correct_answer: value === "essay" ? "" : q.correct_answer,
+                          } : q
+                        ));
                       }}
                     >
                       <SelectTrigger>
