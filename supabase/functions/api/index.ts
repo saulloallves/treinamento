@@ -499,11 +499,6 @@ async function handleCursos(request: Request, path: string[]) {
     courseId: courseId,
     path: path
   })
-  if (request.method === 'GET' && courseId === 'por-unidade') {
-    // GET /cursos/por-unidade?codigo=xxx - enrollments by unit code (PUBLIC)
-    const url = new URL(request.url)
-    const unitCode = url.searchParams.get('codigo')
-  
   // Endpoint de teste simples
   if (request.method === 'GET' && courseId === 'teste') {
     console.log('Endpoint teste executado!')
@@ -518,12 +513,11 @@ async function handleCursos(request: Request, path: string[]) {
   }
 
   if (request.method === 'GET' && courseId === 'por-unidade') {
-    console.log('=== DEBUG POR-UNIDADE ===')
-    
+    // GET /cursos/por-unidade?codigo=xxx - enrollments by unit code (PUBLIC)
     const url = new URL(request.url)
     const unitCode = url.searchParams.get('codigo')
     
-    console.log('Código da unidade:', unitCode)
+    console.log('Buscando cursos por código da unidade:', unitCode)
     
     if (!unitCode) {
       return new Response(JSON.stringify({ error: 'Código da unidade é obrigatório' }), { 
@@ -532,12 +526,104 @@ async function handleCursos(request: Request, path: string[]) {
       })
     }
 
-    // Retorno simples para teste
-    return new Response(JSON.stringify({ 
-      message: 'Endpoint por-unidade funcionando!',
-      unitCode: unitCode,
-      timestamp: new Date().toISOString()
-    }), {
+    // Buscar usuários por código da unidade
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('unit_code', unitCode)
+    
+    console.log('Usuários encontrados na unidade:', users?.length || 0)
+    
+    if (usersError) {
+      console.log('Erro ao buscar usuários:', usersError.message)
+      return new Response(JSON.stringify({ error: usersError.message }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Se não há usuários, retornar array vazio
+    if (!users || users.length === 0) {
+      return new Response(JSON.stringify([]), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Extrair emails dos usuários
+    const emails = users.map(u => u.email).filter(email => email)
+    const userIds = users.map(u => u.id)
+    
+    console.log('Emails para buscar:', emails)
+    console.log('User IDs para buscar:', userIds)
+
+    // Buscar inscrições por user_id ou student_email
+    const { data: enrollments, error: enrollmentsError } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        course_id,
+        progress_percentage,
+        status,
+        created_at,
+        student_name,
+        student_email,
+        student_phone,
+        user_id,
+        courses (
+          id,
+          name,
+          lessons_count,
+          generates_certificate,
+          theme
+        )
+      `)
+      .or(`user_id.in.(${userIds.join(',')}),student_email.in.("${emails.join('","')}")`)
+      .order('created_at', { ascending: false })
+
+    console.log('Inscrições encontradas:', enrollments?.length || 0)
+
+    if (enrollmentsError) {
+      console.log('Erro ao buscar inscrições:', enrollmentsError.message)
+      return new Response(JSON.stringify({ error: enrollmentsError.message }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Calculate real progress from attendance
+    const enrollmentIds = enrollments?.map(e => e.id) || []
+    let countsByEnrollment = new Map<string, number>()
+    
+    if (enrollmentIds.length > 0) {
+      const { data: attRows } = await supabase
+        .from('attendance')
+        .select('enrollment_id')
+        .in('enrollment_id', enrollmentIds)
+      
+      for (const row of (attRows || [])) {
+        const k = row.enrollment_id as string
+        countsByEnrollment.set(k, (countsByEnrollment.get(k) || 0) + 1)
+      }
+    }
+
+    const result = enrollments?.map(e => {
+      const courseInfo = e.courses
+      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
+      const attended = countsByEnrollment.get(e.id) || 0
+      const calculatedProgress = totalLessons > 0
+        ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
+        : (e.progress_percentage || 0)
+      
+      return {
+        ...e,
+        progress_percentage: calculatedProgress,
+        course: courseInfo
+      }
+    }) || []
+
+    console.log('Resultado final:', result.length, 'inscrições processadas')
+
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
