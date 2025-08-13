@@ -336,12 +336,17 @@ async function handleCursos(request: Request, path: string[]) {
 
     const { data: courses } = await query.order('created_at', { ascending: true })
 
-    // Adicionar numeração sequencial aos cursos
-    const coursesWithNumbers = courses?.map((course, index) => ({
-      ...course,
-      course_number: `Curso ${index + 1}`,
-      display_name: `Curso ${index + 1} - ${course.name}`
-    })) || []
+    // Adicionar numeração sequencial aos cursos com propriedades dinâmicas
+    const coursesWithNumbers = courses?.map((course, index) => {
+      const courseNum = index + 1;
+      const dynamicDisplayName = `display_name_curso${courseNum}`;
+      
+      return {
+        ...course,
+        course_number: `Curso ${courseNum}`,
+        [dynamicDisplayName]: course.name // Propriedade dinâmica com apenas o nome
+      };
+    }) || []
 
     return new Response(JSON.stringify(coursesWithNumbers), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -404,15 +409,16 @@ async function handleCursos(request: Request, path: string[]) {
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
+      const courseNum = index + 1;
+      const dynamicDisplayName = `display_name_curso${courseNum}`;
+      
       return {
         ...e,
         enrollment_number: `Inscrição ${index + 1}`,
-        course_number: `Curso ${index + 1}`,
+        course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
-        course: {
-          ...courseInfo,
-          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
-        }
+        course: courseInfo,
+        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
       }
     }) || []
 
@@ -498,15 +504,16 @@ async function handleCursos(request: Request, path: string[]) {
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
+      const courseNum = index + 1;
+      const dynamicDisplayName = `display_name_curso${courseNum}`;
+      
       return {
         ...e,
         enrollment_number: `Inscrição ${index + 1}`,
-        course_number: `Curso ${index + 1}`,
+        course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
-        course: {
-          ...courseInfo,
-          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
-        }
+        course: courseInfo,
+        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
       }
     }) || []
 
@@ -630,15 +637,16 @@ async function handleCursos(request: Request, path: string[]) {
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
+      const courseNum = index + 1;
+      const dynamicDisplayName = `display_name_curso${courseNum}`;
+      
       return {
         ...e,
         enrollment_number: `Inscrição ${index + 1}`,
-        course_number: `Curso ${index + 1}`,
+        course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
-        course: {
-          ...courseInfo,
-          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
-        }
+        course: courseInfo,
+        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
       }
     })
 
@@ -657,12 +665,17 @@ async function handleCursos(request: Request, path: string[]) {
       .eq('course_id', courseId)
       .order('order_index')
 
-    // Adicionar numeração sequencial às aulas
-    const lessonsWithNumbers = lessons?.map((lesson, index) => ({
-      ...lesson,
-      lesson_number: `Aula ${index + 1}`,
-      display_title: `Aula ${index + 1} - ${lesson.title}`
-    })) || []
+    // Adicionar numeração sequencial às aulas com propriedades dinâmicas
+    const lessonsWithNumbers = lessons?.map((lesson, index) => {
+      const lessonNum = index + 1;
+      const dynamicDisplayTitle = `display_title_aula${lessonNum}`;
+      
+      return {
+        ...lesson,
+        lesson_number: `Aula ${lessonNum}`,
+        [dynamicDisplayTitle]: lesson.title // Propriedade dinâmica com apenas o título
+      };
+    }) || []
 
     return new Response(JSON.stringify(lessonsWithNumbers), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
