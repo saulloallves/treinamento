@@ -215,6 +215,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone: string | null
+          unit_code: string | null
           updated_at: string
           user_id: string | null
         }
@@ -230,6 +231,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone?: string | null
+          unit_code?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -245,6 +247,7 @@ export type Database = {
           student_email?: string
           student_name?: string
           student_phone?: string | null
+          unit_code?: string | null
           updated_at?: string
           user_id?: string | null
         }
