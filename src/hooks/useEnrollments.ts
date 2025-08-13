@@ -75,13 +75,17 @@ export const useEnrollments = (courseId?: string) => {
       
       if (unitCodes.length > 0) {
         const { data: units } = await supabase
-          .from('units')
-          .select('id, name, code')
-          .in('code', unitCodes);
+          .from('unidades')
+          .select('codigo_grupo, grupo')
+          .in('codigo_grupo', unitCodes.map(code => parseInt(code)));
         
         if (units) {
           units.forEach(unit => {
-            unitsMap[unit.code] = unit;
+            unitsMap[unit.codigo_grupo.toString()] = {
+              id: unit.codigo_grupo.toString(),
+              name: unit.grupo,
+              code: unit.codigo_grupo.toString()
+            };
           });
         }
       }
