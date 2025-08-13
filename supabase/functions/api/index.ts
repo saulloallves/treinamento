@@ -527,6 +527,9 @@ async function handleCursos(request: Request, path: string[]) {
     }
 
     // Buscar inscrições diretamente por unit_code (muito mais eficiente)
+    console.log('=== DEBUG: Fazendo consulta no banco ===')
+    console.log('SELECT * FROM enrollments WHERE unit_code =', unitCode)
+    
     const { data: enrollments, error: enrollmentsError } = await supabase
       .from('enrollments')
       .select(`
@@ -551,7 +554,10 @@ async function handleCursos(request: Request, path: string[]) {
       .eq('unit_code', unitCode)
       .order('created_at', { ascending: false })
 
-    console.log('Inscrições encontradas:', enrollments?.length || 0)
+    console.log('=== RESULTADO DA CONSULTA ===')
+    console.log('Dados retornados:', JSON.stringify(enrollments, null, 2))
+    console.log('Erro:', enrollmentsError)
+    console.log('Quantidade de inscrições encontradas:', enrollments?.length || 0)
 
     if (enrollmentsError) {
       console.log('Erro ao buscar inscrições:', enrollmentsError.message)
