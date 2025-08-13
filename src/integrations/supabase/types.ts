@@ -329,6 +329,7 @@ export type Database = {
           course_id: string
           created_at: string
           id: string
+          lesson_id: string | null
           option_a: string
           option_b: string
           option_c: string | null
@@ -341,6 +342,7 @@ export type Database = {
           course_id: string
           created_at?: string
           id?: string
+          lesson_id?: string | null
           option_a: string
           option_b: string
           option_c?: string | null
@@ -353,6 +355,7 @@ export type Database = {
           course_id?: string
           created_at?: string
           id?: string
+          lesson_id?: string | null
           option_a?: string
           option_b?: string
           option_c?: string | null
@@ -366,6 +369,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]

@@ -7,6 +7,7 @@ export interface UpcomingLessonItem {
   id: string;
   title: string;
   course: string;
+  course_id: string;
   date: string; // dd/MM/yyyy
   time: string; // HH:mm
   participants: number;
@@ -88,6 +89,7 @@ export const useUpcomingLessons = () => {
           id: l.id,
           title: l.title,
           course: courseNameById.get(l.course_id) ?? "—",
+          course_id: l.course_id,
           date: format(dt, "dd/MM/yyyy", { locale: ptBR }),
           time: format(dt, "HH:mm", { locale: ptBR }),
           participants: countsByLesson.get(l.id) ?? 0,

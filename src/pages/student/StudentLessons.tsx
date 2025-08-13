@@ -6,6 +6,7 @@ import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import LessonQuiz from "@/components/quiz/LessonQuiz";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
@@ -64,6 +65,11 @@ const StudentLessons = () => {
                         Acessar aula (Zoom)
                       </a>
                     </Button>
+                  </div>
+                  
+                  {/* Quiz da aula */}
+                  <div className="pt-4">
+                    <LessonQuiz lessonId={lesson.id} courseId={lesson.course_id} />
                   </div>
                 </div>
               </CardContent>

@@ -91,7 +91,7 @@ export const useQuiz = () => {
 // Hook separado para buscar perguntas por aula
 export const useQuestionsByLesson = (lessonId: string) => {
   return useQuery({
-    queryKey: ["quiz-questions", "lesson", lessonId],
+    queryKey: ["quiz-lesson", lessonId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quiz")
