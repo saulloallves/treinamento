@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
 import LessonsPage from "./pages/LessonsPage";
+import QuizPage from "./pages/QuizPage";
 import EnrollmentsPage from "./pages/EnrollmentsPage";
 import AttendancePage from "./pages/AttendancePage";
 import ProgressPage from "./pages/ProgressPage";
@@ -47,6 +48,11 @@ const App = () => (
               <Route path="/lessons" element={
                 <AdminRoute>
                   <LessonsPage />
+                </AdminRoute>
+              } />
+              <Route path="/quiz" element={
+                <AdminRoute>
+                  <QuizPage />
                 </AdminRoute>
               } />
               <Route path="/enrollments" element={

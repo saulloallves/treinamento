@@ -14,7 +14,8 @@ import {
   HelpCircle,
   MessageSquare,
   ClipboardList,
-  User
+  User,
+  FileQuestion
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,7 @@ const Sidebar = () => {
         
         { icon: GraduationCap, label: "Cursos", path: "/courses" },
         { icon: BookOpen, label: "Aulas", path: "/lessons" },
+        { icon: FileQuestion, label: "Quiz", path: "/quiz" },
         { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
         { icon: UserCheck, label: "Presenças", path: "/attendance" },
         { icon: TrendingUp, label: "Progresso", path: "/progress" },
