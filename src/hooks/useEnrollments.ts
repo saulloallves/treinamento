@@ -16,8 +16,14 @@ export interface Enrollment {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  unit_code?: string;
   courses?: {
     name: string;
+  };
+  units?: {
+    id: string;
+    name: string;
+    code: string;
   };
 }
 
@@ -50,7 +56,7 @@ export const useEnrollments = (courseId?: string) => {
         query = query.eq('course_id', courseId);
       }
 
-      const { data, error } = await query;
+      const { data: enrollments, error } = await query;
 
       if (error) {
         console.error('Error fetching enrollments:', error);
@@ -62,7 +68,30 @@ export const useEnrollments = (courseId?: string) => {
         throw error;
       }
 
-      return data as Enrollment[];
+      // Buscar dados das unidades separadamente
+      const unitCodes = Array.from(new Set(enrollments?.map(e => e.unit_code).filter(Boolean))) as string[];
+      let unitsMap: Record<string, { id: string; name: string; code: string }> = {};
+      
+      if (unitCodes.length > 0) {
+        const { data: units } = await supabase
+          .from('units')
+          .select('id, name, code')
+          .in('code', unitCodes);
+        
+        if (units) {
+          units.forEach(unit => {
+            unitsMap[unit.code] = unit;
+          });
+        }
+      }
+
+      // Combinar dados das inscrições com dados das unidades
+      const enrichedEnrollments = enrollments?.map(enrollment => ({
+        ...enrollment,
+        units: enrollment.unit_code ? unitsMap[enrollment.unit_code] : undefined
+      })) || [];
+
+      return enrichedEnrollments as Enrollment[];
     }
   });
 };
