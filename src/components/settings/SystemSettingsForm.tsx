@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,8 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save, RotateCcw } from 'lucide-react';
 import { SystemSettings, useSystemSettings, useUpdateSystemSettings } from '@/hooks/useSettings';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const settingsSchema = z.object({
   system_name: z.string().min(1, 'Nome do sistema é obrigatório'),
@@ -29,21 +30,39 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 const SystemSettingsForm = () => {
   const { data: settings, isLoading } = useSystemSettings();
   const updateSettings = useUpdateSystemSettings();
+  const isMobile = useIsMobile();
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      system_name: settings?.system_name || 'Cresci e Perdi',
-      system_description: settings?.system_description || 'Sistema de Treinamentos',
-      email_notifications: settings?.email_notifications ?? true,
-      whatsapp_notifications: settings?.whatsapp_notifications ?? true,
-      auto_certificate_generation: settings?.auto_certificate_generation ?? true,
-      certificate_template: settings?.certificate_template || 'default',
-      course_approval_required: settings?.course_approval_required ?? false,
-      max_enrollment_per_course: settings?.max_enrollment_per_course || null,
-      timezone: settings?.timezone || 'America/Sao_Paulo',
+      system_name: 'Cresci e Perdi',
+      system_description: 'Sistema de Treinamentos',
+      email_notifications: true,
+      whatsapp_notifications: true,
+      auto_certificate_generation: true,
+      certificate_template: 'default',
+      course_approval_required: false,
+      max_enrollment_per_course: null,
+      timezone: 'America/Sao_Paulo',
     },
   });
+
+  // Update form when settings load
+  useEffect(() => {
+    if (settings) {
+      form.reset({
+        system_name: settings.system_name || 'Cresci e Perdi',
+        system_description: settings.system_description || 'Sistema de Treinamentos',
+        email_notifications: settings.email_notifications ?? true,
+        whatsapp_notifications: settings.whatsapp_notifications ?? true,
+        auto_certificate_generation: settings.auto_certificate_generation ?? true,
+        certificate_template: settings.certificate_template || 'default',
+        course_approval_required: settings.course_approval_required ?? false,
+        max_enrollment_per_course: settings.max_enrollment_per_course || null,
+        timezone: settings.timezone || 'America/Sao_Paulo',
+      });
+    }
+  }, [settings, form]);
 
   const onSubmit = (data: SettingsFormData) => {
     updateSettings.mutate(data);
@@ -59,10 +78,10 @@ const SystemSettingsForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Informações Gerais</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Informações Gerais</CardTitle>
             <CardDescription>
               Configure as informações básicas do sistema
             </CardDescription>
@@ -75,7 +94,7 @@ const SystemSettingsForm = () => {
                 <FormItem>
                   <FormLabel>Nome do Sistema</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} className="w-full" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -89,7 +108,7 @@ const SystemSettingsForm = () => {
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Textarea {...field} className="w-full resize-none" rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -102,9 +121,9 @@ const SystemSettingsForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Fuso Horário</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o fuso horário" />
                       </SelectTrigger>
                     </FormControl>
@@ -123,7 +142,7 @@ const SystemSettingsForm = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notificações</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Notificações</CardTitle>
             <CardDescription>
               Configure como o sistema enviará notificações
             </CardDescription>
@@ -133,10 +152,10 @@ const SystemSettingsForm = () => {
               control={form.control}
               name="email_notifications"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Notificações por Email</FormLabel>
-                    <FormDescription>
+                <FormItem className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row items-center justify-between'} rounded-lg border p-3 md:p-4`}>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <FormLabel className="text-sm md:text-base">Notificações por Email</FormLabel>
+                    <FormDescription className="text-xs md:text-sm">
                       Enviar notificações automáticas por email
                     </FormDescription>
                   </div>
@@ -151,10 +170,10 @@ const SystemSettingsForm = () => {
               control={form.control}
               name="whatsapp_notifications"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Notificações por WhatsApp</FormLabel>
-                    <FormDescription>
+                <FormItem className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row items-center justify-between'} rounded-lg border p-3 md:p-4`}>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <FormLabel className="text-sm md:text-base">Notificações por WhatsApp</FormLabel>
+                    <FormDescription className="text-xs md:text-sm">
                       Enviar notificações automáticas via WhatsApp
                     </FormDescription>
                   </div>
@@ -169,7 +188,7 @@ const SystemSettingsForm = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Cursos e Certificados</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Cursos e Certificados</CardTitle>
             <CardDescription>
               Configure o comportamento dos cursos e certificados
             </CardDescription>
@@ -179,10 +198,10 @@ const SystemSettingsForm = () => {
               control={form.control}
               name="course_approval_required"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Aprovação Obrigatória</FormLabel>
-                    <FormDescription>
+                <FormItem className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row items-center justify-between'} rounded-lg border p-3 md:p-4`}>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <FormLabel className="text-sm md:text-base">Aprovação Obrigatória</FormLabel>
+                    <FormDescription className="text-xs md:text-sm">
                       Inscrições em cursos precisam de aprovação do administrador
                     </FormDescription>
                   </div>
@@ -197,10 +216,10 @@ const SystemSettingsForm = () => {
               control={form.control}
               name="auto_certificate_generation"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Geração Automática de Certificados</FormLabel>
-                    <FormDescription>
+                <FormItem className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row items-center justify-between'} rounded-lg border p-3 md:p-4`}>
+                  <div className="space-y-0.5 flex-1 min-w-0">
+                    <FormLabel className="text-sm md:text-base">Geração Automática de Certificados</FormLabel>
+                    <FormDescription className="text-xs md:text-sm">
                       Gerar certificados automaticamente ao concluir um curso
                     </FormDescription>
                   </div>
@@ -217,9 +236,9 @@ const SystemSettingsForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Template do Certificado</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione um template" />
                       </SelectTrigger>
                     </FormControl>
@@ -244,12 +263,13 @@ const SystemSettingsForm = () => {
                     <Input
                       type="number"
                       min="1"
+                      className="w-full"
                       {...field}
                       value={field.value || ''}
                       onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                     />
                   </FormControl>
-                  <FormDescription>
+                  <FormDescription className="text-xs md:text-sm">
                     Deixe em branco para permitir inscrições ilimitadas
                   </FormDescription>
                   <FormMessage />
@@ -259,19 +279,22 @@ const SystemSettingsForm = () => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
+        <div className={`flex gap-3 ${isMobile ? 'flex-col' : 'justify-end'}`}>
           <Button 
             type="submit" 
             disabled={updateSettings.isPending}
-            className="min-w-[120px]"
+            className={`${isMobile ? 'w-full' : 'min-w-[140px]'} flex items-center justify-center gap-2`}
           >
             {updateSettings.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Salvando...
               </>
             ) : (
-              'Salvar Configurações'
+              <>
+                <Save className="h-4 w-4" />
+                Salvar Configurações
+              </>
             )}
           </Button>
         </div>

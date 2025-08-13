@@ -23,17 +23,26 @@ export const useSystemSettings = () => {
   return useQuery({
     queryKey: ['system-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('system_settings')
-        .select('*')
-        .single();
+      const { data, error } = await supabase.rpc('get_system_settings');
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) {
+        console.error('Error fetching settings:', error);
+        // Retorna configurações padrão se não existir
+        return {
+          system_name: 'Cresci e Perdi',
+          system_description: 'Sistema de Treinamentos',
+          email_notifications: true,
+          whatsapp_notifications: true,
+          auto_certificate_generation: true,
+          certificate_template: 'default',
+          course_approval_required: false,
+          max_enrollment_per_course: null,
+          timezone: 'America/Sao_Paulo'
+        };
       }
 
-      // Retorna configurações padrão se não existir
-      return data || {
+      // Retorna primeira configuração do RPC ou configurações padrão
+      return data?.[0] || {
         system_name: 'Cresci e Perdi',
         system_description: 'Sistema de Treinamentos',
         email_notifications: true,
@@ -54,33 +63,12 @@ export const useUpdateSystemSettings = () => {
 
   return useMutation({
     mutationFn: async (settings: Partial<SystemSettings>) => {
-      const { data: existingSettings } = await supabase
-        .from('system_settings')
-        .select('id')
-        .single();
+      const { data, error } = await supabase.rpc('update_system_settings', {
+        settings_data: settings
+      });
 
-      if (existingSettings) {
-        // Atualizar configurações existentes
-        const { data, error } = await supabase
-          .from('system_settings')
-          .update(settings)
-          .eq('id', existingSettings.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      } else {
-        // Criar novas configurações
-        const { data, error } = await supabase
-          .from('system_settings')
-          .insert([settings])
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      }
+      if (error) throw error;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['system-settings'] });
