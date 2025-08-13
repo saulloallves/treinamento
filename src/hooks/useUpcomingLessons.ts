@@ -45,8 +45,8 @@ export const useUpcomingLessons = () => {
         .select('id,title,course_id,zoom_start_time,zoom_join_url,status,created_at')
         .eq('status', 'Ativo')
         .not('zoom_start_time', 'is', null)
-        .gte('zoom_start_time', nowIso)
-        .order('zoom_start_time', { ascending: true, nullsFirst: false });
+        .gt('zoom_start_time', nowIso)
+        .order('zoom_start_time', { ascending: true });
 
       if (!isAdmin) {
         lessonsQuery = lessonsQuery.in('course_id', enrolledCourseIds);
