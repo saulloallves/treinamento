@@ -48,7 +48,10 @@ const QuizList = () => {
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <CardTitle className="text-lg">{question.question}</CardTitle>
-                <Badge variant="outline">{question.courses?.name || 'Curso não informado'}</Badge>
+                <div className="flex gap-2">
+                  <Badge variant="outline">{question.courses?.name || 'Curso não informado'}</Badge>
+                  <Badge variant="secondary">{question.lessons?.title || 'Aula não informada'}</Badge>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button

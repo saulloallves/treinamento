@@ -15,6 +15,10 @@ export const useQuiz = () => {
           courses (
             id,
             name
+          ),
+          lessons (
+            id,
+            title
           )
         `)
         .order("order_index", { ascending: true });
@@ -74,24 +78,6 @@ export const useQuiz = () => {
     },
   });
 
-  // Buscar perguntas por curso
-  const getQuestionsByCourse = (courseId: string) => {
-    return useQuery({
-      queryKey: ["quiz-questions", courseId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from("quiz")
-          .select("*")
-          .eq("course_id", courseId)
-          .order("order_index", { ascending: true });
-
-        if (error) throw error;
-        return data;
-      },
-      enabled: !!courseId,
-    });
-  };
-
   return {
     data,
     isLoading,
@@ -99,6 +85,23 @@ export const useQuiz = () => {
     createQuestion,
     updateQuestion,
     deleteQuestion,
-    getQuestionsByCourse,
   };
+};
+
+// Hook separado para buscar perguntas por aula
+export const useQuestionsByLesson = (lessonId: string) => {
+  return useQuery({
+    queryKey: ["quiz-questions", "lesson", lessonId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quiz")
+        .select("*")
+        .eq("lesson_id", lessonId)
+        .order("order_index", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lessonId,
+  });
 };

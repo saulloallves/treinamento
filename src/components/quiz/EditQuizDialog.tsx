@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useCourses } from "@/hooks/useCourses";
+import { useLessons } from "@/hooks/useLessons";
 import { useQuiz } from "@/hooks/useQuiz";
 
 interface EditQuizDialogProps {
@@ -31,10 +32,12 @@ interface EditQuizDialogProps {
 const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
+  const { data: allLessons = [] } = useLessons();
   const { updateQuestion } = useQuiz();
   
   const [formData, setFormData] = useState({
     course_id: "",
+    lesson_id: "",
     question: "",
     option_a: "",
     option_b: "",
@@ -44,10 +47,14 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
     order_index: 0,
   });
 
+  // Filtrar aulas do curso selecionado
+  const availableLessons = allLessons.filter(lesson => lesson.course_id === formData.course_id);
+
   useEffect(() => {
     if (question) {
       setFormData({
         course_id: question.course_id || "",
+        lesson_id: question.lesson_id || "",
         question: question.question || "",
         option_a: question.option_a || "",
         option_b: question.option_b || "",
@@ -62,10 +69,10 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.question || !formData.option_a || !formData.option_b || !formData.correct_answer) {
+    if (!formData.course_id || !formData.lesson_id || !formData.question || !formData.option_a || !formData.option_b || !formData.correct_answer) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios.",
+        description: "Preencha todos os campos obrigatórios (curso, aula, pergunta, opções A e B, resposta correta).",
         variant: "destructive",
       });
       return;
@@ -107,7 +114,7 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
             <Label htmlFor="course_id">Curso *</Label>
             <Select
               value={formData.course_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, course_id: value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, course_id: value, lesson_id: "" }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um curso" />
@@ -116,6 +123,26 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
                 {courses.map((course: any) => (
                   <SelectItem key={course.id} value={course.id}>
                     {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lesson_id">Aula *</Label>
+            <Select
+              value={formData.lesson_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, lesson_id: value }))}
+              disabled={!formData.course_id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma aula" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableLessons.map((lesson: any) => (
+                  <SelectItem key={lesson.id} value={lesson.id}>
+                    {lesson.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -187,22 +214,12 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
               <SelectContent>
                 <SelectItem value="A">A</SelectItem>
                 <SelectItem value="B">B</SelectItem>
-                {formData.option_c && <SelectItem value="C">C</SelectItem>}
-                {formData.option_d && <SelectItem value="D">D</SelectItem>}
+                <SelectItem value="C">C</SelectItem>
+                <SelectItem value="D">D</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="order_index">Ordem</Label>
-            <Input
-              id="order_index"
-              type="number"
-              value={formData.order_index}
-              onChange={(e) => setFormData(prev => ({ ...prev, order_index: parseInt(e.target.value) || 0 }))}
-              placeholder="Ordem da pergunta"
-            />
-          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
