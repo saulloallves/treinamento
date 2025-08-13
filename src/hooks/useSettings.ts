@@ -27,12 +27,12 @@ export const useSystemSettings = () => {
       const { data, error } = await supabase
         .rpc('get_system_settings');
 
-      if (error && error.message !== 'function get_system_settings() does not exist') {
-        throw error;
+      if (error) {
+        console.warn('RPC function failed:', error.message);
       }
 
-      // Se não conseguir chamar a função, use valores padrão
-      if (!data || data.length === 0) {
+      // Se não conseguir chamar a função ou não tiver dados, use valores padrão
+      if (!data || !Array.isArray(data) || data.length === 0) {
         return {
           system_name: 'Cresci e Perdi',
           system_description: 'Sistema de Treinamentos',
