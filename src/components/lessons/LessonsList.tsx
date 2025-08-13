@@ -1,12 +1,14 @@
 
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EditLessonDialog from "./EditLessonDialog";
 import CreateLessonDialog from "./CreateLessonDialog";
 import { useLessons, useDeleteLesson, Lesson } from "@/hooks/useLessons";
 import { useCourses } from "@/hooks/useCourses";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const LessonsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,13 +134,23 @@ const LessonsList = () => {
                   <p className="text-brand-gray-dark mb-3">{lesson.description}</p>
                 )}
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-brand-blue" />
                     <span className="text-brand-gray-dark">
                       {lesson.duration_minutes} minutos
                     </span>
                   </div>
+                  
+                  {lesson.zoom_start_time && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-brand-blue" />
+                      <div className="text-brand-gray-dark">
+                        <div>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy", { locale: ptBR })}</div>
+                        <div className="text-xs">{format(new Date(lesson.zoom_start_time), "HH:mm", { locale: ptBR })}</div>
+                      </div>
+                    </div>
+                  )}
                   
                   {lesson.video_url && (
                     <div className="flex items-center gap-2">
