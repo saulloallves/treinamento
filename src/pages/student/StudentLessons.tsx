@@ -73,14 +73,6 @@ const StudentLessons = () => {
         </section>
       )}
 
-      {/* Seção de Quizzes */}
-      <section className="mt-8">
-        <header className="mb-6">
-          <h2 className="text-xl font-semibold">Quizzes</h2>
-          <p className="text-sm text-muted-foreground">Responda os quizzes das suas aulas</p>
-        </header>
-        <StudentQuizList />
-      </section>
     </BaseLayout>
   );
 };

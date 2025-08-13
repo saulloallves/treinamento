@@ -23,6 +23,7 @@ import SettingsPage from "./pages/SettingsPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
+import StudentQuiz from "./pages/student/StudentQuiz";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
@@ -98,6 +99,11 @@ const App = () => (
               <Route path="/aluno/aulas" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentLessons />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/quiz" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentQuiz />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/curso/:courseId" element={

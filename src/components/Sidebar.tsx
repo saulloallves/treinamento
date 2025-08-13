@@ -45,6 +45,7 @@ const Sidebar = () => {
     : [
         { icon: GraduationCap, label: "Cursos", path: "/aluno" },
         { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
+        { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
       ];
 
   return (
