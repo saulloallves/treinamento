@@ -492,6 +492,117 @@ async function handleCursos(request: Request, path: string[]) {
     })
   }
 
+  if (request.method === 'GET' && courseId === 'por-unidade') {
+    // GET /cursos/por-unidade?codigo=xxx - enrollments by unit code (PUBLIC)
+    const url = new URL(request.url)
+    const unitCode = url.searchParams.get('codigo')
+    
+    console.log('Buscando cursos por código da unidade:', unitCode)
+    
+    if (!unitCode) {
+      return new Response(JSON.stringify({ error: 'Código da unidade é obrigatório' }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Buscar usuários da unidade primeiro
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, email, name')
+      .eq('unit_code', unitCode)
+
+    console.log('Usuários encontrados na unidade:', users?.length || 0)
+
+    if (usersError) {
+      return new Response(JSON.stringify({ error: usersError.message }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!users || users.length === 0) {
+      return new Response(JSON.stringify([]), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Buscar inscrições dos usuários da unidade
+    const userIds = users.map(u => u.id)
+    const userEmails = users.map(u => u.email).filter(Boolean)
+
+    const { data: enrollments, error } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        course_id,
+        progress_percentage,
+        status,
+        created_at,
+        student_name,
+        student_email,
+        student_phone,
+        user_id,
+        courses (
+          id,
+          name,
+          lessons_count,
+          generates_certificate
+        )
+      `)
+      .or(`user_id.in.(${userIds.join(',')}),student_email.in.(${userEmails.map(e => `"${e}"`).join(',')})`)
+      .order('created_at', { ascending: false })
+
+    console.log('Inscrições encontradas:', enrollments?.length || 0)
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Calculate real progress from attendance
+    const enrollmentIds = enrollments?.map(e => e.id) || []
+    let countsByEnrollment = new Map<string, number>()
+    
+    if (enrollmentIds.length > 0) {
+      const { data: attRows } = await supabase
+        .from('attendance')
+        .select('enrollment_id')
+        .in('enrollment_id', enrollmentIds)
+      
+      for (const row of (attRows || [])) {
+        const k = row.enrollment_id as string
+        countsByEnrollment.set(k, (countsByEnrollment.get(k) || 0) + 1)
+      }
+    }
+
+    const result = enrollments?.map(e => {
+      const courseInfo = e.courses
+      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
+      const attended = countsByEnrollment.get(e.id) || 0
+      const calculatedProgress = totalLessons > 0
+        ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
+        : (e.progress_percentage || 0)
+      
+      // Adicionar info do usuário
+      const userInfo = users.find(u => u.id === e.user_id || u.email === e.student_email)
+      
+      return {
+        ...e,
+        progress_percentage: calculatedProgress,
+        course: courseInfo,
+        user_unit_code: unitCode,
+        user_info: userInfo
+      }
+    }) || []
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+
   if (request.method === 'GET' && courseId && path[2] === 'aulas') {
     // GET /cursos/{curso_id}/aulas
     const { data: lessons } = await supabase
