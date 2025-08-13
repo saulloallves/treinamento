@@ -403,6 +403,82 @@ async function handleCursos(request: Request, path: string[]) {
     })
   }
 
+  if (request.method === 'GET' && courseId === 'por-email') {
+    // GET /cursos/por-email?email=xxx - enrollments by email
+    const url = new URL(request.url)
+    const email = url.searchParams.get('email')
+    
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email é obrigatório' }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const { data: enrollments, error } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        course_id,
+        progress_percentage,
+        status,
+        created_at,
+        student_name,
+        student_email,
+        student_phone,
+        courses (
+          id,
+          name,
+          lessons_count,
+          generates_certificate
+        )
+      `)
+      .eq('student_email', email)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Calculate real progress from attendance
+    const enrollmentIds = enrollments?.map(e => e.id) || []
+    let countsByEnrollment = new Map<string, number>()
+    
+    if (enrollmentIds.length > 0) {
+      const { data: attRows } = await supabase
+        .from('attendance')
+        .select('enrollment_id')
+        .in('enrollment_id', enrollmentIds)
+      
+      for (const row of (attRows || [])) {
+        const k = row.enrollment_id as string
+        countsByEnrollment.set(k, (countsByEnrollment.get(k) || 0) + 1)
+      }
+    }
+
+    const result = enrollments?.map(e => {
+      const courseInfo = e.courses
+      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
+      const attended = countsByEnrollment.get(e.id) || 0
+      const calculatedProgress = totalLessons > 0
+        ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
+        : (e.progress_percentage || 0)
+      
+      return {
+        ...e,
+        progress_percentage: calculatedProgress,
+        course: courseInfo
+      }
+    }) || []
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+
   if (request.method === 'GET' && courseId && path[2] === 'aulas') {
     // GET /cursos/{curso_id}/aulas
     const { data: lessons } = await supabase
