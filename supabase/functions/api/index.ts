@@ -8,10 +8,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Initialize Supabase client
+// Initialize Supabase client with service role for admin operations
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+// Client for public operations
 const supabase = createClient(supabaseUrl, supabaseKey)
+
+// Client for admin operations (bypasses RLS)
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 // Utility function to verify JWT
 async function verifyAuth(request: Request) {
@@ -530,7 +536,8 @@ async function handleCursos(request: Request, path: string[]) {
     console.log('=== DEBUG: Fazendo consulta no banco ===')
     console.log('SELECT * FROM enrollments WHERE unit_code =', unitCode)
     
-    const { data: enrollments, error: enrollmentsError } = await supabase
+    // Usar supabaseAdmin para bypass RLS
+    const { data: enrollments, error: enrollmentsError } = await supabaseAdmin
       .from('enrollments')
       .select(`
         id,
@@ -580,7 +587,7 @@ async function handleCursos(request: Request, path: string[]) {
     let countsByEnrollment = new Map<string, number>()
     
     if (enrollmentIds.length > 0) {
-      const { data: attRows } = await supabase
+      const { data: attRows } = await supabaseAdmin
         .from('attendance')
         .select('enrollment_id')
         .in('enrollment_id', enrollmentIds)
