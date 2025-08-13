@@ -533,6 +533,9 @@ async function handleCursos(request: Request, path: string[]) {
       .eq('unit_code', unitCode)
     
     console.log('Usuários encontrados na unidade:', users?.length || 0)
+    if (users?.length) {
+      console.log('Detalhes dos usuários:', users.map(u => ({ id: u.id, email: u.email })))
+    }
     
     if (usersError) {
       console.log('Erro ao buscar usuários:', usersError.message)
@@ -544,51 +547,101 @@ async function handleCursos(request: Request, path: string[]) {
 
     // Se não há usuários, retornar array vazio
     if (!users || users.length === 0) {
+      console.log('Nenhum usuário encontrado para a unidade:', unitCode)
       return new Response(JSON.stringify([]), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Extrair emails dos usuários
+    // Extrair user IDs e emails
+    const userIds = users.map(u => u.id).filter(id => id)
     const emails = users.map(u => u.email).filter(email => email)
-    const userIds = users.map(u => u.id)
     
-    console.log('Emails para buscar:', emails)
     console.log('User IDs para buscar:', userIds)
+    console.log('Emails para buscar:', emails)
 
-    // Buscar inscrições por user_id ou student_email
-    const { data: enrollments, error: enrollmentsError } = await supabase
-      .from('enrollments')
-      .select(`
-        id,
-        course_id,
-        progress_percentage,
-        status,
-        created_at,
-        student_name,
-        student_email,
-        student_phone,
-        user_id,
-        courses (
+    // Buscar inscrições priorizando user_id
+    let enrollments = []
+    let enrollmentsError = null
+
+    // Primeiro buscar por user_id (mais confiável)
+    if (userIds.length > 0) {
+      const { data: enrollmentsByUserId, error: errorByUserId } = await supabase
+        .from('enrollments')
+        .select(`
           id,
-          name,
-          lessons_count,
-          generates_certificate,
-          theme
-        )
-      `)
-      .or(`user_id.in.(${userIds.join(',')}),student_email.in.("${emails.join('","')}")`)
-      .order('created_at', { ascending: false })
+          course_id,
+          progress_percentage,
+          status,
+          created_at,
+          student_name,
+          student_email,
+          student_phone,
+          user_id,
+          courses (
+            id,
+            name,
+            lessons_count,
+            generates_certificate,
+            theme
+          )
+        `)
+        .in('user_id', userIds)
+        .order('created_at', { ascending: false })
 
-    console.log('Inscrições encontradas:', enrollments?.length || 0)
+      if (enrollmentsByUserId) {
+        enrollments = enrollmentsByUserId
+        console.log('Inscrições encontradas por user_id:', enrollments.length)
+      }
+      if (errorByUserId) {
+        enrollmentsError = errorByUserId
+        console.log('Erro ao buscar por user_id:', errorByUserId.message)
+      }
+    }
 
-    if (enrollmentsError) {
-      console.log('Erro ao buscar inscrições:', enrollmentsError.message)
+    // Se não encontrou por user_id e temos emails, buscar por email também
+    if (enrollments.length === 0 && emails.length > 0) {
+      const { data: enrollmentsByEmail, error: errorByEmail } = await supabase
+        .from('enrollments')
+        .select(`
+          id,
+          course_id,
+          progress_percentage,
+          status,
+          created_at,
+          student_name,
+          student_email,
+          student_phone,
+          user_id,
+          courses (
+            id,
+            name,
+            lessons_count,
+            generates_certificate,
+            theme
+          )
+        `)
+        .in('student_email', emails)
+        .order('created_at', { ascending: false })
+
+      if (enrollmentsByEmail) {
+        enrollments = [...enrollments, ...enrollmentsByEmail]
+        console.log('Inscrições encontradas por email:', enrollmentsByEmail.length)
+      }
+      if (errorByEmail) {
+        enrollmentsError = errorByEmail
+        console.log('Erro ao buscar por email:', errorByEmail.message)
+      }
+    }
+
+    if (enrollmentsError && enrollments.length === 0) {
       return new Response(JSON.stringify({ error: enrollmentsError.message }), { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    console.log('Total de inscrições encontradas:', enrollments.length)
 
     // Calculate real progress from attendance
     const enrollmentIds = enrollments?.map(e => e.id) || []
@@ -599,6 +652,8 @@ async function handleCursos(request: Request, path: string[]) {
         .from('attendance')
         .select('enrollment_id')
         .in('enrollment_id', enrollmentIds)
+      
+      console.log('Registros de presença encontrados:', attRows?.length || 0)
       
       for (const row of (attRows || [])) {
         const k = row.enrollment_id as string
