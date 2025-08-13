@@ -556,39 +556,19 @@ async function handleCursos(request: Request, path: string[]) {
       })
     }
 
-    // Buscar inscrições diretamente por unit_code (muito mais eficiente)
-    console.log('=== DEBUG: Fazendo consulta no banco ===')
-    console.log('SELECT * FROM enrollments WHERE unit_code =', unitCode)
+    // Buscar inscrições diretamente por unit_code (query simples)
+    console.log('=== DEBUG: Fazendo consulta simplificada ===')
+    console.log('Buscando por unit_code:', unitCode)
     
-    // Usar supabaseAdmin para bypass RLS
-    const { data: enrollments, error: enrollmentsError } = await supabaseAdmin
+    // Primeira consulta: buscar enrollments
+    const { data: rawEnrollments, error: enrollmentsError } = await supabaseAdmin
       .from('enrollments')
-      .select(`
-        id,
-        course_id,
-        progress_percentage,
-        status,
-        created_at,
-        student_name,
-        student_email,
-        student_phone,
-        user_id,
-        unit_code,
-        courses!inner (
-          id,
-          name,
-          lessons_count,
-          generates_certificate,
-          theme
-        )
-      `)
+      .select('*')
       .eq('unit_code', unitCode)
       .order('created_at', { ascending: false })
 
-    console.log('=== RESULTADO DA CONSULTA ===')
-    console.log('Dados retornados:', JSON.stringify(enrollments, null, 2))
-    console.log('Erro:', enrollmentsError)
-    console.log('Quantidade de inscrições encontradas:', enrollments?.length || 0)
+    console.log('Enrollments encontrados:', rawEnrollments?.length || 0)
+    console.log('Erro na consulta:', enrollmentsError)
 
     if (enrollmentsError) {
       console.log('Erro ao buscar inscrições:', enrollmentsError.message)
@@ -598,16 +578,30 @@ async function handleCursos(request: Request, path: string[]) {
       })
     }
 
-    // Se não há inscrições, retornar array vazio
-    if (!enrollments || enrollments.length === 0) {
+    if (!rawEnrollments || rawEnrollments.length === 0) {
       console.log('Nenhuma inscrição encontrada para a unidade:', unitCode)
       return new Response(JSON.stringify([]), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
+    // Segunda consulta: buscar dados dos cursos
+    const courseIds = [...new Set(rawEnrollments.map(e => e.course_id))]
+    const { data: coursesData } = await supabaseAdmin
+      .from('courses')
+      .select('id, name, lessons_count, generates_certificate, theme')
+      .in('id', courseIds)
+
+    console.log('Cursos encontrados:', coursesData?.length || 0)
+
+    // Mapear cursos por ID para facilitar lookup
+    const coursesById = new Map()
+    coursesData?.forEach(course => {
+      coursesById.set(course.id, course)
+    })
+
     // Calculate real progress from attendance
-    const enrollmentIds = enrollments?.map(e => e.id) || []
+    const enrollmentIds = rawEnrollments.map(e => e.id)
     let countsByEnrollment = new Map<string, number>()
     
     if (enrollmentIds.length > 0) {
@@ -624,29 +618,26 @@ async function handleCursos(request: Request, path: string[]) {
       }
     }
 
-    // Remover duplicatas baseado no ID da inscrição e processar dados
-    const uniqueEnrollments = enrollments?.filter((enrollment, index, self) => 
-      index === self.findIndex(e => e.id === enrollment.id)
-    ) || []
-
-    const result = uniqueEnrollments.map((e, index) => {
-      const courseInfo = e.courses
+    // Processar dados únicos (sem duplicatas)
+    const result = rawEnrollments.map((e, index) => {
+      const courseInfo = coursesById.get(e.course_id)
       const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
       const calculatedProgress = totalLessons > 0
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
-      const courseNum = index + 1;
-      const dynamicDisplayName = `display_name_curso${courseNum}`;
+      const courseNum = index + 1
+      const dynamicDisplayName = `display_name_curso${courseNum}`
       
       return {
         ...e,
-        enrollment_number: `Inscrição ${index + 1}`,
+        enrollment_number: `Inscrição ${courseNum}`,
         course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
+        courses: courseInfo, // Para compatibilidade
         course: courseInfo,
-        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
+        [dynamicDisplayName]: courseInfo?.name || 'Sem nome'
       }
     })
 
