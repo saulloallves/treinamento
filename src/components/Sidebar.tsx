@@ -3,34 +3,33 @@ import {
   LayoutDashboard, 
   GraduationCap, 
   Users, 
-  Building2, 
   BookOpen, 
   Award,
-  BarChart3,
   Settings,
   UserCheck,
-  Calendar,
   TrendingUp,
-  HelpCircle,
   MessageSquare,
   ClipboardList,
-  User,
-  FileQuestion
+  FileQuestion,
+  Menu,
+  X
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const Sidebar = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   
   const menuItems = isAdmin
     ? [
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-        
         { icon: GraduationCap, label: "Cursos", path: "/courses" },
         { icon: BookOpen, label: "Aulas", path: "/lessons" },
         { icon: FileQuestion, label: "Quiz", path: "/quiz" },
@@ -48,63 +47,114 @@ const Sidebar = () => {
         { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
       ];
 
+  const toggleSidebar = () => setIsOpen(!isOpen);
+
   return (
-    <div className="w-64 bg-white h-screen flex flex-col border-r border-gray-200 shadow-sm">
-      {/* Header da sidebar */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-[#007BFF] flex items-center justify-center shadow-sm">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-[#000000]">
-              Cresci e Perdi
-            </h1>
-            <p className="text-xs text-[#333333]">
-              Sistema de Treinamentos
-            </p>
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 mobile-only bg-background/80 backdrop-blur-sm border border-border"
+        onClick={toggleSidebar}
+      >
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </Button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 mobile-only"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:static
+        w-72 h-screen
+        bg-sidebar border-r border-sidebar-border
+        flex flex-col
+        transition-transform duration-300 ease-in-out
+        z-50
+        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Header */}
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-lg">
+              <GraduationCap className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold font-heading text-sidebar-foreground">
+                Cresci e Perdi
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Sistema de Treinamentos
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <Link
-              key={index}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
-                isActive 
-                  ? "bg-[#007BFF] text-white font-medium" 
-                  : "text-[#333333] hover:bg-[#E6F0FF] hover:text-[#007BFF]"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className="text-sm">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <Link
+                key={index}
+                to={item.path}
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl
+                  transition-all duration-200 group
+                  ${isActive 
+                    ? 'bg-primary text-primary-foreground shadow-md' 
+                    : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent'
+                  }
+                `}
+                onClick={() => setIsOpen(false)}
+              >
+                <div className={`
+                  w-8 h-8 rounded-lg flex items-center justify-center
+                  transition-all duration-200
+                  ${isActive 
+                    ? 'bg-white/20' 
+                    : 'group-hover:bg-sidebar-accent'
+                  }
+                `}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="font-medium">{item.label}</span>
+                {isActive && (
+                  <div className="w-2 h-2 rounded-full bg-white/80 ml-auto" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Footer da sidebar */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 p-3 rounded-md bg-[#E6F0FF] hover:bg-[#E6F0FF]/80 transition-colors duration-200 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-[#007BFF] flex items-center justify-center">
-            <span className="text-sm font-medium text-white">A</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-[#000000]">{isAdmin ? 'Admin' : 'Aluno'}</p>
-            <p className="text-xs text-[#333333]">{user?.email ?? ''}</p>
+        {/* User Profile */}
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors duration-200">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-md">
+              <span className="text-sm font-bold text-white">
+                {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {isAdmin ? 'Administrador' : 'Aluno'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user?.user_metadata?.full_name || user?.email || ''}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };
 

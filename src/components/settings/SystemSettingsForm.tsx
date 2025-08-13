@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Settings, Bell, Award, Users, Globe } from 'lucide-react';
 import { SystemSettings, useSystemSettings, useUpdateSystemSettings } from '@/hooks/useSettings';
 
 const settingsSchema = z.object({
@@ -51,232 +50,285 @@ const SystemSettingsForm = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="loading-overlay">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando configurações...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Gerais</CardTitle>
-            <CardDescription>
-              Configure as informações básicas do sistema
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="system_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Sistema</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="system_description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="timezone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fuso Horário</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <div className="p-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Informações Gerais */}
+          <Card className="card-modern">
+            <CardHeader className="flex flex-row items-center gap-3">
+              <Settings className="w-6 h-6 text-primary" />
+              <div>
+                <CardTitle className="font-heading">Informações Gerais</CardTitle>
+                <CardDescription>
+                  Configure as informações básicas do sistema
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="system_name"
+                render={({ field }) => (
+                  <FormItem className="form-field">
+                    <FormLabel className="form-label">Nome do Sistema</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o fuso horário" />
-                      </SelectTrigger>
+                      <Input 
+                        {...field} 
+                        className="form-input"
+                        placeholder="Digite o nome do sistema"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="America/Sao_Paulo">América/São Paulo (GMT-3)</SelectItem>
-                      <SelectItem value="America/Manaus">América/Manaus (GMT-4)</SelectItem>
-                      <SelectItem value="America/Rio_Branco">América/Rio Branco (GMT-5)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Notificações</CardTitle>
-            <CardDescription>
-              Configure como o sistema enviará notificações
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email_notifications"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Notificações por Email</FormLabel>
-                    <FormDescription>
-                      Enviar notificações automáticas por email
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="whatsapp_notifications"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Notificações por WhatsApp</FormLabel>
-                    <FormDescription>
-                      Enviar notificações automáticas via WhatsApp
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Cursos e Certificados</CardTitle>
-            <CardDescription>
-              Configure o comportamento dos cursos e certificados
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="course_approval_required"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Aprovação Obrigatória</FormLabel>
-                    <FormDescription>
-                      Inscrições em cursos precisam de aprovação do administrador
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="auto_certificate_generation"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Geração Automática de Certificados</FormLabel>
-                    <FormDescription>
-                      Gerar certificados automaticamente ao concluir um curso
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="certificate_template"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Template do Certificado</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="system_description"
+                render={({ field }) => (
+                  <FormItem className="form-field">
+                    <FormLabel className="form-label">Descrição</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um template" />
-                      </SelectTrigger>
+                      <Textarea 
+                        {...field} 
+                        className="form-input min-h-[100px]"
+                        placeholder="Descreva o propósito do sistema"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="default">Padrão</SelectItem>
-                      <SelectItem value="modern">Moderno</SelectItem>
-                      <SelectItem value="classic">Clássico</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="max_enrollment_per_course"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Máximo de Inscrições por Curso</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Deixe em branco para permitir inscrições ilimitadas
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+              <FormField
+                control={form.control}
+                name="timezone"
+                render={({ field }) => (
+                  <FormItem className="form-field">
+                    <FormLabel className="form-label">
+                      <Globe className="w-4 h-4 inline mr-2" />
+                      Fuso Horário
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="form-input">
+                          <SelectValue placeholder="Selecione o fuso horário" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border border-border shadow-lg rounded-lg">
+                        <SelectItem value="America/Sao_Paulo">América/São Paulo (GMT-3)</SelectItem>
+                        <SelectItem value="America/Manaus">América/Manaus (GMT-4)</SelectItem>
+                        <SelectItem value="America/Rio_Branco">América/Rio Branco (GMT-5)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-        <div className="flex justify-end">
-          <Button 
-            type="submit" 
-            disabled={updateSettings.isPending}
-            className="min-w-[120px]"
-          >
-            {updateSettings.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Salvando...
-              </>
-            ) : (
-              'Salvar Configurações'
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+          {/* Notificações */}
+          <Card className="card-modern">
+            <CardHeader className="flex flex-row items-center gap-3">
+              <Bell className="w-6 h-6 text-primary" />
+              <div>
+                <CardTitle className="font-heading">Notificações</CardTitle>
+                <CardDescription>
+                  Configure como o sistema enviará notificações
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email_notifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl border border-border p-6 bg-card/50">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium">Notificações por Email</FormLabel>
+                      <FormDescription>
+                        Enviar notificações automáticas por email para usuários
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="whatsapp_notifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl border border-border p-6 bg-card/50">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium">Notificações por WhatsApp</FormLabel>
+                      <FormDescription>
+                        Enviar notificações automáticas via WhatsApp
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Cursos e Certificados */}
+          <Card className="card-modern">
+            <CardHeader className="flex flex-row items-center gap-3">
+              <Award className="w-6 h-6 text-primary" />
+              <div>
+                <CardTitle className="font-heading">Cursos e Certificados</CardTitle>
+                <CardDescription>
+                  Configure o comportamento dos cursos e certificados
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <FormField
+                control={form.control}
+                name="course_approval_required"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl border border-border p-6 bg-card/50">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium">
+                        <Users className="w-4 h-4 inline mr-2" />
+                        Aprovação Obrigatória
+                      </FormLabel>
+                      <FormDescription>
+                        Inscrições em cursos precisam de aprovação do administrador
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="auto_certificate_generation"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-xl border border-border p-6 bg-card/50">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base font-medium">Geração Automática de Certificados</FormLabel>
+                      <FormDescription>
+                        Gerar certificados automaticamente ao concluir um curso
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="certificate_template"
+                  render={({ field }) => (
+                    <FormItem className="form-field">
+                      <FormLabel className="form-label">Template do Certificado</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="form-input">
+                            <SelectValue placeholder="Selecione um template" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-popover border border-border shadow-lg rounded-lg">
+                          <SelectItem value="default">Padrão</SelectItem>
+                          <SelectItem value="modern">Moderno</SelectItem>
+                          <SelectItem value="classic">Clássico</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="max_enrollment_per_course"
+                  render={({ field }) => (
+                    <FormItem className="form-field">
+                      <FormLabel className="form-label">Máximo de Inscrições por Curso</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          className="form-input"
+                          placeholder="Deixe em branco para ilimitado"
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Deixe em branco para permitir inscrições ilimitadas
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Botão de Salvar */}
+          <div className="flex justify-end pt-6">
+            <Button 
+              type="submit" 
+              disabled={updateSettings.isPending}
+              className="min-w-[160px] font-semibold"
+              size="lg"
+            >
+              {updateSettings.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Configurações'
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 
