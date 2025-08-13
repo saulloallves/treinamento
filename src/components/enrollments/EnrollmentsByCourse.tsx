@@ -67,7 +67,7 @@ const EnrollmentsByCourse = () => {
                     <td className="py-3 pr-4 text-foreground">{e.student_name}</td>
                     <td className="py-3 pr-4 text-muted-foreground">{e.student_email}</td>
                     <td className="py-3 pr-4 text-muted-foreground">{e.student_phone || "-"}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{e.units?.name || e.unit_code || "-"}</td>
+                    <td className="py-3 pr-4 text-muted-foreground">{e.units?.name || "-"}</td>
                     <td className="py-3 pr-4">
                       <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
                         {e.status}
