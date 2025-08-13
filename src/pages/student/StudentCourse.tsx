@@ -46,10 +46,13 @@ const StudentCourse = () => {
   const lessonsQuery = useQuery({
     queryKey: ["lessons", courseId],
     queryFn: async () => {
+      const nowIso = new Date().toISOString();
+      
       const { data, error } = await supabase
         .from("lessons")
-        .select("id, title, description, order_index")
+        .select("id, title, description, order_index, zoom_start_time")
         .eq("course_id", courseId)
+        .or(`zoom_start_time.is.null,zoom_start_time.gte.${nowIso}`)
         .order("order_index", { ascending: true });
 
       if (error) throw error;
