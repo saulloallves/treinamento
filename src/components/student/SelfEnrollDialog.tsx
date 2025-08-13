@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCourses } from '@/hooks/useCourses';
 import { useSelfEnroll } from '@/hooks/useStudentPortal';
+import { useMyEnrollments } from '@/hooks/useMyEnrollments';
 
 interface SelfEnrollDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const [courseId, setCourseId] = useState<string>('');
 
   const { data: courses = [] } = useCourses();
+  const { data: myEnrollments = [] } = useMyEnrollments();
   const selfEnroll = useSelfEnroll();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +40,11 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     }
   };
 
-  const activeCourses = courses.filter(c => c.status === 'Ativo');
+  // Filtrar cursos ativos e onde o usuário ainda não está inscrito
+  const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
+  const availableCourses = courses.filter(c => 
+    c.status === 'Ativo' && !enrolledCourseIds.has(c.id)
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,11 +66,17 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
                 <SelectValue placeholder="Selecione um curso" />
               </SelectTrigger>
               <SelectContent>
-                {activeCourses.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                {availableCourses.length === 0 ? (
+                  <SelectItem value="" disabled>
+                    Nenhum curso disponível para inscrição
                   </SelectItem>
-                ))}
+                ) : (
+                  availableCourses.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -81,7 +93,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={!courseId || selfEnroll.isPending}
+              disabled={!courseId || availableCourses.length === 0 || selfEnroll.isPending}
             >
               {selfEnroll.isPending ? 'Inscrevendo...' : 'Confirmar Inscrição'}
             </Button>
