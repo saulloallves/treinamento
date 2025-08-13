@@ -334,9 +334,16 @@ async function handleCursos(request: Request, path: string[]) {
       query = query.eq('theme', categoria)
     }
 
-    const { data: courses } = await query
+    const { data: courses } = await query.order('created_at', { ascending: true })
 
-    return new Response(JSON.stringify(courses), {
+    // Adicionar numeração sequencial aos cursos
+    const coursesWithNumbers = courses?.map((course, index) => ({
+      ...course,
+      course_number: `Curso ${index + 1}`,
+      display_name: `Curso ${index + 1} - ${course.name}`
+    })) || []
+
+    return new Response(JSON.stringify(coursesWithNumbers), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
@@ -389,7 +396,7 @@ async function handleCursos(request: Request, path: string[]) {
       }
     }
 
-    const result = enrollments?.map(e => {
+    const result = enrollments?.map((e, index) => {
       const courseInfo = e.courses
       const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
@@ -399,8 +406,13 @@ async function handleCursos(request: Request, path: string[]) {
       
       return {
         ...e,
+        enrollment_number: `Inscrição ${index + 1}`,
+        course_number: `Curso ${index + 1}`,
         progress_percentage: calculatedProgress,
-        course: courseInfo
+        course: {
+          ...courseInfo,
+          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
+        }
       }
     }) || []
 
@@ -478,7 +490,7 @@ async function handleCursos(request: Request, path: string[]) {
       }
     }
 
-    const result = enrollments?.map(e => {
+    const result = enrollments?.map((e, index) => {
       const courseInfo = e.courses
       const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
@@ -488,8 +500,13 @@ async function handleCursos(request: Request, path: string[]) {
       
       return {
         ...e,
+        enrollment_number: `Inscrição ${index + 1}`,
+        course_number: `Curso ${index + 1}`,
         progress_percentage: calculatedProgress,
-        course: courseInfo
+        course: {
+          ...courseInfo,
+          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
+        }
       }
     }) || []
 
@@ -600,7 +617,7 @@ async function handleCursos(request: Request, path: string[]) {
       }
     }
 
-    const result = enrollments?.map(e => {
+    const result = enrollments?.map((e, index) => {
       const courseInfo = e.courses
       const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
@@ -610,8 +627,13 @@ async function handleCursos(request: Request, path: string[]) {
       
       return {
         ...e,
+        enrollment_number: `Inscrição ${index + 1}`,
+        course_number: `Curso ${index + 1}`,
         progress_percentage: calculatedProgress,
-        course: courseInfo
+        course: {
+          ...courseInfo,
+          display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
+        }
       }
     }) || []
 
@@ -630,7 +652,14 @@ async function handleCursos(request: Request, path: string[]) {
       .eq('course_id', courseId)
       .order('order_index')
 
-    return new Response(JSON.stringify(lessons), {
+    // Adicionar numeração sequencial às aulas
+    const lessonsWithNumbers = lessons?.map((lesson, index) => ({
+      ...lesson,
+      lesson_number: `Aula ${index + 1}`,
+      display_title: `Aula ${index + 1} - ${lesson.title}`
+    })) || []
+
+    return new Response(JSON.stringify(lessonsWithNumbers), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
