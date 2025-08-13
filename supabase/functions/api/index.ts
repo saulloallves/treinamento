@@ -637,9 +637,6 @@ async function handleCursos(request: Request, path: string[]) {
     return new Response(JSON.stringify(lessons), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
-    }) || []
-
-  }
   }
 
   if (request.method === 'GET' && courseId) {
