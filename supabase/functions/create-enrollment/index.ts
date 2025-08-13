@@ -55,12 +55,13 @@ serve(async (req: Request) => {
       student_phone,
       course_id,
       course_name,
+      unit_code,
       created_by, // optional passthrough
       status // optional, defaults to 'Ativo'
     } = body || {}
 
-    if (!student_name || !student_email || (!course_id && !course_name)) {
-      return new Response(JSON.stringify({ error: 'Campos obrigatórios: student_name, student_email e (course_id ou course_name)' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (!student_name || !student_email || (!course_id && !course_name) || !unit_code) {
+      return new Response(JSON.stringify({ error: 'Campos obrigatórios: student_name, student_email, unit_code e (course_id ou course_name)' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -106,6 +107,7 @@ serve(async (req: Request) => {
         student_name,
         student_email,
         student_phone: student_phone ?? null,
+        unit_code,
         created_by: created_by ?? null,
         status: status ?? 'Ativo',
         enrollment_date: new Date().toISOString(),

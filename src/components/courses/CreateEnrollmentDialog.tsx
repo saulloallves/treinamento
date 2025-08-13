@@ -22,13 +22,14 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [studentPhone, setStudentPhone] = useState("");
+  const [unitCode, setUnitCode] = useState("");
 
   const createEnrollmentMutation = useCreateEnrollment();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!studentName.trim() || !studentEmail.trim()) {
+    if (!studentName.trim() || !studentEmail.trim() || !unitCode.trim()) {
       return;
     }
 
@@ -38,12 +39,14 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
         student_name: studentName.trim(),
         student_email: studentEmail.trim(),
         student_phone: studentPhone.trim() || undefined,
+        unit_code: unitCode.trim(),
       });
 
       // Reset form
       setStudentName("");
       setStudentEmail("");
       setStudentPhone("");
+      setUnitCode("");
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating enrollment:', error);
@@ -100,6 +103,18 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-brand-black mb-1">
+              Código da Unidade *
+            </label>
+            <Input
+              value={unitCode}
+              onChange={(e) => setUnitCode(e.target.value)}
+              placeholder="Ex: 1728"
+              required
+            />
+          </div>
+
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
@@ -112,7 +127,7 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={createEnrollmentMutation.isPending || !studentName.trim() || !studentEmail.trim()}
+              disabled={createEnrollmentMutation.isPending || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()}
             >
               {createEnrollmentMutation.isPending ? "Criando..." : "Adicionar Aluno"}
             </Button>

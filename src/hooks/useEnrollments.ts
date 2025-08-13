@@ -27,6 +27,7 @@ export interface EnrollmentInput {
   student_email: string;
   student_phone?: string;
   status?: string;
+  unit_code: string;
 }
 
 export const useEnrollments = (courseId?: string) => {

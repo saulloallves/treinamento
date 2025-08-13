@@ -69,6 +69,7 @@ export const useSelfEnroll = () => {
           student_name: userData.name,
           student_email: userData.email,
           student_phone: userData.phone,
+          unit_code: userData.unit_code,
           user_id: userId,
           status: 'Ativo',
         }])
