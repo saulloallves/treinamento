@@ -566,6 +566,8 @@ async function handleCursos(request: Request, path: string[]) {
 
     // Primeiro buscar por user_id (mais confiável)
     if (userIds.length > 0) {
+      console.log('Buscando por user_ids:', userIds)
+      
       const { data: enrollmentsByUserId, error: errorByUserId } = await supabase
         .from('enrollments')
         .select(`
