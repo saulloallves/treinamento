@@ -336,19 +336,7 @@ async function handleCursos(request: Request, path: string[]) {
 
     const { data: courses } = await query.order('created_at', { ascending: true })
 
-    // Adicionar numeração sequencial aos cursos com propriedades dinâmicas
-    const coursesWithNumbers = courses?.map((course, index) => {
-      const courseNum = index + 1;
-      const dynamicDisplayName = `display_name_curso${courseNum}`;
-      
-      return {
-        ...course,
-        course_number: `Curso ${courseNum}`,
-        [dynamicDisplayName]: course.name // Propriedade dinâmica com apenas o nome
-      };
-    }) || []
-
-    return new Response(JSON.stringify(coursesWithNumbers), {
+    return new Response(JSON.stringify(courses), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
@@ -409,16 +397,10 @@ async function handleCursos(request: Request, path: string[]) {
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
-      const courseNum = index + 1;
-      const dynamicDisplayName = `display_name_curso${courseNum}`;
-      
       return {
         ...e,
-        enrollment_number: `Inscrição ${index + 1}`,
-        course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
-        course: courseInfo,
-        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
+        course: courseInfo
       }
     }) || []
 
@@ -627,17 +609,11 @@ async function handleCursos(request: Request, path: string[]) {
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
         : (e.progress_percentage || 0)
       
-      const courseNum = index + 1
-      const dynamicDisplayName = `display_name_curso${courseNum}`
-      
       return {
         ...e,
-        enrollment_number: `Inscrição ${courseNum}`,
-        course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
         courses: courseInfo, // Para compatibilidade
-        course: courseInfo,
-        [dynamicDisplayName]: courseInfo?.name || 'Sem nome'
+        course: courseInfo
       }
     })
 
@@ -656,21 +632,12 @@ async function handleCursos(request: Request, path: string[]) {
       .eq('course_id', courseId)
       .order('order_index')
 
-    // Adicionar numeração sequencial às aulas com propriedades dinâmicas
-    const lessonsWithNumbers = lessons?.map((lesson, index) => {
-      const lessonNum = index + 1;
-      const dynamicDisplayTitle = `display_title_aula${lessonNum}`;
-      
-      return {
-        ...lesson,
-        lesson_number: `Aula ${lessonNum}`,
-        [dynamicDisplayTitle]: lesson.title // Propriedade dinâmica com apenas o título
-      };
-    }) || []
-
-    return new Response(JSON.stringify(lessonsWithNumbers), {
+    return new Response(JSON.stringify(lessons), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
+    }) || []
+
+  }
   }
 
   if (request.method === 'GET' && courseId) {
