@@ -531,7 +531,11 @@ async function handleCursos(request: Request, path: string[]) {
     const userIds = users.map(u => u.id)
     const userEmails = users.map(u => u.email).filter(Boolean)
 
-    const { data: enrollments, error } = await supabase
+    console.log('User IDs para busca:', userIds)
+    console.log('User emails para busca:', userEmails)
+
+    // Primeira busca - por user_id
+    const { data: enrollmentsByUserId, error: errorById } = await supabase
       .from('enrollments')
       .select(`
         id,
@@ -550,8 +554,43 @@ async function handleCursos(request: Request, path: string[]) {
           generates_certificate
         )
       `)
-      .or(`user_id.in.(${userIds.join(',')}),student_email.in.(${userEmails.map(e => `"${e}"`).join(',')})`)
-      .order('created_at', { ascending: false })
+      .in('user_id', userIds)
+
+    // Segunda busca - por email (busca mais ampla)
+    const { data: enrollmentsByEmail, error: errorByEmail } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        course_id,
+        progress_percentage,
+        status,
+        created_at,
+        student_name,
+        student_email,
+        student_phone,
+        user_id,
+        courses (
+          id,
+          name,
+          lessons_count,
+          generates_certificate
+        )
+      `)
+      .ilike('student_email', '%alison%')
+
+    console.log('Enrollments por user_id:', enrollmentsByUserId?.length || 0)
+    console.log('Enrollments por email (ampla):', enrollmentsByEmail?.length || 0)
+
+    // Combinar resultados únicos
+    const allEnrollments = [...(enrollmentsByUserId || []), ...(enrollmentsByEmail || [])]
+    const uniqueEnrollments = allEnrollments.filter((enrollment, index, self) => 
+      index === self.findIndex(e => e.id === enrollment.id)
+    )
+
+    const enrollments = uniqueEnrollments.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    const error = errorById || errorByEmail
 
     console.log('Inscrições encontradas:', enrollments?.length || 0)
 
