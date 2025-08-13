@@ -7,97 +7,64 @@
 
 @layer base {
   :root {
-    /* Background & Surface Colors */
-    --background: 248 250 252;         /* slate-50 */
-    --foreground: 15 23 42;            /* slate-900 */
-    --card: 255 255 255;               /* white */
-    --card-foreground: 15 23 42;       /* slate-900 */
-    --popover: 255 255 255;            /* white */
-    --popover-foreground: 15 23 42;    /* slate-900 */
-
-    /* Primary Brand Colors */
-    --primary: 214 100% 50%;           /* #007BFF - Brand Blue */
-    --primary-foreground: 255 255 255; /* white */
-    --primary-hover: 214 100% 45%;     /* Darker blue for hover */
-
-    /* Secondary Colors */
-    --secondary: 214 100% 97%;         /* #E6F0FF - Light Blue */
-    --secondary-foreground: 15 23 42;  /* slate-900 */
-
-    /* Accent Colors */
-    --accent: 214 100% 50%;            /* Same as primary */
-    --accent-foreground: 255 255 255;  /* white */
-
-    /* Muted Colors */
-    --muted: 248 250 252;              /* slate-50 */
-    --muted-foreground: 100 116 139;   /* slate-500 */
-
-    /* Destructive/Error Colors */
-    --destructive: 0 84% 60%;          /* red-500 */
-    --destructive-foreground: 255 255 255; /* white */
-
-    /* Success Colors */
-    --success: 142 76% 36%;            /* green-600 */
-    --success-foreground: 255 255 255; /* white */
-
-    /* Warning Colors */
-    --warning: 45 93% 47%;             /* amber-500 */
-    --warning-foreground: 15 23 42;    /* slate-900 */
-
-    /* Border & Input Colors */
-    --border: 226 29% 88%;             /* slate-300 */
-    --input: 226 29% 88%;              /* slate-300 */
-    --ring: 214 100% 50%;              /* primary */
-
-    /* Sidebar Colors */
-    --sidebar-background: 255 255 255;  /* white */
-    --sidebar-foreground: 15 23 42;     /* slate-900 */
-    --sidebar-primary: 214 100% 50%;    /* primary */
-    --sidebar-primary-foreground: 255 255 255; /* white */
-    --sidebar-accent: 214 100% 97%;     /* light blue */
-    --sidebar-accent-foreground: 15 23 42; /* slate-900 */
-    --sidebar-border: 226 29% 88%;      /* slate-300 */
-    --sidebar-ring: 214 100% 50%;       /* primary */
-
-    /* Legacy Brand Colors (for backward compatibility) */
-    --brand-blue: 214 100% 50%;         /* #007BFF */
-    --brand-blue-light: 214 100% 97%;   /* #E6F0FF */
-    --brand-black: 15 23 42;            /* slate-900 */
-    --brand-gray-dark: 51 65 85;        /* slate-700 */
-    --brand-white: 255 255 255;         /* white */
-
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(214 100% 50%), hsl(214 100% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(214 100% 97%), hsl(220 100% 95%));
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
-    --radius: 0.75rem;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 15 23 42;            /* slate-900 */
-    --foreground: 248 250 252;         /* slate-50 */
-    --card: 30 41 59;                  /* slate-800 */
-    --card-foreground: 248 250 252;    /* slate-50 */
-    --popover: 30 41 59;               /* slate-800 */
-    --popover-foreground: 248 250 252; /* slate-50 */
-    --primary: 214 100% 60%;           /* Lighter blue for dark mode */
-    --primary-foreground: 15 23 42;    /* slate-900 */
-    --secondary: 51 65 85;             /* slate-700 */
-    --secondary-foreground: 248 250 252; /* slate-50 */
-    --muted: 51 65 85;                 /* slate-700 */
-    --muted-foreground: 148 163 184;   /* slate-400 */
-    --accent: 214 100% 60%;            /* Lighter blue for dark mode */
-    --accent-foreground: 15 23 42;     /* slate-900 */
-    --destructive: 0 62% 30%;          /* Darker red for dark mode */
-    --destructive-foreground: 248 250 252; /* slate-50 */
-    --border: 51 65 85;                /* slate-700 */
-    --input: 51 65 85;                 /* slate-700 */
-    --ring: 214 100% 60%;              /* primary for dark mode */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 94.1%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
