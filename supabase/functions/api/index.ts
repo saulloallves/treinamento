@@ -625,14 +625,15 @@ async function handleCursos(request: Request, path: string[]) {
   }
 
   if (request.method === 'GET' && courseId && path[2] === 'aulas') {
-    // GET /cursos/{curso_id}/aulas - filtrar apenas aulas futuras
+    // GET /cursos/{curso_id}/aulas - filtrar apenas aulas futuras com data definida
     const nowIso = new Date().toISOString();
     const { data: lessons } = await supabase
       .from('lessons')
       .select('*')
       .eq('course_id', courseId)
-      .or(`zoom_start_time.is.null,zoom_start_time.gt.${nowIso}`)
-      .order('order_index')
+      .not('zoom_start_time', 'is', null)
+      .gt('zoom_start_time', nowIso)
+      .order('zoom_start_time', { ascending: true })
 
     return new Response(JSON.stringify(lessons), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
