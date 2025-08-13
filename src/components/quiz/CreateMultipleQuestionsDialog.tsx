@@ -346,11 +346,11 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione a resposta correta" />
                           </SelectTrigger>
-                          <SelectContent>
-                            {question.option_a && <SelectItem value="A">A) {question.option_a}</SelectItem>}
-                            {question.option_b && <SelectItem value="B">B) {question.option_b}</SelectItem>}
-                            {question.option_c && <SelectItem value="C">C) {question.option_c}</SelectItem>}
-                            {question.option_d && <SelectItem value="D">D) {question.option_d}</SelectItem>}
+                          <SelectContent className="z-[100]">
+                            {question.option_a.trim() && <SelectItem value="A">A) {question.option_a}</SelectItem>}
+                            {question.option_b.trim() && <SelectItem value="B">B) {question.option_b}</SelectItem>}
+                            {question.option_c.trim() && <SelectItem value="C">C) {question.option_c}</SelectItem>}
+                            {question.option_d.trim() && <SelectItem value="D">D) {question.option_d}</SelectItem>}
                           </SelectContent>
                         </Select>
                       </div>

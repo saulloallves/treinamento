@@ -237,11 +237,11 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a resposta correta" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {formData.option_a && <SelectItem value="A">A) {formData.option_a}</SelectItem>}
-                    {formData.option_b && <SelectItem value="B">B) {formData.option_b}</SelectItem>}
-                    {formData.option_c && <SelectItem value="C">C) {formData.option_c}</SelectItem>}
-                    {formData.option_d && <SelectItem value="D">D) {formData.option_d}</SelectItem>}
+                  <SelectContent className="z-[100]">
+                    {formData.option_a.trim() && <SelectItem value="A">A) {formData.option_a}</SelectItem>}
+                    {formData.option_b.trim() && <SelectItem value="B">B) {formData.option_b}</SelectItem>}
+                    {formData.option_c.trim() && <SelectItem value="C">C) {formData.option_c}</SelectItem>}
+                    {formData.option_d.trim() && <SelectItem value="D">D) {formData.option_d}</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
