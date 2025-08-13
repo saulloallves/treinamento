@@ -483,6 +483,51 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          auto_certificate_generation: boolean
+          certificate_template: string
+          course_approval_required: boolean
+          created_at: string
+          email_notifications: boolean
+          id: string
+          max_enrollment_per_course: number | null
+          system_description: string
+          system_name: string
+          timezone: string
+          updated_at: string
+          whatsapp_notifications: boolean
+        }
+        Insert: {
+          auto_certificate_generation?: boolean
+          certificate_template?: string
+          course_approval_required?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          max_enrollment_per_course?: number | null
+          system_description?: string
+          system_name?: string
+          timezone?: string
+          updated_at?: string
+          whatsapp_notifications?: boolean
+        }
+        Update: {
+          auto_certificate_generation?: boolean
+          certificate_template?: string
+          course_approval_required?: boolean
+          created_at?: string
+          email_notifications?: boolean
+          id?: string
+          max_enrollment_per_course?: number | null
+          system_description?: string
+          system_name?: string
+          timezone?: string
+          updated_at?: string
+          whatsapp_notifications?: boolean
+        }
+        Relationships: []
+      }
       unidades: {
         Row: {
           bairro: string | null

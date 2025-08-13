@@ -32,7 +32,7 @@ const SystemSettingsForm = () => {
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: {
+    values: {
       system_name: settings?.system_name || 'Cresci e Perdi',
       system_description: settings?.system_description || 'Sistema de Treinamentos',
       email_notifications: settings?.email_notifications ?? true,
