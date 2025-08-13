@@ -491,13 +491,39 @@ async function handleCursos(request: Request, path: string[]) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
-
+  
+  // Debug - log all requests
+  console.log('API Request:', {
+    method: request.method,
+    url: request.url,
+    courseId: courseId,
+    path: path
+  })
   if (request.method === 'GET' && courseId === 'por-unidade') {
     // GET /cursos/por-unidade?codigo=xxx - enrollments by unit code (PUBLIC)
     const url = new URL(request.url)
     const unitCode = url.searchParams.get('codigo')
+  
+  // Endpoint de teste simples
+  if (request.method === 'GET' && courseId === 'teste') {
+    console.log('Endpoint teste executado!')
+    return new Response(JSON.stringify({ 
+      message: 'API funcionando!',
+      timestamp: new Date().toISOString(),
+      courseId: courseId,
+      path: path
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+
+  if (request.method === 'GET' && courseId === 'por-unidade') {
+    console.log('=== DEBUG POR-UNIDADE ===')
     
-    console.log('Buscando cursos por código da unidade:', unitCode)
+    const url = new URL(request.url)
+    const unitCode = url.searchParams.get('codigo')
+    
+    console.log('Código da unidade:', unitCode)
     
     if (!unitCode) {
       return new Response(JSON.stringify({ error: 'Código da unidade é obrigatório' }), { 
@@ -506,138 +532,12 @@ async function handleCursos(request: Request, path: string[]) {
       })
     }
 
-    // Buscar usuários da unidade primeiro
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id, email, name')
-      .eq('unit_code', unitCode)
-
-    console.log('Usuários encontrados na unidade:', users?.length || 0)
-
-    if (usersError) {
-      return new Response(JSON.stringify({ error: usersError.message }), { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    if (!users || users.length === 0) {
-      return new Response(JSON.stringify([]), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    // Buscar inscrições dos usuários da unidade
-    const userIds = users.map(u => u.id)
-    const userEmails = users.map(u => u.email).filter(Boolean)
-
-    console.log('User IDs para busca:', userIds)
-    console.log('User emails para busca:', userEmails)
-
-    // Primeira busca - por user_id
-    const { data: enrollmentsByUserId, error: errorById } = await supabase
-      .from('enrollments')
-      .select(`
-        id,
-        course_id,
-        progress_percentage,
-        status,
-        created_at,
-        student_name,
-        student_email,
-        student_phone,
-        user_id,
-        courses (
-          id,
-          name,
-          lessons_count,
-          generates_certificate
-        )
-      `)
-      .in('user_id', userIds)
-
-    // Segunda busca - por email (busca mais ampla)
-    const { data: enrollmentsByEmail, error: errorByEmail } = await supabase
-      .from('enrollments')
-      .select(`
-        id,
-        course_id,
-        progress_percentage,
-        status,
-        created_at,
-        student_name,
-        student_email,
-        student_phone,
-        user_id,
-        courses (
-          id,
-          name,
-          lessons_count,
-          generates_certificate
-        )
-      `)
-      .ilike('student_email', '%alison%')
-
-    console.log('Enrollments por user_id:', enrollmentsByUserId?.length || 0)
-    console.log('Enrollments por email (ampla):', enrollmentsByEmail?.length || 0)
-
-    // Combinar resultados únicos
-    const allEnrollments = [...(enrollmentsByUserId || []), ...(enrollmentsByEmail || [])]
-    const uniqueEnrollments = allEnrollments.filter((enrollment, index, self) => 
-      index === self.findIndex(e => e.id === enrollment.id)
-    )
-
-    const enrollments = uniqueEnrollments.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-    const error = errorById || errorByEmail
-
-    console.log('Inscrições encontradas:', enrollments?.length || 0)
-
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    // Calculate real progress from attendance
-    const enrollmentIds = enrollments?.map(e => e.id) || []
-    let countsByEnrollment = new Map<string, number>()
-    
-    if (enrollmentIds.length > 0) {
-      const { data: attRows } = await supabase
-        .from('attendance')
-        .select('enrollment_id')
-        .in('enrollment_id', enrollmentIds)
-      
-      for (const row of (attRows || [])) {
-        const k = row.enrollment_id as string
-        countsByEnrollment.set(k, (countsByEnrollment.get(k) || 0) + 1)
-      }
-    }
-
-    const result = enrollments?.map(e => {
-      const courseInfo = e.courses
-      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
-      const attended = countsByEnrollment.get(e.id) || 0
-      const calculatedProgress = totalLessons > 0
-        ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
-        : (e.progress_percentage || 0)
-      
-      // Adicionar info do usuário
-      const userInfo = users.find(u => u.id === e.user_id || u.email === e.student_email)
-      
-      return {
-        ...e,
-        progress_percentage: calculatedProgress,
-        course: courseInfo,
-        user_unit_code: unitCode,
-        user_info: userInfo
-      }
-    }) || []
-
-    return new Response(JSON.stringify(result), {
+    // Retorno simples para teste
+    return new Response(JSON.stringify({ 
+      message: 'Endpoint por-unidade funcionando!',
+      unitCode: unitCode,
+      timestamp: new Date().toISOString()
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
