@@ -409,13 +409,22 @@ async function handleCursos(request: Request, path: string[]) {
     const email = url.searchParams.get('email')
     
     console.log('Buscando cursos por email:', email)
+    console.log('URL completa:', request.url)
     
     if (!email) {
+      console.log('Erro: Email não fornecido')
       return new Response(JSON.stringify({ error: 'Email é obrigatório' }), { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    // Busca mais ampla - todos os emails similares
+    const { data: allEnrollments } = await supabase
+      .from('enrollments')
+      .select('student_email')
+    
+    console.log('Todos os emails cadastrados:', allEnrollments?.map(e => e.student_email))
 
     const { data: enrollments, error } = await supabase
       .from('enrollments')
