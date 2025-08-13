@@ -16,7 +16,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const settingsSchema = z.object({
   system_name: z.string().min(1, 'Nome do sistema é obrigatório'),
   system_description: z.string().min(1, 'Descrição é obrigatória'),
-  email_notifications: z.boolean(),
   whatsapp_notifications: z.boolean(),
   auto_certificate_generation: z.boolean(),
   certificate_template: z.string(),
@@ -37,7 +36,6 @@ const SystemSettingsForm = () => {
     defaultValues: {
       system_name: 'Cresci e Perdi',
       system_description: 'Sistema de Treinamentos',
-      email_notifications: true,
       whatsapp_notifications: true,
       auto_certificate_generation: true,
       certificate_template: 'default',
@@ -53,7 +51,6 @@ const SystemSettingsForm = () => {
       form.reset({
         system_name: settings.system_name || 'Cresci e Perdi',
         system_description: settings.system_description || 'Sistema de Treinamentos',
-        email_notifications: settings.email_notifications ?? true,
         whatsapp_notifications: settings.whatsapp_notifications ?? true,
         auto_certificate_generation: settings.auto_certificate_generation ?? true,
         certificate_template: settings.certificate_template || 'default',
@@ -148,24 +145,6 @@ const SystemSettingsForm = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email_notifications"
-              render={({ field }) => (
-                <FormItem className={`flex ${isMobile ? 'flex-col space-y-2' : 'flex-row items-center justify-between'} rounded-lg border p-3 md:p-4`}>
-                  <div className="space-y-0.5 flex-1 min-w-0">
-                    <FormLabel className="text-sm md:text-base">Notificações por Email</FormLabel>
-                    <FormDescription className="text-xs md:text-sm">
-                      Enviar notificações automáticas por email
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="whatsapp_notifications"
