@@ -38,21 +38,33 @@ export interface LessonInput {
   zoom_start_time?: string;
 }
 
-export const useLessons = () => {
+export const useLessons = (futureOnly: boolean = false) => {
   const { toast } = useToast();
   
   return useQuery({
-    queryKey: ['lessons'],
+    queryKey: ['lessons', futureOnly],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('lessons')
         .select(`
           *,
           courses (
             name
           )
-        `)
-        .order('created_at', { ascending: false });
+        `);
+
+      // Se futureOnly for true, filtrar apenas aulas futuras
+      if (futureOnly) {
+        const nowIso = new Date().toISOString();
+        query = query
+          .not('zoom_start_time', 'is', null)
+          .gte('zoom_start_time', nowIso)
+          .order('zoom_start_time', { ascending: true });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching lessons:', error);
