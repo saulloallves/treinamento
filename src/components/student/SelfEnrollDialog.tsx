@@ -61,24 +61,24 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             <label className="block text-sm font-medium text-brand-black mb-1">
               Curso *
             </label>
-            <Select value={courseId} onValueChange={setCourseId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um curso" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCourses.length === 0 ? (
-                  <SelectItem value="" disabled>
-                    Nenhum curso disponível para inscrição
-                  </SelectItem>
-                ) : (
-                  availableCourses.map((c) => (
+            {availableCourses.length === 0 ? (
+              <div className="text-sm text-muted-foreground p-3 border rounded-md bg-muted">
+                Nenhum curso disponível para inscrição. Você já está inscrito em todos os cursos ativos.
+              </div>
+            ) : (
+              <Select value={courseId} onValueChange={setCourseId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um curso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCourses.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
