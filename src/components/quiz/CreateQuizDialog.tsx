@@ -38,6 +38,7 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
     course_id: "",
     lesson_id: "",
     question: "",
+    question_type: "multiple_choice",
     option_a: "",
     option_b: "",
     option_c: "",
@@ -52,10 +53,19 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.lesson_id || !formData.question || !formData.option_a || !formData.option_b || !formData.correct_answer) {
+    if (!formData.course_id || !formData.lesson_id || !formData.question) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios (curso, aula, pergunta, opções A e B, resposta correta).",
+        description: "Preencha todos os campos obrigatórios (curso, aula, pergunta).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.question_type === "multiple_choice" && (!formData.option_a || !formData.option_b || !formData.correct_answer)) {
+      toast({
+        title: "Erro",
+        description: "Para perguntas de múltipla escolha, preencha pelo menos as opções A e B e selecione a resposta correta.",
         variant: "destructive",
       });
       return;
@@ -72,6 +82,7 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
         course_id: "",
         lesson_id: "",
         question: "",
+        question_type: "multiple_choice",
         option_a: "",
         option_b: "",
         option_c: "",
@@ -139,6 +150,30 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="question_type">Tipo de Pergunta *</Label>
+            <Select
+              value={formData.question_type}
+              onValueChange={(value) => setFormData(prev => ({ 
+                ...prev, 
+                question_type: value,
+                option_a: value === "essay" ? "" : prev.option_a,
+                option_b: value === "essay" ? "" : prev.option_b,
+                option_c: value === "essay" ? "" : prev.option_c,
+                option_d: value === "essay" ? "" : prev.option_d,
+                correct_answer: value === "essay" ? "" : prev.correct_answer,
+              }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
+                <SelectItem value="essay">Dissertativa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="question">Pergunta *</Label>
             <Textarea
               id="question"
@@ -149,65 +184,69 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="option_a">Opção A *</Label>
-              <Input
-                id="option_a"
-                value={formData.option_a}
-                onChange={(e) => setFormData(prev => ({ ...prev, option_a: e.target.value }))}
-                placeholder="Primeira opção"
-              />
-            </div>
+          {formData.question_type === "multiple_choice" && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="option_a">Opção A *</Label>
+                  <Input
+                    id="option_a"
+                    value={formData.option_a}
+                    onChange={(e) => setFormData(prev => ({ ...prev, option_a: e.target.value }))}
+                    placeholder="Primeira opção"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="option_b">Opção B *</Label>
-              <Input
-                id="option_b"
-                value={formData.option_b}
-                onChange={(e) => setFormData(prev => ({ ...prev, option_b: e.target.value }))}
-                placeholder="Segunda opção"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="option_b">Opção B *</Label>
+                  <Input
+                    id="option_b"
+                    value={formData.option_b}
+                    onChange={(e) => setFormData(prev => ({ ...prev, option_b: e.target.value }))}
+                    placeholder="Segunda opção"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="option_c">Opção C</Label>
-              <Input
-                id="option_c"
-                value={formData.option_c}
-                onChange={(e) => setFormData(prev => ({ ...prev, option_c: e.target.value }))}
-                placeholder="Terceira opção (opcional)"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="option_c">Opção C</Label>
+                  <Input
+                    id="option_c"
+                    value={formData.option_c}
+                    onChange={(e) => setFormData(prev => ({ ...prev, option_c: e.target.value }))}
+                    placeholder="Terceira opção (opcional)"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="option_d">Opção D</Label>
-              <Input
-                id="option_d"
-                value={formData.option_d}
-                onChange={(e) => setFormData(prev => ({ ...prev, option_d: e.target.value }))}
-                placeholder="Quarta opção (opcional)"
-              />
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="option_d">Opção D</Label>
+                  <Input
+                    id="option_d"
+                    value={formData.option_d}
+                    onChange={(e) => setFormData(prev => ({ ...prev, option_d: e.target.value }))}
+                    placeholder="Quarta opção (opcional)"
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="correct_answer">Resposta Correta *</Label>
-            <Select
-              value={formData.correct_answer}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, correct_answer: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a resposta correta" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="A">A</SelectItem>
-                <SelectItem value="B">B</SelectItem>
-                <SelectItem value="C">C</SelectItem>
-                <SelectItem value="D">D</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="correct_answer">Resposta Correta *</Label>
+                <Select
+                  value={formData.correct_answer}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, correct_answer: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a resposta correta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formData.option_a && <SelectItem value="A">A) {formData.option_a}</SelectItem>}
+                    {formData.option_b && <SelectItem value="B">B) {formData.option_b}</SelectItem>}
+                    {formData.option_c && <SelectItem value="C">C) {formData.option_c}</SelectItem>}
+                    {formData.option_d && <SelectItem value="D">D) {formData.option_d}</SelectItem>}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
 
           <DialogFooter>

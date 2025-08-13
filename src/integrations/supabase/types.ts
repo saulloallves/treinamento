@@ -330,12 +330,13 @@ export type Database = {
           created_at: string
           id: string
           lesson_id: string | null
-          option_a: string
-          option_b: string
+          option_a: string | null
+          option_b: string | null
           option_c: string | null
           option_d: string | null
           order_index: number
           question: string
+          question_type: string
         }
         Insert: {
           correct_answer: string
@@ -343,12 +344,13 @@ export type Database = {
           created_at?: string
           id?: string
           lesson_id?: string | null
-          option_a: string
-          option_b: string
+          option_a?: string | null
+          option_b?: string | null
           option_c?: string | null
           option_d?: string | null
           order_index?: number
           question: string
+          question_type?: string
         }
         Update: {
           correct_answer?: string
@@ -356,12 +358,13 @@ export type Database = {
           created_at?: string
           id?: string
           lesson_id?: string | null
-          option_a?: string
-          option_b?: string
+          option_a?: string | null
+          option_b?: string | null
           option_c?: string | null
           option_d?: string | null
           order_index?: number
           question?: string
+          question_type?: string
         }
         Relationships: [
           {

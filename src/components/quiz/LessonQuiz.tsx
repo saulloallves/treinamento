@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useQuestionsByLesson } from "@/hooks/useQuiz";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,7 +48,9 @@ const LessonQuiz = ({ lessonId, courseId }: LessonQuizProps) => {
         course_id: courseId,
         quiz_id: question.id,
         selected_answer: answers[question.id],
-        is_correct: answers[question.id] === question.correct_answer,
+        is_correct: question.question_type === "multiple_choice" 
+          ? answers[question.id] === question.correct_answer 
+          : null, // Para perguntas dissertativas, não podemos determinar automaticamente
       }));
 
       const { error } = await supabase
@@ -105,42 +108,55 @@ const LessonQuiz = ({ lessonId, courseId }: LessonQuizProps) => {
               {index + 1}. {question.question}
             </h4>
             
-            <RadioGroup
-              value={answers[question.id] || ""}
-              onValueChange={(value) => handleAnswerChange(question.id, value)}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="A" id={`${question.id}-a`} />
-                <Label htmlFor={`${question.id}-a`} className="cursor-pointer">
-                  A) {question.option_a}
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="B" id={`${question.id}-b`} />
-                <Label htmlFor={`${question.id}-b`} className="cursor-pointer">
-                  B) {question.option_b}
-                </Label>
-              </div>
-              
-              {question.option_c && (
+            {question.question_type === "multiple_choice" ? (
+              <RadioGroup
+                value={answers[question.id] || ""}
+                onValueChange={(value) => handleAnswerChange(question.id, value)}
+              >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="C" id={`${question.id}-c`} />
-                  <Label htmlFor={`${question.id}-c`} className="cursor-pointer">
-                    C) {question.option_c}
+                  <RadioGroupItem value="A" id={`${question.id}-a`} />
+                  <Label htmlFor={`${question.id}-a`} className="cursor-pointer">
+                    A) {question.option_a}
                   </Label>
                 </div>
-              )}
-              
-              {question.option_d && (
+                
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="D" id={`${question.id}-d`} />
-                  <Label htmlFor={`${question.id}-d`} className="cursor-pointer">
-                    D) {question.option_d}
+                  <RadioGroupItem value="B" id={`${question.id}-b`} />
+                  <Label htmlFor={`${question.id}-b`} className="cursor-pointer">
+                    B) {question.option_b}
                   </Label>
                 </div>
-              )}
-            </RadioGroup>
+                
+                {question.option_c && (
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="C" id={`${question.id}-c`} />
+                    <Label htmlFor={`${question.id}-c`} className="cursor-pointer">
+                      C) {question.option_c}
+                    </Label>
+                  </div>
+                )}
+                
+                {question.option_d && (
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="D" id={`${question.id}-d`} />
+                    <Label htmlFor={`${question.id}-d`} className="cursor-pointer">
+                      D) {question.option_d}
+                    </Label>
+                  </div>
+                )}
+              </RadioGroup>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor={`essay-${question.id}`}>Sua resposta:</Label>
+                <Textarea
+                  id={`essay-${question.id}`}
+                  value={answers[question.id] || ""}
+                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                  placeholder="Digite sua resposta aqui..."
+                  rows={4}
+                />
+              </div>
+            )}
           </div>
         ))}
         

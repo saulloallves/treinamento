@@ -73,27 +73,41 @@ const QuizList = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`p-2 rounded ${question.correct_answer === 'A' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
-                  <strong>A)</strong> {question.option_a}
-                </div>
-                <div className={`p-2 rounded ${question.correct_answer === 'B' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
-                  <strong>B)</strong> {question.option_b}
-                </div>
-                {question.option_c && (
-                  <div className={`p-2 rounded ${question.correct_answer === 'C' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
-                    <strong>C)</strong> {question.option_c}
-                  </div>
-                )}
-                {question.option_d && (
-                  <div className={`p-2 rounded ${question.correct_answer === 'D' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
-                    <strong>D)</strong> {question.option_d}
-                  </div>
-                )}
+              <div className="mb-2">
+                <Badge variant={question.question_type === 'essay' ? 'default' : 'secondary'}>
+                  {question.question_type === 'essay' ? 'Dissertativa' : 'Múltipla Escolha'}
+                </Badge>
               </div>
-              <div className="text-sm text-muted-foreground">
-                Resposta correta: <strong>{question.correct_answer}</strong>
-              </div>
+              
+              {question.question_type === 'multiple_choice' ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className={`p-2 rounded ${question.correct_answer === 'A' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+                      <strong>A)</strong> {question.option_a}
+                    </div>
+                    <div className={`p-2 rounded ${question.correct_answer === 'B' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+                      <strong>B)</strong> {question.option_b}
+                    </div>
+                    {question.option_c && (
+                      <div className={`p-2 rounded ${question.correct_answer === 'C' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+                        <strong>C)</strong> {question.option_c}
+                      </div>
+                    )}
+                    {question.option_d && (
+                      <div className={`p-2 rounded ${question.correct_answer === 'D' ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+                        <strong>D)</strong> {question.option_d}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Resposta correta: <strong>{question.correct_answer}</strong>
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  <em>Pergunta dissertativa - respostas serão avaliadas manualmente</em>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
