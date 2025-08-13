@@ -6,7 +6,7 @@ import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import LessonQuiz from "@/components/quiz/LessonQuiz";
+import StudentQuizList from "@/components/student/StudentQuizList";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
@@ -66,17 +66,21 @@ const StudentLessons = () => {
                       </a>
                     </Button>
                   </div>
-                  
-                  {/* Quiz da aula */}
-                  <div className="pt-4">
-                    <LessonQuiz lessonId={lesson.id} courseId={lesson.course_id} />
-                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </section>
       )}
+
+      {/* Seção de Quizzes */}
+      <section className="mt-8">
+        <header className="mb-6">
+          <h2 className="text-xl font-semibold">Quizzes</h2>
+          <p className="text-sm text-muted-foreground">Responda os quizzes das suas aulas</p>
+        </header>
+        <StudentQuizList />
+      </section>
     </BaseLayout>
   );
 };
