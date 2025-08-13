@@ -567,7 +567,7 @@ async function handleCursos(request: Request, path: string[]) {
         student_phone,
         user_id,
         unit_code,
-        courses (
+        courses!inner (
           id,
           name,
           lessons_count,
@@ -617,7 +617,12 @@ async function handleCursos(request: Request, path: string[]) {
       }
     }
 
-    const result = enrollments?.map((e, index) => {
+    // Remover duplicatas baseado no ID da inscrição e processar dados
+    const uniqueEnrollments = enrollments?.filter((enrollment, index, self) => 
+      index === self.findIndex(e => e.id === enrollment.id)
+    ) || []
+
+    const result = uniqueEnrollments.map((e, index) => {
       const courseInfo = e.courses
       const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
@@ -635,7 +640,7 @@ async function handleCursos(request: Request, path: string[]) {
           display_name: `Curso ${index + 1} - ${courseInfo?.name || 'Sem nome'}`
         }
       }
-    }) || []
+    })
 
     console.log('Resultado final:', result.length, 'inscrições processadas')
 
