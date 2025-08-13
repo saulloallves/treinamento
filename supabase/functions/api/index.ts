@@ -625,11 +625,13 @@ async function handleCursos(request: Request, path: string[]) {
   }
 
   if (request.method === 'GET' && courseId && path[2] === 'aulas') {
-    // GET /cursos/{curso_id}/aulas
+    // GET /cursos/{curso_id}/aulas - filtrar apenas aulas futuras
+    const nowIso = new Date().toISOString();
     const { data: lessons } = await supabase
       .from('lessons')
       .select('*')
       .eq('course_id', courseId)
+      .or(`zoom_start_time.is.null,zoom_start_time.gt.${nowIso}`)
       .order('order_index')
 
     return new Response(JSON.stringify(lessons), {
