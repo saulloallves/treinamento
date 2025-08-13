@@ -17,6 +17,7 @@ export interface Enrollment {
   updated_at: string;
   created_by?: string;
   unit_code?: string;
+  user_id?: string;
   courses?: {
     name: string;
   };

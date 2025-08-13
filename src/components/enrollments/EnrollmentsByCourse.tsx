@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import LinkEnrollmentButton from "./LinkEnrollmentButton";
 
 const EnrollmentsByCourse = () => {
   const { data: enrollments = [], isLoading } = useEnrollments();
@@ -57,6 +58,7 @@ const EnrollmentsByCourse = () => {
                   <th className="py-2 pr-4 font-medium">Status</th>
                   <th className="py-2 pr-4 font-medium">Progresso</th>
                   <th className="py-2 pr-4 font-medium">Data</th>
+                  <th className="py-2 pr-4 font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,6 +83,14 @@ const EnrollmentsByCourse = () => {
                     </td>
                     <td className="py-3 pr-4 text-muted-foreground">
                       {e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString("pt-BR") : "-"}
+                    </td>
+                    <td className="py-3 pr-4">
+                      {!e.user_id && (
+                        <LinkEnrollmentButton 
+                          enrollmentId={e.id} 
+                          studentEmail={e.student_email} 
+                        />
+                      )}
                     </td>
                   </tr>
                 ))}
