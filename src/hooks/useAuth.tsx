@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Se é um cadastro de admin, criar registro na tabela admin_users
       if (meta.user_type === 'Admin') {
+        console.log('Creating admin record for:', authUser.email);
         const adminRecord = {
           user_id: authUser.id,
           name: (meta.full_name as string) || (authUser.email as string),
@@ -112,7 +113,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const { error: adminErr } = await supabase.from('admin_users').insert([adminRecord]);
         if (adminErr) {
-          console.warn('Failed to create admin record:', adminErr);
+          console.error('Failed to create admin record:', adminErr);
+          // Mesmo com erro na criação do admin, não impede o cadastro do usuário
+        } else {
+          console.log('Admin record created successfully');
         }
       }
     } catch (e) {
