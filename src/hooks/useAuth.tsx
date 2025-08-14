@@ -139,23 +139,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       // Verificar se é um admin pendente de aprovação
       try {
-        const { data: adminUser } = await supabase
-          .from('admin_users')
-          .select('status')
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-          .single();
+        const { data: user } = await supabase.auth.getUser();
+        if (user?.user?.id) {
+          // Verificar usando a função is_admin do banco
+          const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: user.user.id });
+          
+          // Verificar se tem registro de admin pendente
+          const { data: adminUser } = await supabase
+            .from('admin_users')
+            .select('status')
+            .eq('user_id', user.user.id)
+            .single();
 
-        if (adminUser && adminUser.status === 'pending') {
-          // Fazer logout imediatamente
-          await supabase.auth.signOut();
-          toast({
-            title: "Acesso Pendente de Aprovação",
-            description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
-            variant: "destructive",
-          });
-          return { error: { message: "Admin pending approval" } };
+          // Se tem registro de admin mas não foi aprovado, bloquear acesso
+          if (adminUser && !isAdminApproved) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Acesso Pendente de Aprovação",
+              description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+              variant: "destructive",
+            });
+            return { error: { message: "Admin pending approval" } };
+          }
         }
       } catch (e) {
+        console.error('Error checking admin status:', e);
         // Se não conseguir verificar, continua com o login normal
       }
 
