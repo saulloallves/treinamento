@@ -46,6 +46,11 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     c.status === 'Ativo' && !enrolledCourseIds.has(c.id)
   );
 
+  // Debug: log para verificar
+  console.log('Todos os cursos:', courses);
+  console.log('Cursos inscritos:', enrolledCourseIds);
+  console.log('Cursos disponíveis:', availableCourses);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
