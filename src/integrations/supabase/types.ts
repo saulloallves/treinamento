@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -22,6 +22,7 @@ export type Database = {
           id: string
           name: string
           role: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           name: string
           role?: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           id?: string
           name?: string
           role?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -811,6 +814,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_admin_user: {
+        Args: { admin_user_id: string }
+        Returns: undefined
+      }
       backfill_users_unit_code: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -819,21 +826,32 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_pending_admin_approvals: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_system_settings: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          system_name: string
-          system_description: string
-          email_notifications: boolean
-          whatsapp_notifications: boolean
           auto_certificate_generation: boolean
           certificate_template: string
           course_approval_required: boolean
-          max_enrollment_per_course: number
-          timezone: string
           created_at: string
+          email_notifications: boolean
+          id: string
+          max_enrollment_per_course: number
+          system_description: string
+          system_name: string
+          timezone: string
           updated_at: string
+          whatsapp_notifications: boolean
         }[]
       }
       is_admin: {
@@ -844,21 +862,25 @@ export type Database = {
         Args: { p_enrollment_id: string }
         Returns: undefined
       }
+      reject_admin_user: {
+        Args: { admin_user_id: string }
+        Returns: undefined
+      }
       update_system_settings: {
         Args: { settings_data: Json }
         Returns: {
-          id: string
-          system_name: string
-          system_description: string
-          email_notifications: boolean
-          whatsapp_notifications: boolean
           auto_certificate_generation: boolean
           certificate_template: string
           course_approval_required: boolean
-          max_enrollment_per_course: number
-          timezone: string
           created_at: string
+          email_notifications: boolean
+          id: string
+          max_enrollment_per_course: number
+          system_description: string
+          system_name: string
+          timezone: string
           updated_at: string
+          whatsapp_notifications: boolean
         }[]
       }
     }
