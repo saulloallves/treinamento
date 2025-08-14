@@ -143,9 +143,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
+      let errorMessage = error.message;
+      let errorTitle = "Erro no cadastro";
+      
+      // Handle rate limiting errors with better messaging
+      if (error.message.includes("For security purposes, you can only request this after")) {
+        errorTitle = "Muitas tentativas de cadastro";
+        errorMessage = "Por motivos de segurança, aguarde alguns segundos antes de tentar novamente.";
+      } else if (error.message.includes("over_email_send_rate_limit")) {
+        errorTitle = "Limite de envio de email atingido";
+        errorMessage = "Aguarde alguns minutos antes de tentar se cadastrar novamente.";
+      }
+
       toast({
-        title: "Erro no cadastro",
-        description: error.message,
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     } else {
