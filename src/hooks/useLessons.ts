@@ -190,6 +190,17 @@ export const useDeleteLesson = () => {
         throw attendanceError;
       }
 
+      // Segundo, deletar todos os quizzes relacionados a esta aula
+      const { error: quizError } = await supabase
+        .from('quiz')
+        .delete()
+        .eq('lesson_id', lessonId);
+
+      if (quizError) {
+        console.error('Error deleting quiz records:', quizError);
+        throw quizError;
+      }
+
       // Depois, deletar a aula
       const { error } = await supabase
         .from('lessons')
