@@ -179,6 +179,18 @@ export const useDeleteLesson = () => {
 
   return useMutation({
     mutationFn: async (lessonId: string) => {
+      // Primeiro, deletar todos os registros de attendance relacionados a esta aula
+      const { error: attendanceError } = await supabase
+        .from('attendance')
+        .delete()
+        .eq('lesson_id', lessonId);
+
+      if (attendanceError) {
+        console.error('Error deleting attendance records:', attendanceError);
+        throw attendanceError;
+      }
+
+      // Depois, deletar a aula
       const { error } = await supabase
         .from('lessons')
         .delete()
