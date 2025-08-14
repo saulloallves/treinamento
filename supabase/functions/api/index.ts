@@ -629,13 +629,24 @@ async function handleCursos(request: Request, path: string[]) {
     const nowIso = new Date().toISOString();
     const { data: lessons } = await supabase
       .from('lessons')
-      .select('*')
+      .select('id, title, description, zoom_start_time, zoom_join_url, status, course_id')
       .eq('course_id', courseId)
       .not('zoom_start_time', 'is', null)
       .gt('zoom_start_time', nowIso)
       .order('zoom_start_time', { ascending: true })
 
-    return new Response(JSON.stringify(lessons), {
+    // Format for Typebot flatMap compatibility
+    const formattedLessons = lessons?.map(lesson => ({
+      id: lesson.id,
+      name: lesson.title,
+      description: lesson.description || '',
+      theme: lesson.status,
+      public_target: new Date(lesson.zoom_start_time).toLocaleString('pt-BR'),
+      zoom_join_url: lesson.zoom_join_url || '',
+      zoom_start_time: lesson.zoom_start_time
+    })) || []
+
+    return new Response(JSON.stringify(formattedLessons), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
