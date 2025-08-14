@@ -98,6 +98,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const { error: insertErr } = await supabase.from('users').insert([profile]);
       if (insertErr) throw insertErr;
+
+      // Se é um cadastro de admin, criar registro na tabela admin_users
+      if (meta.user_type === 'Admin') {
+        const adminRecord = {
+          user_id: authUser.id,
+          name: (meta.full_name as string) || (authUser.email as string),
+          email: authUser.email,
+          role: 'admin',
+          status: 'pending',
+          active: true,
+        };
+
+        const { error: adminErr } = await supabase.from('admin_users').insert([adminRecord]);
+        if (adminErr) {
+          console.warn('Failed to create admin record:', adminErr);
+        }
+      }
     } catch (e) {
       console.warn('ensureProfile failed:', e);
     }
@@ -116,6 +133,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
     } else {
+      // Verificar se é um admin pendente de aprovação
+      try {
+        const { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('status')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+
+        if (adminUser && adminUser.status === 'pending') {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          toast({
+            title: "Acesso Pendente de Aprovação",
+            description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+            variant: "destructive",
+          });
+          return { error: { message: "Admin pending approval" } };
+        }
+      } catch (e) {
+        // Se não conseguir verificar, continua com o login normal
+      }
+
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo de volta!",
@@ -161,9 +200,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
     } else {
+      let successTitle = "Cadastro realizado!";
+      let successMessage = "Verifique seu email para confirmar a conta.";
+      
+      // Mensagem específica para cadastro de admin
+      if (options?.userType === 'Admin') {
+        successTitle = "Cadastro de Admin realizado!";
+        successMessage = "Verifique seu email para confirmar a conta. Após a confirmação, seu acesso será liberado somente após aprovação por um administrador.";
+      }
+
       toast({
-        title: "Cadastro realizado!",
-        description: "Verifique seu email para confirmar a conta.",
+        title: successTitle,
+        description: successMessage,
       });
     }
 
