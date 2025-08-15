@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { 
   Users, 
   BookOpen, 
@@ -10,12 +11,17 @@ import {
   UserCheck
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
+import { PaginationCustom } from "@/components/ui/pagination-custom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
+  const [activityPage, setActivityPage] = useState(1);
+  const [activityItemsPerPage, setActivityItemsPerPage] = useState(5);
+  const [lessonsPage, setLessonsPage] = useState(1);
+  const [lessonsItemsPerPage, setLessonsItemsPerPage] = useState(4);
   const { data, isLoading } = useDashboardStats();
 
   const formatNumber = (n: number | undefined) =>
@@ -113,27 +119,55 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold text-brand-black mb-6">
               Atividade Recente
             </h2>
-            <div className="space-y-4">
-              {(recentActivity ?? []).map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activity.type === 'course' ? 'bg-blue-100' :
-                    activity.type === 'user' ? 'bg-green-100' :
-                    activity.type === 'certificate' ? 'bg-yellow-100' :
-                    'bg-purple-100'
-                  }`}>
-                    {activity.type === 'course' && <BookOpen className="w-4 h-4 text-blue-600" />}
-                    {activity.type === 'user' && <Users className="w-4 h-4 text-green-600" />}
-                    {activity.type === 'certificate' && <Award className="w-4 h-4 text-yellow-600" />}
-                    {activity.type === 'whatsapp' && <MessageSquare className="w-4 h-4 text-purple-600" />}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-brand-black">{activity.action}</h3>
-                    <p className="text-sm text-brand-gray-dark">{activity.description}</p>
-                    <p className="text-xs text-brand-gray-dark mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {(() => {
+                const activities = recentActivity ?? [];
+                const totalPages = Math.ceil(activities.length / activityItemsPerPage);
+                const startIndex = (activityPage - 1) * activityItemsPerPage;
+                const paginatedActivities = activities.slice(startIndex, startIndex + activityItemsPerPage);
+                
+                return (
+                  <>
+                    {paginatedActivities.map((activity) => (
+                      <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                          activity.type === 'course' ? 'bg-blue-100' :
+                          activity.type === 'user' ? 'bg-green-100' :
+                          activity.type === 'certificate' ? 'bg-yellow-100' :
+                          'bg-purple-100'
+                        }`}>
+                          {activity.type === 'course' && <BookOpen className="w-3 h-3 text-blue-600" />}
+                          {activity.type === 'user' && <Users className="w-3 h-3 text-green-600" />}
+                          {activity.type === 'certificate' && <Award className="w-3 h-3 text-yellow-600" />}
+                          {activity.type === 'whatsapp' && <MessageSquare className="w-3 h-3 text-purple-600" />}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-medium text-brand-black">{activity.action}</h3>
+                          <p className="text-xs text-brand-gray-dark">{activity.description}</p>
+                          <p className="text-xs text-brand-gray-dark mt-1">{activity.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {activities.length > activityItemsPerPage && (
+                      <div className="mt-4">
+                        <PaginationCustom
+                          currentPage={activityPage}
+                          totalPages={totalPages}
+                          totalItems={activities.length}
+                          itemsPerPage={activityItemsPerPage}
+                          onPageChange={setActivityPage}
+                          onItemsPerPageChange={(newSize) => {
+                            setActivityItemsPerPage(newSize);
+                            setActivityPage(1);
+                          }}
+                          itemName="atividades"
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -144,43 +178,71 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold text-brand-black mb-6">
               Próximas Aulas Ao Vivo
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {isUpcomingLoading ? (
                 <>
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 border border-gray-200 rounded-lg">
-                      <Skeleton className="h-4 w-3/4 mb-2" />
-                      <Skeleton className="h-3 w-1/2 mb-4" />
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="p-3 border border-gray-200 rounded-lg">
+                      <Skeleton className="h-3 w-3/4 mb-2" />
+                      <Skeleton className="h-3 w-1/2 mb-3" />
                       <div className="flex items-center justify-between">
-                        <Skeleton className="h-3 w-28" />
-                        <Skeleton className="h-3 w-8" />
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-6" />
                       </div>
                     </div>
                   ))}
                 </>
               ) : upcomingLessons && upcomingLessons.length > 0 ? (
-                (upcomingLessons ?? []).map((lesson) => (
-                  <div key={lesson.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
-                    <h3 className="font-medium text-brand-black text-sm mb-1">
-                      {lesson.title}
-                    </h3>
-                    <p className="text-xs text-brand-gray-dark mb-2">
-                      {lesson.course}
-                    </p>
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-brand-blue" />
-                        <span className="text-brand-gray-dark">
-                          {lesson.date} às {lesson.time}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3 text-brand-blue" />
-                        <span className="text-brand-gray-dark">{lesson.participants}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
+                (() => {
+                  const lessons = upcomingLessons ?? [];
+                  const totalPages = Math.ceil(lessons.length / lessonsItemsPerPage);
+                  const startIndex = (lessonsPage - 1) * lessonsItemsPerPage;
+                  const paginatedLessons = lessons.slice(startIndex, startIndex + lessonsItemsPerPage);
+                  
+                  return (
+                    <>
+                      {paginatedLessons.map((lesson) => (
+                        <div key={lesson.id} className="p-3 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
+                          <h3 className="font-medium text-brand-black text-sm mb-1">
+                            {lesson.title}
+                          </h3>
+                          <p className="text-xs text-brand-gray-dark mb-2">
+                            {lesson.course}
+                          </p>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-brand-blue" />
+                              <span className="text-brand-gray-dark">
+                                {lesson.date} às {lesson.time}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3 text-brand-blue" />
+                              <span className="text-brand-gray-dark">{lesson.participants}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {lessons.length > lessonsItemsPerPage && (
+                        <div className="mt-4">
+                          <PaginationCustom
+                            currentPage={lessonsPage}
+                            totalPages={totalPages}
+                            totalItems={lessons.length}
+                            itemsPerPage={lessonsItemsPerPage}
+                            onPageChange={setLessonsPage}
+                            onItemsPerPageChange={(newSize) => {
+                              setLessonsItemsPerPage(newSize);
+                              setLessonsPage(1);
+                            }}
+                            itemName="aulas"
+                          />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()
               ) : (
                 <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
               )}
