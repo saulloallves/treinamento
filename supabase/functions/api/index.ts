@@ -930,8 +930,10 @@ async function handleInscricoes(request: Request, path: string[]) {
 // Attendance endpoints
 async function handlePresencas(request: Request, path: string[]) {
   if (request.method === 'POST') {
-    // POST /presencas
-    const attendanceData = await request.json()
+    console.log('=== INÍCIO handlePresencas ===')
+    try {
+      const attendanceData = await request.json()
+      console.log('=== Dados recebidos:', JSON.stringify(attendanceData))
 
     // Se foi fornecido email ao invés de user_id, buscar o user_id
     if (attendanceData.email && !attendanceData.user_id) {
