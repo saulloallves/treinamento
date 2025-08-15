@@ -935,21 +935,83 @@ async function handlePresencas(request: Request, path: string[]) {
 
     // Se foi fornecido email ao invés de user_id, buscar o user_id
     if (attendanceData.email && !attendanceData.user_id) {
-      const { data: user } = await supabase
+      console.log('Buscando usuário pelo email:', attendanceData.email)
+      
+      // Primeira tentativa: buscar na tabela users
+      let { data: user } = await supabase
         .from('users')
-        .select('id')
+        .select('id, email, name')
         .eq('email', attendanceData.email)
-        .single()
+        .maybeSingle()
+
+      // Se não encontrou na tabela users, buscar na tabela enrollments
+      if (!user) {
+        console.log('Usuário não encontrado na tabela users, buscando em enrollments...')
+        const { data: enrollment } = await supabase
+          .from('enrollments')
+          .select('user_id, student_email, student_name')
+          .eq('student_email', attendanceData.email)
+          .maybeSingle()
+        
+        if (enrollment) {
+          if (enrollment.user_id) {
+            // Se enrollment tem user_id, buscar o usuário
+            const { data: linkedUser } = await supabase
+              .from('users')
+              .select('id')
+              .eq('id', enrollment.user_id)
+              .maybeSingle()
+            
+            if (linkedUser) {
+              user = linkedUser
+              console.log('Usuário encontrado via enrollment linkado:', user.id)
+            }
+          } else {
+            // Se enrollment não tem user_id, criar usuário automaticamente
+            console.log('Criando usuário automaticamente para:', enrollment.student_email)
+            const { data: newUser, error: createError } = await supabase
+              .from('users')
+              .insert({
+                name: enrollment.student_name || enrollment.student_email,
+                email: enrollment.student_email,
+                user_type: 'Aluno',
+                active: true
+              })
+              .select('id')
+              .single()
+            
+            if (newUser && !createError) {
+              // Linkar o enrollment ao novo usuário
+              await supabase
+                .from('enrollments')
+                .update({ user_id: newUser.id })
+                .eq('student_email', enrollment.student_email)
+              
+              user = newUser
+              console.log('Usuário criado e linkado:', newUser.id)
+            } else {
+              console.error('Erro ao criar usuário:', createError)
+            }
+          }
+        }
+      }
 
       if (!user) {
-        return new Response(JSON.stringify({ error: 'Usuário não encontrado com este email' }), { 
+        console.log('Usuário não encontrado em nenhuma tabela')
+        return new Response(JSON.stringify({ 
+          error: 'Usuário não encontrado com este email',
+          debug: {
+            email: attendanceData.email,
+            searched_in: ['users table', 'enrollments table']
+          }
+        }), { 
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
       attendanceData.user_id = user.id
-      delete attendanceData.email // Remove email do objeto
+      delete attendanceData.email
     }
 
     // Se não forneceu enrollment_id, buscar automaticamente usando lesson_id
