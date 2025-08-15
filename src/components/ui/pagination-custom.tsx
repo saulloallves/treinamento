@@ -53,8 +53,8 @@ export const PaginationCustom = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 py-3">
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+    <div className="flex items-center justify-between gap-4 px-2 py-3">
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <span className="whitespace-nowrap">
           Mostrando {startItem} a {endItem} de {totalItems} {itemName}
         </span>
@@ -88,25 +88,23 @@ export const PaginationCustom = ({
           <ChevronLeft className="w-4 h-4" />
         </Button>
 
-        <div className="flex items-center gap-1">
-          {getVisiblePages().map((page, index) => (
-            typeof page === 'number' ? (
-              <Button
-                key={index}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => onPageChange(page)}
-                className="h-8 w-8 p-0"
-              >
-                {page}
-              </Button>
-            ) : (
-              <span key={index} className="flex items-center justify-center h-8 w-8 text-muted-foreground text-sm">
-                {page}
-              </span>
-            )
-          ))}
-        </div>
+        {getVisiblePages().map((page, index) => (
+          typeof page === 'number' ? (
+            <Button
+              key={index}
+              variant={currentPage === page ? "default" : "outline"}
+              size="sm"
+              onClick={() => onPageChange(page)}
+              className="h-8 w-8 p-0"
+            >
+              {page}
+            </Button>
+          ) : (
+            <span key={index} className="flex items-center justify-center h-8 w-8 text-muted-foreground text-sm">
+              {page}
+            </span>
+          )
+        ))}
 
         <Button
           variant="outline"
