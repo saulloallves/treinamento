@@ -933,6 +933,25 @@ async function handlePresencas(request: Request, path: string[]) {
     // POST /presencas
     const attendanceData = await request.json()
 
+    // Se foi fornecido email ao invés de user_id, buscar o user_id
+    if (attendanceData.email && !attendanceData.user_id) {
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', attendanceData.email)
+        .single()
+
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Usuário não encontrado com este email' }), { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      attendanceData.user_id = user.id
+      delete attendanceData.email // Remove email do objeto
+    }
+
     const { data, error } = await supabase
       .from('attendance')
       .insert([attendanceData])
