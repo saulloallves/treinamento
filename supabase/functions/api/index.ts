@@ -952,6 +952,35 @@ async function handlePresencas(request: Request, path: string[]) {
       delete attendanceData.email // Remove email do objeto
     }
 
+    // Se não forneceu enrollment_id, buscar automaticamente usando lesson_id
+    if (!attendanceData.enrollment_id && attendanceData.lesson_id) {
+      // Primeiro buscar o course_id da lesson
+      const { data: lesson } = await supabase
+        .from('lessons')
+        .select('course_id')
+        .eq('id', attendanceData.lesson_id)
+        .single()
+
+      if (lesson) {
+        // Agora buscar o enrollment usando user_id + course_id
+        const { data: enrollment } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', attendanceData.user_id)
+          .eq('course_id', lesson.course_id)
+          .maybeSingle()
+
+        if (enrollment) {
+          attendanceData.enrollment_id = enrollment.id
+        } else {
+          return new Response(JSON.stringify({ error: 'Usuário não está inscrito neste curso' }), { 
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from('attendance')
       .insert([attendanceData])
