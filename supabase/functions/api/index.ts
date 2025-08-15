@@ -953,11 +953,13 @@ async function handlePresencas(request: Request, path: string[]) {
       // Se não encontrou na tabela users, buscar na tabela enrollments
       if (!foundUser) {
         console.log('=== DEBUG: Usuário não encontrado na tabela users, buscando em enrollments...')
-        const { data: enrollment, error: enrollmentError } = await supabase
+        const { data: enrollments, error: enrollmentError } = await supabase
           .from('enrollments')
           .select('user_id, student_email, student_name')
           .eq('student_email', attendanceData.email)
-          .maybeSingle()
+          .limit(1)
+        
+        const enrollment = enrollments?.[0]
         
         console.log('=== DEBUG: Resultado da consulta enrollments:', { enrollment, enrollmentError })
         
