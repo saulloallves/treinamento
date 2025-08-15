@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import CreateAdminDialog from "./CreateAdminDialog";
 import CreateUserDialog from "./CreateUserDialog";
 const UsersList = () => {
@@ -15,6 +16,7 @@ const UsersList = () => {
   const [unitCode, setUnitCode] = useState("");
   const [userType, setUserType] = useState("Aluno");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Gerenciar Usuários | Admin";
@@ -213,7 +215,32 @@ const UsersList = () => {
                       <Button variant="outline" size="sm" onClick={() => { setEditingUser(user); setUnitCode(user.unitCode ?? ""); setUserType(user.type ?? "Aluno"); setEditOpen(true); }}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={deleting === user.id}
+                        onClick={async () => {
+                          if (confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
+                            try {
+                              setDeleting(user.id);
+                              const { error } = await supabase
+                                .from('users')
+                                .delete()
+                                .eq('id', user.id);
+                              
+                              if (error) throw error;
+                              
+                              toast.success("Usuário excluído com sucesso!");
+                              await usersQuery.refetch();
+                            } catch (e) {
+                              console.error('Erro ao excluir usuário:', e);
+                              toast.error("Erro ao excluir usuário");
+                            } finally {
+                              setDeleting(null);
+                            }
+                          }
+                        }}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
