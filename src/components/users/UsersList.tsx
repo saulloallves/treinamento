@@ -156,8 +156,8 @@ const UsersList = () => {
       </div>
 
       {/* Lista de Usuários */}
-      <div className="card-clean overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="card-clean overflow-hidden max-h-[500px]">
+        <div className="overflow-x-auto overflow-y-auto max-h-full">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>

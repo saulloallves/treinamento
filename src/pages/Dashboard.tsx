@@ -127,7 +127,7 @@ const Dashboard = () => {
                 const paginatedActivities = activities.slice(startIndex, startIndex + activityItemsPerPage);
                 
                 return (
-                  <>
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto">
                     {paginatedActivities.map((activity) => (
                       <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
@@ -165,7 +165,7 @@ const Dashboard = () => {
                         />
                       </div>
                     )}
-                  </>
+                  </div>
                 );
               })()}
             </div>
@@ -201,7 +201,7 @@ const Dashboard = () => {
                 
                 return (
                   <div className="space-y-4">
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
                       {paginatedLessons.map((lesson) => (
                         <div key={lesson.id} className="p-3 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
                           <h3 className="font-medium text-brand-black text-sm mb-1">
