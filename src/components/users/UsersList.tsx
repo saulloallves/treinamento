@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import CreateAdminDialog from "./CreateAdminDialog";
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("todas");
@@ -108,10 +109,13 @@ const UsersList = () => {
           <h1 className="text-2xl font-bold text-brand-black">Usuários</h1>
           <p className="text-brand-gray-dark">Gerencie colaboradores e franqueados</p>
         </div>
-        <Button className="btn-primary">
-          <Plus className="w-4 h-4" />
-          Novo Usuário
-        </Button>
+        <div className="flex gap-2">
+          <CreateAdminDialog />
+          <Button className="btn-primary">
+            <Plus className="w-4 h-4" />
+            Novo Usuário
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
