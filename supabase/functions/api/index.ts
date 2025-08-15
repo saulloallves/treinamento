@@ -941,7 +941,7 @@ async function handlePresencas(request: Request, path: string[]) {
       
       // Primeira tentativa: buscar na tabela users
       console.log('=== DEBUG: Fazendo consulta na tabela users')
-      const { data: user, error: userError } = await supabase
+      const { data: user, error: userError } = await supabaseAdmin
         .from('users')
         .select('id, email, name')
         .eq('email', attendanceData.email)
@@ -953,7 +953,7 @@ async function handlePresencas(request: Request, path: string[]) {
       // Se não encontrou na tabela users, buscar na tabela enrollments
       if (!foundUser) {
         console.log('=== DEBUG: Usuário não encontrado na tabela users, buscando em enrollments...')
-        const { data: enrollments, error: enrollmentError } = await supabase
+        const { data: enrollments, error: enrollmentError } = await supabaseAdmin
           .from('enrollments')
           .select('user_id, student_email, student_name')
           .eq('student_email', attendanceData.email)
@@ -967,7 +967,7 @@ async function handlePresencas(request: Request, path: string[]) {
           if (enrollment.user_id) {
             // Se enrollment tem user_id, buscar o usuário
             console.log('=== DEBUG: Enrollment tem user_id, buscando usuário:', enrollment.user_id)
-            const { data: linkedUser, error: linkedError } = await supabase
+            const { data: linkedUser, error: linkedError } = await supabaseAdmin
               .from('users')
               .select('id')
               .eq('id', enrollment.user_id)
@@ -982,7 +982,7 @@ async function handlePresencas(request: Request, path: string[]) {
           } else {
             // Se enrollment não tem user_id, criar usuário automaticamente
             console.log('=== DEBUG: Criando usuário automaticamente para:', enrollment.student_email)
-            const { data: newUser, error: createError } = await supabase
+            const { data: newUser, error: createError } = await supabaseAdmin
               .from('users')
               .insert({
                 name: enrollment.student_name || enrollment.student_email,
@@ -997,7 +997,7 @@ async function handlePresencas(request: Request, path: string[]) {
             
             if (newUser && !createError) {
               // Linkar o enrollment ao novo usuário
-              await supabase
+              await supabaseAdmin
                 .from('enrollments')
                 .update({ user_id: newUser.id })
                 .eq('student_email', enrollment.student_email)
