@@ -20,7 +20,7 @@ const LessonsList = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const { data: lessons = [], isLoading } = useLessons();
   const { data: courses = [] } = useCourses();
@@ -167,13 +167,13 @@ const LessonsList = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 {paginatedLessons.map((lesson) => (
                   <div key={lesson.id} className="card-clean p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-base font-semibold text-brand-black">
+                          <h3 className="text-sm font-semibold text-brand-black">
                             {lesson.title}
                           </h3>
                           <span className="px-1.5 py-0.5 text-xs rounded-full bg-brand-blue-light text-brand-blue">
@@ -189,10 +189,10 @@ const LessonsList = () => {
                             }`}
                           >
                             {lesson.status}
-                          </span>
+                        </span>
                         </div>
                         
-                        <p className="text-sm text-brand-gray-dark mb-2">
+                        <p className="text-xs text-brand-gray-dark mb-2">
                           <span className="font-medium">{lesson.courses?.name}</span>
                         </p>
                         
