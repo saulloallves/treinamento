@@ -935,40 +935,49 @@ async function handlePresencas(request: Request, path: string[]) {
 
     // Se foi fornecido email ao invés de user_id, buscar o user_id
     if (attendanceData.email && !attendanceData.user_id) {
-      console.log('Buscando usuário pelo email:', attendanceData.email)
+      console.log('=== DEBUG: Buscando usuário pelo email:', attendanceData.email)
       
       // Primeira tentativa: buscar na tabela users
-      let { data: user } = await supabase
+      console.log('=== DEBUG: Fazendo consulta na tabela users')
+      const { data: user, error: userError } = await supabase
         .from('users')
         .select('id, email, name')
         .eq('email', attendanceData.email)
         .maybeSingle()
 
+      console.log('=== DEBUG: Resultado da consulta users:', { user, userError })
+      let foundUser = user;
+
       // Se não encontrou na tabela users, buscar na tabela enrollments
-      if (!user) {
-        console.log('Usuário não encontrado na tabela users, buscando em enrollments...')
-        const { data: enrollment } = await supabase
+      if (!foundUser) {
+        console.log('=== DEBUG: Usuário não encontrado na tabela users, buscando em enrollments...')
+        const { data: enrollment, error: enrollmentError } = await supabase
           .from('enrollments')
           .select('user_id, student_email, student_name')
           .eq('student_email', attendanceData.email)
           .maybeSingle()
         
+        console.log('=== DEBUG: Resultado da consulta enrollments:', { enrollment, enrollmentError })
+        
         if (enrollment) {
           if (enrollment.user_id) {
             // Se enrollment tem user_id, buscar o usuário
-            const { data: linkedUser } = await supabase
+            console.log('=== DEBUG: Enrollment tem user_id, buscando usuário:', enrollment.user_id)
+            const { data: linkedUser, error: linkedError } = await supabase
               .from('users')
               .select('id')
               .eq('id', enrollment.user_id)
               .maybeSingle()
             
+            console.log('=== DEBUG: Resultado da busca do usuário linkado:', { linkedUser, linkedError })
+            
             if (linkedUser) {
-              user = linkedUser
-              console.log('Usuário encontrado via enrollment linkado:', user.id)
+              foundUser = linkedUser
+              console.log('=== DEBUG: Usuário encontrado via enrollment linkado:', foundUser.id)
             }
           } else {
             // Se enrollment não tem user_id, criar usuário automaticamente
-            console.log('Criando usuário automaticamente para:', enrollment.student_email)
+            console.log('=== DEBUG: Criando usuário automaticamente para:', enrollment.student_email)
             const { data: newUser, error: createError } = await supabase
               .from('users')
               .insert({
@@ -980,6 +989,8 @@ async function handlePresencas(request: Request, path: string[]) {
               .select('id')
               .single()
             
+            console.log('=== DEBUG: Resultado da criação do usuário:', { newUser, createError })
+            
             if (newUser && !createError) {
               // Linkar o enrollment ao novo usuário
               await supabase
@@ -987,17 +998,19 @@ async function handlePresencas(request: Request, path: string[]) {
                 .update({ user_id: newUser.id })
                 .eq('student_email', enrollment.student_email)
               
-              user = newUser
-              console.log('Usuário criado e linkado:', newUser.id)
+              foundUser = newUser
+              console.log('=== DEBUG: Usuário criado e linkado:', newUser.id)
             } else {
-              console.error('Erro ao criar usuário:', createError)
+              console.error('=== DEBUG: Erro ao criar usuário:', createError)
             }
           }
+        } else {
+          console.log('=== DEBUG: Nenhum enrollment encontrado para o email')
         }
       }
 
-      if (!user) {
-        console.log('Usuário não encontrado em nenhuma tabela')
+      if (!foundUser) {
+        console.log('=== DEBUG: Usuário não encontrado em nenhuma tabela')
         return new Response(JSON.stringify({ 
           error: 'Usuário não encontrado com este email',
           debug: {
@@ -1010,7 +1023,8 @@ async function handlePresencas(request: Request, path: string[]) {
         })
       }
 
-      attendanceData.user_id = user.id
+      console.log('=== DEBUG: Usuário final encontrado:', foundUser.id)
+      attendanceData.user_id = foundUser.id
       delete attendanceData.email
     }
 
