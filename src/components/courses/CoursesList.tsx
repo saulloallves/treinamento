@@ -1,10 +1,11 @@
 
-import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video, Grid3X3 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video, Grid3X3, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaginationCustom } from "@/components/ui/pagination-custom";
 import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
 import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
@@ -23,21 +24,48 @@ const CoursesList = () => {
   const [recordedLessonsDialogOpen, setRecordedLessonsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { data: courses = [], isLoading } = useCourses();
   const deleteCourseMutation = useDeleteCourse();
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterPublic === "todos" || course.public_target === filterPublic;
-    const matchesStatus = statusFilter === "todos" || course.status === statusFilter;
-    return matchesSearch && matchesFilter && matchesStatus;
-  });
+  const filteredCourses = useMemo(() => {
+    return courses.filter(course => {
+      const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter = filterPublic === "todos" || course.public_target === filterPublic;
+      const matchesStatus = statusFilter === "todos" || course.status === statusFilter;
+      return matchesSearch && matchesFilter && matchesStatus;
+    });
+  }, [courses, searchTerm, filterPublic, statusFilter]);
 
   // Group courses by status for tabs
-  const activeCourses = filteredCourses.filter(c => c.status === "Ativo");
-  const inReviewCourses = filteredCourses.filter(c => c.status === "Em revisão");
-  const draftCourses = filteredCourses.filter(c => c.status === "Rascunho");
+  const activeCourses = useMemo(() => filteredCourses.filter(c => c.status === "Ativo"), [filteredCourses]);
+  const inReviewCourses = useMemo(() => filteredCourses.filter(c => c.status === "Em revisão"), [filteredCourses]);
+  const draftCourses = useMemo(() => filteredCourses.filter(c => c.status === "Rascunho"), [filteredCourses]);
+
+  // Pagination logic
+  const getPaginatedCourses = (coursesList: Course[]) => {
+    const totalPages = Math.ceil(coursesList.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return {
+      courses: coursesList.slice(startIndex, endIndex),
+      totalPages,
+      totalItems: coursesList.length
+    };
+  };
+
+  // Reset to first page when filters change
+  const handleFilterChange = (setter: (value: string) => void, value: string) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
 
   const handleEditCourse = (course: Course) => {
     setEditingCourse(course);
@@ -79,103 +107,123 @@ const CoursesList = () => {
     );
   }
 
-  const renderCourseGrid = (courses: Course[]) => (
-    <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid gap-4'}>
-      {courses.map((course) => (
-        <div key={course.id} className="card-clean p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className={`font-semibold text-brand-black ${viewMode === 'grid' ? 'text-base' : 'text-lg'}`}>
-                  {course.name}
-                </h3>
-              </div>
-              
-              <div className="flex flex-wrap gap-1 mb-2">
-                <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                  {course.theme}
-                </span>
-                {course.mandatory && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
-                    Obrigatório
-                  </span>
-                )}
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    course.status === "Ativo"
-                      ? "bg-green-100 text-green-700"
-                      : course.status === "Em revisão"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {course.status}
-                </span>
-              </div>
-              
-              <p className="text-brand-gray-dark text-sm mb-3 line-clamp-2">{course.description || "Sem descrição"}</p>
-              
-              <div className={`${viewMode === 'grid' ? 'flex flex-col gap-2' : 'grid grid-cols-2 md:grid-cols-4 gap-4'} text-sm`}>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-brand-blue" />
-                  <span className="text-brand-gray-dark truncate">
-                    {getPublicTargetLabel(course.public_target)}
-                  </span>
+  const renderCourseGrid = (coursesList: Course[]) => {
+    const { courses: paginatedCourses, totalPages, totalItems } = getPaginatedCourses(coursesList);
+    
+    return (
+      <div className="space-y-4">
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid gap-3'}>
+          {paginatedCourses.map((course) => (
+            <div key={course.id} className={`card-clean ${viewMode === 'grid' ? 'p-3' : 'p-4'}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className={`font-semibold text-brand-black ${viewMode === 'grid' ? 'text-sm' : 'text-base'} line-clamp-1`}>
+                      {course.name}
+                    </h3>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
+                      {course.theme}
+                    </span>
+                    {course.mandatory && (
+                      <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
+                        Obrigatório
+                      </span>
+                    )}
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        course.status === "Ativo"
+                          ? "bg-green-100 text-green-700"
+                          : course.status === "Em revisão"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {course.status}
+                    </span>
+                  </div>
+                  
+                  {viewMode === 'list' && (
+                    <p className="text-brand-gray-dark text-sm mb-2 line-clamp-1">{course.description || "Sem descrição"}</p>
+                  )}
+                  
+                  <div className={`${viewMode === 'grid' ? 'flex flex-col gap-1' : 'grid grid-cols-2 md:grid-cols-4 gap-3'} text-xs`}>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-3 h-3 text-brand-blue" />
+                      <span className="text-brand-gray-dark truncate">
+                        {getPublicTargetLabel(course.public_target)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BookOpen className="w-3 h-3 text-brand-blue" />
+                      <span className="text-brand-gray-dark">{course.lessons_count} aulas</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs">
+                      <span className={course.has_quiz ? "text-green-600" : "text-red-600"}>
+                        {course.has_quiz ? "✓" : "✗"} Quiz
+                      </span>
+                      <span className={course.generates_certificate ? "text-green-600" : "text-red-600"}>
+                        {course.generates_certificate ? "✓" : "✗"} Cert
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-brand-blue" />
-                  <span className="text-brand-gray-dark">{course.lessons_count} aulas</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className={course.has_quiz ? "text-green-600" : "text-red-600"}>
-                    {course.has_quiz ? "✓" : "✗"} Quiz
-                  </span>
-                  <span className={course.generates_certificate ? "text-green-600" : "text-red-600"}>
-                    {course.generates_certificate ? "✓" : "✗"} Certificado
-                  </span>
+                
+                <div className="flex gap-1 ml-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewRecordedLessons(course.id, course.name)}
+                    title="Aulas Gravadas"
+                  >
+                    <Video className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewStudents(course.id, course.name)}
+                    title="Visualizar Alunos"
+                  >
+                    <Eye className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditCourse(course)}
+                    disabled={deleteCourseMutation.isPending}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDeleteCourse(course.id)}
+                    disabled={deleteCourseMutation.isPending}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex gap-1 justify-end">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleViewRecordedLessons(course.id, course.name)}
-              title="Aulas Gravadas"
-            >
-              <Video className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleViewStudents(course.id, course.name)}
-              title="Visualizar Alunos"
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleEditCourse(course)}
-              disabled={deleteCourseMutation.isPending}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleDeleteCourse(course.id)}
-              disabled={deleteCourseMutation.isPending}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          ))}
         </div>
-      ))}
-    </div>
-  );
+        
+        {totalPages > 1 && (
+          <PaginationCustom
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            itemName="cursos"
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -192,7 +240,7 @@ const CoursesList = () => {
               size="sm"
               onClick={() => setViewMode('list')}
             >
-              Lista
+              <List className="w-4 h-4" />
             </Button>
             <Button
               variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -233,7 +281,10 @@ const CoursesList = () => {
                     <Input
                       placeholder="Digite o nome do curso..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                      }}
                       className="pl-10"
                     />
                   </div>
@@ -244,7 +295,7 @@ const CoursesList = () => {
                   </label>
                   <select
                     value={filterPublic}
-                    onChange={(e) => setFilterPublic(e.target.value)}
+                    onChange={(e) => handleFilterChange(setFilterPublic, e.target.value)}
                     className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
                   >
                     <option value="todos">Todos</option>
@@ -259,7 +310,7 @@ const CoursesList = () => {
                   </label>
                   <select
                     value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
                     className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
                   >
                     <option value="todos">Todos os status</option>

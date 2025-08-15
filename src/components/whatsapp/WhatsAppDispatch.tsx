@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { PaginationCustom } from "@/components/ui/pagination-custom";
 import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWhatsAppDispatches";
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
@@ -19,7 +20,9 @@ const WhatsAppDispatch = () => {
   const [recipientMode, setRecipientMode] = useState<'all' | 'selected'>('all');
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [recipientSearch, setRecipientSearch] = useState('');
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: dispatches = [], isLoading: loadingDispatches } = useWhatsAppDispatches();
   const { data: courses = [] } = useCourses();
@@ -56,7 +59,7 @@ const WhatsAppDispatch = () => {
 
   // Reset visible list when history changes
   useEffect(() => {
-    setVisibleCount(10);
+    setCurrentPage(1);
   }, [dispatches]);
 
   const recipientsCount = recipientMode === 'all' ? relevantEnrollments.length : selectedRecipients.length;
@@ -293,71 +296,87 @@ const WhatsAppDispatch = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1 -mr-1">
-                      {dispatches.slice(0, visibleCount).map((dispatch) => (
-                        <div key={dispatch.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-medium text-brand-black truncate">{dispatch.item_name}</h3>
-                                <Badge variant="outline" className="text-xs">
-                                  {dispatch.type === 'curso' ? 'Curso' : 'Aula'}
-                                </Badge>
-                                <Badge className={getStatusColor(dispatch.status)}>
-                                  {dispatch.status}
-                                </Badge>
+                    <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 -mr-1">
+                      {(() => {
+                        const totalPages = Math.ceil(dispatches.length / itemsPerPage);
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        const paginatedDispatches = dispatches.slice(startIndex, endIndex);
+                        
+                        return paginatedDispatches.map((dispatch) => (
+                          <div key={dispatch.id} className="border border-gray-200 rounded-lg p-3">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-medium text-brand-black truncate text-sm">{dispatch.item_name}</h3>
+                                  <Badge variant="outline" className="text-xs">
+                                    {dispatch.type === 'curso' ? 'Curso' : 'Aula'}
+                                  </Badge>
+                                  <Badge className={getStatusColor(dispatch.status)}>
+                                    {dispatch.status}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-brand-gray-dark truncate">
+                                  {dispatch.message}
+                                </p>
                               </div>
-                              <p className="text-sm text-brand-gray-dark truncate">
-                                {dispatch.message}
-                              </p>
-                            </div>
-                            <div className="text-right text-xs sm:text-sm text-brand-gray-dark flex-shrink-0 pl-3">
-                              <div className="flex items-center gap-1 justify-end">
-                                <Calendar className="w-3 h-3" />
-                                {new Date(dispatch.sent_date).toLocaleDateString('pt-BR')}
+                              <div className="text-right text-xs text-brand-gray-dark flex-shrink-0 pl-3">
+                                <div className="flex items-center gap-1 justify-end">
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(dispatch.sent_date).toLocaleDateString('pt-BR')}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-brand-blue" />
-                              <span>{dispatch.recipients_count} destinatários</span>
                             </div>
                             
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                              <span>{dispatch.delivered_count} entregues</span>
+                            <div className="grid grid-cols-3 gap-2 text-xs">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3 text-brand-blue" />
+                                <span>{dispatch.recipients_count}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3 text-green-500" />
+                                <span>{dispatch.delivered_count}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1">
+                                <XCircle className="w-3 h-3 text-red-500" />
+                                <span>{dispatch.failed_count}</span>
+                              </div>
                             </div>
                             
-                            <div className="flex items-center gap-2">
-                              <XCircle className="w-4 h-4 text-red-500" />
-                              <span>{dispatch.failed_count} falharam</span>
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs text-brand-gray-dark mb-1">
+                                <span>Taxa: {getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div 
+                                  className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                                  style={{ 
+                                    width: `${getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%` 
+                                  }}
+                                />
+                              </div>
                             </div>
                           </div>
-                          
-                          <div className="mt-3">
-                            <div className="flex justify-between text-xs text-brand-gray-dark mb-1">
-                              <span>Taxa de entrega</span>
-                              <span>{getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                style={{ 
-                                  width: `${getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%` 
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
-                    {dispatches.length > visibleCount && (
-                      <div className="mt-4 text-center">
-                        <Button variant="outline" size="sm" onClick={() => setVisibleCount((v) => v + 10)}>
-                          Carregar mais
-                        </Button>
+                    
+                    {dispatches.length > itemsPerPage && (
+                      <div className="mt-4">
+                        <PaginationCustom
+                          currentPage={currentPage}
+                          totalPages={Math.ceil(dispatches.length / itemsPerPage)}
+                          totalItems={dispatches.length}
+                          itemsPerPage={itemsPerPage}
+                          onPageChange={setCurrentPage}
+                          onItemsPerPageChange={(newItemsPerPage) => {
+                            setItemsPerPage(newItemsPerPage);
+                            setCurrentPage(1);
+                          }}
+                          itemName="disparos"
+                        />
                       </div>
                     )}
                   </>
