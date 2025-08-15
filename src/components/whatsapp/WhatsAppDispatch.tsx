@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWhatsAppDispatches";
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
@@ -270,97 +271,102 @@ const WhatsAppDispatch = () => {
       </Card>
 
       {/* Histórico de Disparos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-brand-blue" />
-            Histórico de Disparos
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingDispatches ? (
-            <div className="text-center py-8">
-              <div className="text-brand-gray-dark">Carregando histórico...</div>
+      <Accordion type="single" collapsible className="w-full" defaultValue="history">
+        <AccordionItem value="history">
+          <AccordionTrigger className="text-left">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-brand-blue" />
+              Histórico de Disparos ({dispatches.length})
             </div>
-          ) : dispatches.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageSquare className="mx-auto w-12 h-12 text-brand-gray-dark mb-4" />
-              <p className="text-brand-gray-dark">Nenhum disparo realizado ainda.</p>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3 max-h-[70vh] md:max-h-none overflow-y-auto pr-1 -mr-1">
-                {dispatches.slice(0, visibleCount).map((dispatch) => (
-                  <div key={dispatch.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium text-brand-black truncate">{dispatch.item_name}</h3>
-                          <Badge variant="outline" className="text-xs">
-                            {dispatch.type === 'curso' ? 'Curso' : 'Aula'}
-                          </Badge>
-                          <Badge className={getStatusColor(dispatch.status)}>
-                            {dispatch.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-brand-gray-dark truncate">
-                          {dispatch.message}
-                        </p>
-                      </div>
-                      <div className="text-right text-xs sm:text-sm text-brand-gray-dark flex-shrink-0 pl-3">
-                        <div className="flex items-center gap-1 justify-end">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(dispatch.sent_date).toLocaleDateString('pt-BR')}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-brand-blue" />
-                        <span>{dispatch.recipients_count} destinatários</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span>{dispatch.delivered_count} entregues</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <XCircle className="w-4 h-4 text-red-500" />
-                        <span>{dispatch.failed_count} falharam</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-brand-gray-dark mb-1">
-                        <span>Taxa de entrega</span>
-                        <span>{getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                          style={{ 
-                            width: `${getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%` 
-                          }}
-                        />
-                      </div>
-                    </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card>
+              <CardContent className="pt-6">
+                {loadingDispatches ? (
+                  <div className="text-center py-8">
+                    <div className="text-brand-gray-dark">Carregando histórico...</div>
                   </div>
-                ))}
-              </div>
-              {dispatches.length > visibleCount && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline" size="sm" onClick={() => setVisibleCount((v) => v + 10)}>
-                    Carregar mais
-                  </Button>
-                </div>
-              )}
-            </>
-
-          )}
-        </CardContent>
-      </Card>
+                ) : dispatches.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="mx-auto w-12 h-12 text-brand-gray-dark mb-4" />
+                    <p className="text-brand-gray-dark">Nenhum disparo realizado ainda.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1 -mr-1">
+                      {dispatches.slice(0, visibleCount).map((dispatch) => (
+                        <div key={dispatch.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-medium text-brand-black truncate">{dispatch.item_name}</h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {dispatch.type === 'curso' ? 'Curso' : 'Aula'}
+                                </Badge>
+                                <Badge className={getStatusColor(dispatch.status)}>
+                                  {dispatch.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-brand-gray-dark truncate">
+                                {dispatch.message}
+                              </p>
+                            </div>
+                            <div className="text-right text-xs sm:text-sm text-brand-gray-dark flex-shrink-0 pl-3">
+                              <div className="flex items-center gap-1 justify-end">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(dispatch.sent_date).toLocaleDateString('pt-BR')}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-brand-blue" />
+                              <span>{dispatch.recipients_count} destinatários</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span>{dispatch.delivered_count} entregues</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <XCircle className="w-4 h-4 text-red-500" />
+                              <span>{dispatch.failed_count} falharam</span>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <div className="flex justify-between text-xs text-brand-gray-dark mb-1">
+                              <span>Taxa de entrega</span>
+                              <span>{getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                style={{ 
+                                  width: `${getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%` 
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {dispatches.length > visibleCount && (
+                      <div className="mt-4 text-center">
+                        <Button variant="outline" size="sm" onClick={() => setVisibleCount((v) => v + 10)}>
+                          Carregar mais
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };

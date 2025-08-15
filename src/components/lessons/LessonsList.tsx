@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EditLessonDialog from "./EditLessonDialog";
 import CreateLessonDialog from "./CreateLessonDialog";
 import { useLessons, useDeleteLesson, Lesson } from "@/hooks/useLessons";
@@ -38,6 +40,19 @@ const LessonsList = () => {
     return matchesSearch && matchesCourse;
   });
 
+  // Group lessons by course
+  const lessonsByCourse = filteredLessons.reduce((acc, lesson) => {
+    const courseId = lesson.course_id;
+    if (!acc[courseId]) {
+      acc[courseId] = {
+        course: courses.find(c => c.id === courseId),
+        lessons: []
+      };
+    }
+    acc[courseId].lessons.push(lesson);
+    return acc;
+  }, {} as Record<string, { course: any; lessons: Lesson[] }>);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -64,150 +79,264 @@ const LessonsList = () => {
       </div>
 
       {/* Filtros */}
-      <div className="card-clean p-4">
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Buscar aula
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-gray-dark w-4 h-4" />
-              <Input
-                placeholder="Digite o nome da aula..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      <Accordion type="single" collapsible className="w-full" defaultValue="filters">
+        <AccordionItem value="filters">
+          <AccordionTrigger className="text-left">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              Filtros e Busca
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Curso
-            </label>
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-            >
-              <option value="todos">Todos os cursos</option>
-              {courses.map(course => (
-                <option key={course.id} value={course.id}>
-                  {course.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de Aulas */}
-      <div className="grid gap-4">
-        {filteredLessons.map((lesson) => (
-          <div key={lesson.id} className="card-clean p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-brand-black">
-                    {lesson.title}
-                  </h3>
-                  <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                    Ordem {lesson.order_index}
-                  </span>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      lesson.status === "Ativo"
-                        ? "bg-green-100 text-green-700"
-                        : lesson.status === "Em revisão"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {lesson.status}
-                  </span>
-                </div>
-                
-                <p className="text-brand-gray-dark mb-3">
-                  Curso: <span className="font-medium">{lesson.courses?.name}</span>
-                </p>
-
-                {lesson.description && (
-                  <p className="text-brand-gray-dark mb-3">{lesson.description}</p>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-brand-blue" />
-                    <span className="text-brand-gray-dark">
-                      {lesson.duration_minutes} minutos
-                    </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="card-clean p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-brand-black mb-1">
+                    Buscar aula
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-gray-dark w-4 h-4" />
+                    <Input
+                      placeholder="Digite o nome da aula..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  
-                  {lesson.zoom_start_time && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-brand-blue" />
-                      <div className="text-brand-gray-dark">
-                        <div>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy", { locale: ptBR })}</div>
-                        <div className="text-xs">{format(new Date(lesson.zoom_start_time), "HH:mm", { locale: ptBR })}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-brand-black mb-1">
+                    Curso
+                  </label>
+                  <select
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                    className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  >
+                    <option value="todos">Todos os cursos</option>
+                    {courses.map(course => (
+                      <option key={course.id} value={course.id}>
+                        {course.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      {/* Tabs por Organização */}
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="all">
+            Todas as Aulas ({filteredLessons.length})
+          </TabsTrigger>
+          <TabsTrigger value="by-course">
+            Por Curso ({Object.keys(lessonsByCourse).length})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="mt-4">
+          {filteredLessons.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-brand-gray-dark">
+                {lessons.length === 0 
+                  ? "Nenhuma aula encontrada. Crie a primeira aula!" 
+                  : "Nenhuma aula corresponde aos filtros aplicados."
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredLessons.map((lesson) => (
+                <div key={lesson.id} className="card-clean p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-brand-black">
+                          {lesson.title}
+                        </h3>
+                        <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
+                          Ordem {lesson.order_index}
+                        </span>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            lesson.status === "Ativo"
+                              ? "bg-green-100 text-green-700"
+                              : lesson.status === "Em revisão"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {lesson.status}
+                        </span>
+                      </div>
+                      
+                      <p className="text-brand-gray-dark mb-3">
+                        Curso: <span className="font-medium">{lesson.courses?.name}</span>
+                      </p>
+
+                      {lesson.description && (
+                        <p className="text-brand-gray-dark mb-3 line-clamp-2">{lesson.description}</p>
+                      )}
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-brand-blue" />
+                          <span className="text-brand-gray-dark">
+                            {lesson.duration_minutes} min
+                          </span>
+                        </div>
+                        
+                        {lesson.zoom_start_time && (
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-brand-blue" />
+                            <div className="text-brand-gray-dark text-xs">
+                              {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {lesson.video_url && (
+                          <div className="flex items-center gap-2">
+                            <Video className="w-4 h-4 text-brand-blue" />
+                            <span className="text-brand-gray-dark text-xs">Vídeo</span>
+                          </div>
+                        )}
+                        
+                        {lesson.video_url && (
+                          <div className="flex items-center gap-2">
+                            <ExternalLink className="w-4 h-4 text-brand-blue" />
+                            <span className="text-green-600 text-xs">Ativo</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                  
-                  {lesson.video_url && (
-                    <div className="flex items-center gap-2">
-                      <Video className="w-4 h-4 text-brand-blue" />
-                      <span className="text-brand-gray-dark">Vídeo disponível</span>
+                    
+                    <div className="flex gap-2">
+                      {(lesson.zoom_join_url || lesson.video_url) && (
+                        <Button
+                          className="btn-primary"
+                          size="sm"
+                          onClick={() =>
+                            window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                          }
+                        >
+                          Acessar
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditLesson(lesson)}
+                        disabled={deleteLessonMutation.isPending}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteLesson(lesson.id)}
+                        disabled={deleteLessonMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  )}
-                  
-                  {lesson.video_url && (
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4 text-brand-blue" />
-                      <span className="text-green-600">Link Ativo</span>
-                    </div>
-                  )}
-                </div>
-                
-                {lesson.video_url && (
-                  <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
-                    <span className="text-brand-gray-dark">Link: </span>
-                    <span className="text-brand-blue">{lesson.video_url}</span>
                   </div>
-                )}
-              </div>
-              
-              <div className="flex gap-2">
-                {(lesson.zoom_join_url || lesson.video_url) && (
-                  <Button
-                    className="btn-primary"
-                    size="sm"
-                    onClick={() =>
-                      window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
-                    }
-                  >
-                    Acessar Reunião
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleEditLesson(lesson)}
-                  disabled={deleteLessonMutation.isPending}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDeleteLesson(lesson.id)}
-                  disabled={deleteLessonMutation.isPending}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+                </div>
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="by-course" className="mt-4">
+          {Object.keys(lessonsByCourse).length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-brand-gray-dark">Nenhuma aula encontrada para os filtros aplicados.</p>
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {Object.entries(lessonsByCourse).map(([courseId, { course, lessons: courseLessons }]) => (
+                <AccordionItem key={courseId} value={courseId}>
+                  <AccordionTrigger className="text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{course?.name || 'Curso não encontrado'}</span>
+                      <span className="text-sm text-brand-gray-dark">({courseLessons.length} aulas)</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      {courseLessons.map((lesson) => (
+                        <div key={lesson.id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-medium text-brand-black">{lesson.title}</h4>
+                                <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
+                                  #{lesson.order_index}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-4 text-sm text-brand-gray-dark">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {lesson.duration_minutes} min
+                                </div>
+                                {lesson.zoom_start_time && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                                  </div>
+                                )}
+                                {lesson.video_url && (
+                                  <div className="flex items-center gap-1">
+                                    <Video className="w-3 h-3" />
+                                    Link disponível
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-1">
+                              {(lesson.zoom_join_url || lesson.video_url) && (
+                                <Button
+                                  className="btn-primary"
+                                  size="sm"
+                                  onClick={() =>
+                                    window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                  }
+                                >
+                                  Acessar
+                                </Button>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditLesson(lesson)}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleDeleteLesson(lesson.id)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {filteredLessons.length === 0 && !isLoading && (
         <div className="text-center py-8">
