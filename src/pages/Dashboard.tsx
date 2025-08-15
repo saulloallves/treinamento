@@ -178,29 +178,30 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold text-brand-black mb-6">
               Próximas Aulas Ao Vivo
             </h2>
-            <div className="space-y-3">
-              {isUpcomingLoading ? (
-                <>
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="p-3 border border-gray-200 rounded-lg">
-                      <Skeleton className="h-3 w-3/4 mb-2" />
-                      <Skeleton className="h-3 w-1/2 mb-3" />
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-3 w-24" />
-                        <Skeleton className="h-3 w-6" />
-                      </div>
+            
+            {isUpcomingLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="p-3 border border-gray-200 rounded-lg">
+                    <Skeleton className="h-3 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-1/2 mb-3" />
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-6" />
                     </div>
-                  ))}
-                </>
-              ) : upcomingLessons && upcomingLessons.length > 0 ? (
-                (() => {
-                  const lessons = upcomingLessons ?? [];
-                  const totalPages = Math.ceil(lessons.length / lessonsItemsPerPage);
-                  const startIndex = (lessonsPage - 1) * lessonsItemsPerPage;
-                  const paginatedLessons = lessons.slice(startIndex, startIndex + lessonsItemsPerPage);
-                  
-                  return (
-                    <>
+                  </div>
+                ))}
+              </div>
+            ) : upcomingLessons && upcomingLessons.length > 0 ? (
+              (() => {
+                const lessons = upcomingLessons ?? [];
+                const totalPages = Math.ceil(lessons.length / lessonsItemsPerPage);
+                const startIndex = (lessonsPage - 1) * lessonsItemsPerPage;
+                const paginatedLessons = lessons.slice(startIndex, startIndex + lessonsItemsPerPage);
+                
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
                       {paginatedLessons.map((lesson) => (
                         <div key={lesson.id} className="p-3 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
                           <h3 className="font-medium text-brand-black text-sm mb-1">
@@ -223,30 +224,30 @@ const Dashboard = () => {
                           </div>
                         </div>
                       ))}
-                      
-                      {lessons.length > lessonsItemsPerPage && (
-                        <div className="mt-4">
-                          <PaginationCustom
-                            currentPage={lessonsPage}
-                            totalPages={totalPages}
-                            totalItems={lessons.length}
-                            itemsPerPage={lessonsItemsPerPage}
-                            onPageChange={setLessonsPage}
-                            onItemsPerPageChange={(newSize) => {
-                              setLessonsItemsPerPage(newSize);
-                              setLessonsPage(1);
-                            }}
-                            itemName="aulas"
-                          />
-                        </div>
-                      )}
-                    </>
-                  );
-                })()
-              ) : (
-                <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
-              )}
-            </div>
+                    </div>
+                    
+                    {lessons.length > lessonsItemsPerPage && (
+                      <div className="border-t border-gray-200 pt-4">
+                        <PaginationCustom
+                          currentPage={lessonsPage}
+                          totalPages={totalPages}
+                          totalItems={lessons.length}
+                          itemsPerPage={lessonsItemsPerPage}
+                          onPageChange={setLessonsPage}
+                          onItemsPerPageChange={(newSize) => {
+                            setLessonsItemsPerPage(newSize);
+                            setLessonsPage(1);
+                          }}
+                          itemName="aulas"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
+            )}
           </div>
         </div>
       </div>
