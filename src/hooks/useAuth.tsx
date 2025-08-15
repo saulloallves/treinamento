@@ -99,6 +99,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error: insertErr } = await supabase.from('users').insert([profile]);
       if (insertErr) throw insertErr;
 
+      // IMPORTANTE: Vincular automaticamente inscrições existentes com o mesmo email
+      if (authUser.email) {
+        console.log('Vinculando inscrições existentes para:', authUser.email);
+        const { data: linkedEnrollments, error: linkError } = await supabase
+          .from('enrollments')
+          .update({ user_id: authUser.id })
+          .eq('student_email', authUser.email)
+          .is('user_id', null)
+          .select('id, course_id');
+
+        if (linkError) {
+          console.error('Erro ao vincular inscrições:', linkError);
+        } else if (linkedEnrollments && linkedEnrollments.length > 0) {
+          console.log(`${linkedEnrollments.length} inscrições vinculadas automaticamente`);
+          toast({
+            title: "Inscrições Vinculadas!",
+            description: `${linkedEnrollments.length} inscrição(ões) existente(s) foi(foram) vinculada(s) à sua conta.`,
+          });
+        }
+      }
+
       // Se é um cadastro de admin, criar registro na tabela admin_users
       if (meta.user_type === 'Admin') {
         console.log('Creating admin record for:', authUser.email);
