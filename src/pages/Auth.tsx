@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogIn, UserPlus, GraduationCap, Shield, ShieldPlus } from 'lucide-react';
+import { LogIn, UserPlus, GraduationCap, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -61,12 +61,6 @@ const Auth = () => {
     setIsLoading(false);
   };
 
-  const handleAdminSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    await signUp(email, password, fullName, { userType: 'Admin' });
-    setIsLoading(false);
-  };
 
   if (loading) {
     return (
@@ -104,7 +98,7 @@ const Auth = () => {
             <Tabs defaultValue="login-student" className="w-full">
               <TabsList
                 aria-label="Seleção de tipo de acesso"
-                className="flex md:grid md:grid-cols-4 w-full overflow-x-auto gap-2 mb-6 p-1 rounded-full bg-muted"
+                className="flex md:grid md:grid-cols-3 w-full overflow-x-auto gap-2 mb-6 p-1 rounded-full bg-muted"
               >
                 <TabsTrigger
                   value="login-student"
@@ -126,13 +120,6 @@ const Auth = () => {
                 >
                   <Shield className="h-4 w-4" />
                   Login Admin
-                </TabsTrigger>
-                <TabsTrigger
-                  value="register-admin"
-                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                >
-                  <ShieldPlus className="h-4 w-4" />
-                  Cadastro Admin
                 </TabsTrigger>
               </TabsList>
 
@@ -270,55 +257,6 @@ const Auth = () => {
                 </form>
               </TabsContent>
 
-              <TabsContent value="register-admin">
-                <form onSubmit={handleAdminSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName-admin" className="text-brand-gray-dark font-medium">Nome Completo</Label>
-                    <Input
-                      id="fullName-admin"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-admin" className="text-brand-gray-dark font-medium">Email</Label>
-                    <Input
-                      id="email-admin"
-                      type="email"
-                      placeholder="admin@empresa.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-admin" className="text-brand-gray-dark font-medium">Senha</Label>
-                    <Input
-                      id="password-admin"
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Cadastrando..." : "Criar Conta Admin"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">Após criar a conta, peça a um administrador para habilitar seu perfil de admin.</p>
-                </form>
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
