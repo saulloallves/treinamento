@@ -112,7 +112,7 @@ const CoursesList = () => {
     
     return (
       <div className="space-y-4">
-        <div className={`max-h-[500px] overflow-y-auto ${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid gap-3'}`}>
+        <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid gap-3'}`}>
           {paginatedCourses.map((course) => (
             <div key={course.id} className={`card-clean ${viewMode === 'grid' ? 'p-3' : 'p-4'}`}>
               <div className="flex items-start justify-between">
