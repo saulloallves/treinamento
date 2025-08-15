@@ -1061,7 +1061,7 @@ async function handlePresencas(request: Request, path: string[]) {
       }
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('attendance')
       .insert([attendanceData])
       .select()
