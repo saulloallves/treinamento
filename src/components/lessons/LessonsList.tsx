@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaginationCustom } from "@/components/ui/pagination-custom";
 import EditLessonDialog from "./EditLessonDialog";
 import CreateLessonDialog from "./CreateLessonDialog";
 import { useLessons, useDeleteLesson, Lesson } from "@/hooks/useLessons";
@@ -18,6 +19,8 @@ const LessonsList = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const { data: lessons = [], isLoading } = useLessons();
   const { data: courses = [] } = useCourses();
@@ -39,6 +42,20 @@ const LessonsList = () => {
     const matchesCourse = selectedCourse === "todos" || lesson.course_id === selectedCourse;
     return matchesSearch && matchesCourse;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredLessons.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLessons = filteredLessons.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
 
   // Group lessons by course
   const lessonsByCourse = filteredLessons.reduce((acc, lesson) => {
@@ -149,104 +166,105 @@ const LessonsList = () => {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {filteredLessons.map((lesson) => (
-                <div key={lesson.id} className="card-clean p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-brand-black">
-                          {lesson.title}
-                        </h3>
-                        <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                          Ordem {lesson.order_index}
-                        </span>
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            lesson.status === "Ativo"
-                              ? "bg-green-100 text-green-700"
-                              : lesson.status === "Em revisão"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {lesson.status}
-                        </span>
-                      </div>
-                      
-                      <p className="text-brand-gray-dark mb-3">
-                        Curso: <span className="font-medium">{lesson.courses?.name}</span>
-                      </p>
-
-                      {lesson.description && (
-                        <p className="text-brand-gray-dark mb-3 line-clamp-2">{lesson.description}</p>
-                      )}
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-brand-blue" />
-                          <span className="text-brand-gray-dark">
-                            {lesson.duration_minutes} min
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                {paginatedLessons.map((lesson) => (
+                  <div key={lesson.id} className="card-clean p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-base font-semibold text-brand-black">
+                            {lesson.title}
+                          </h3>
+                          <span className="px-1.5 py-0.5 text-xs rounded-full bg-brand-blue-light text-brand-blue">
+                            #{lesson.order_index}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 text-xs rounded-full ${
+                              lesson.status === "Ativo"
+                                ? "bg-green-100 text-green-700"
+                                : lesson.status === "Em revisão"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {lesson.status}
                           </span>
                         </div>
                         
-                        {lesson.zoom_start_time && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-brand-blue" />
-                            <div className="text-brand-gray-dark text-xs">
-                              {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                        <p className="text-sm text-brand-gray-dark mb-2">
+                          <span className="font-medium">{lesson.courses?.name}</span>
+                        </p>
+                        
+                        <div className="flex items-center gap-4 text-xs text-brand-gray-dark">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-brand-blue" />
+                            <span>{lesson.duration_minutes} min</span>
+                          </div>
+                          
+                          {lesson.zoom_start_time && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-brand-blue" />
+                              <span>
+                                {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                              </span>
                             </div>
-                          </div>
+                          )}
+                          
+                          {lesson.video_url && (
+                            <div className="flex items-center gap-1">
+                              <Video className="w-3 h-3 text-brand-blue" />
+                              <span>Vídeo</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-1">
+                        {(lesson.zoom_join_url || lesson.video_url) && (
+                          <Button
+                            className="btn-primary"
+                            size="sm"
+                            onClick={() =>
+                              window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                            }
+                          >
+                            Acessar
+                          </Button>
                         )}
-                        
-                        {lesson.video_url && (
-                          <div className="flex items-center gap-2">
-                            <Video className="w-4 h-4 text-brand-blue" />
-                            <span className="text-brand-gray-dark text-xs">Vídeo</span>
-                          </div>
-                        )}
-                        
-                        {lesson.video_url && (
-                          <div className="flex items-center gap-2">
-                            <ExternalLink className="w-4 h-4 text-brand-blue" />
-                            <span className="text-green-600 text-xs">Ativo</span>
-                          </div>
-                        )}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditLesson(lesson)}
+                          disabled={deleteLessonMutation.isPending}
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteLesson(lesson.id)}
+                          disabled={deleteLessonMutation.isPending}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2">
-                      {(lesson.zoom_join_url || lesson.video_url) && (
-                        <Button
-                          className="btn-primary"
-                          size="sm"
-                          onClick={() =>
-                            window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
-                          }
-                        >
-                          Acessar
-                        </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleEditLesson(lesson)}
-                        disabled={deleteLessonMutation.isPending}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeleteLesson(lesson.id)}
-                        disabled={deleteLessonMutation.isPending}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              {filteredLessons.length > itemsPerPage && (
+                <PaginationCustom
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredLessons.length}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={handlePageChange}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                  itemName="aulas"
+                />
+              )}
             </div>
           )}
         </TabsContent>
