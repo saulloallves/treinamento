@@ -1077,6 +1077,13 @@ async function handlePresencas(request: Request, path: string[]) {
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
+    } catch (error) {
+      console.error('=== ERROR em handlePresencas:', error)
+      return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
   }
 
   if (request.method === 'GET' && path[1] === 'aula') {
