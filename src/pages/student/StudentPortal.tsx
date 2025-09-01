@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
+import { RefreshButton } from "@/components/ui/refresh-button";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
@@ -26,9 +27,10 @@ const StudentPortal = () => {
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Minhas Inscrições</h1>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={() => refetch()} disabled={isRefetching}>
-            {isRefetching ? "Recarregando..." : "Recarregar"}
-          </Button>
+          <RefreshButton 
+            onClick={() => refetch()} 
+            isRefreshing={isRefetching}
+          />
           <Button onClick={() => setOpenEnroll(true)}>Autoinscrição</Button>
         </div>
       </header>

@@ -5,9 +5,12 @@ import FranchiseeCollaboratorApprovals from "@/components/student/FranchiseeColl
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users, AlertCircle } from "lucide-react";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import { useUnitCollaborationApprovals } from "@/hooks/useCollaborationApprovals";
 
 const CollaboratorManagement = () => {
   const { data: currentUser, isLoading } = useCurrentUser();
+  const { refetch: refetchApprovals, isRefetching } = useUnitCollaborationApprovals(currentUser?.unit_code || "");
 
   useEffect(() => {
     document.title = "Gestão de Colaboradores | Área do Aluno";
@@ -39,14 +42,20 @@ const CollaboratorManagement = () => {
 
   return (
     <BaseLayout title="Gestão de Colaboradores">
-      <header className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Users className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-semibold">Gestão de Colaboradores</h1>
+      <header className="mb-6 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Users className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-semibold">Gestão de Colaboradores</h1>
+          </div>
+          <p className="text-muted-foreground">
+            Gerencie as solicitações de acesso dos colaboradores da unidade {currentUser.unit_code}
+          </p>
         </div>
-        <p className="text-muted-foreground">
-          Gerencie as solicitações de acesso dos colaboradores da unidade {currentUser.unit_code}
-        </p>
+        <RefreshButton 
+          onClick={() => refetchApprovals()} 
+          isRefreshing={isRefetching}
+        />
       </header>
 
       <main>

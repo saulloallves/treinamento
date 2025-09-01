@@ -6,6 +6,7 @@ import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { RefreshButton } from "@/components/ui/refresh-button";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
@@ -20,9 +21,10 @@ const StudentLessons = () => {
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Aulas</h1>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => refetch()} disabled={isRefetching}>
-            {isRefetching ? "Recarregando..." : "Recarregar"}
-          </Button>
+          <RefreshButton 
+            onClick={() => refetch()} 
+            isRefreshing={isRefetching}
+          />
         </div>
       </header>
 

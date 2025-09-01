@@ -9,6 +9,7 @@ import AttendanceButton from "@/components/student/AttendanceButton";
 import RequestCertificateButton from "@/components/student/RequestCertificateButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { RefreshButton } from "@/components/ui/refresh-button";
 const StudentCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
@@ -98,16 +99,13 @@ const StudentCourse = () => {
       <header className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Aulas</h1>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
+          <RefreshButton
             onClick={() => {
               enrollmentQuery.refetch();
               lessonsQuery.refetch();
             }}
-            disabled={enrollmentQuery.isRefetching || lessonsQuery.isRefetching}
-          >
-            {(enrollmentQuery.isRefetching || lessonsQuery.isRefetching) ? "Recarregando..." : "Recarregar"}
-          </Button>
+            isRefreshing={enrollmentQuery.isRefetching || lessonsQuery.isRefetching}
+          />
           <Button asChild variant="outline">
             <Link to="/aluno">Voltar</Link>
           </Button>
