@@ -226,15 +226,20 @@ const Auth = () => {
                   {userRole === 'Colaborador' && (
                     <div className="space-y-2">
                       <Label htmlFor="position" className="text-brand-gray-dark font-medium">Cargo *</Label>
-                      <Input
-                        id="position"
-                        type="text"
-                        placeholder="Ex.: Vendedor, Atendente, Gerente"
-                        value={position}
-                        onChange={(e) => setPosition(e.target.value)}
-                        required
-                        className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
-                      />
+                      <Select value={position} onValueChange={setPosition} required>
+                        <SelectTrigger className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20">
+                          <SelectValue placeholder="Selecione o cargo" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[100]">
+                          <SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem>
+                          <SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem>
+                          <SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem>
+                          <SelectItem value="Avaliadora">Avaliadora</SelectItem>
+                          <SelectItem value="Repositor(a)">Repositor(a)</SelectItem>
+                          <SelectItem value="Líder de Loja">Líder de Loja</SelectItem>
+                          <SelectItem value="Gerente">Gerente</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
                   
