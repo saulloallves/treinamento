@@ -58,3 +58,6 @@ verify_jwt = false
 
 [functions.reset-franchisee-password]
 verify_jwt = false
+
+[functions.register-collaborator]
+verify_jwt = false
