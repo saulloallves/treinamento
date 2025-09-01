@@ -25,7 +25,7 @@ const StudentPortal = () => {
   return (
     <BaseLayout title="Área do Aluno">
       <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Minhas Inscrições</h1>
+        <h2 className="text-2xl font-semibold">Minhas inscrições</h2>
         <div className="flex items-center gap-2">
           <RefreshButton 
             onClick={() => refetch()} 

@@ -19,7 +19,7 @@ const StudentLessons = () => {
   return (
     <BaseLayout title="Aulas Agendadas">
       <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Aulas</h1>
+        <h2 className="text-2xl font-semibold">Próximas aulas</h2>
         <div className="flex gap-2">
           <RefreshButton 
             onClick={() => refetch()} 

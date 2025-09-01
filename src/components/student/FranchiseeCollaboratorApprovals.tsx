@@ -29,7 +29,7 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Gestão de Colaboradores
+            Solicitações pendentes
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -45,7 +45,7 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Gestão de Colaboradores
+            Solicitações pendentes
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -62,7 +62,7 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Gestão de Colaboradores
+          Solicitações pendentes
           <Badge variant="secondary">{approvals.length}</Badge>
         </CardTitle>
       </CardHeader>

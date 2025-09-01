@@ -46,7 +46,7 @@ const CollaboratorManagement = () => {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-semibold">Gestão de Colaboradores</h1>
+            <h2 className="text-2xl font-semibold">Solicitações de Colaboradores</h2>
           </div>
           <p className="text-muted-foreground">
             Gerencie as solicitações de acesso dos colaboradores da unidade {currentUser.unit_code}

@@ -10,7 +10,7 @@ const StudentQuiz = () => {
   return (
     <BaseLayout title="Quiz">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold">Quiz</h1>
+        <h2 className="text-2xl font-semibold">Seus quizzes</h2>
         <p className="text-muted-foreground">Responda os quizzes das suas aulas</p>
       </header>
 
