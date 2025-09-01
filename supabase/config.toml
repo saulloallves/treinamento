@@ -43,3 +43,9 @@ verify_jwt = false
 
 [functions.create-enrollment]
 verify_jwt = false
+
+[functions.notify-franchisee]
+verify_jwt = false
+
+[functions.approve-collaborator]
+verify_jwt = false

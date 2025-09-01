@@ -157,6 +157,57 @@ export type Database = {
           },
         ]
       }
+      collaboration_approvals: {
+        Row: {
+          approval_token: string | null
+          collaborator_id: string
+          created_at: string | null
+          franchisee_id: string | null
+          id: string
+          notification_sent: boolean | null
+          status: Database["public"]["Enums"]["approval_status"] | null
+          unit_code: string
+          updated_at: string | null
+        }
+        Insert: {
+          approval_token?: string | null
+          collaborator_id: string
+          created_at?: string | null
+          franchisee_id?: string | null
+          id?: string
+          notification_sent?: boolean | null
+          status?: Database["public"]["Enums"]["approval_status"] | null
+          unit_code: string
+          updated_at?: string | null
+        }
+        Update: {
+          approval_token?: string | null
+          collaborator_id?: string
+          created_at?: string | null
+          franchisee_id?: string | null
+          id?: string
+          notification_sent?: boolean | null
+          status?: Database["public"]["Enums"]["approval_status"] | null
+          unit_code?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaboration_approvals_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaboration_approvals_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -711,6 +762,9 @@ export type Database = {
       users: {
         Row: {
           active: boolean
+          approval_status: Database["public"]["Enums"]["approval_status"] | null
+          approved_at: string | null
+          approved_by: string | null
           cpf: string | null
           created_at: string
           email: string | null
@@ -718,6 +772,7 @@ export type Database = {
           name: string
           phone: string | null
           position: string | null
+          role: Database["public"]["Enums"]["user_role_type"] | null
           unit_code: string | null
           unit_id: string | null
           updated_at: string
@@ -725,6 +780,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_at?: string | null
+          approved_by?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
@@ -732,6 +792,7 @@ export type Database = {
           name: string
           phone?: string | null
           position?: string | null
+          role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
           unit_id?: string | null
           updated_at?: string
@@ -739,6 +800,11 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_at?: string | null
+          approved_by?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
@@ -746,12 +812,20 @@ export type Database = {
           name?: string
           phone?: string | null
           position?: string | null
+          role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
           unit_id?: string | null
           updated_at?: string
           user_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "users_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_unit_id_fkey"
             columns: ["unit_id"]
@@ -818,6 +892,10 @@ export type Database = {
         Args: { admin_user_id: string }
         Returns: undefined
       }
+      approve_collaborator: {
+        Args: { _approval_id: string; _approve: boolean }
+        Returns: undefined
+      }
       backfill_users_unit_code: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -825,6 +903,10 @@ export type Database = {
       ensure_admin_bootstrap: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      find_franchisee_by_unit_code: {
+        Args: { _unit_code: string }
+        Returns: string
       }
       get_pending_admin_approvals: {
         Args: Record<PropertyKey, never>
@@ -885,7 +967,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      approval_status: "pendente" | "aprovado" | "rejeitado"
+      user_role_type: "Franqueado" | "Colaborador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1012,6 +1095,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      approval_status: ["pendente", "aprovado", "rejeitado"],
+      user_role_type: ["Franqueado", "Colaborador"],
+    },
   },
 } as const

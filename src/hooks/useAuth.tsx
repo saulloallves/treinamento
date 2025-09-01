@@ -9,7 +9,17 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string }) => Promise<{ error: any }>;
+  signUp: (
+    email: string, 
+    password: string, 
+    fullName: string, 
+    options?: { 
+      userType?: 'Aluno' | 'Admin'; 
+      unitCode?: string;
+      role?: 'Franqueado' | 'Colaborador';
+      position?: string;
+    }
+  ) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -91,8 +101,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: (meta.full_name as string) || (authUser.email as string),
         email: authUser.email,
         user_type: (meta.user_type as string) || 'Aluno',
+        role: (meta.role as string) || null,
+        position: (meta.position as string) || null,
         unit_id: unitId,
         unit_code: unitCode,
+        approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado',
         active: true,
       } as any;
 
@@ -140,48 +153,125 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log('Admin record created successfully');
         }
       }
+
+      // Se for colaborador, enviar notificação para franqueado
+      if (meta.role === 'Colaborador' && meta.unit_code) {
+        try {
+          const { error: notificationError } = await supabase.functions.invoke('notify-franchisee', {
+            body: {
+              collaboratorId: authUser.id,
+              collaboratorName: meta.full_name,
+              unitCode: meta.unit_code
+            }
+          });
+          
+          if (notificationError) {
+            console.error('Error sending franchisee notification:', notificationError);
+          } else {
+            console.log('Franchisee notification sent successfully');
+          }
+        } catch (notificationError) {
+          console.error('Error sending franchisee notification:', notificationError);
+        }
+      }
     } catch (e) {
       console.warn('ensureProfile failed:', e);
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      toast({
-        title: "Erro no login",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      // Verificar se é um admin pendente de aprovação
-      try {
-        const { data: user } = await supabase.auth.getUser();
-        if (user?.user?.id) {
-          // Verificar usando a função is_admin do banco
-          const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: user.user.id });
-          
-          // Verificar se tem registro de admin pendente
-          const { data: adminUser } = await supabase
+      // Verificar se é um admin que ainda não foi aprovado
+      if (error.message.includes('Email not confirmed')) {
+        // Verificar se o usuário tem um registro de admin pendente
+        try {
+          const { data: adminData } = await supabase
             .from('admin_users')
             .select('status')
-            .eq('user_id', user.user.id)
+            .eq('email', email)
             .single();
-
-          // Se tem registro de admin mas não foi aprovado, bloquear acesso
-          if (adminUser && !isAdminApproved) {
-            await supabase.auth.signOut();
+          
+          if (adminData?.status === 'pending') {
             toast({
-              title: "Acesso Pendente de Aprovação",
-              description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+              title: "Aprovação pendente",
+              description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
               variant: "destructive",
             });
-            return { error: { message: "Admin pending approval" } };
           }
+        } catch (adminCheckError) {
+          console.error('Error checking admin status:', adminCheckError);
+        }
+      }
+      
+      toast({
+        title: "Erro no login",
+        description: error.message === "Invalid login credentials" 
+          ? "Email ou senha incorretos." 
+          : error.message,
+        variant: "destructive",
+      });
+    } else if (data.user) {
+      // Verificar se é colaborador com status pendente
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('approval_status, role')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast({
+            title: "Cadastro aguardando aprovação",
+            description: "Seu cadastro como colaborador está pendente de aprovação pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
+            variant: "destructive",
+          });
+          
+          return { error: { message: "Pending approval" } };
+        } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast({
+            title: "Acesso negado",
+            description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
+            variant: "destructive",
+          });
+          
+          return { error: { message: "Access denied" } };
+        }
+      } catch (userCheckError) {
+        console.error('Error checking user approval status:', userCheckError);
+      }
+
+      // Verificar se é um admin pendente de aprovação
+      try {
+        // Verificar usando a função is_admin do banco
+        const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
+        
+        // Verificar se tem registro de admin pendente
+        const { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('status')
+          .eq('user_id', data.user.id)
+          .single();
+
+        // Se tem registro de admin mas não foi aprovado, bloquear acesso
+        if (adminUser && !isAdminApproved) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Acesso Pendente de Aprovação",
+            description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+            variant: "destructive",
+          });
+          return { error: { message: "Admin pending approval" } };
         }
       } catch (e) {
         console.error('Error checking admin status:', e);
@@ -197,20 +287,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string }) => {
+  const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string; role?: 'Franqueado' | 'Colaborador'; position?: string }) => {
     const redirectUrl = `${window.location.origin}/`;
-    const meta: Record<string, any> = {
-      full_name: fullName,
-    };
-    if (options?.userType) meta.user_type = options.userType;
-    if (options?.unitCode) meta.unit_code = options.unitCode;
     
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: meta,
+        data: {
+          full_name: fullName,
+          user_type: options?.userType || 'Aluno',
+          role: options?.role,
+          position: options?.position,
+          unit_code: options?.unitCode,
+        }
       },
     });
 
@@ -236,10 +327,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let successTitle = "Cadastro realizado!";
       let successMessage = "Verifique seu email para confirmar a conta.";
       
-      // Mensagem específica para cadastro de admin
+      // Mensagem específica para cadastro de admin ou colaborador
       if (options?.userType === 'Admin') {
         successTitle = "Cadastro de Admin realizado!";
         successMessage = "Verifique seu email para confirmar a conta. Após a confirmação, seu acesso será liberado somente após aprovação por um administrador.";
+      } else if (options?.role === 'Colaborador') {
+        successTitle = "Cadastro realizado!";
+        successMessage = "Cadastro criado com sucesso! Aguarde a aprovação do franqueado da sua unidade para acessar o sistema. Você receberá uma confirmação quando for aprovado.";
       }
 
       toast({

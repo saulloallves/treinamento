@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogIn, UserPlus, GraduationCap, Shield } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -16,6 +17,8 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [unitCode, setUnitCode] = useState('');
+  const [userRole, setUserRole] = useState<'Franqueado' | 'Colaborador'>('Colaborador');
+  const [position, setPosition] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -57,7 +60,12 @@ const Auth = () => {
   const handleStudentSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signUp(email, password, fullName, { userType: 'Aluno', unitCode });
+    await signUp(email, password, fullName, { 
+      userType: 'Aluno', 
+      unitCode, 
+      role: userRole,
+      position: userRole === 'Colaborador' ? position : undefined
+    });
     setIsLoading(false);
   };
 
@@ -107,12 +115,12 @@ const Auth = () => {
                   <LogIn className="h-4 w-4" />
                   Login Aluno
                 </TabsTrigger>
-                <TabsTrigger
+                 <TabsTrigger
                   value="register-student"
                   className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
-                  <UserPlus className="h-4 w-4" />
-                  Cadastro Aluno
+                  <Building className="h-4 w-4" />
+                  Cadastro
                 </TabsTrigger>
                 <TabsTrigger
                   value="login-admin"
@@ -162,7 +170,20 @@ const Auth = () => {
               <TabsContent value="register-student">
                 <form onSubmit={handleStudentSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="unitCode" className="text-brand-gray-dark font-medium">Código da Unidade</Label>
+                    <Label htmlFor="userRole" className="text-brand-gray-dark font-medium">Tipo de Usuário *</Label>
+                    <Select value={userRole} onValueChange={(value: 'Franqueado' | 'Colaborador') => setUserRole(value)}>
+                      <SelectTrigger className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20">
+                        <SelectValue placeholder="Selecione o tipo de usuário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Franqueado">Franqueado</SelectItem>
+                        <SelectItem value="Colaborador">Colaborador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="unitCode" className="text-brand-gray-dark font-medium">Código da Unidade *</Label>
                     <Input
                       id="unitCode"
                       type="text"
@@ -173,8 +194,24 @@ const Auth = () => {
                       className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
+
+                  {userRole === 'Colaborador' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="position" className="text-brand-gray-dark font-medium">Cargo *</Label>
+                      <Input
+                        id="position"
+                        type="text"
+                        placeholder="Ex.: Vendedor, Atendente, Gerente"
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        required
+                        className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-brand-gray-dark font-medium">Nome Completo</Label>
+                    <Label htmlFor="fullName" className="text-brand-gray-dark font-medium">Nome Completo *</Label>
                     <Input
                       id="fullName"
                       type="text"
@@ -185,8 +222,9 @@ const Auth = () => {
                       className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -197,8 +235,9 @@ const Auth = () => {
                       className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha</Label>
+                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha *</Label>
                     <Input
                       id="password"
                       type="password"
@@ -210,6 +249,15 @@ const Auth = () => {
                       className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
+
+                  {userRole === 'Colaborador' && (
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-800">
+                        <strong>Atenção:</strong> Seu cadastro como colaborador ficará pendente até que o franqueado da sua unidade aprove o acesso.
+                      </p>
+                    </div>
+                  )}
+                  
                   <Button 
                     type="submit" 
                     className="w-full" 
