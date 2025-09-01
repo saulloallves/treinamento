@@ -170,14 +170,14 @@ const Auth = () => {
               <TabsContent value="register-student">
                 <form onSubmit={handleStudentSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="userRole" className="text-brand-gray-dark font-medium">Tipo de Usuário *</Label>
+                    <Label htmlFor="userRole" className="text-brand-gray-dark font-medium">Você é *</Label>
                     <Select value={userRole} onValueChange={(value: 'Franqueado' | 'Colaborador') => setUserRole(value)}>
                       <SelectTrigger className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20">
-                        <SelectValue placeholder="Selecione o tipo de usuário" />
+                        <SelectValue placeholder="Selecione seu papel na unidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Franqueado">Franqueado</SelectItem>
-                        <SelectItem value="Colaborador">Colaborador</SelectItem>
+                        <SelectItem value="Franqueado">Franqueado da Unidade</SelectItem>
+                        <SelectItem value="Colaborador">Colaborador da Unidade</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -253,7 +253,7 @@ const Auth = () => {
                   {userRole === 'Colaborador' && (
                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                       <p className="text-sm text-blue-800">
-                        <strong>Atenção:</strong> Seu cadastro como colaborador ficará pendente até que o franqueado da sua unidade aprove o acesso.
+                        <strong>Atenção:</strong> Como colaborador, seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.
                       </p>
                     </div>
                   )}

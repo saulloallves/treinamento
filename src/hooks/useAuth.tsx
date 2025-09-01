@@ -333,7 +333,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         successMessage = "Verifique seu email para confirmar a conta. Após a confirmação, seu acesso será liberado somente após aprovação por um administrador.";
       } else if (options?.role === 'Colaborador') {
         successTitle = "Cadastro realizado!";
-        successMessage = "Cadastro criado com sucesso! Aguarde a aprovação do franqueado da sua unidade para acessar o sistema. Você receberá uma confirmação quando for aprovado.";
+        successMessage = "Cadastro criado com sucesso! Aguarde a aprovação do franqueado da sua unidade para acessar o sistema. Você será notificado quando for aprovado.";
+      } else if (options?.role === 'Franqueado') {
+        successTitle = "Cadastro realizado!"; 
+        successMessage = "Cadastro de franqueado criado com sucesso! Você já pode acessar o sistema.";
       }
 
       toast({
