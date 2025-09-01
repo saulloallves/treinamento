@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useCreateCollaborator } from "@/hooks/useCollaborationApprovals";
 
 const CreateUserDialog = () => {
   const [open, setOpen] = useState(false);
@@ -16,8 +18,10 @@ const CreateUserDialog = () => {
     email: "",
     password: "",
     unitCode: "",
+    userType: "Aluno" as "Aluno" | "Colaborador",
   });
   const { toast } = useToast();
+  const createCollaboratorMutation = useCreateCollaborator();
 
   // Buscar unidades para validação
   const { data: units } = useQuery({
@@ -37,53 +41,67 @@ const CreateUserDialog = () => {
     setIsLoading(true);
 
     try {
-      // 1. Validar se o código da unidade existe
-      let unitId = null;
-      if (formData.unitCode) {
-        const unit = units?.find(u => u.code === formData.unitCode);
-        if (unit) {
-          unitId = unit.id;
+      // Se é colaborador, usar o hook específico que dispara a notificação
+      if (formData.userType === "Colaborador") {
+        if (!formData.unitCode) {
+          throw new Error("Código da unidade é obrigatório para colaboradores");
         }
-      }
+        
+        await createCollaboratorMutation.mutateAsync({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          unitCode: formData.unitCode
+        });
+      } else {
+        // Para usuários normais (Aluno), continua com o fluxo atual
+        let unitId = null;
+        if (formData.unitCode) {
+          const unit = units?.find(u => u.code === formData.unitCode);
+          if (unit) {
+            unitId = unit.id;
+          }
+        }
 
-      // 2. Criar usuário no auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        user_metadata: {
-          full_name: formData.name,
+        // Criar usuário no auth
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: formData.email,
+          password: formData.password,
+          user_metadata: {
+            full_name: formData.name,
+            user_type: 'Aluno',
+            unit_code: formData.unitCode
+          },
+          email_confirm: true
+        });
+
+        if (authError) throw authError;
+        if (!authData.user) {
+          throw new Error("Erro ao criar usuário");
+        }
+
+        // Criar registro na tabela users
+        const { error: userError } = await supabase.from('users').insert([{
+          id: authData.user.id,
+          name: formData.name,
+          email: formData.email,
           user_type: 'Aluno',
-          unit_code: formData.unitCode
-        },
-        email_confirm: true // Auto-confirma o email
-      });
+          unit_id: unitId,
+          unit_code: formData.unitCode || null,
+          approval_status: 'aprovado',
+          active: true,
+        }]);
 
-      if (authError) throw authError;
+        if (userError) throw userError;
 
-      if (!authData.user) {
-        throw new Error("Erro ao criar usuário");
+        toast({
+          title: "Usuário criado com sucesso!",
+          description: `${formData.name} foi adicionado como usuário.`,
+        });
       }
-
-      // 3. Criar registro na tabela users
-      const { error: userError } = await supabase.from('users').insert([{
-        id: authData.user.id,
-        name: formData.name,
-        email: formData.email,
-        user_type: 'Aluno',
-        unit_id: unitId,
-        unit_code: formData.unitCode || null,
-        active: true,
-      }]);
-
-      if (userError) throw userError;
-
-      toast({
-        title: "Usuário criado com sucesso!",
-        description: `${formData.name} foi adicionado como usuário.`,
-      });
 
       // Reset form and close dialog
-      setFormData({ name: "", email: "", password: "", unitCode: "" });
+      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno" });
       setOpen(false);
 
     } catch (error: any) {
@@ -99,7 +117,7 @@ const CreateUserDialog = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", password: "", unitCode: "" });
+    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno" });
   };
 
   return (
@@ -123,16 +141,42 @@ const CreateUserDialog = () => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="user-unitcode">Código da Unidade</Label>
+            <Label htmlFor="user-type">Tipo de Usuário</Label>
+            <Select 
+              value={formData.userType} 
+              onValueChange={(value: "Aluno" | "Colaborador") => setFormData(prev => ({ ...prev, userType: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Aluno">Aluno</SelectItem>
+                <SelectItem value="Colaborador">Colaborador</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {formData.userType === "Colaborador" 
+                ? "Colaboradores precisam de aprovação do franqueado da unidade"
+                : "Alunos têm acesso imediato ao sistema"}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="user-unitcode">
+              Código da Unidade {formData.userType === "Colaborador" && <span className="text-red-500">*</span>}
+            </Label>
             <Input
               id="user-unitcode"
               type="text"
               placeholder="Ex: ABC123"
               value={formData.unitCode}
               onChange={(e) => setFormData(prev => ({ ...prev, unitCode: e.target.value }))}
+              required={formData.userType === "Colaborador"}
             />
             <p className="text-xs text-muted-foreground">
-              Deixe em branco se não tiver unidade específica
+              {formData.userType === "Colaborador" 
+                ? "Obrigatório para colaboradores"
+                : "Deixe em branco se não tiver unidade específica"}
             </p>
           </div>
           
@@ -186,16 +230,17 @@ const CreateUserDialog = () => {
             <Button
               type="submit"
               className="flex-1"
-              disabled={isLoading}
+              disabled={isLoading || createCollaboratorMutation.isPending}
             >
-              {isLoading ? "Criando..." : "Criar Usuário"}
+              {(isLoading || createCollaboratorMutation.isPending) ? "Criando..." : "Criar Usuário"}
             </Button>
           </div>
         </form>
 
         <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted rounded-md">
-          <strong>Nota:</strong> O usuário criado terá acesso imediato ao sistema 
-          como aluno/colaborador.
+          <strong>Nota:</strong> {formData.userType === "Colaborador" 
+            ? "Colaboradores precisam da aprovação do franqueado da unidade para acessar o sistema."
+            : "Alunos terão acesso imediato ao sistema."}
         </div>
       </DialogContent>
     </Dialog>

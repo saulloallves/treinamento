@@ -26,6 +26,8 @@ import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import CreateFranchiseeDialog from "./CreateFranchiseeDialog";
+import UnitCollaborationApprovals from "./UnitCollaborationApprovals";
+import { useUnitApprovalCount } from "@/hooks/useCollaborationApprovals";
 
 interface UnidadeDetailsDialogProps {
   unidade: Unidade | null;
@@ -43,6 +45,9 @@ const UnidadeDetailsDialog = ({
   const [createFranchiseeOpen, setCreateFranchiseeOpen] = useState(false);
   const { data: colaboradores = [] } = useUnidadeCollaborators(
     unidade?.codigo_grupo || 0
+  );
+  const { data: pendingApprovalsCount = 0 } = useUnitApprovalCount(
+    unidade?.codigo_grupo?.toString() || ""
   );
   const deleteUnidade = useDeleteUnidade();
   const { toast } = useToast();
@@ -161,6 +166,13 @@ const UnidadeDetailsDialog = ({
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Aprovações Pendentes */}
+          {pendingApprovalsCount > 0 && (
+            <div className="lg:col-span-2">
+              <UnitCollaborationApprovals unitCode={unidade.codigo_grupo?.toString() || ""} />
+            </div>
+          )}
+          
           {/* Informações Básicas */}
           <Card>
             <CardHeader>
@@ -279,6 +291,11 @@ const UnidadeDetailsDialog = ({
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 Colaboradores ({colaboradores.length})
+                {pendingApprovalsCount > 0 && (
+                  <Badge variant="destructive" className="ml-2">
+                    {pendingApprovalsCount} pendente{pendingApprovalsCount > 1 ? 's' : ''}
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
