@@ -60,14 +60,17 @@ const handler = async (req: Request): Promise<Response> => {
     const cleanEmail = (email: string): string => {
       if (!email) return email;
       
-      // Remove colchetes no início e fim
+      // Remove colchetes no início e/ou fim
       let cleaned = email.replace(/^\[|\]$/g, '');
       
       // Remove texto "(mailto:" e tudo depois até o final
       cleaned = cleaned.replace(/\s*\(mailto:.*$/, '');
       
-      // Remove texto "](mailto:" e tudo depois até o final (novo formato)
+      // Remove texto "](mailto:" e tudo depois até o final
       cleaned = cleaned.replace(/\]\(mailto:.*$/, '');
+      
+      // Remove colchetes extras que possam ter sobrado no meio ou fim
+      cleaned = cleaned.replace(/\]/g, '');
       
       // Remove espaços extras
       cleaned = cleaned.trim();
