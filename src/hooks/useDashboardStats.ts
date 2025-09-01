@@ -36,7 +36,7 @@ export const useDashboardStats = () => {
         supabase.from("users").select("*", { count: "exact", head: true }).eq("active", true),
         supabase.from("courses").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
         supabase.from("certificates").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("units").select("*", { count: "exact", head: true }).eq("active", true),
+        supabase.from("unidades").select("*", { count: "exact", head: true }),
         supabase.from("whatsapp_dispatches").select("*", { count: "exact", head: true }),
         supabase.from("lessons").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
         supabase

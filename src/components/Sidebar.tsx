@@ -47,6 +47,7 @@ const Sidebar = () => {
         { icon: Award, label: "Certificados", path: "/certificates" },
         { icon: MessageSquare, label: "Disparos WhatsApp", path: "/whatsapp" },
         { icon: Users, label: "Usuários", path: "/users" },
+        { icon: Building2, label: "Unidades", path: "/units" },
         { icon: Settings, label: "Configurações", path: "/settings" },
       ]
     : [

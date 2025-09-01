@@ -1,0 +1,127 @@
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
+import { useUnidades, Unidade } from "@/hooks/useUnidades";
+import UnidadeCard from "./UnidadeCard";
+import UnidadeDetailsDialog from "./UnidadeDetailsDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const UnidadesList = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUnidade, setSelectedUnidade] = useState<Unidade | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [faseFilter, setFaseFilter] = useState("all");
+
+  const { data: unidades = [], isLoading, error } = useUnidades();
+
+  const filteredUnidades = unidades.filter((unidade) => {
+    const matchesSearch = 
+      unidade.grupo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      unidade.cidade?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      unidade.uf?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      unidade.codigo_grupo?.toString().includes(searchTerm);
+    
+    const matchesFase = faseFilter === "all" || unidade.fase_loja === faseFilter;
+    
+    return matchesSearch && matchesFase;
+  });
+
+  const handleViewDetails = (unidade: Unidade) => {
+    setSelectedUnidade(unidade);
+    setDetailsOpen(true);
+  };
+
+  // Get unique fases for filter
+  const uniqueFases = Array.from(new Set(unidades.map(u => u.fase_loja).filter(Boolean)));
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Erro ao carregar unidades</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header com estatísticas */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Unidades</h2>
+          <p className="text-muted-foreground">
+            Gerencie todas as unidades da rede
+          </p>
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar por nome, cidade..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={faseFilter} onValueChange={setFaseFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Filtrar por fase" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as fases</SelectItem>
+            {uniqueFases.map((fase) => (
+              <SelectItem key={fase} value={fase}>
+                {fase}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="text-sm text-muted-foreground">
+        Pág 1/58 • {filteredUnidades.length} unidades
+      </div>
+
+      {/* Grid de unidades */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-[200px] w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredUnidades.map((unidade) => (
+            <UnidadeCard
+              key={unidade.id}
+              unidade={unidade}
+              onViewDetails={handleViewDetails}
+            />
+          ))}
+        </div>
+      )}
+
+      {filteredUnidades.length === 0 && !isLoading && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Nenhuma unidade encontrada</p>
+        </div>
+      )}
+
+      {/* Dialog de detalhes */}
+      <UnidadeDetailsDialog
+        unidade={selectedUnidade}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      />
+    </div>
+  );
+};
+
+export default UnidadesList;
