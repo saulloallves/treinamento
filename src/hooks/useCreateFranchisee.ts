@@ -15,71 +15,33 @@ export const useCreateFranchisee = () => {
 
   return useMutation({
     mutationFn: async (data: CreateFranchiseeData) => {
-      // Verificar se já existe um usuário com este email
-      const { data: existingUser, error: checkError } = await supabase
-        .from("users")
-        .select("id, email, role, user_type")
-        .eq("email", data.email)
-        .maybeSingle();
-
-      if (checkError) {
-        throw new Error(`Erro ao verificar usuário existente: ${checkError.message}`);
-      }
-
-      if (existingUser) {
-        if (existingUser.role === "Franqueado") {
-          throw new Error("Já existe um franqueado cadastrado com este email");
-        } else {
-          // Atualizar usuário existente para ser franqueado
-          const { data: updatedUser, error: updateError } = await supabase
-            .from("users")
-            .update({
-              name: data.name,
-              phone: data.phone,
-              unit_code: data.unitCode,
-              role: "Franqueado",
-              user_type: "Aluno",
-              approval_status: "aprovado",
-              approved_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", existingUser.id)
-            .select()
-            .single();
-
-          if (updateError) {
-            throw new Error(`Erro ao atualizar usuário: ${updateError.message}`);
-          }
-
-          return updatedUser;
-        }
-      }
-
-      // Criar usuário na tabela users
-      const { data: newUser, error: createError } = await supabase
-        .from("users")
-        .insert({
+      // Usar a edge function específica para criar franqueados
+      const { data: result, error } = await supabase.functions.invoke('create-franchisee', {
+        body: {
           email: data.email,
           name: data.name,
           phone: data.phone,
-          unit_code: data.unitCode,
-          role: "Franqueado",
-          user_type: "Aluno", // Tipo de usuário como Aluno
-          approval_status: "aprovado",
-          approved_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+          unitCode: data.unitCode,
+          unitName: data.unitName
+        }
+      });
 
-      if (createError) {
-        throw new Error(`Erro ao criar franqueado: ${createError.message}`);
+      if (error) {
+        throw new Error(`Erro ao criar franqueado: ${error.message}`);
       }
 
-      return newUser;
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao criar franqueado');
+      }
+
+      return result.user;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["unidade-colaborators"] });
+      toast.success("Franqueado criado com sucesso!", {
+        description: "Senha padrão definida: Trocar01"
+      });
     },
     onError: (error: Error) => {
       toast.error(error.message);
