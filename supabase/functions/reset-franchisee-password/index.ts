@@ -35,10 +35,12 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Buscar usuário no auth usando getUserByEmail
-    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email)
+    // Buscar usuário no auth usando listUsers
+    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
+      filter: `email.eq.${email}`
+    })
     
-    if (getUserError || !authUser.user) {
+    if (getUserError || !authUser.users || authUser.users.length === 0) {
       console.error('Usuário não encontrado no auth:', getUserError)
       return new Response(
         JSON.stringify({ 
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const user = authUser.user
+    const user = authUser.users[0]
     console.log(`Usuário encontrado: ${user.id}`)
 
     // Redefinir senha para Trocar01
