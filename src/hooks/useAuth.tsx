@@ -412,6 +412,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.success("Logout realizado", {
         description: "Até logo!",
       });
+      // Force redirect to auth page after logout
+      window.location.href = "/auth";
     }
   };
 

@@ -43,8 +43,16 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<RoleRedirect />} />
-              <Route path="/perfil" element={<ProfileSelection />} />
-              <Route path="/dashboard" element={<Index />} />
+              <Route path="/perfil" element={
+                <ProtectedRoute>
+                  <ProfileSelection />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <AdminRoute>
+                  <Index />
+                </AdminRoute>
+              } />
               <Route path="/courses" element={
                 <AdminRoute>
                   <CoursesPage />

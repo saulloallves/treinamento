@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { setSelectedProfile } from '@/lib/profile';
 
 const ProfileSelection = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
   const [hasStudentProfile, setHasStudentProfile] = useState(false);
   const navigate = useNavigate();
@@ -34,28 +34,28 @@ const ProfileSelection = () => {
     }
   }, [user?.id]);
 
+  // Auto-redirect effect (separate from data fetching)
+  useEffect(() => {
+    if (loading || checking) return;
+    
+    // Se só tem um perfil, redireciona automaticamente
+    if (!isAdmin && hasStudentProfile) {
+      navigate('/aluno');
+      return;
+    }
+    
+    if (isAdmin && !hasStudentProfile) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [loading, checking, isAdmin, hasStudentProfile, navigate]);
+
   if (loading || checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
-  }
-
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
-
-  // Se só tem um perfil, redireciona automaticamente
-  if (!isAdmin && hasStudentProfile) {
-    navigate('/aluno');
-    return null;
-  }
-  
-  if (isAdmin && !hasStudentProfile) {
-    navigate('/dashboard');
-    return null;
   }
 
   const handleProfileSelection = (profile: 'admin' | 'student') => {
@@ -125,7 +125,7 @@ const ProfileSelection = () => {
         <div className="text-center mt-8">
           <Button 
             variant="outline" 
-            onClick={() => supabase.auth.signOut()}
+            onClick={signOut}
             className="text-gray-600"
           >
             Fazer Logout
