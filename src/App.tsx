@@ -42,7 +42,14 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<RoleRedirect />} />
+              <Route path="/" element={
+                <div>
+                  <div style={{ position: 'fixed', top: '10px', left: '10px', background: 'white', padding: '10px', zIndex: 9999, fontSize: '12px' }}>
+                    Root route accessed - rendering RoleRedirect
+                  </div>
+                  <RoleRedirect />
+                </div>
+              } />
               <Route path="/perfil" element={<ProfileSelection />} />
               <Route path="/dashboard" element={<Index />} />
               <Route path="/courses" element={

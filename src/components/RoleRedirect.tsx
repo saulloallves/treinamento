@@ -9,30 +9,70 @@ const RoleRedirect = () => {
   const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
   const [hasStudentProfile, setHasStudentProfile] = useState<boolean | null>(null);
+  const [timeout, setTimeout] = useState(false);
+
+  console.log('RoleRedirect - Current state:', {
+    user: !!user,
+    userId: user?.id,
+    loading,
+    checking,
+    isAdmin,
+    hasStudentProfile,
+    timeout,
+    timestamp: new Date().toISOString()
+  });
+
+  // Add a timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      console.log('RoleRedirect - Timeout reached, redirecting to auth');
+      setTimeout(true);
+    }, 10000); // 10 seconds timeout
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
+    console.log('RoleRedirect - useEffect running for user:', user?.id);
     document.title = "Direcionando...";
     
     const checkStudentProfile = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        console.log('RoleRedirect - No user ID, returning early');
+        setHasStudentProfile(false);
+        return;
+      }
       
       console.log('RoleRedirect - Checking student profile for user:', user?.id);
-      const { data: studentData, error } = await supabase
-        .from('users')
-        .select('id, user_type, role')
-        .eq('id', user.id)
-        .maybeSingle();
+      try {
+        const { data: studentData, error } = await supabase
+          .from('users')
+          .select('id, user_type, role')
+          .eq('id', user.id)
+          .maybeSingle();
+          
+        console.log('RoleRedirect - Student query result:', { studentData, error });
         
-      if (error) {
-        console.error('RoleRedirect - Error fetching student data:', error);
+        if (error) {
+          console.error('RoleRedirect - Error fetching student data:', error);
+          setHasStudentProfile(false);
+        } else {
+          setHasStudentProfile(!!studentData);
+        }
+      } catch (e) {
+        console.error('RoleRedirect - Exception:', e);
+        setHasStudentProfile(false);
       }
-      setHasStudentProfile(!!studentData);
     };
     
-    if (user?.id) {
-      checkStudentProfile();
-    }
+    checkStudentProfile();
   }, [user?.id]);
+
+  // If timeout occurred, redirect to auth
+  if (timeout) {
+    console.log('RoleRedirect - Timeout fallback, redirecting to auth');
+    return <Navigate to="/auth" replace />;
+  }
 
   if (loading || checking || hasStudentProfile === null) {
     return (
