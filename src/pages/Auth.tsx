@@ -59,6 +59,32 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const handleAdminSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // Set profile preference before signing in
+    try {
+      localStorage.setItem('selected_profile', 'Admin');
+    } catch {
+      // Silent fail
+    }
+    await signIn(email.trim().toLowerCase(), password);
+    setIsLoading(false);
+  };
+
+  const handleStudentSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // Set profile preference before signing in
+    try {
+      localStorage.setItem('selected_profile', 'Aluno');
+    } catch {
+      // Silent fail
+    }
+    await signIn(email.trim().toLowerCase(), password);
+    setIsLoading(false);
+  };
+
   const handleStudentSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -134,7 +160,7 @@ const Auth = () => {
               </TabsList>
 
               <TabsContent value="login-student">
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <form onSubmit={handleStudentSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email</Label>
                     <Input
@@ -271,7 +297,7 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="login-admin">
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <form onSubmit={handleAdminSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email-admin-login" className="text-brand-gray-dark font-medium">Email</Label>
                     <Input

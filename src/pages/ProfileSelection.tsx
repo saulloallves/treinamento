@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield, GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { setSelectedProfile } from '@/lib/profile';
 
 const ProfileSelection = () => {
   const { user, loading } = useAuth();
@@ -59,8 +60,10 @@ const ProfileSelection = () => {
 
   const handleProfileSelection = (profile: 'admin' | 'student') => {
     if (profile === 'admin') {
+      setSelectedProfile('Admin');
       navigate('/dashboard');
     } else {
+      setSelectedProfile('Aluno');
       navigate('/aluno');
     }
   };

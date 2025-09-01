@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { getSelectedProfile } from '@/lib/profile';
 
 interface AdminRouteProps {
   children: ReactNode;
@@ -24,7 +25,9 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isAdmin) {
+  const selectedProfile = getSelectedProfile();
+
+  if (!isAdmin || selectedProfile !== 'Admin') {
     return <Navigate to="/aluno" replace />;
   }
 

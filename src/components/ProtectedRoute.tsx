@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { getSelectedProfile } from '@/lib/profile';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -25,9 +26,15 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  const role = isAdmin ? 'Admin' : 'Aluno';
-  if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'Admin' ? '/' : '/aluno'} replace />;
+  const selectedProfile = getSelectedProfile();
+  
+  if (requiredRole) {
+    if (requiredRole === 'Admin' && selectedProfile !== 'Admin') {
+      return <Navigate to="/aluno" replace />;
+    }
+    if (requiredRole === 'Aluno' && selectedProfile !== 'Aluno') {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

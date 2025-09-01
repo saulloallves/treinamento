@@ -1,8 +1,9 @@
-
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User, Session } from "@supabase/supabase-js";
+import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+import { clearSelectedProfile } from "@/lib/profile";
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +30,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener
@@ -126,8 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Erro ao vincular inscrições:', linkError);
         } else if (linkedEnrollments && linkedEnrollments.length > 0) {
           console.log(`${linkedEnrollments.length} inscrições vinculadas automaticamente`);
-          toast({
-            title: "Inscrições Vinculadas!",
+          toast.success("Inscrições Vinculadas!", {
             description: `${linkedEnrollments.length} inscrição(ões) existente(s) foi(foram) vinculada(s) à sua conta.`,
           });
         }
@@ -207,8 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
 
             if (!retryError && retryData.user) {
-              toast({
-                title: "Login realizado com sucesso!",
+              toast.success("Login realizado com sucesso!", {
                 description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
               });
               return { error: null };
@@ -233,10 +231,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .single();
           
           if (adminData?.status === 'pending') {
-            toast({
-              title: "Aprovação pendente",
+            toast.error("Aprovação pendente", {
               description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
-              variant: "destructive",
             });
           }
         } catch (adminCheckError) {
@@ -244,12 +240,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       
-      toast({
-        title: "Erro no login",
+      toast.error("Erro no login", {
         description: error.message === "Invalid login credentials" 
           ? "Email ou senha incorretos." 
           : error.message,
-        variant: "destructive",
       });
     } else if (data.user) {
       // Verificar se é colaborador com status pendente
@@ -264,10 +258,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Fazer logout imediatamente
           await supabase.auth.signOut();
           
-          toast({
-            title: "Cadastro aguardando aprovação",
+          toast.error("Cadastro aguardando aprovação", {
             description: "Seu cadastro como colaborador está pendente de aprovação pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
-            variant: "destructive",
           });
           
           return { error: { message: "Pending approval" } };
@@ -275,10 +267,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Fazer logout imediatamente
           await supabase.auth.signOut();
           
-          toast({
-            title: "Acesso negado",
+          toast.error("Acesso negado", {
             description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
-            variant: "destructive",
           });
           
           return { error: { message: "Access denied" } };
@@ -302,10 +292,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Se tem registro de admin mas não foi aprovado, bloquear acesso
         if (adminUser && !isAdminApproved) {
           await supabase.auth.signOut();
-          toast({
-            title: "Acesso Pendente de Aprovação",
+          toast.error("Acesso Pendente de Aprovação", {
             description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
-            variant: "destructive",
           });
           return { error: { message: "Admin pending approval" } };
         }
@@ -314,8 +302,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Se não conseguir verificar, continua com o login normal
       }
 
-      toast({
-        title: "Login realizado com sucesso!",
+      toast.success("Login realizado com sucesso!", {
         description: "Bem-vindo de volta!",
       });
     }
@@ -354,10 +341,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         errorMessage = "Aguarde alguns minutos antes de tentar se cadastrar novamente.";
       }
 
-      toast({
-        title: errorTitle,
+      toast.error(errorTitle, {
         description: errorMessage,
-        variant: "destructive",
       });
     } else {
       let successTitle = "Cadastro realizado!";
@@ -375,8 +360,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         successMessage = "Cadastro de franqueado criado com sucesso! Você já pode acessar o sistema.";
       }
 
-      toast({
-        title: successTitle,
+      toast.success(successTitle, {
         description: successMessage,
       });
     }
@@ -386,8 +370,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Logout realizado",
+    clearSelectedProfile();
+    toast.success("Logout realizado", {
       description: "Até logo!",
     });
   };

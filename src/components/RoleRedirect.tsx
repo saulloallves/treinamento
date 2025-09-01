@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
+import { getSelectedProfile } from "@/lib/profile";
 
 const RoleRedirect = () => {
   const { user, loading } = useAuth();
@@ -41,9 +42,17 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Se o usuário tem ambos os perfis (admin E aluno), direcionar para seleção
+  const selectedProfile = getSelectedProfile();
+
+  // Se o usuário tem ambos os perfis (admin E aluno), verificar preferência
   if (isAdmin && hasStudentProfile) {
-    return <Navigate to="/perfil" replace />;
+    if (selectedProfile === 'Admin') {
+      return <Navigate to="/dashboard" replace />;
+    } else if (selectedProfile === 'Aluno') {
+      return <Navigate to="/aluno" replace />;
+    } else {
+      return <Navigate to="/perfil" replace />;
+    }
   }
 
   // Se só é admin, vai para dashboard
