@@ -21,14 +21,15 @@ Deno.serve(async (req) => {
 
     console.log(`Corrigindo login para: ${email}`)
 
-    // Primeiro, tentar encontrar o usuário no auth
-    const { data: usersList, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    // Primeiro, tentar encontrar o usuário no auth usando getUserByEmail
+    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email)
     
-    if (listError) {
-      console.error('Erro ao listar usuários:', listError)
+    if (getUserError) {
+      console.error('Erro ao buscar usuário:', getUserError)
+      throw getUserError
     }
 
-    let existingUser = usersList?.users?.find(u => u.email === email)
+    let existingUser = authUser?.user
     console.log('Usuário encontrado no auth:', existingUser ? existingUser.id : 'NÃO ENCONTRADO')
 
     if (existingUser) {
@@ -48,6 +49,18 @@ Deno.serve(async (req) => {
       }
 
       console.log('Senha atualizada com sucesso')
+
+      // Atualizar a tabela users com o ID correto do auth se necessário
+      const { error: updateUsersError } = await supabaseAdmin
+        .from('users')
+        .update({ id: existingUser.id })
+        .eq('email', email)
+
+      if (updateUsersError) {
+        console.error('Erro ao atualizar tabela users:', updateUsersError)
+      } else {
+        console.log('Tabela users sincronizada com auth')
+      }
     } else {
       // Se não existe, criar usuário no auth
       console.log('Criando usuário no auth...')
