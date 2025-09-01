@@ -6,10 +6,13 @@ import { Progress } from "@/components/ui/progress";
 import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import FranchiseeCollaboratorApprovals from "@/components/student/FranchiseeCollaboratorApprovals";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
   const [openEnroll, setOpenEnroll] = useState(false);
+  const { data: currentUser } = useCurrentUser();
 
   useEffect(() => {
     document.title = "Área do Aluno | Cresci e Perdi";
@@ -19,8 +22,12 @@ const StudentPortal = () => {
   console.log('StudentPortal render:', {
     isLoading,
     enrollmentsCount: enrollments.length,
-    enrollments
+    enrollments,
+    currentUser
   });
+
+  // Verificar se é franqueado e tem unit_code para mostrar gestão de colaboradores
+  const showCollaboratorApprovals = currentUser?.role === 'Franqueado' && currentUser?.unit_code;
   return (
     <BaseLayout title="Área do Aluno">
       <header className="mb-6 flex items-center justify-between">
@@ -34,6 +41,13 @@ const StudentPortal = () => {
       </header>
 
       <SelfEnrollDialog open={openEnroll} onOpenChange={setOpenEnroll} />
+
+      {/* Seção de gestão de colaboradores para franqueados */}
+      {showCollaboratorApprovals && (
+        <div className="mb-6">
+          <FranchiseeCollaboratorApprovals unitCode={currentUser.unit_code!} />
+        </div>
+      )}
 
       <main>
         {isLoading ? (
