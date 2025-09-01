@@ -24,6 +24,7 @@ import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
+import ProfileSelection from "./pages/ProfileSelection";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
@@ -41,6 +42,8 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<RoleRedirect />} />
+              <Route path="/perfil" element={<ProfileSelection />} />
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/courses" element={
                 <AdminRoute>
                   <CoursesPage />
