@@ -30,7 +30,28 @@ export const useCreateFranchisee = () => {
         if (existingUser.role === "Franqueado") {
           throw new Error("Já existe um franqueado cadastrado com este email");
         } else {
-          throw new Error("Já existe um usuário cadastrado com este email");
+          // Atualizar usuário existente para ser franqueado
+          const { data: updatedUser, error: updateError } = await supabase
+            .from("users")
+            .update({
+              name: data.name,
+              phone: data.phone,
+              unit_code: data.unitCode,
+              role: "Franqueado",
+              user_type: "Aluno",
+              approval_status: "aprovado",
+              approved_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", existingUser.id)
+            .select()
+            .single();
+
+          if (updateError) {
+            throw new Error(`Erro ao atualizar usuário: ${updateError.message}`);
+          }
+
+          return updatedUser;
         }
       }
 
