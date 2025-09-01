@@ -259,6 +259,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           : error.message,
       });
     } else if (data.user) {
+      // Ensure profile exists before checking approval status
+      try {
+        await ensureProfile(data.user);
+      } catch (profileError) {
+        console.error('Error ensuring profile:', profileError);
+      }
+
       // Verificar se é colaborador com status pendente
       try {
         const { data: userData } = await supabase
@@ -271,11 +278,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Fazer logout imediatamente
           await supabase.auth.signOut();
           
-          toast.error("Cadastro aguardando aprovação", {
-            description: "Seu cadastro como colaborador está pendente de aprovação pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
+          toast.error("Cadastro em análise", {
+            description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
           });
           
-          return { error: { message: "Pending approval" } };
+          return { error: { message: "Cadastro em análise" } };
         } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
           // Fazer logout imediatamente
           await supabase.auth.signOut();
@@ -288,6 +295,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (userCheckError) {
         console.error('Error checking user approval status:', userCheckError);
+        
+        // If user doesn't exist in users table but exists in auth, show incomplete registration message
+        if (userCheckError.code === 'PGRST116') {
+          await supabase.auth.signOut();
+          
+          toast.error("Cadastro incompleto", {
+            description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
+          });
+          
+          return { error: { message: "Incomplete registration" } };
+        }
       }
 
       // Verificar se é um admin pendente de aprovação

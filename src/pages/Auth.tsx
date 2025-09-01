@@ -9,14 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateCollaborator } from '@/hooks/useCollaborationApprovals';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 
 
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
-  const createCollaboratorMutation = useCreateCollaborator();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -93,14 +94,35 @@ const Auth = () => {
     
     try {
       if (userRole === 'Colaborador') {
-        // Use o hook específico para colaboradores
-        await createCollaboratorMutation.mutateAsync({
-          name: fullName,
-          email: email.trim().toLowerCase(),
-          password,
-          unitCode,
-          position
+        // Use the new edge function for collaborator registration
+        const { data, error } = await supabase.functions.invoke('register-collaborator', {
+          body: {
+            name: fullName,
+            email: email.trim().toLowerCase(),
+            password,
+            unitCode,
+            position
+          }
         });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.success) {
+          toast.success("Cadastro criado com sucesso!", {
+            description: "Cadastro em análise. Aguarde aprovação do franqueado da sua unidade para acessar o sistema.",
+          });
+          
+          // Clear form
+          setFullName('');
+          setEmail('');
+          setPassword('');
+          setUnitCode('');
+          setPosition('');
+        } else {
+          throw new Error(data?.error || 'Erro desconhecido');
+        }
       } else {
         // Para franqueados, use o fluxo padrão
         await signUp(email, password, fullName, { 
@@ -110,8 +132,11 @@ const Auth = () => {
           position: undefined
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during signup:', error);
+      toast.error("Erro no cadastro", {
+        description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -314,9 +339,9 @@ const Auth = () => {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading || createCollaboratorMutation.isPending}
+                    disabled={isLoading}
                   >
-                    {(isLoading || createCollaboratorMutation.isPending) ? "Cadastrando..." : "Criar Conta"}
+                    {isLoading ? "Cadastrando..." : "Criar Conta"}
                   </Button>
                 </form>
               </TabsContent>

@@ -57,14 +57,14 @@ export const useUnitApprovalCount = (unitCode: string) => {
   return useQuery({
     queryKey: ['unit-approval-count', unitCode],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('collaboration_approvals')
-        .select('id', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('unit_code', unitCode)
         .eq('status', 'pendente');
 
       if (error) throw error;
-      return data?.length || 0;
+      return count || 0;
     },
     enabled: !!unitCode,
   });
