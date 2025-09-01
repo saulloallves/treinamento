@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useResetFranchiseePassword } from '@/hooks/useResetFranchiseePassword';
+
 
 
 
@@ -24,13 +24,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const resetPassword = useResetFranchiseePassword();
-
-  const handleResetPassword = () => {
-    if (email) {
-      resetPassword.mutate(email);
-    }
-  };
 
   // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
   useEffect(() => {
@@ -172,16 +165,6 @@ const Auth = () => {
                     disabled={isLoading}
                   >
                     {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                  
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    className="w-full mt-2" 
-                    onClick={handleResetPassword}
-                    disabled={resetPassword.isPending || !email}
-                  >
-                    {resetPassword.isPending ? "Redefinindo..." : "Redefinir Senha"}
                   </Button>
                 </form>
               </TabsContent>

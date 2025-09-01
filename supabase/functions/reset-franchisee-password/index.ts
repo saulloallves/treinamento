@@ -35,28 +35,64 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Buscar usuário no auth usando listUsers
-    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
-      filter: `email.eq.${email}`
-    })
+    // Buscar usuário no auth - listar todos e filtrar manualmente
+    let targetUser = null;
+    let page = 1;
+    const perPage = 50;
     
-    if (getUserError || !authUser.users || authUser.users.length === 0) {
-      console.error('Usuário não encontrado no auth:', getUserError)
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Usuário não encontrado no sistema de autenticação' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    while (!targetUser) {
+      const { data: usersList, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage
+      });
+      
+      if (listError) {
+        console.error('Erro ao listar usuários:', listError);
+        throw listError;
+      }
+      
+      if (!usersList.users || usersList.users.length === 0) {
+        break; // Não há mais usuários para verificar
+      }
+      
+      // Procurar pelo email específico
+      targetUser = usersList.users.find(u => u.email === email);
+      
+      if (!targetUser && usersList.users.length < perPage) {
+        break; // Última página, usuário não encontrado
+      }
+      
+      page++;
     }
 
-    const user = authUser.users[0]
-    console.log(`Usuário encontrado: ${user.id}`)
+    if (!targetUser) {
+      // Usuário não existe, vamos criar
+      console.log(`Usuário ${email} não encontrado, criando novo usuário...`);
+      
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: email,
+        password: 'Trocar01',
+        email_confirm: true,
+        user_metadata: {
+          full_name: 'Alison Martins',
+          user_type: 'Aluno',
+          role: 'Franqueado'
+        }
+      });
+      
+      if (createError) {
+        console.error('Erro ao criar usuário:', createError);
+        throw createError;
+      }
+      
+      targetUser = newUser.user;
+      console.log(`Usuário criado com sucesso: ${targetUser.id}`);
+    }
+    console.log(`Usuário encontrado/criado: ${targetUser.id}`)
 
     // Redefinir senha para Trocar01
     const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
+      targetUser.id,
       { 
         password: 'Trocar01',
         email_confirm: true

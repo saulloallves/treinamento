@@ -190,11 +190,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
         try {
           console.log('Tentando resetar senha do Alison automaticamente...');
-          const { error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
+          const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
             body: { email }
           });
 
-          if (!resetError) {
+          if (!resetError && resetResult?.success) {
+            console.log('Reset de senha realizado com sucesso, tentando login novamente...');
+            
+            // Aguardar um momento para garantir que a senha foi atualizada
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
             // Tentar logar novamente com a senha padrão
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
               email,
@@ -204,10 +209,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (!retryError && retryData.user) {
               toast({
                 title: "Login realizado com sucesso!",
-                description: "Senha foi redefinida automaticamente. Recomendamos alterar sua senha.",
+                description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
               });
               return { error: null };
+            } else {
+              console.error('Erro no segundo login:', retryError);
             }
+          } else {
+            console.error('Erro no reset:', resetError || resetResult);
           }
         } catch (resetError) {
           console.error('Erro ao tentar resetar senha automaticamente:', resetError);
