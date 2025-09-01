@@ -15,7 +15,7 @@ const BaseLayout = ({ title, children }: BaseLayoutProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background w-full items-start">
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
