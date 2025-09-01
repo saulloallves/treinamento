@@ -123,41 +123,101 @@ export const useCreateCollaborator = () => {
       unitCode: string;
       position?: string;
     }) => {
-      // 1. Criar usuário no auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: collaboratorData.email,
-        password: collaboratorData.password,
-        user_metadata: {
-          full_name: collaboratorData.name,
+      // 1. Verificar se o usuário já existe no auth
+      let authData;
+      let userId;
+      
+      try {
+        // Primeiro tenta criar o usuário
+        const createResult = await supabase.auth.admin.createUser({
+          email: collaboratorData.email,
+          password: collaboratorData.password,
+          user_metadata: {
+            full_name: collaboratorData.name,
+            user_type: 'Aluno',
+            role: 'Colaborador',
+            unit_code: collaboratorData.unitCode
+          },
+          email_confirm: true
+        });
+
+        if (createResult.error && createResult.error.message.includes('already been registered')) {
+          // Usuário já existe no auth, buscar o ID
+          const { data: existingUsers } = await supabase.auth.admin.listUsers();
+          if (!existingUsers.users) {
+            throw new Error("Erro ao buscar usuários existentes");
+          }
+          
+          const existingUser = existingUsers.users.find((u: any) => 
+            u.email?.toLowerCase() === collaboratorData.email.toLowerCase()
+          );
+          
+          if (!existingUser) {
+            throw new Error("Usuário não encontrado");
+          }
+          
+          userId = existingUser.id;
+          console.log('Using existing auth user:', userId);
+        } else if (createResult.error) {
+          throw createResult.error;
+        } else {
+          authData = createResult;
+          userId = authData.user?.id;
+          if (!userId) throw new Error("Erro ao criar usuário");
+        }
+      } catch (error) {
+        console.error('Error in user creation/verification:', error);
+        throw error;
+      }
+
+      // 2. Verificar se já existe registro na tabela users
+      const { data: existingUserRecord } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!existingUserRecord) {
+        // 3. Criar registro na tabela users
+        const { error: userError } = await supabase.from('users').insert([{
+          id: userId,
+          name: collaboratorData.name,
+          email: collaboratorData.email,
           user_type: 'Aluno',
           role: 'Colaborador',
-          unit_code: collaboratorData.unitCode
-        },
-        email_confirm: true
-      });
+          unit_code: collaboratorData.unitCode,
+          position: collaboratorData.position,
+          approval_status: 'pendente',
+          active: true,
+        }]);
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Erro ao criar usuário");
+        if (userError) {
+          console.error('Error creating user record:', userError);
+          throw userError;
+        }
+      } else {
+        console.log('User record already exists, updating status to pendente');
+        // Atualizar status para pendente se o usuário já existir
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({
+            approval_status: 'pendente',
+            name: collaboratorData.name,
+            unit_code: collaboratorData.unitCode,
+            position: collaboratorData.position,
+          })
+          .eq('id', userId);
 
-      // 2. Criar registro na tabela users
-      const { error: userError } = await supabase.from('users').insert([{
-        id: authData.user.id,
-        name: collaboratorData.name,
-        email: collaboratorData.email,
-        user_type: 'Aluno',
-        role: 'Colaborador',
-        unit_code: collaboratorData.unitCode,
-        position: collaboratorData.position,
-        approval_status: 'pendente',
-        active: true,
-      }]);
+        if (updateError) {
+          console.error('Error updating user record:', updateError);
+          throw updateError;
+        }
+      }
 
-      if (userError) throw userError;
-
-      // 3. Disparar notificação para franqueado
+      // 4. Disparar notificação para franqueado
       const { error: notificationError } = await supabase.functions.invoke('notify-franchisee', {
         body: {
-          collaboratorId: authData.user.id,
+          collaboratorId: userId,
           collaboratorName: collaboratorData.name,
           unitCode: collaboratorData.unitCode
         }
@@ -168,7 +228,7 @@ export const useCreateCollaborator = () => {
         // Não falha a operação, apenas avisa
       }
 
-      return authData.user;
+      return { id: userId };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
