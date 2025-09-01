@@ -16,12 +16,16 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
-      const { data: studentData } = await supabase
+      console.log('RoleRedirect - Checking student profile for user:', user?.id);
+      const { data: studentData, error } = await supabase
         .from('users')
         .select('id, user_type, role')
         .eq('id', user.id)
         .maybeSingle();
         
+      if (error) {
+        console.error('RoleRedirect - Error fetching student data:', error);
+      }
       setHasStudentProfile(!!studentData);
     };
     

@@ -32,9 +32,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Auth - Setting up listeners');
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth - State change:', { event, hasSession: !!session, hasUser: !!session?.user });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -44,9 +46,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(() => {
             (async () => {
               try {
+                console.log('Auth - Ensuring profile for user:', session.user!.id);
                 await ensureProfile(session.user!);
                 await supabase.rpc('ensure_admin_bootstrap');
-              } catch {}
+              } catch (e) {
+                console.error('Auth - Error in deferred work:', e);
+              }
             })();
           }, 0);
         }
@@ -54,7 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session
+    console.log('Auth - Checking existing session');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Auth - Existing session:', { hasSession: !!session, hasUser: !!session?.user });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -62,15 +69,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           (async () => {
             try {
+              console.log('Auth - Ensuring profile for existing user:', session.user!.id);
               await ensureProfile(session.user!);
               await supabase.rpc('ensure_admin_bootstrap');
-            } catch {}
+            } catch (e) {
+              console.error('Auth - Error in existing session work:', e);
+            }
           })();
         }, 0);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Auth - Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Ensure a row exists in public.users for this auth user
