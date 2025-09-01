@@ -205,7 +205,7 @@ const CreateUserDialog = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100]">
                   <SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem>
                   <SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem>
                   <SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem>
