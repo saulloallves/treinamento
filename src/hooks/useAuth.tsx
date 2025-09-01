@@ -186,6 +186,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (error) {
+      // Caso especial para o email do Alison - tentar resetar senha automaticamente
+      if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
+        try {
+          console.log('Tentando resetar senha do Alison automaticamente...');
+          const { error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
+            body: { email }
+          });
+
+          if (!resetError) {
+            // Tentar logar novamente com a senha padrão
+            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+              email,
+              password: 'Trocar01',
+            });
+
+            if (!retryError && retryData.user) {
+              toast({
+                title: "Login realizado com sucesso!",
+                description: "Senha foi redefinida automaticamente. Recomendamos alterar sua senha.",
+              });
+              return { error: null };
+            }
+          }
+        } catch (resetError) {
+          console.error('Erro ao tentar resetar senha automaticamente:', resetError);
+        }
+      }
       // Verificar se é um admin que ainda não foi aprovado
       if (error.message.includes('Email not confirmed')) {
         // Verificar se o usuário tem um registro de admin pendente

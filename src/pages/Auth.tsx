@@ -62,7 +62,7 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signIn(email, password);
+    await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
 

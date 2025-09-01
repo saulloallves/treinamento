@@ -20,12 +20,25 @@ Deno.serve(async (req) => {
 
     console.log(`Redefinindo senha para: ${email}`)
 
-    // Buscar usuário no auth
-    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
-      filter: `email.eq.${email}`
-    })
+    // Validação de segurança: só permite o email específico do Alison
+    if (email !== 'alison.martins@crescieperdi.com.br') {
+      console.error('Tentativa de uso não autorizada para email:', email)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Acesso negado para este email' 
+        }),
+        { 
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Buscar usuário no auth usando getUserByEmail
+    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email)
     
-    if (getUserError || !authUser.users || authUser.users.length === 0) {
+    if (getUserError || !authUser.user) {
       console.error('Usuário não encontrado no auth:', getUserError)
       return new Response(
         JSON.stringify({ 
@@ -36,7 +49,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const user = authUser.users[0]
+    const user = authUser.user
     console.log(`Usuário encontrado: ${user.id}`)
 
     // Redefinir senha para Trocar01

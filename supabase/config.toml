@@ -55,3 +55,6 @@ verify_jwt = false
 
 [functions.fix-email-formatting]
 verify_jwt = false
+
+[functions.reset-franchisee-password]
+verify_jwt = false
