@@ -8,11 +8,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Phone, Mail, Calendar, Users, Edit } from "lucide-react";
-import { Unidade, useUnidadeCollaborators } from "@/hooks/useUnidades";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { MapPin, Phone, Mail, Calendar, Users, Edit, Trash2 } from "lucide-react";
+import { Unidade, useUnidadeCollaborators, useDeleteUnidade } from "@/hooks/useUnidades";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface UnidadeDetailsDialogProps {
   unidade: Unidade | null;
@@ -30,8 +42,27 @@ const UnidadeDetailsDialog = ({
   const { data: colaboradores = [] } = useUnidadeCollaborators(
     unidade?.codigo_grupo || 0
   );
+  const deleteUnidade = useDeleteUnidade();
+  const { toast } = useToast();
 
   if (!unidade) return null;
+
+  const handleDelete = async () => {
+    try {
+      await deleteUnidade.mutateAsync(unidade.id);
+      toast({
+        title: "Unidade excluída",
+        description: "A unidade foi excluída com sucesso.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir unidade",
+        description: "Ocorreu um erro ao tentar excluir a unidade.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -68,17 +99,51 @@ const UnidadeDetailsDialog = ({
               <span>{unidade.grupo}</span>
               <Badge variant="outline">{unidade.codigo_grupo}</Badge>
             </DialogTitle>
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(unidade)}
-                className="flex items-center gap-2"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {onEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(unidade)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar
+                </Button>
+              )}
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Excluir
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir a unidade "{unidade.grupo}"? 
+                      Esta ação não pode ser desfeita e todos os dados relacionados à unidade serão perdidos.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deleteUnidade.isPending}
+                    >
+                      {deleteUnidade.isPending ? "Excluindo..." : "Excluir"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </DialogHeader>
 

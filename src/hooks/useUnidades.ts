@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Unidade {
@@ -73,5 +73,25 @@ export const useUnidadeCollaborators = (codigo_grupo: number) => {
       return data;
     },
     enabled: !!codigo_grupo,
+  });
+};
+
+export const useDeleteUnidade = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("unidades")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw new Error(`Erro ao deletar unidade: ${error.message}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unidades"] });
+    },
   });
 };
