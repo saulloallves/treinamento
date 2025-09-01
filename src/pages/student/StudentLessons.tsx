@@ -14,13 +14,12 @@ const StudentLessons = () => {
 
   useEffect(() => {
     document.title = "Aulas Agendadas | Área do Aluno";
+    console.log('StudentLessons mounted', { lessons, isLoading, checkingAdmin, isAdmin });
   }, []);
 
   useEffect(() => {
-    if (!checkingAdmin && isAdmin) {
-      navigate('/', { replace: true });
-    }
-  }, [checkingAdmin, isAdmin, navigate]);
+    console.log('StudentLessons effect', { checkingAdmin, isAdmin, lessons: lessons.length });
+  }, [checkingAdmin, isAdmin, lessons]);
   return (
     <BaseLayout title="Aulas Agendadas">
       <header className="mb-6 flex items-center justify-between">
