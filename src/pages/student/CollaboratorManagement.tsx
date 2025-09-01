@@ -44,13 +44,10 @@ const CollaboratorManagement = () => {
     <BaseLayout title="Gestão de Colaboradores">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3">
             <Users className="h-6 w-6 text-primary" />
             <h2 className="text-2xl font-semibold">Solicitações de Colaboradores</h2>
           </div>
-          <p className="text-muted-foreground">
-            Gerencie as solicitações de acesso dos colaboradores da unidade {currentUser.unit_code}
-          </p>
         </div>
         <RefreshButton 
           onClick={() => refetchApprovals()} 
