@@ -401,17 +401,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log('Iniciando logout...');
+      setLoading(true);
+      
       await supabase.auth.signOut();
+      console.log('Logout do Supabase realizado com sucesso');
     } catch (error) {
-      console.warn('Logout error (ignored):', error);
+      console.warn('Erro no logout do Supabase (será ignorado):', error);
     } finally {
       // Always clear local state even if Supabase logout fails
+      console.log('Limpando estado local...');
       setSession(null);
       setUser(null);
+      setLoading(false);
       clearSelectedProfile();
+      
       toast.success("Logout realizado", {
         description: "Até logo!",
       });
+      
+      console.log('Logout local concluído');
     }
   };
 
