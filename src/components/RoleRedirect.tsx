@@ -43,6 +43,13 @@ const RoleRedirect = () => {
   }
 
   const selectedProfile = getSelectedProfile();
+  
+  console.log('RoleRedirect Debug:', {
+    isAdmin,
+    hasStudentProfile,
+    selectedProfile,
+    userId: user.id
+  });
 
   // Se o usuário tem ambos os perfis (admin E aluno), verificar preferência
   if (isAdmin && hasStudentProfile) {

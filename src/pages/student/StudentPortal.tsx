@@ -13,7 +13,14 @@ const StudentPortal = () => {
 
   useEffect(() => {
     document.title = "Área do Aluno | Cresci e Perdi";
+    console.log('StudentPortal loaded successfully');
   }, []);
+
+  console.log('StudentPortal render:', {
+    isLoading,
+    enrollmentsCount: enrollments.length,
+    enrollments
+  });
   return (
     <BaseLayout title="Área do Aluno">
       <header className="mb-6 flex items-center justify-between">

@@ -28,15 +28,25 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
   const selectedProfile = getSelectedProfile();
   
+  console.log('ProtectedRoute Debug:', {
+    requiredRole,
+    selectedProfile,
+    isAdmin,
+    userId: user.id
+  });
+  
   if (requiredRole) {
     if (requiredRole === 'Admin' && selectedProfile !== 'Admin') {
+      console.log('Redirecting to /aluno because required Admin but selected:', selectedProfile);
       return <Navigate to="/aluno" replace />;
     }
     if (requiredRole === 'Aluno' && selectedProfile !== 'Aluno') {
+      console.log('Redirecting to /dashboard because required Aluno but selected:', selectedProfile);
       return <Navigate to="/dashboard" replace />;
     }
   }
 
+  console.log('ProtectedRoute: Rendering children');
   return <>{children}</>;
 };
 
