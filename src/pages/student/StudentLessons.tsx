@@ -6,7 +6,6 @@ import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import StudentQuizList from "@/components/student/StudentQuizList";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
@@ -36,7 +35,18 @@ const StudentLessons = () => {
       {isLoading ? (
         <p>Carregando aulas...</p>
       ) : lessons.length === 0 ? (
-        <p className="text-muted-foreground">Nenhuma aula agendada.</p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-4">Nenhuma aula agendada.</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Para visualizar aulas, você precisa primeiro se inscrever em um curso.
+          </p>
+          <Button 
+            onClick={() => navigate('/aluno')} 
+            variant="default"
+          >
+            Ver Cursos Disponíveis
+          </Button>
+        </div>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {lessons.map((lesson) => (
