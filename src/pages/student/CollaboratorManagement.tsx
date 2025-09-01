@@ -42,13 +42,7 @@ const CollaboratorManagement = () => {
 
   return (
     <BaseLayout title="Gestão de Colaboradores">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <Users className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-semibold">Solicitações de Colaboradores</h2>
-          </div>
-        </div>
+      <header className="mb-6 flex items-center justify-end">
         <RefreshButton 
           onClick={() => refetchApprovals()} 
           isRefreshing={isRefetching}
