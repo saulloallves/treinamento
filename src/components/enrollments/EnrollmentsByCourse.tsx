@@ -47,27 +47,27 @@ const EnrollmentsByCourse = () => {
             </span>
           </div>
 
-          <div className="overflow-x-auto -mx-2">
-            <table className="min-w-full text-sm mx-2">
+          <div className="w-full">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="text-left text-brand-gray-dark">
-                  <th className="py-2 pr-4 font-medium">Aluno</th>
-                  <th className="py-2 pr-4 font-medium">Email</th>
-                  <th className="py-2 pr-4 font-medium">Telefone</th>
-                  <th className="py-2 pr-4 font-medium">Unidade</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 pr-4 font-medium">Progresso</th>
-                  <th className="py-2 pr-4 font-medium">Data</th>
-                  <th className="py-2 pr-4 font-medium">Ações</th>
+                  <th className="py-2 pr-4 font-medium w-[15%]">Aluno</th>
+                  <th className="py-2 pr-4 font-medium w-[20%]">Email</th>
+                  <th className="py-2 pr-4 font-medium w-[12%]">Telefone</th>
+                  <th className="py-2 pr-4 font-medium w-[12%]">Unidade</th>
+                  <th className="py-2 pr-4 font-medium w-[8%]">Status</th>
+                  <th className="py-2 pr-4 font-medium w-[15%]">Progresso</th>
+                  <th className="py-2 pr-4 font-medium w-[10%]">Data</th>
+                  <th className="py-2 pr-4 font-medium w-[8%]">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {group.items.map((e) => (
                   <tr key={e.id} className="border-t border-border">
-                    <td className="py-3 pr-4 text-foreground">{e.student_name}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{e.student_email}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{e.student_phone || "-"}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{e.units?.name || "-"}</td>
+                    <td className="py-3 pr-4 text-foreground truncate">{e.student_name}</td>
+                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.student_email}</td>
+                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.student_phone || "-"}</td>
+                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.units?.name || "-"}</td>
                     <td className="py-3 pr-4">
                       <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
                         {e.status}

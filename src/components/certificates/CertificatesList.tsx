@@ -158,15 +158,15 @@ const CertificatesList = () => {
 
       {/* Lista de Certificados */}
       <div className="card-clean overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="w-full">
+          <table className="w-full table-fixed">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium text-brand-black">Aluno</th>
-                <th className="text-left p-4 font-medium text-brand-black">Curso</th>
-                <th className="text-left p-4 font-medium text-brand-black">Data da Solicitação</th>
-                <th className="text-left p-4 font-medium text-brand-black">Status</th>
-                <th className="text-left p-4 font-medium text-brand-black">Ações</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[25%]">Aluno</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[25%]">Curso</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Data da Solicitação</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Status</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -174,16 +174,16 @@ const CertificatesList = () => {
                 <tr key={r.id as any} className="border-b hover:bg-gray-50">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center flex-shrink-0">
                         <User className="w-4 h-4 text-brand-white" />
                       </div>
-                      <span className="font-medium text-brand-black">{r.studentName}</span>
+                      <span className="font-medium text-brand-black truncate">{r.studentName}</span>
                     </div>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{r.courseName}</span>
+                      <Award className="w-4 h-4 text-brand-blue flex-shrink-0" />
+                      <span className="text-brand-gray-dark truncate">{r.courseName}</span>
                     </div>
                   </td>
                   <td className="p-4">
