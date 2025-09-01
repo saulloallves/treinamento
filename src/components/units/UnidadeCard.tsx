@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Info } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Unidade } from "@/hooks/useUnidades";
 
 interface UnidadeCardProps {
@@ -22,7 +21,10 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card 
+      className="hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={() => onViewDetails(unidade)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -33,14 +35,6 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
               #{unidade.codigo_grupo || "N/A"}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onViewDetails(unidade)}
-            className="shrink-0"
-          >
-            <Info className="h-4 w-4" />
-          </Button>
         </div>
       </CardHeader>
       
