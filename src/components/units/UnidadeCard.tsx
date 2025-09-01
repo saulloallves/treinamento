@@ -27,8 +27,11 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg text-foreground truncate">
+          <div className="flex-1 min-w-0">
+            <h3 
+              className="font-semibold text-lg text-foreground truncate"
+              title={unidade.grupo || "N/A"}
+            >
               {unidade.grupo || "N/A"}
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -39,8 +42,8 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
       </CardHeader>
       
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+          <MapPin className="h-4 w-4 shrink-0" />
           <span className="truncate">
             {unidade.cidade && unidade.uf 
               ? `${unidade.cidade} / ${unidade.uf}` 
