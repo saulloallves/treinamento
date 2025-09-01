@@ -10,11 +10,14 @@ import RequestCertificateButton from "@/components/student/RequestCertificateBut
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 const StudentCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     document.title = "Meu Curso | Área do Aluno";
@@ -25,6 +28,19 @@ const StudentCourse = () => {
       navigate('/', { replace: true });
     }
   }, [checkingAdmin, isAdmin, navigate]);
+
+  const handleRefresh = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["my-enrollment", courseId] });
+      await queryClient.invalidateQueries({ queryKey: ["lessons", courseId] });
+      await queryClient.invalidateQueries({ queryKey: ['attendance', 'count'] });
+      enrollmentQuery.refetch();
+      lessonsQuery.refetch();
+      toast.success("Dados atualizados com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao atualizar dados");
+    }
+  };
   const enrollmentQuery = useQuery({
     queryKey: ["my-enrollment", courseId],
     queryFn: async () => {
@@ -100,10 +116,7 @@ const StudentCourse = () => {
         <h2 className="text-2xl font-semibold">Aulas do curso</h2>
         <div className="flex items-center gap-2">
           <RefreshButton
-            onClick={() => {
-              enrollmentQuery.refetch();
-              lessonsQuery.refetch();
-            }}
+            onClick={handleRefresh}
             isRefreshing={enrollmentQuery.isRefetching || lessonsQuery.isRefetching}
           />
           <Button asChild variant="outline">

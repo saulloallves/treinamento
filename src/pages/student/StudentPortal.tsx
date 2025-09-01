@@ -7,15 +7,28 @@ import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
 import { RefreshButton } from "@/components/ui/refresh-button";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
   const [openEnroll, setOpenEnroll] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     document.title = "Área do Aluno | Cresci e Perdi";
     console.log('StudentPortal loaded successfully');
   }, []);
+
+  const handleRefresh = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
+      await refetch();
+      toast.success("Dados atualizados com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao atualizar dados");
+    }
+  };
 
   console.log('StudentPortal render:', {
     isLoading,
@@ -28,7 +41,7 @@ const StudentPortal = () => {
         <h2 className="text-2xl font-semibold">Minhas inscrições</h2>
         <div className="flex items-center gap-2">
           <RefreshButton 
-            onClick={() => refetch()} 
+            onClick={handleRefresh} 
             isRefreshing={isRefetching}
           />
           <Button onClick={() => setOpenEnroll(true)}>Autoinscrição</Button>

@@ -4,17 +4,32 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import FranchiseeCollaboratorApprovals from "@/components/student/FranchiseeCollaboratorApprovals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Users, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useUnitCollaborationApprovals } from "@/hooks/useCollaborationApprovals";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const CollaboratorManagement = () => {
   const { data: currentUser, isLoading } = useCurrentUser();
   const { refetch: refetchApprovals, isRefetching } = useUnitCollaborationApprovals(currentUser?.unit_code || "");
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     document.title = "Gestão de Colaboradores | Área do Aluno";
   }, []);
+
+  const handleRefresh = async () => {
+    try {
+      if (currentUser?.unit_code) {
+        await queryClient.invalidateQueries({ queryKey: ['unit-collaboration-approvals', currentUser.unit_code] });
+        await refetchApprovals();
+        toast.success("Dados atualizados com sucesso!");
+      }
+    } catch (error) {
+      toast.error("Erro ao atualizar dados");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,7 +59,7 @@ const CollaboratorManagement = () => {
     <BaseLayout title="Gestão de Colaboradores">
       <header className="mb-6 flex items-center justify-end">
         <RefreshButton 
-          onClick={() => refetchApprovals()} 
+          onClick={handleRefresh} 
           isRefreshing={isRefetching}
         />
       </header>

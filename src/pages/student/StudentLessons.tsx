@@ -7,22 +7,37 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     document.title = "Aulas Agendadas | Área do Aluno";
   }, []);
+
+  const handleRefresh = async () => {
+    try {
+      // Invalidate related queries to ensure fresh data
+      await queryClient.invalidateQueries({ queryKey: ['upcoming_lessons'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
+      await refetch();
+      toast.success("Dados atualizados com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao atualizar dados");
+    }
+  };
   return (
     <BaseLayout title="Aulas Agendadas">
       <header className="mb-6 flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Próximas aulas</h2>
         <div className="flex gap-2">
           <RefreshButton 
-            onClick={() => refetch()} 
+            onClick={handleRefresh} 
             isRefreshing={isRefetching}
           />
         </div>
