@@ -24,6 +24,7 @@ import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
+import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfileSelection from "./pages/ProfileSelection";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
@@ -112,6 +113,11 @@ const App = () => (
               <Route path="/aluno/quiz" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentQuiz />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/colaboradores" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <CollaboratorManagement />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/curso/:courseId" element={

@@ -26,6 +26,7 @@ import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -34,6 +35,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
+  const { data: currentUser } = useCurrentUser();
   const selectedProfile = getSelectedProfile();
   
   // Determinar qual menu mostrar baseado na preferência do usuário
@@ -45,6 +47,22 @@ const Sidebar = () => {
     shouldShowAdminMenu,
     currentPath: location.pathname
   });
+  
+  // Menu para alunos (inclui gestão de colaboradores para franqueados)
+  const studentMenuItems = [
+    { icon: GraduationCap, label: "Cursos", path: "/aluno" },
+    { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
+    { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
+  ];
+
+  // Adicionar gestão de colaboradores se for franqueado
+  if (currentUser?.role === 'Franqueado' && currentUser?.unit_code) {
+    studentMenuItems.push({
+      icon: Users,
+      label: "Gestão de Colaboradores",
+      path: "/aluno/colaboradores"
+    });
+  }
   
   const menuItems = shouldShowAdminMenu
     ? [
@@ -62,11 +80,7 @@ const Sidebar = () => {
         { icon: Building2, label: "Unidades", path: "/units" },
         { icon: Settings, label: "Configurações", path: "/settings" },
       ]
-    : [
-        { icon: GraduationCap, label: "Cursos", path: "/aluno" },
-        { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
-        { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
-      ];
+    : studentMenuItems;
 
   if (isMobile) {
     return (
