@@ -38,37 +38,36 @@ serve(async (req) => {
 
     let userId: string;
 
-    // 1. First try to create the user, handle existing user case gracefully
-    const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: collaboratorData.email,
-      password: collaboratorData.password,
-      user_metadata: {
-        full_name: collaboratorData.name,
-        user_type: 'Aluno',
-        role: 'Colaborador',
-        unit_code: collaboratorData.unitCode
-      },
-      email_confirm: true
-    });
+    // 1. First check if user already exists in auth.users
+    console.log('Checking if user already exists:', collaboratorData.email);
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers.users?.find(u => 
+      u.email?.toLowerCase() === collaboratorData.email.toLowerCase()
+    );
 
-    if (authError && authError.message?.includes('already been registered')) {
-      // User already exists, find their ID
-      console.log('User already exists, finding existing user ID');
-      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-      const existingUser = existingUsers.users?.find(u => 
-        u.email?.toLowerCase() === collaboratorData.email.toLowerCase()
-      );
-      
-      if (!existingUser) {
-        throw new Error('User exists but could not be found');
-      }
-      
+    if (existingUser) {
+      console.log('User already exists in auth, reusing ID:', existingUser.id);
       userId = existingUser.id;
-      console.log('Using existing auth user:', userId);
-    } else if (authError) {
-      console.error('Error creating auth user:', authError);
-      throw authError;
     } else {
+      // 2. Create new user in auth.users
+      console.log('Creating new user in auth');
+      const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: collaboratorData.email,
+        password: collaboratorData.password,
+        user_metadata: {
+          full_name: collaboratorData.name,
+          user_type: 'Aluno',
+          role: 'Colaborador',
+          unit_code: collaboratorData.unitCode
+        },
+        email_confirm: true
+      });
+
+      if (authError) {
+        console.error('Error creating auth user:', authError);
+        throw authError;
+      }
+
       if (!newUser.user?.id) {
         throw new Error('Failed to create user - no ID returned');
       }
