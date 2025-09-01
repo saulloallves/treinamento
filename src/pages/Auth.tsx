@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useResetFranchiseePassword } from '@/hooks/useResetFranchiseePassword';
 
 
 const Auth = () => {
@@ -22,6 +23,11 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const resetPassword = useResetFranchiseePassword();
+
+  const handleResetPassword = () => {
+    resetPassword.mutate('alison.martins@crescieperdi.com.br');
+  };
 
   // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
   useEffect(() => {
@@ -163,6 +169,17 @@ const Auth = () => {
                     disabled={isLoading}
                   >
                     {isLoading ? "Entrando..." : "Entrar"}
+                  </Button>
+                  
+                  {/* Botão temporário para testar redefinição de senha */}
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="w-full mt-2" 
+                    onClick={handleResetPassword}
+                    disabled={resetPassword.isPending}
+                  >
+                    {resetPassword.isPending ? "Redefinindo..." : "🔧 Redefinir Senha do Alison"}
                   </Button>
                 </form>
               </TabsContent>
