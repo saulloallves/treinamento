@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useResetFranchiseePassword } from '@/hooks/useResetFranchiseePassword';
+import { useFixAlisonLogin } from '@/hooks/useFixAlisonLogin';
 
 
 const Auth = () => {
@@ -24,11 +25,16 @@ const Auth = () => {
 
   const navigate = useNavigate();
   const resetPassword = useResetFranchiseePassword();
+  const fixAlisonLogin = useFixAlisonLogin();
 
   const handleResetPassword = () => {
     if (email) {
       resetPassword.mutate(email);
     }
+  };
+
+  const handleFixAlisonLogin = () => {
+    fixAlisonLogin.mutate();
   };
 
   // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
@@ -181,6 +187,16 @@ const Auth = () => {
                     disabled={resetPassword.isPending || !email}
                   >
                     {resetPassword.isPending ? "Redefinindo..." : "Redefinir Senha"}
+                  </Button>
+                  
+                  <Button 
+                    type="button"
+                    variant="destructive"
+                    className="w-full mt-2" 
+                    onClick={handleFixAlisonLogin}
+                    disabled={fixAlisonLogin.isPending}
+                  >
+                    {fixAlisonLogin.isPending ? "Corrigindo..." : "🚨 CORRIGIR LOGIN ALISON"}
                   </Button>
                 </form>
               </TabsContent>
