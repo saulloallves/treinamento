@@ -115,12 +115,12 @@ const Auth = () => {
                   <LogIn className="h-4 w-4" />
                   Login Aluno
                 </TabsTrigger>
-                 <TabsTrigger
+                <TabsTrigger
                   value="register-student"
                   className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                 >
                   <Building className="h-4 w-4" />
-                  Cadastro
+                  Cadastro Aluno
                 </TabsTrigger>
                 <TabsTrigger
                   value="login-admin"
@@ -176,8 +176,8 @@ const Auth = () => {
                         <SelectValue placeholder="Selecione seu papel na unidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Franqueado">Franqueado da Unidade</SelectItem>
-                        <SelectItem value="Colaborador">Colaborador da Unidade</SelectItem>
+                        <SelectItem value="Franqueado">Franqueado</SelectItem>
+                        <SelectItem value="Colaborador">Colaborador</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
