@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Users, AlertTriangle, CheckCircle, Mail } from "lucide-react";
+import { Loader2, Users, AlertTriangle, CheckCircle, Mail, UserPlus } from "lucide-react";
 import { useBulkCreateFranchisees } from "@/hooks/useBulkCreateFranchisees";
 import { useFixEmailFormatting } from "@/hooks/useFixEmailFormatting";
 
@@ -47,8 +47,8 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            <DialogTitle>Cadastrar Todos os Franqueados</DialogTitle>
+            <UserPlus className="h-5 w-5 text-primary" />
+            <DialogTitle>Criar Alunos Franqueados</DialogTitle>
           </div>
         </DialogHeader>
 
@@ -57,7 +57,9 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Esta ação irá criar contas para todos os franqueados com base na tabela de unidades.
+                Esta ação irá criar contas de <strong>aluno</strong> para todos os franqueados com base na tabela de unidades.
+                <br />
+                <strong>Perfil:</strong> Aluno Franqueado
                 <br />
                 <strong>Senha padrão:</strong> Trocar01
                 <br />
@@ -86,7 +88,8 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
               <h4 className="font-medium mb-2">O que será feito:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Buscar todas as unidades com email cadastrado</li>
-                <li>• Criar conta de login para cada franqueado</li>
+                <li>• Criar conta de <strong>aluno</strong> para cada franqueado</li>
+                <li>• Definir perfil como <strong>"Franqueado"</strong></li>
                 <li>• Definir senha padrão: "Trocar01"</li>
                 <li>• Vincular franqueado à sua respectiva unidade</li>
                 <li>• Aprovar automaticamente o acesso</li>
@@ -167,7 +170,7 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
                 {bulkCreateMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Criar Todos os Franqueados
+                Criar Todos os Alunos Franqueados
               </Button>
             </>
           ) : (

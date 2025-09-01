@@ -76,7 +76,7 @@ const UnidadesList = () => {
           className="flex items-center gap-2"
         >
           <Users className="h-4 w-4" />
-          Criar Todos os Franqueados
+          Criar Alunos Franqueados
         </Button>
       </div>
 

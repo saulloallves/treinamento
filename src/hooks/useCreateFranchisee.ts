@@ -18,7 +18,7 @@ export const useCreateFranchisee = () => {
       // Verificar se já existe um usuário com este email
       const { data: existingUser, error: checkError } = await supabase
         .from("users")
-        .select("id, email, role")
+        .select("id, email, role, user_type")
         .eq("email", data.email)
         .maybeSingle();
 
@@ -43,7 +43,7 @@ export const useCreateFranchisee = () => {
           phone: data.phone,
           unit_code: data.unitCode,
           role: "Franqueado",
-          user_type: "Franqueado",
+          user_type: "Aluno", // Tipo de usuário como Aluno
           approval_status: "aprovado",
           approved_at: new Date().toISOString()
         })

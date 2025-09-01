@@ -88,7 +88,8 @@ const handler = async (req: Request): Promise<Response> => {
           user_metadata: {
             name: `Franqueado ${unidade.grupo}`,
             unit_code: unidade.codigo_grupo?.toString(),
-            role: "Franqueado"
+            role: "Franqueado",
+            user_type: "Aluno" // Definir como Aluno
           }
         });
 
@@ -113,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
             name: `Franqueado ${unidade.grupo}`,
             unit_code: unidade.codigo_grupo?.toString(),
             role: "Franqueado",
-            user_type: "Franqueado",
+            user_type: "Aluno", // Tipo de usuário como Aluno
             approval_status: "aprovado",
             approved_at: new Date().toISOString()
           });
