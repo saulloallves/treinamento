@@ -5,7 +5,6 @@ import FranchiseeCollaboratorApprovals from "@/components/student/FranchiseeColl
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { RefreshButton } from "@/components/ui/refresh-button";
 import { useUnitCollaborationApprovals } from "@/hooks/useCollaborationApprovals";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -57,39 +56,34 @@ const CollaboratorManagement = () => {
 
   return (
     <BaseLayout title="Gestão de Colaboradores">
-      <header className="mb-6 flex items-center justify-end">
-        <RefreshButton 
-          onClick={handleRefresh} 
+      <div className="space-y-4">
+        <FranchiseeCollaboratorApprovals 
+          unitCode={currentUser.unit_code}
+          onRefresh={handleRefresh}
           isRefreshing={isRefetching}
         />
-      </header>
-
-      <main>
-        <FranchiseeCollaboratorApprovals unitCode={currentUser.unit_code} />
         
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Como funciona?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <p>
-                • Quando um colaborador se cadastra no sistema usando o código da sua unidade ({currentUser.unit_code}), 
-                uma solicitação de aprovação é criada automaticamente.
-              </p>
-              <p>
-                • Você recebe uma notificação e pode aprovar ou rejeitar o acesso do colaborador.
-              </p>
-              <p>
-                • Após a aprovação, o colaborador poderá acessar o sistema normalmente.
-              </p>
-              <p>
-                • Colaboradores rejeitados não conseguirão fazer login no sistema.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Como funciona?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              • Quando um colaborador se cadastra no sistema usando o código da sua unidade ({currentUser.unit_code}), 
+              uma solicitação de aprovação é criada automaticamente.
+            </p>
+            <p>
+              • Você recebe uma notificação e pode aprovar ou rejeitar o acesso do colaborador.
+            </p>
+            <p>
+              • Após a aprovação, o colaborador poderá acessar o sistema normalmente.
+            </p>
+            <p>
+              • Colaboradores rejeitados não conseguirão fazer login no sistema.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </BaseLayout>
   );
 };

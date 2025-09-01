@@ -43,7 +43,7 @@ const BaseLayout = ({ title, children }: BaseLayoutProps) => {
         </header>
 
         {/* Conteúdo principal responsivo */}
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 md:p-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

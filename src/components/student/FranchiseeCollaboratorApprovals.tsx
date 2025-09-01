@@ -6,12 +6,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { Users, Clock, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 interface FranchiseeCollaboratorApprovalsProps {
   unitCode: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApprovalsProps) => {
+const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: FranchiseeCollaboratorApprovalsProps) => {
   const { data: approvals = [], isLoading } = useUnitCollaborationApprovals(unitCode);
   const approveCollaborator = useApproveCollaborator();
 
@@ -27,10 +30,19 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Solicitações pendentes
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Solicitações pendentes
+            </CardTitle>
+            {onRefresh && (
+              <RefreshButton 
+                onClick={onRefresh} 
+                isRefreshing={isRefreshing || false}
+                size="sm"
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <p>Carregando aprovações...</p>
@@ -43,10 +55,19 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Solicitações pendentes
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Solicitações pendentes
+            </CardTitle>
+            {onRefresh && (
+              <RefreshButton 
+                onClick={onRefresh} 
+                isRefreshing={isRefreshing || false}
+                size="sm"
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
@@ -60,11 +81,20 @@ const FranchiseeCollaboratorApprovals = ({ unitCode }: FranchiseeCollaboratorApp
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Solicitações pendentes
-          <Badge variant="secondary">{approvals.length}</Badge>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Solicitações pendentes
+            <Badge variant="secondary">{approvals.length}</Badge>
+          </CardTitle>
+          {onRefresh && (
+            <RefreshButton 
+              onClick={onRefresh} 
+              isRefreshing={isRefreshing || false}
+              size="sm"
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {approvals.map((approval) => (
