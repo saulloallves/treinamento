@@ -49,3 +49,9 @@ verify_jwt = false
 
 [functions.approve-collaborator]
 verify_jwt = false
+
+[functions.bulk-create-franchisees]
+verify_jwt = false
+
+[functions.fix-email-formatting]
+verify_jwt = false

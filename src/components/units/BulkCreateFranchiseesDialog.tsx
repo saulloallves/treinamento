@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Users, AlertTriangle, CheckCircle } from "lucide-react";
+import { Loader2, Users, AlertTriangle, CheckCircle, Mail } from "lucide-react";
 import { useBulkCreateFranchisees } from "@/hooks/useBulkCreateFranchisees";
+import { useFixEmailFormatting } from "@/hooks/useFixEmailFormatting";
 
 interface BulkCreateFranchiseesDialogProps {
   open: boolean;
@@ -15,6 +16,15 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<any>(null);
   const bulkCreateMutation = useBulkCreateFranchisees();
+  const fixEmailMutation = useFixEmailFormatting();
+
+  const handleFixEmails = async () => {
+    try {
+      await fixEmailMutation.mutateAsync();
+    } catch (error) {
+      console.error("Erro ao corrigir emails:", error);
+    }
+  };
 
   const handleCreateAll = async () => {
     try {
@@ -52,8 +62,25 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
                 <strong>Senha padrão:</strong> Trocar01
                 <br />
                 <strong>Atenção:</strong> Apenas unidades com email válido serão processadas.
+                <br />
+                <strong>Dica:</strong> Se houver emails malformatados, corrija-os primeiro clicando no botão abaixo.
               </AlertDescription>
             </Alert>
+
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={handleFixEmails}
+                disabled={fixEmailMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                {fixEmailMutation.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                <Mail className="h-4 w-4" />
+                Corrigir Formatação dos Emails
+              </Button>
+            </div>
 
             <div className="bg-muted p-4 rounded-lg">
               <h4 className="font-medium mb-2">O que será feito:</h4>
@@ -129,13 +156,13 @@ const BulkCreateFranchiseesDialog = ({ open, onOpenChange }: BulkCreateFranchise
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                disabled={bulkCreateMutation.isPending}
+                disabled={bulkCreateMutation.isPending || fixEmailMutation.isPending}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleCreateAll}
-                disabled={bulkCreateMutation.isPending}
+                disabled={bulkCreateMutation.isPending || fixEmailMutation.isPending}
               >
                 {bulkCreateMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
