@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { useUnidades, Unidade } from "@/hooks/useUnidades";
 import UnidadeCard from "./UnidadeCard";
 import UnidadeDetailsDialog from "./UnidadeDetailsDialog";
 import EditUnidadeDialog from "./EditUnidadeDialog";
+import BulkCreateFranchiseesDialog from "./BulkCreateFranchiseesDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 const UnidadesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnidade, setSelectedUnidade] = useState<Unidade | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [bulkCreateOpen, setBulkCreateOpen] = useState(false);
   const [faseFilter, setFaseFilter] = useState("all");
 
   const { data: unidades = [], isLoading, error } = useUnidades();
@@ -61,6 +64,14 @@ const UnidadesList = () => {
             Gerencie todas as unidades da rede
           </p>
         </div>
+        
+        <Button
+          onClick={() => setBulkCreateOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Criar Todos os Franqueados
+        </Button>
       </div>
 
       {/* Filtros */}
@@ -135,6 +146,12 @@ const UnidadesList = () => {
         unidade={selectedUnidade}
         open={editOpen}
         onOpenChange={setEditOpen}
+      />
+
+      {/* Dialog de criação em massa */}
+      <BulkCreateFranchiseesDialog
+        open={bulkCreateOpen}
+        onOpenChange={setBulkCreateOpen}
       />
     </div>
   );
