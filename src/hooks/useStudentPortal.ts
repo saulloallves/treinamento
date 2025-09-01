@@ -6,6 +6,7 @@ type UUID = string;
 
 export interface SelfEnrollmentInput {
   course_id: UUID;
+  phone?: string;
 }
 
 export interface MarkAttendanceInput {
@@ -46,6 +47,9 @@ export const useSelfEnroll = () => {
         throw new Error('Dados do usuário não encontrados.');
       }
 
+      // Usar o telefone do input ou o do usuário cadastrado
+      const phoneToUse = input.phone || userData.phone;
+
       // Evita duplicidade: mesmo user no mesmo curso
       const { data: existing, error: dupErr } = await supabase
         .from('enrollments')
@@ -68,13 +72,21 @@ export const useSelfEnroll = () => {
           course_id: input.course_id,
           student_name: userData.name,
           student_email: userData.email,
-          student_phone: userData.phone,
+          student_phone: phoneToUse,
           unit_code: userData.unit_code,
           user_id: userId,
           status: 'Ativo',
         }])
         .select()
         .maybeSingle();
+
+      // Se um telefone foi fornecido no input e é diferente do cadastrado, atualizar
+      if (input.phone && input.phone !== userData.phone) {
+        await supabase
+          .from('users')
+          .update({ phone: input.phone })
+          .eq('id', userId);
+      }
 
       if (error) {
         console.error('Erro ao criar autoinscrição:', error);

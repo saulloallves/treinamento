@@ -10,6 +10,7 @@ export interface CurrentUser {
   role?: string;
   unit_code?: string;
   approval_status?: string;
+  phone?: string;
 }
 
 export const useCurrentUser = () => {
@@ -22,7 +23,7 @@ export const useCurrentUser = () => {
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, user_type, role, unit_code, approval_status')
+        .select('id, name, email, user_type, role, unit_code, approval_status, phone')
         .eq('id', user.id)
         .single();
 

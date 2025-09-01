@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCourses } from '@/hooks/useCourses';
 import { useSelfEnroll } from '@/hooks/useStudentPortal';
 import { useMyEnrollments } from '@/hooks/useMyEnrollments';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface SelfEnrollDialogProps {
   open: boolean;
@@ -21,9 +22,11 @@ interface SelfEnrollDialogProps {
 
 const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const [courseId, setCourseId] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
 
   const { data: courses = [] } = useCourses();
   const { data: myEnrollments = [] } = useMyEnrollments();
+  const { data: currentUser } = useCurrentUser();
   const selfEnroll = useSelfEnroll();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,12 +35,24 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
 
     await selfEnroll.mutateAsync({
       course_id: courseId,
+      phone: phone.trim() || undefined,
     });
 
     if (!selfEnroll.isError) {
       setCourseId('');
+      setPhone('');
       onOpenChange(false);
     }
+  };
+
+  // Inicializar telefone com o valor do usuário atual quando o dialog abrir
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen && currentUser?.phone) {
+      setPhone(currentUser.phone);
+    } else if (!newOpen) {
+      setPhone('');
+    }
+    onOpenChange(newOpen);
   };
 
   // Filtrar cursos ativos e onde o usuário ainda não está inscrito
@@ -52,7 +67,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   console.log('Cursos disponíveis:', availableCourses);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -86,11 +101,28 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             )}
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-brand-black mb-1">
+              Telefone WhatsApp *
+            </label>
+            <Input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(11) 99999-9999"
+              className="w-full"
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Para receber informações automáticas sobre o curso
+            </p>
+          </div>
+
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               className="flex-1"
             >
               Cancelar
@@ -98,7 +130,7 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={!courseId || availableCourses.length === 0 || selfEnroll.isPending}
+              disabled={!courseId || !phone.trim() || availableCourses.length === 0 || selfEnroll.isPending}
             >
               {selfEnroll.isPending ? 'Inscrevendo...' : 'Confirmar Inscrição'}
             </Button>
