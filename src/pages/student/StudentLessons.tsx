@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +10,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Calendar, Clock, Users, BookOpen } from "lucide-react";
 const StudentLessons = () => {
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
@@ -19,6 +21,33 @@ const StudentLessons = () => {
   useEffect(() => {
     document.title = "Aulas Agendadas | Área do Aluno";
   }, []);
+
+  // Agrupar aulas por curso
+  const lessonsByCourse = useMemo(() => {
+    const grouped = lessons.reduce((acc, lesson) => {
+      const courseKey = lesson.course_id;
+      if (!acc[courseKey]) {
+        acc[courseKey] = {
+          courseName: lesson.course,
+          courseId: lesson.course_id,
+          lessons: []
+        };
+      }
+      acc[courseKey].lessons.push(lesson);
+      return acc;
+    }, {} as Record<string, { courseName: string; courseId: string; lessons: typeof lessons }>);
+
+    // Ordenar aulas dentro de cada curso por data
+    Object.values(grouped).forEach(courseGroup => {
+      courseGroup.lessons.sort((a, b) => {
+        const dateA = new Date(`${a.date.split('/').reverse().join('-')} ${a.time}`);
+        const dateB = new Date(`${b.date.split('/').reverse().join('-')} ${b.time}`);
+        return dateA.getTime() - dateB.getTime();
+      });
+    });
+
+    return grouped;
+  }, [lessons]);
 
   const handleRefresh = async () => {
     try {
@@ -33,20 +62,26 @@ const StudentLessons = () => {
   };
   return (
     <BaseLayout title="Aulas Agendadas">
-      <header className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Próximas aulas</h2>
-        <div className="flex gap-2">
-          <RefreshButton 
-            onClick={handleRefresh} 
-            isRefreshing={isRefetching}
-          />
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-semibold">Próximas aulas</h2>
+          <Badge variant="secondary" className="text-sm">
+            {lessons.length} {lessons.length === 1 ? 'aula' : 'aulas'}
+          </Badge>
         </div>
-      </header>
+        <RefreshButton 
+          onClick={handleRefresh} 
+          isRefreshing={isRefetching}
+        />
+      </div>
 
       {isLoading ? (
-        <p>Carregando aulas...</p>
+        <div className="text-center py-8">
+          <p>Carregando aulas...</p>
+        </div>
       ) : lessons.length === 0 ? (
         <div className="text-center py-8">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">Nenhuma aula agendada.</p>
           <p className="text-sm text-muted-foreground mb-4">
             Para visualizar aulas, você precisa primeiro se inscrever em um curso.
@@ -59,41 +94,67 @@ const StudentLessons = () => {
           </Button>
         </div>
       ) : (
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {lessons.map((lesson) => (
-            <Card key={lesson.id}>
-              <CardHeader>
-                <CardTitle>{lesson.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="text-sm text-muted-foreground">{lesson.course}</div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Data</span>
-                    <span className="font-medium">{lesson.date}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Horário</span>
-                    <span className="font-medium">{lesson.time}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Participantes</span>
-                    <span className="font-medium">{lesson.participants}</span>
-                  </div>
-                  <div className="pt-2">
-                    <Button asChild className="w-full" disabled={!lesson.joinUrl}>
-                      <a href={lesson.joinUrl || "#"} target="_blank" rel="noopener noreferrer">
-                        Acessar aula (Zoom)
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="space-y-8">
+          {Object.entries(lessonsByCourse).map(([courseId, courseGroup]) => (
+            <section key={courseId} className="space-y-4">
+              <div className="flex items-center gap-3 pb-2 border-b">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-semibold text-foreground">
+                  {courseGroup.courseName}
+                </h3>
+                <Badge variant="outline" className="ml-auto">
+                  {courseGroup.lessons.length} {courseGroup.lessons.length === 1 ? 'aula' : 'aulas'}
+                </Badge>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {courseGroup.lessons.map((lesson) => (
+                  <Card key={lesson.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg leading-tight">{lesson.title}</CardTitle>
+                      <Badge variant="secondary" className="w-fit text-xs">
+                        {courseGroup.courseName}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Data:</span>
+                          <span className="font-medium ml-auto">{lesson.date}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Horário:</span>
+                          <span className="font-medium ml-auto">{lesson.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Participantes:</span>
+                          <span className="font-medium ml-auto">{lesson.participants}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2">
+                        <Button 
+                          asChild 
+                          className="w-full" 
+                          disabled={!lesson.joinUrl}
+                          size="sm"
+                        >
+                          <a href={lesson.joinUrl || "#"} target="_blank" rel="noopener noreferrer">
+                            Acessar aula (Zoom)
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
           ))}
-        </section>
+        </div>
       )}
-
     </BaseLayout>
   );
 };
