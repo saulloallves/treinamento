@@ -111,7 +111,7 @@ const EditUnidadeDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>Editar Unidade</span>
-            <Badge variant="outline">#{unidade.codigo_grupo}</Badge>
+            <Badge variant="outline">{unidade.codigo_grupo}</Badge>
           </DialogTitle>
         </DialogHeader>
 

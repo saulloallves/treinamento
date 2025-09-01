@@ -35,7 +35,7 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
               {unidade.grupo || "N/A"}
             </h3>
             <p className="text-sm text-muted-foreground">
-              #{unidade.codigo_grupo || "N/A"}
+              {unidade.codigo_grupo || "N/A"}
             </p>
           </div>
         </div>

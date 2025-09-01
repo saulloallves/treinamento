@@ -66,7 +66,7 @@ const UnidadeDetailsDialog = ({
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               <span>{unidade.grupo}</span>
-              <Badge variant="outline">#{unidade.codigo_grupo}</Badge>
+              <Badge variant="outline">{unidade.codigo_grupo}</Badge>
             </DialogTitle>
             {onEdit && (
               <Button
@@ -92,7 +92,7 @@ const UnidadeDetailsDialog = ({
               <div>
                 <span className="text-sm font-medium">Código da Unidade:</span>
                 <p className="text-sm text-muted-foreground">
-                  #{unidade.codigo_grupo || "N/A"}
+                  {unidade.codigo_grupo || "N/A"}
                 </p>
               </div>
               
