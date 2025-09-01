@@ -5,12 +5,14 @@ import { Search } from "lucide-react";
 import { useUnidades, Unidade } from "@/hooks/useUnidades";
 import UnidadeCard from "./UnidadeCard";
 import UnidadeDetailsDialog from "./UnidadeDetailsDialog";
+import EditUnidadeDialog from "./EditUnidadeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const UnidadesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnidade, setSelectedUnidade] = useState<Unidade | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [faseFilter, setFaseFilter] = useState("all");
 
   const { data: unidades = [], isLoading, error } = useUnidades();
@@ -30,6 +32,12 @@ const UnidadesList = () => {
   const handleViewDetails = (unidade: Unidade) => {
     setSelectedUnidade(unidade);
     setDetailsOpen(true);
+  };
+
+  const handleEdit = (unidade: Unidade) => {
+    setSelectedUnidade(unidade);
+    setDetailsOpen(false);
+    setEditOpen(true);
   };
 
   // Get unique fases for filter
@@ -119,6 +127,14 @@ const UnidadesList = () => {
         unidade={selectedUnidade}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
+        onEdit={handleEdit}
+      />
+
+      {/* Dialog de edição */}
+      <EditUnidadeDialog
+        unidade={selectedUnidade}
+        open={editOpen}
+        onOpenChange={setEditOpen}
       />
     </div>
   );

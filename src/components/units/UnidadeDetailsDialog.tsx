@@ -5,23 +5,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Phone, Mail, Calendar, Users } from "lucide-react";
+import { MapPin, Phone, Mail, Calendar, Users, Edit } from "lucide-react";
 import { Unidade, useUnidadeCollaborators } from "@/hooks/useUnidades";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState } from "react";
 
 interface UnidadeDetailsDialogProps {
   unidade: Unidade | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: (unidade: Unidade) => void;
 }
 
 const UnidadeDetailsDialog = ({
   unidade,
   open,
   onOpenChange,
+  onEdit,
 }: UnidadeDetailsDialogProps) => {
   const { data: colaboradores = [] } = useUnidadeCollaborators(
     unidade?.codigo_grupo || 0
@@ -59,10 +63,23 @@ const UnidadeDetailsDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <span>{unidade.grupo}</span>
-            <Badge variant="outline">#{unidade.codigo_grupo}</Badge>
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <span>{unidade.grupo}</span>
+              <Badge variant="outline">#{unidade.codigo_grupo}</Badge>
+            </DialogTitle>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(unidade)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Editar
+              </Button>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -73,9 +90,9 @@ const UnidadeDetailsDialog = ({
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <span className="text-sm font-medium">ID:</span>
-                <p className="text-sm text-muted-foreground break-all">
-                  {unidade.id}
+                <span className="text-sm font-medium">Código da Unidade:</span>
+                <p className="text-sm text-muted-foreground">
+                  #{unidade.codigo_grupo || "N/A"}
                 </p>
               </div>
               
