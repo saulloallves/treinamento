@@ -26,7 +26,9 @@ const Auth = () => {
   const resetPassword = useResetFranchiseePassword();
 
   const handleResetPassword = () => {
-    resetPassword.mutate('alison.martins@crescieperdi.com.br');
+    if (email) {
+      resetPassword.mutate(email);
+    }
   };
 
   // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
@@ -171,15 +173,14 @@ const Auth = () => {
                     {isLoading ? "Entrando..." : "Entrar"}
                   </Button>
                   
-                  {/* Botão temporário para testar redefinição de senha */}
                   <Button 
                     type="button"
                     variant="outline"
                     className="w-full mt-2" 
                     onClick={handleResetPassword}
-                    disabled={resetPassword.isPending}
+                    disabled={resetPassword.isPending || !email}
                   >
-                    {resetPassword.isPending ? "Redefinindo..." : "🔧 Redefinir Senha do Alison"}
+                    {resetPassword.isPending ? "Redefinindo..." : "Redefinir Senha"}
                   </Button>
                 </form>
               </TabsContent>
