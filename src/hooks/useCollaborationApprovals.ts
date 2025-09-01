@@ -121,6 +121,7 @@ export const useCreateCollaborator = () => {
       email: string;
       password: string;
       unitCode: string;
+      position?: string;
     }) => {
       // 1. Criar usuário no auth
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -146,6 +147,7 @@ export const useCreateCollaborator = () => {
         user_type: 'Aluno',
         role: 'Colaborador',
         unit_code: collaboratorData.unitCode,
+        position: collaboratorData.position,
         approval_status: 'pendente',
         active: true,
       }]);

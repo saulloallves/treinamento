@@ -19,6 +19,7 @@ const CreateUserDialog = () => {
     password: "",
     unitCode: "",
     userType: "Aluno" as "Aluno" | "Colaborador",
+    position: "",
   });
   const { toast } = useToast();
   const createCollaboratorMutation = useCreateCollaborator();
@@ -51,7 +52,8 @@ const CreateUserDialog = () => {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          unitCode: formData.unitCode
+          unitCode: formData.unitCode,
+          position: formData.position
         });
       } else {
         // Para usuários normais (Aluno), continua com o fluxo atual
@@ -88,6 +90,7 @@ const CreateUserDialog = () => {
           user_type: 'Aluno',
           unit_id: unitId,
           unit_code: formData.unitCode || null,
+          position: formData.position || null,
           approval_status: 'aprovado',
           active: true,
         }]);
@@ -101,7 +104,7 @@ const CreateUserDialog = () => {
       }
 
       // Reset form and close dialog
-      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno" });
+      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "" });
       setOpen(false);
 
     } catch (error: any) {
@@ -117,7 +120,7 @@ const CreateUserDialog = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno" });
+    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "" });
   };
 
   return (
@@ -191,6 +194,29 @@ const CreateUserDialog = () => {
               required
             />
           </div>
+
+          {formData.userType === "Colaborador" && (
+            <div className="space-y-2">
+              <Label htmlFor="user-position">Cargo</Label>
+              <Select 
+                value={formData.position} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, position: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem>
+                  <SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem>
+                  <SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem>
+                  <SelectItem value="Avaliadora">Avaliadora</SelectItem>
+                  <SelectItem value="Repositor(a)">Repositor(a)</SelectItem>
+                  <SelectItem value="Líder de Loja">Líder de Loja</SelectItem>
+                  <SelectItem value="Gerente">Gerente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="user-email">Email</Label>
