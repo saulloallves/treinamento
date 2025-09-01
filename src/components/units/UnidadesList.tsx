@@ -99,7 +99,7 @@ const UnidadesList = () => {
           <SelectContent>
             <SelectItem value="all">Todas as fases</SelectItem>
             {uniqueFases.map((fase) => (
-              <SelectItem key={fase} value={fase}>
+              <SelectItem key={fase || 'unknown'} value={fase || 'unknown'}>
                 {fase}
               </SelectItem>
             ))}

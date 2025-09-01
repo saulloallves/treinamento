@@ -3,54 +3,61 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface Unidade {
   id: string;
-  grupo: string;
-  codigo_grupo: number;
-  endereco: string;
-  telefone: number;
-  email: string;
-  cidade: string;
-  estado: string;
-  uf: string;
-  cep: string;
-  fase_loja: string;
-  etapa_loja: string;
-  modelo_loja: string;
-  created_at: string;
+  grupo?: string;
+  codigo_grupo?: number;
+  endereco?: string;
+  telefone?: number;
+  email?: string;
+  cidade?: string;
+  estado?: string;
+  uf?: string;
+  cep?: string;
+  fase_loja?: string;
+  etapa_loja?: string;
+  modelo_loja?: string;
+  created_at?: string;
   hasAccount?: boolean;
 }
 
 export const useUnidades = () => {
-  return useQuery({
+  return useQuery<(Unidade & { hasAccount: boolean })[]>({
     queryKey: ["unidades"],
     queryFn: async () => {
-      // Buscar unidades
-      const { data: unidades, error: unidadesError } = await supabase
-        .from("unidades")
-        .select("*")
-        .order("grupo", { ascending: true });
+      // Buscar unidades e franqueados em paralelo para melhor performance
+      const [unidadesResult, franqueadosResult] = await Promise.all([
+        supabase
+          .from("unidades")
+          .select("*")
+          .order("grupo", { ascending: true }),
+        supabase
+          .from("users")
+          .select("unit_code")
+          .eq("role", "Franqueado")
+      ]);
 
-      if (unidadesError) {
-        throw new Error(`Erro ao buscar unidades: ${unidadesError.message}`);
+      if (unidadesResult.error) {
+        throw new Error(`Erro ao buscar unidades: ${unidadesResult.error.message}`);
       }
 
-      // Buscar todos os franqueados
-      const { data: franqueados, error: franqueadosError } = await supabase
-        .from("users")
-        .select("unit_code")
-        .eq("role", "Franqueado");
-
-      if (franqueadosError) {
-        console.warn("Erro ao buscar franqueados:", franqueadosError.message);
+      if (franqueadosResult.error) {
+        console.warn("Erro ao buscar franqueados:", franqueadosResult.error.message);
       }
+
+      // Criar Set para busca otimizada de unit_codes
+      const franqueadosUnitCodes = new Set(
+        (franqueadosResult.data || []).map(f => f.unit_code)
+      );
 
       // Mapear unidades com informação se tem conta criada
-      const unidadesComStatus = (unidades || []).map(unidade => ({
+      const unidadesComStatus = (unidadesResult.data || []).map(unidade => ({
         ...unidade,
-        hasAccount: franqueados?.some(f => f.unit_code === unidade.codigo_grupo?.toString()) || false
+        hasAccount: franqueadosUnitCodes.has(unidade.codigo_grupo?.toString()) || false
       }));
 
       return unidadesComStatus as (Unidade & { hasAccount: boolean })[];
     },
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    gcTime: 10 * 60 * 1000, // Manter cache por 10 minutos (era cacheTime)
   });
 };
 
