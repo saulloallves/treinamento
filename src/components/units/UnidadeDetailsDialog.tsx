@@ -19,12 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MapPin, Phone, Mail, Calendar, Users, Edit, Trash2 } from "lucide-react";
+import { MapPin, Phone, Mail, Calendar, Users, Edit, Trash2, UserPlus } from "lucide-react";
 import { Unidade, useUnidadeCollaborators, useDeleteUnidade } from "@/hooks/useUnidades";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import CreateFranchiseeDialog from "./CreateFranchiseeDialog";
 
 interface UnidadeDetailsDialogProps {
   unidade: Unidade | null;
@@ -39,6 +40,7 @@ const UnidadeDetailsDialog = ({
   onOpenChange,
   onEdit,
 }: UnidadeDetailsDialogProps) => {
+  const [createFranchiseeOpen, setCreateFranchiseeOpen] = useState(false);
   const { data: colaboradores = [] } = useUnidadeCollaborators(
     unidade?.codigo_grupo || 0
   );
@@ -111,6 +113,17 @@ const UnidadeDetailsDialog = ({
                   Editar
                 </Button>
               )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCreateFranchiseeOpen(true)}
+                className="flex items-center gap-2 text-primary hover:text-primary"
+                disabled={!unidade.email}
+              >
+                <UserPlus className="h-4 w-4" />
+                Criar Franqueado
+              </Button>
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -309,6 +322,12 @@ const UnidadeDetailsDialog = ({
           </Card>
         </div>
       </DialogContent>
+
+      <CreateFranchiseeDialog
+        unidade={unidade}
+        open={createFranchiseeOpen}
+        onOpenChange={setCreateFranchiseeOpen}
+      />
     </Dialog>
   );
 };
