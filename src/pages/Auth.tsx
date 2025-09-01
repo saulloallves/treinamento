@@ -9,12 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogIn, UserPlus, GraduationCap, Shield, Building } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCreateCollaborator } from '@/hooks/useCollaborationApprovals';
 
 
 
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
+  const createCollaboratorMutation = useCreateCollaborator();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -88,13 +90,31 @@ const Auth = () => {
   const handleStudentSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await signUp(email, password, fullName, { 
-      userType: 'Aluno', 
-      unitCode, 
-      role: userRole,
-      position: userRole === 'Colaborador' ? position : undefined
-    });
-    setIsLoading(false);
+    
+    try {
+      if (userRole === 'Colaborador') {
+        // Use o hook específico para colaboradores
+        await createCollaboratorMutation.mutateAsync({
+          name: fullName,
+          email: email.trim().toLowerCase(),
+          password,
+          unitCode,
+          position
+        });
+      } else {
+        // Para franqueados, use o fluxo padrão
+        await signUp(email, password, fullName, { 
+          userType: 'Aluno', 
+          unitCode, 
+          role: userRole,
+          position: undefined
+        });
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -294,9 +314,9 @@ const Auth = () => {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading}
+                    disabled={isLoading || createCollaboratorMutation.isPending}
                   >
-                    {isLoading ? "Cadastrando..." : "Criar Conta"}
+                    {(isLoading || createCollaboratorMutation.isPending) ? "Cadastrando..." : "Criar Conta"}
                   </Button>
                 </form>
               </TabsContent>

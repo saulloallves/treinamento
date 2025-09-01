@@ -9,41 +9,16 @@ const RoleRedirect = () => {
   const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
   const [hasStudentProfile, setHasStudentProfile] = useState<boolean | null>(null);
-  const [timeout, setTimeout] = useState(false);
-
-  console.log('RoleRedirect - Current state:', {
-    user: !!user,
-    userId: user?.id,
-    loading,
-    checking,
-    isAdmin,
-    hasStudentProfile,
-    timeout,
-    timestamp: new Date().toISOString()
-  });
-
-  // Add a timeout fallback to prevent infinite loading
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      console.log('RoleRedirect - Timeout reached, redirecting to auth');
-      setTimeout(true);
-    }, 10000); // 10 seconds timeout
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
-    console.log('RoleRedirect - useEffect running for user:', user?.id);
     document.title = "Direcionando...";
     
     const checkStudentProfile = async () => {
       if (!user?.id) {
-        console.log('RoleRedirect - No user ID, returning early');
         setHasStudentProfile(false);
         return;
       }
       
-      console.log('RoleRedirect - Checking student profile for user:', user?.id);
       try {
         const { data: studentData, error } = await supabase
           .from('users')
@@ -51,8 +26,6 @@ const RoleRedirect = () => {
           .eq('id', user.id)
           .maybeSingle();
           
-        console.log('RoleRedirect - Student query result:', { studentData, error });
-        
         if (error) {
           console.error('RoleRedirect - Error fetching student data:', error);
           setHasStudentProfile(false);
@@ -68,12 +41,6 @@ const RoleRedirect = () => {
     checkStudentProfile();
   }, [user?.id]);
 
-  // If timeout occurred, redirect to auth
-  if (timeout) {
-    console.log('RoleRedirect - Timeout fallback, redirecting to auth');
-    return <Navigate to="/auth" replace />;
-  }
-
   if (loading || checking || hasStudentProfile === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
@@ -87,13 +54,6 @@ const RoleRedirect = () => {
   }
 
   const selectedProfile = getSelectedProfile();
-  
-  console.log('RoleRedirect Debug:', {
-    isAdmin,
-    hasStudentProfile,
-    selectedProfile,
-    userId: user.id
-  });
 
   // Se o usuário tem ambos os perfis (admin E aluno), verificar preferência
   if (isAdmin && hasStudentProfile) {
