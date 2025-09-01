@@ -400,11 +400,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    clearSelectedProfile();
-    toast.success("Logout realizado", {
-      description: "Até logo!",
-    });
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.warn('Logout error (ignored):', error);
+    } finally {
+      // Always clear local state even if Supabase logout fails
+      setSession(null);
+      setUser(null);
+      clearSelectedProfile();
+      toast.success("Logout realizado", {
+        description: "Até logo!",
+      });
+    }
   };
 
   const value = {
