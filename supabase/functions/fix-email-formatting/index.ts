@@ -66,6 +66,9 @@ const handler = async (req: Request): Promise<Response> => {
       // Remove texto "(mailto:" e tudo depois até o final
       cleaned = cleaned.replace(/\s*\(mailto:.*$/, '');
       
+      // Remove texto "](mailto:" e tudo depois até o final (novo formato)
+      cleaned = cleaned.replace(/\]\(mailto:.*$/, '');
+      
       // Remove espaços extras
       cleaned = cleaned.trim();
       
