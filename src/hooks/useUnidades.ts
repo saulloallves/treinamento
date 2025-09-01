@@ -16,22 +16,40 @@ export interface Unidade {
   etapa_loja: string;
   modelo_loja: string;
   created_at: string;
+  hasAccount?: boolean;
 }
 
 export const useUnidades = () => {
   return useQuery({
     queryKey: ["unidades"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar unidades
+      const { data: unidades, error: unidadesError } = await supabase
         .from("unidades")
         .select("*")
         .order("grupo", { ascending: true });
 
-      if (error) {
-        throw new Error(`Erro ao buscar unidades: ${error.message}`);
+      if (unidadesError) {
+        throw new Error(`Erro ao buscar unidades: ${unidadesError.message}`);
       }
 
-      return data as Unidade[];
+      // Buscar todos os franqueados
+      const { data: franqueados, error: franqueadosError } = await supabase
+        .from("users")
+        .select("unit_code")
+        .eq("role", "Franqueado");
+
+      if (franqueadosError) {
+        console.warn("Erro ao buscar franqueados:", franqueadosError.message);
+      }
+
+      // Mapear unidades com informação se tem conta criada
+      const unidadesComStatus = (unidades || []).map(unidade => ({
+        ...unidade,
+        hasAccount: franqueados?.some(f => f.unit_code === unidade.codigo_grupo?.toString()) || false
+      }));
+
+      return unidadesComStatus as (Unidade & { hasAccount: boolean })[];
     },
   });
 };

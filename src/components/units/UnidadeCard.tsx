@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin } from "lucide-react";
+import { MapPin, CheckCircle, XCircle } from "lucide-react";
 import { Unidade } from "@/hooks/useUnidades";
 
 interface UnidadeCardProps {
@@ -37,6 +37,21 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
             <p className="text-sm text-muted-foreground">
               {unidade.codigo_grupo || "N/A"}
             </p>
+          </div>
+          
+          {/* Indicador de conta criada */}
+          <div className="flex items-center gap-1 ml-2">
+            {unidade.hasAccount ? (
+              <div className="flex items-center gap-1 text-green-600">
+                <CheckCircle className="h-4 w-4" />
+                <span className="text-xs font-medium">Conta criada</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 text-red-500">
+                <XCircle className="h-4 w-4" />
+                <span className="text-xs font-medium">Sem conta</span>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>

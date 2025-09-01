@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Users } from "lucide-react";
+import { Search, Users, CheckCircle, XCircle } from "lucide-react";
 import { useUnidades, Unidade } from "@/hooks/useUnidades";
 import UnidadeCard from "./UnidadeCard";
 import UnidadeDetailsDialog from "./UnidadeDetailsDialog";
@@ -17,6 +17,7 @@ const UnidadesList = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [bulkCreateOpen, setBulkCreateOpen] = useState(false);
   const [faseFilter, setFaseFilter] = useState("all");
+  const [accountFilter, setAccountFilter] = useState("all");
 
   const { data: unidades = [], isLoading, error } = useUnidades();
 
@@ -29,7 +30,12 @@ const UnidadesList = () => {
     
     const matchesFase = faseFilter === "all" || unidade.fase_loja === faseFilter;
     
-    return matchesSearch && matchesFase;
+    const matchesAccount = 
+      accountFilter === "all" || 
+      (accountFilter === "created" && unidade.hasAccount) ||
+      (accountFilter === "not_created" && !unidade.hasAccount);
+    
+    return matchesSearch && matchesFase && matchesAccount;
   });
 
   const handleViewDetails = (unidade: Unidade) => {
@@ -99,11 +105,34 @@ const UnidadesList = () => {
             ))}
           </SelectContent>
         </Select>
+
+        <Select value={accountFilter} onValueChange={setAccountFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Status da conta" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as contas</SelectItem>
+            <SelectItem value="created">Conta criada</SelectItem>
+            <SelectItem value="not_created">Conta não criada</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Estatísticas */}
-      <div className="text-sm text-muted-foreground">
-        Pág 1/58 • {filteredUnidades.length} unidades
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div>
+          Pág 1/58 • {filteredUnidades.length} unidades
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 text-green-600">
+            <CheckCircle className="h-3 w-3" />
+            <span>{unidades.filter(u => u.hasAccount).length} com conta</span>
+          </div>
+          <div className="flex items-center gap-1 text-red-500">
+            <XCircle className="h-3 w-3" />
+            <span>{unidades.filter(u => !u.hasAccount).length} sem conta</span>
+          </div>
+        </div>
       </div>
 
       {/* Grid de unidades */}
