@@ -209,7 +209,7 @@ const WhatsAppDispatch = () => {
                     <Button variant="outline" onClick={() => setSelectedRecipients(filteredRecipients.map(e => e.id))} disabled={filteredRecipients.length === 0}>Selecionar todos</Button>
                     <Button variant="ghost" onClick={() => setSelectedRecipients([])} disabled={selectedRecipients.length === 0}>Limpar</Button>
                   </div>
-                  <div className="mt-2 max-h-56 overflow-y-auto border border-gray-200 rounded-md">
+                  <div className="mt-2 border border-gray-200 rounded-md">
                     {filteredRecipients.length === 0 ? (
                       <div className="text-sm text-brand-gray-dark p-2">Nenhum destinatário encontrado.</div>
                     ) : (
@@ -296,7 +296,7 @@ const WhatsAppDispatch = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 -mr-1">
+                    <div className="space-y-3">
                       {(() => {
                         const totalPages = Math.ceil(dispatches.length / itemsPerPage);
                         const startIndex = (currentPage - 1) * itemsPerPage;

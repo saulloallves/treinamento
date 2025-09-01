@@ -167,7 +167,7 @@ const LessonsList = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid gap-2 max-h-[500px] overflow-y-auto">
+              <div className="grid gap-2">
                 {paginatedLessons.map((lesson) => (
                   <div key={lesson.id} className="card-clean p-3">
                     <div className="flex items-start justify-between">
