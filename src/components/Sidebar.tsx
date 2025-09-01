@@ -25,6 +25,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
+import { getSelectedProfile } from "@/lib/profile";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -33,8 +34,19 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
+  const selectedProfile = getSelectedProfile();
   
-  const menuItems = isAdmin
+  // Determinar qual menu mostrar baseado na preferência do usuário
+  const shouldShowAdminMenu = selectedProfile === 'Admin' || (selectedProfile === null && isAdmin);
+  
+  console.log('Sidebar Debug:', {
+    isAdmin,
+    selectedProfile,
+    shouldShowAdminMenu,
+    currentPath: location.pathname
+  });
+  
+  const menuItems = shouldShowAdminMenu
     ? [
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
         
@@ -134,9 +146,9 @@ const Sidebar = () => {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {isAdmin ? 'Admin' : 'Aluno'}
-                  </p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
+            </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
                   </p>
@@ -203,7 +215,7 @@ const Sidebar = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">
-              {isAdmin ? 'Admin' : 'Aluno'}
+              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
             </p>
             <p className="text-xs text-muted-foreground">
               {user?.email ?? ''}
