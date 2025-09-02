@@ -288,7 +288,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`}>
+        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
@@ -350,8 +350,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                                 )}
                               </div>
                               
-                              <div className="flex-1 min-w-0">
-                                <p className={`font-medium text-sm truncate transition-colors ${
+                              <div className="flex-1">
+                                <p className={`font-medium text-sm leading-relaxed transition-colors ${
                                   isCurrent ? 'text-blue-700' : 'text-gray-800'
                                 }`}>
                                   Aula {index + 1}: {lesson.title}
@@ -360,7 +360,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                                   {lesson.duration_minutes} minutos
                                 </p>
                                 {lesson.description && (
-                                  <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
                                     {lesson.description}
                                   </p>
                                 )}
