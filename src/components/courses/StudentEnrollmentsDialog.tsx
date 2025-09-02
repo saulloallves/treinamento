@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useEnrollments, useDeleteEnrollment, Enrollment } from "@/hooks/useEnrollments";
 import { useLessons } from "@/hooks/useLessons";
+import { useRecordedLessons } from "@/hooks/useRecordedLessons";
+import { useCourses } from "@/hooks/useCourses";
 import CreateEnrollmentDialog from "./CreateEnrollmentDialog";
 import StudentProgressDialog from "./StudentProgressDialog";
 
@@ -29,10 +31,21 @@ const StudentEnrollmentsDialog = ({ courseId, courseName, open, onOpenChange }: 
   const [progressDialogOpen, setProgressDialogOpen] = useState(false);
 
   const { data: enrollments = [], isLoading } = useEnrollments(courseId);
-  const { data: lessons = [] } = useLessons();
+  
+  // Buscar informações do curso para saber o tipo
+  const { data: courses = [] } = useCourses();
+  const currentCourse = courses.find(course => course.id === courseId);
+  
+  // Buscar aulas baseado no tipo do curso
+  const { data: liveLessons = [] } = useLessons();
+  const { data: recordedLessons = [] } = useRecordedLessons(courseId);
+  
   const deleteEnrollmentMutation = useDeleteEnrollment();
 
-  const courseLessons = lessons.filter(lesson => lesson.course_id === courseId);
+  // Selecionar as aulas corretas baseado no tipo do curso
+  const courseLessons = currentCourse?.tipo === 'gravado' 
+    ? recordedLessons 
+    : liveLessons.filter(lesson => lesson.course_id === courseId);
 
   const filteredEnrollments = enrollments.filter(enrollment =>
     enrollment.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
