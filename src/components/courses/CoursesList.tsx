@@ -36,8 +36,10 @@ const CoursesList = () => {
     return courses.filter(course => {
       const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = filterPublic === "todos" || course.public_target === filterPublic;
-      const matchesStatus = statusFilter === "todos" || course.status === statusFilter;
-      return matchesSearch && matchesFilter && matchesStatus;
+      const matchesType = statusFilter === "todos" || 
+        (statusFilter === "gravado" && course.tipo === "gravado") ||
+        (statusFilter === "ao_vivo" && course.tipo === "ao_vivo");
+      return matchesSearch && matchesFilter && matchesType;
     });
   }, [courses, searchTerm, filterPublic, statusFilter]);
 
@@ -323,17 +325,16 @@ const CoursesList = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-brand-black mb-1">
-                    Status
+                    Tipo de Curso
                   </label>
                   <select
                     value={statusFilter}
                     onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
                     className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
                   >
-                    <option value="todos">Todos os status</option>
-                    <option value="Ativo">Ativo</option>
-                    <option value="Em revisão">Em revisão</option>
-                    <option value="Rascunho">Rascunho</option>
+                    <option value="todos">Todas</option>
+                    <option value="gravado">Gravado</option>
+                    <option value="ao_vivo">Ao Vivo</option>
                   </select>
                 </div>
               </div>
