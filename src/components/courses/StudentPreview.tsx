@@ -9,7 +9,8 @@ import {
   Maximize,
   ChevronRight,
   ChevronDown,
-  Volume2
+  Volume2,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,6 +59,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
     acc[lesson.module_id].push(lesson);
     return acc;
   }, {} as Record<string, typeof lessons>);
+
+  // Check if a lesson is unlocked (progressive system)
+  const isLessonUnlocked = (lesson: any, index: number, moduleLessons: any[]) => {
+    // First lesson of each module is always unlocked
+    if (index === 0) return true;
+    
+    // Previous lesson must be watched to unlock this one
+    const previousLesson = moduleLessons[index - 1];
+    return watchedLessons.has(previousLesson.id);
+  };
 
   // Get first lesson if none selected
   const currentLesson = currentLessonId 
@@ -114,10 +125,27 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   const handleLessonComplete = (lessonId: string) => {
     setWatchedLessons(prev => new Set([...prev, lessonId]));
     
-    // Auto-advance to next lesson
-    const currentIndex = lessons.findIndex(l => l.id === lessonId);
-    if (currentIndex < lessons.length - 1) {
-      setCurrentLessonId(lessons[currentIndex + 1].id);
+    // Find the next unlocked lesson
+    const currentModule = modules.find(m => m.id === currentLesson?.module_id);
+    if (currentModule) {
+      const currentModuleLessons = lessonsByModule[currentModule.id] || [];
+      const currentLessonIndex = currentModuleLessons.findIndex(l => l.id === lessonId);
+      
+      // Check if there's a next lesson in the same module
+      if (currentLessonIndex < currentModuleLessons.length - 1) {
+        const nextLesson = currentModuleLessons[currentLessonIndex + 1];
+        setCurrentLessonId(nextLesson.id);
+      } else {
+        // Look for the first lesson in the next module
+        const currentModuleIndex = modules.findIndex(m => m.id === currentModule.id);
+        if (currentModuleIndex < modules.length - 1) {
+          const nextModule = modules[currentModuleIndex + 1];
+          const nextModuleLessons = lessonsByModule[nextModule.id] || [];
+          if (nextModuleLessons.length > 0) {
+            setCurrentLessonId(nextModuleLessons[0].id);
+          }
+        }
+      }
     }
   };
 
@@ -366,21 +394,31 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                         {lessonsByModule[module.id]?.map((lesson, index) => {
                           const isWatched = watchedLessons.has(lesson.id);
                           const isCurrent = currentLesson?.id === lesson.id;
+                          const isUnlocked = isLessonUnlocked(lesson, index, lessonsByModule[module.id]);
                           
                           return (
                             <button
                               key={lesson.id}
                               data-lesson-id={lesson.id}
-                              onClick={() => handleLessonChange(lesson.id)}
-                              className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-all duration-200 ${
-                                isCurrent 
-                                  ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 
-                                  : 'hover:shadow-sm'
+                              onClick={() => {
+                                if (isUnlocked) {
+                                  handleLessonChange(lesson.id);
+                                }
+                              }}
+                              disabled={!isUnlocked}
+                              className={`w-full text-left px-4 py-3 border-b last:border-b-0 transition-all duration-200 ${
+                                !isUnlocked 
+                                  ? 'opacity-50 cursor-not-allowed bg-gray-50' 
+                                  : isCurrent 
+                                    ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm hover:bg-blue-100' 
+                                    : 'hover:bg-gray-50 hover:shadow-sm'
                               }`}
                             >
                               <div className="flex items-center gap-3">
                                 <div className="flex-shrink-0">
-                                  {isWatched ? (
+                                  {!isUnlocked ? (
+                                    <Lock className="w-5 h-5 text-gray-400" />
+                                  ) : isWatched ? (
                                     <CheckCircle className="w-5 h-5 text-green-500" />
                                   ) : (
                                     <Circle className={`w-5 h-5 transition-colors ${
@@ -391,21 +429,32 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                                 
                                 <div className="flex-1">
                                   <p className={`font-medium text-sm leading-relaxed transition-colors ${
-                                    isCurrent ? 'text-blue-700' : 'text-gray-800'
+                                    !isUnlocked 
+                                      ? 'text-gray-400' 
+                                      : isCurrent 
+                                        ? 'text-blue-700' 
+                                        : 'text-gray-800'
                                   }`}>
                                     Aula {index + 1}: {lesson.title}
                                   </p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className={`text-xs ${!isUnlocked ? 'text-gray-400' : 'text-gray-500'}`}>
                                     {lesson.duration_minutes} minutos
+                                    {!isUnlocked && index > 0 && (
+                                      <span className="ml-2 text-xs bg-gray-200 px-2 py-0.5 rounded-full">
+                                        Complete a aula anterior
+                                      </span>
+                                    )}
                                   </p>
                                   {lesson.description && (
-                                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                                    <p className={`text-xs mt-1 leading-relaxed ${
+                                      !isUnlocked ? 'text-gray-300' : 'text-gray-400'
+                                    }`}>
                                       {lesson.description}
                                     </p>
                                   )}
                                 </div>
                                 
-                                {isCurrent && (
+                                {isCurrent && isUnlocked && (
                                   <div className="flex-shrink-0">
                                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                                   </div>
