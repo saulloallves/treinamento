@@ -215,27 +215,18 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 min-h-0 p-4 overflow-y-auto">
-        <div className={`${theaterMode ? 'flex flex-col' : 'flex'} h-full min-h-0 gap-4`}>
+      <div className="flex-1 min-h-0 p-4">
+        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-4`}>
           {/* Video Player Container */}
-          <div 
-            className={`${theaterMode ? 'flex-1 min-h-[400px]' : 'flex-1'} bg-black rounded-lg shadow-lg flex items-center justify-center min-h-0`}
-            style={{
-              height: theaterMode ? 'calc(70vh - 8rem)' : 'calc(100vh - 16rem)'
-            }}
-          >
+          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden`}>
             {currentLesson?.video_url ? (
-              <div className="w-full h-full flex items-center justify-center p-6 relative">
+              <div className="w-full h-full relative">
                 {!videoError ? (
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-contain rounded"
-                    style={{ 
-                      maxWidth: '100%',
-                      maxHeight: '100%'
-                    }}
+                    className="w-full h-full object-cover"
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onEnded={() => handleLessonComplete(currentLesson.id)}
@@ -247,7 +238,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                     Seu navegador não suporta o elemento de vídeo.
                   </video>
                 ) : (
-                  <div className="text-white text-center p-8 animate-fade-in">
+                  <div className="text-white text-center p-8 animate-fade-in h-full flex items-center justify-center">
                     <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20">
                       <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
                       <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
@@ -291,15 +282,17 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                 )}
               </div>
             ) : (
-              <div className="text-white text-center animate-fade-in">
-                <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Selecione uma aula para começar</p>
+              <div className="text-white text-center animate-fade-in h-full flex items-center justify-center">
+                <div>
+                  <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg">Selecione uma aula para começar</p>
+                </div>
               </div>
             )}
           </div>
 
           {/* Enhanced Lessons Sidebar */}
-          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white rounded-lg shadow-lg transition-all duration-300 flex flex-col overflow-hidden flex-shrink-0`}>
+          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white rounded-lg shadow-lg transition-all duration-300 flex flex-col flex-shrink-0`}>
             <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0 rounded-t-lg">
               <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                 <Volume2 className="w-5 h-5 text-blue-500" />
