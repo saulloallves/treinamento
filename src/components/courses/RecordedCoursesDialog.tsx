@@ -223,6 +223,22 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = [
+      'video/mp4',
+      'video/webm', 
+      'video/quicktime',
+      'video/x-msvideo', // AVI
+      'video/x-matroska', // MKV
+      'video/avi',
+      'video/mov'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`Formato não suportado: ${file.type}. Use MP4, MOV, WebM, AVI ou MKV.`);
+      return;
+    }
+
     setUploadingVideo(true);
     try {
       const fileName = `${courseId}/${Date.now()}-${file.name}`;
@@ -232,13 +248,16 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       setUploadedVideoUrl(result.publicUrl);
       setLessonForm(prev => ({
         ...prev,
+        video_url: result.publicUrl,
+        video_file_path: result.path,
         // Try to extract duration from file if possible (this is basic, would need proper video analysis)
         duration_minutes: prev.duration_minutes || 10
       }));
       
-      toast.success("Vídeo enviado com sucesso!");
+      toast.success("Upload concluído! Vídeo enviado com sucesso.");
     } catch (error) {
-      toast.error("Erro ao enviar vídeo");
+      console.error('Error uploading video:', error);
+      toast.error("Erro no upload. Falha ao enviar o vídeo. Tente novamente.");
     } finally {
       setUploadingVideo(false);
     }
@@ -543,7 +562,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
           }`}>
             <input
               type="file"
-              accept="video/mp4,video/webm,video/mov,video/quicktime"
+              accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-matroska,video/avi,video/x-msvideo"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -562,11 +581,21 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                 </div>
               ) : (
                 <div className="text-gray-600">
-                  <Upload className="w-8 h-8 mx-auto mb-2" />
-                  <p className="font-medium">
-                    {uploadingVideo ? 'Enviando vídeo...' : 'Clique para selecionar um vídeo'}
-                  </p>
-                  <p className="text-xs text-gray-500">MP4, WebM, MOV (QuickTime) • Vídeos grandes aceitos</p>
+                  {uploadingVideo ? (
+                    <div className="animate-pulse">
+                      <div className="w-8 h-8 mx-auto mb-2 bg-blue-200 rounded-full flex items-center justify-center">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full animate-bounce"></div>
+                      </div>
+                      <p className="font-medium text-blue-600">Enviando vídeo...</p>
+                      <p className="text-xs text-blue-500">Por favor, aguarde</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-medium">Clique para selecionar um vídeo</p>
+                      <p className="text-xs text-gray-500">MP4, WebM, MOV, AVI, MKV • Vídeos grandes aceitos</p>
+                    </>
+                  )}
                 </div>
               )}
             </label>
