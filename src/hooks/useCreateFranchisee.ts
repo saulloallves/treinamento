@@ -40,7 +40,7 @@ export const useCreateFranchisee = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["unidade-colaborators"] });
       queryClient.invalidateQueries({ queryKey: ["unidades"] });
-      toast.success("Franqueado processado com sucesso!", {
+      toast.success("Franqueado criado com sucesso!", {
         description: "Senha padrão definida: Trocar01"
       });
     },

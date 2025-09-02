@@ -33,90 +33,64 @@ Deno.serve(async (req) => {
       .eq('email', email)
       .maybeSingle()
 
-    let authUser;
-    let isUpdate = false;
-    
     if (existingUser) {
-      isUpdate = true;
-      console.log('Atualizando usuário existente:', email, 'role:', existingUser.role)
-      
-      // Atualizar senha do usuário existente
-      const { data: updatedAuth, error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
-        existingUser.id,
-        { password: 'Trocar01' }
-      )
-
-      if (updateAuthError) {
-        throw updateAuthError
-      }
-      
-      authUser = updatedAuth.user
-
-      // Atualizar dados na tabela users
-      const { error: updateUserError } = await supabaseAdmin
-        .from('users')
-        .update({
-          name,
-          phone,
-          unit_code: unitCode,
-          role: 'Franqueado',
-          user_type: 'Aluno',
-          approval_status: 'aprovado',
-          approved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingUser.id)
-
-      if (updateUserError) {
-        throw updateUserError
-      }
-    } else {
-      console.log('Criando novo usuário:', email)
-      
-      // Criar novo usuário no auth
-      const { data: newAuth, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password: 'Trocar01',
-        email_confirm: true,
-        user_metadata: {
-          name,
-          phone,
-          unit_code: unitCode,
-          role: 'Franqueado',
-          user_type: 'Aluno'
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Já existe um usuário cadastrado com este email' 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
+      )
+    }
+
+    let authUser;
+      
+    // Criar novo usuário no auth
+    const { data: newAuth, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: 'Trocar01',
+      email_confirm: true,
+      user_metadata: {
+        name,
+        phone,
+        unit_code: unitCode,
+        role: 'Franqueado',
+        user_type: 'Aluno'
+      }
+    })
+
+    if (createAuthError) {
+      throw createAuthError
+    }
+
+    authUser = newAuth.user
+
+    // Criar registro na tabela users
+    const { error: createUserError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: authUser.id,
+        email,
+        name,
+        phone,
+        unit_code: unitCode,
+        role: 'Franqueado',
+        user_type: 'Aluno',
+        approval_status: 'aprovado',
+        approved_at: new Date().toISOString()
       })
 
-      if (createAuthError) {
-        throw createAuthError
-      }
-
-      authUser = newAuth.user
-
-      // Criar registro na tabela users
-      const { error: createUserError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: authUser.id,
-          email,
-          name,
-          phone,
-          unit_code: unitCode,
-          role: 'Franqueado',
-          user_type: 'Aluno',
-          approval_status: 'aprovado',
-          approved_at: new Date().toISOString()
-        })
-
-      if (createUserError) {
-        throw createUserError
-      }
+    if (createUserError) {
+      throw createUserError
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Franqueado ${isUpdate ? 'atualizado' : 'criado'} com sucesso!`,
+        message: 'Franqueado criado com sucesso!',
         user: { id: authUser.id, email: authUser.email }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
