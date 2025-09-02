@@ -226,9 +226,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         )}
       </div>
 
-      {/* Main Content Area - FIXED BUG LAYOUT */}
-      <div className="p-2" style={{ height: 'calc(100vh - 200px)' }}>
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
+      {/* Main Content Area - Maximized Layout */}
+      <div className="px-1 py-1" style={{ height: 'calc(100vh - 180px)' }}>
+        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-1`}>
           
           {/* Video Player - FIXED SIZE */}
           <div 
@@ -311,11 +311,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             )}
           </div>
 
-          {/* Sidebar - FIXED WIDTH WITH INTERNAL SCROLL */}
+          {/* Sidebar - Increased width for better space usage */}
           <div 
             className={`bg-white rounded-lg shadow-lg flex flex-col ${theaterMode ? 'h-72' : ''}`}
             style={{ 
-              width: theaterMode ? '100%' : '400px',
+              width: theaterMode ? '100%' : '450px',
               height: theaterMode ? '30%' : '100%',
               minHeight: '300px',
               flexShrink: 0
