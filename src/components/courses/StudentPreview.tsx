@@ -55,15 +55,13 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
     ? lessons.find(l => l.id === currentLessonId)
     : lessons[0];
 
-  // Auto-expand module containing current lesson
+  // Auto-expand module containing current lesson (only once, don't force it open)
   useEffect(() => {
-    if (currentLesson && modules.length > 0) {
+    if (currentLesson && modules.length > 0 && openModules.length === 0) {
       const moduleId = currentLesson.module_id;
-      if (!openModules.includes(moduleId)) {
-        setOpenModules(prev => [...prev, moduleId]);
-      }
+      setOpenModules([moduleId]);
     }
-  }, [currentLesson, modules, openModules]);
+  }, [currentLesson, modules]);
 
   // Auto-scroll to current lesson in sidebar
   useEffect(() => {
@@ -290,7 +288,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col min-h-0`}>
+        <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
@@ -301,7 +299,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             </p>
           </div>
           
-          <ScrollArea className="flex-1 h-0" ref={sidebarRef}>
+          <ScrollArea className="flex-1" ref={sidebarRef}>
             <div className="p-2">
               <Accordion 
                 type="multiple" 
