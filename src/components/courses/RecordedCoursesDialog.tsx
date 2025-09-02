@@ -265,6 +265,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
         setPreviewLessonId(null);
       }}
       initialLessonId={previewLessonId || undefined}
+      enableProgressionLock={false} // Admin mode - all lessons unlocked
     />
   );
 

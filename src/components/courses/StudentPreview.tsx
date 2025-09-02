@@ -25,9 +25,10 @@ interface StudentPreviewProps {
   courseName: string;
   onBack: () => void;
   initialLessonId?: string;
+  enableProgressionLock?: boolean; // Default true - só admin pode desabilitar
 }
 
-const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: StudentPreviewProps) => {
+const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableProgressionLock = true }: StudentPreviewProps) => {
   console.log('StudentPreview renderizado:', { courseId, courseName, initialLessonId });
   
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(initialLessonId || null);
@@ -62,6 +63,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
 
   // Check if a lesson is unlocked (progressive system)
   const isLessonUnlocked = (lesson: any, index: number, moduleLessons: any[]) => {
+    // If progression lock is disabled (admin mode), all lessons are unlocked
+    if (!enableProgressionLock) return true;
+    
     // First lesson of each module is always unlocked
     if (index === 0) return true;
     
