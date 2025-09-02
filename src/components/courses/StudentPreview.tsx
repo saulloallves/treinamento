@@ -186,7 +186,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
           
           {/* Video Player Container */}
           <div className={`${theaterMode ? 'flex-1' : 'flex-1'} flex flex-col gap-2`}>
-            {/* Video Player - FIXED SIZE */}
+            {/* Video Player - SEM CONTROLES SOBREPOSTOS */}
             <div 
               className="bg-black rounded-lg shadow-lg overflow-hidden flex-1"
               style={{ 
@@ -265,53 +265,53 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                 </div>
               )}
             </div>
-
-            {/* Video Controls Bar - BELOW VIDEO */}
-            {currentLesson?.video_url && !videoError && (
-              <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white rounded-lg flex-shrink-0">
-                <div className="flex items-center gap-4">
-                  <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
-                    <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0.25">0.25x</SelectItem>
-                      <SelectItem value="0.5">0.5x</SelectItem>
-                      <SelectItem value="0.75">0.75x</SelectItem>
-                      <SelectItem value="1">1x</SelectItem>
-                      <SelectItem value="1.25">1.25x</SelectItem>
-                      <SelectItem value="1.5">1.5x</SelectItem>
-                      <SelectItem value="2">2x</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handlePictureInPicture}
-                    className="text-white hover:bg-gray-800"
-                  >
-                    <Settings className="w-4 h-4 mr-1" />
-                    PiP
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={toggleTheaterMode}
-                    className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
-                  >
-                    <Maximize className="w-4 h-4 mr-1" />
-                    Cinema
-                  </Button>
-                </div>
-                
-                <div className="text-sm opacity-75">
-                  {currentLesson.title} • {currentLesson.duration_minutes} min
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Video Controls Bar - SEPARADO COMPLETAMENTE DO VIDEO */}
+          {currentLesson?.video_url && !videoError && (
+            <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white rounded-lg flex-shrink-0">
+              <div className="flex items-center gap-4">
+                <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
+                  <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0.25">0.25x</SelectItem>
+                    <SelectItem value="0.5">0.5x</SelectItem>
+                    <SelectItem value="0.75">0.75x</SelectItem>
+                    <SelectItem value="1">1x</SelectItem>
+                    <SelectItem value="1.25">1.25x</SelectItem>
+                    <SelectItem value="1.5">1.5x</SelectItem>
+                    <SelectItem value="2">2x</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handlePictureInPicture}
+                  className="text-white hover:bg-gray-800"
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  PiP
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleTheaterMode}
+                  className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
+                >
+                  <Maximize className="w-4 h-4 mr-1" />
+                  Cinema
+                </Button>
+              </div>
+              
+              <div className="text-sm opacity-75">
+                {currentLesson.title} • {currentLesson.duration_minutes} min
+              </div>
+            </div>
+          )}
 
           {/* Sidebar - FIXED WIDTH WITH INTERNAL SCROLL */}
           <div 
