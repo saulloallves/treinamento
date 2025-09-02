@@ -26,3 +26,13 @@ export function clearSelectedProfile(): void {
     // Silent fail for SSR compatibility
   }
 }
+
+// Auto-detect profile based on user permissions
+export function getAutoDetectedProfile(isAdmin: boolean): SelectedProfile {
+  // If there's a stored profile, use it
+  const stored = getSelectedProfile();
+  if (stored) return stored;
+  
+  // Auto-detect: if user is admin, default to Admin, otherwise Aluno
+  return isAdmin ? 'Admin' : 'Aluno';
+}

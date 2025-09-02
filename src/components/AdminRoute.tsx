@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getSelectedProfile } from '@/lib/profile';
+import { getAutoDetectedProfile, setSelectedProfile } from '@/lib/profile';
 import { toast } from 'sonner';
 
 interface AdminRouteProps {
@@ -37,9 +37,17 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  const selectedProfile = getSelectedProfile();
+  // Auto-detect and set profile if needed
+  const detectedProfile = getAutoDetectedProfile(isAdmin);
+  
+  // Auto-save the detected profile for consistency across sessions
+  if (detectedProfile) {
+    setSelectedProfile(detectedProfile);
+  }
 
-  if (!isAdmin || selectedProfile !== 'Admin') {
+  // Only allow admin access if user is actually admin and profile matches
+  if (!isAdmin || detectedProfile !== 'Admin') {
+    console.log('AdminRoute: Redirecting non-admin to /aluno', { isAdmin, detectedProfile });
     return <Navigate to="/aluno" replace />;
   }
 

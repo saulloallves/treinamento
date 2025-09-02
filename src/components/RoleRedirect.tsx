@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/integrations/supabase/client";
-import { getSelectedProfile } from "@/lib/profile";
+import { getAutoDetectedProfile, setSelectedProfile } from "@/lib/profile";
 import { toast } from 'sonner';
 
 const RoleRedirect = () => {
@@ -66,13 +66,19 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const selectedProfile = getSelectedProfile();
+  // Auto-detect and set profile
+  const detectedProfile = getAutoDetectedProfile(isAdmin);
+  
+  // Auto-save the detected profile for consistency across sessions
+  if (detectedProfile) {
+    setSelectedProfile(detectedProfile);
+  }
 
   // Se o usuário tem ambos os perfis (admin E aluno), verificar preferência
   if (isAdmin && hasStudentProfile) {
-    if (selectedProfile === 'Admin') {
+    if (detectedProfile === 'Admin') {
       return <Navigate to="/dashboard" replace />;
-    } else if (selectedProfile === 'Aluno') {
+    } else if (detectedProfile === 'Aluno') {
       return <Navigate to="/aluno" replace />;
     } else {
       return <Navigate to="/perfil" replace />;

@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getSelectedProfile } from '@/lib/profile';
+import { getAutoDetectedProfile, setSelectedProfile } from '@/lib/profile';
 import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
@@ -44,22 +44,28 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  const selectedProfile = getSelectedProfile();
+  // Auto-detect and set profile if needed
+  const detectedProfile = getAutoDetectedProfile(isAdmin);
+  
+  // Auto-save the detected profile for consistency across sessions
+  if (detectedProfile) {
+    setSelectedProfile(detectedProfile);
+  }
   
   console.log('ProtectedRoute Debug:', {
     requiredRole,
-    selectedProfile,
+    detectedProfile,
     isAdmin,
     userId: user.id
   });
   
   if (requiredRole) {
-    if (requiredRole === 'Admin' && selectedProfile !== 'Admin') {
-      console.log('Redirecting to /aluno because required Admin but selected:', selectedProfile);
+    if (requiredRole === 'Admin' && detectedProfile !== 'Admin') {
+      console.log('Redirecting to /aluno because required Admin but detected:', detectedProfile);
       return <Navigate to="/aluno" replace />;
     }
-    if (requiredRole === 'Aluno' && selectedProfile !== 'Aluno') {
-      console.log('Redirecting to /dashboard because required Aluno but selected:', selectedProfile);
+    if (requiredRole === 'Aluno' && detectedProfile !== 'Aluno') {
+      console.log('Redirecting to /dashboard because required Aluno but detected:', detectedProfile);
       return <Navigate to="/dashboard" replace />;
     }
   }
