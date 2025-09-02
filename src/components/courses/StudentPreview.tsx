@@ -139,7 +139,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100">
         <div className="flex items-center gap-3">
@@ -288,7 +288,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`} style={{ maxHeight: theaterMode ? '384px' : '100vh' }}>
+        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 h-full border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden min-h-0`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
@@ -299,7 +299,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             </p>
           </div>
           
-          <ScrollArea className="flex-1" ref={sidebarRef} style={{ height: 'calc(100% - 80px)' }}>
+          <ScrollArea className="flex-1 min-h-0" ref={sidebarRef}>
             <div className="p-2">
               <Accordion 
                 type="multiple" 
