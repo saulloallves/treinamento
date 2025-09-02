@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import BaseLayout from "@/components/BaseLayout";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import FranchiseeCollaboratorApprovals from "@/components/student/FranchiseeCollaboratorApprovals";
+import ApprovedCollaboratorsList from "@/components/student/ApprovedCollaboratorsList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -22,6 +23,7 @@ const CollaboratorManagement = () => {
     try {
       if (currentUser?.unit_code) {
         await queryClient.invalidateQueries({ queryKey: ['unit-collaboration-approvals', currentUser.unit_code] });
+        await queryClient.invalidateQueries({ queryKey: ['approved-collaborators', currentUser.unit_code] });
         await refetchApprovals();
         toast.success("Dados atualizados com sucesso!");
       }
@@ -57,6 +59,12 @@ const CollaboratorManagement = () => {
   return (
     <BaseLayout title="Gestão de Colaboradores">
       <div className="space-y-4">
+        <ApprovedCollaboratorsList 
+          unitCode={currentUser.unit_code}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefetching}
+        />
+        
         <FranchiseeCollaboratorApprovals 
           unitCode={currentUser.unit_code}
           onRefresh={handleRefresh}
