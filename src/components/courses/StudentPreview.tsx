@@ -227,7 +227,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       </div>
 
       {/* Main Content Area - Maximized Layout */}
-      <div className="px-1 py-1" style={{ height: 'calc(100vh - 180px)' }}>
+      <div className="px-1 py-1" style={{ height: 'calc(100vh - 160px)' }}>
         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-1`}>
           
           {/* Video Player - FIXED SIZE */}
@@ -336,7 +336,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             <div 
               className="flex-1 overflow-y-auto" 
               style={{ 
-                maxHeight: theaterMode ? 'calc(30vh - 100px)' : 'calc(100vh - 350px)'
+                maxHeight: theaterMode ? 'calc(30vh - 100px)' : 'calc(100vh - 320px)'
               }}
             >
               <div className="p-2">
