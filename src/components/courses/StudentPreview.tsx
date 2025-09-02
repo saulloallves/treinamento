@@ -68,7 +68,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
     if (currentLesson && sidebarRef.current) {
       const lessonElement = sidebarRef.current.querySelector(`[data-lesson-id="${currentLesson.id}"]`);
       if (lessonElement) {
-        lessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        lessonElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
       }
     }
   }, [currentLesson]);
@@ -288,7 +288,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`}>
+        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden min-h-0 h-full`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
@@ -299,7 +299,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             </p>
           </div>
           
-          <ScrollArea className="flex-1" ref={sidebarRef}>
+          <ScrollArea className="flex-1 min-h-0" ref={sidebarRef}>
             <div className="p-2">
               <Accordion 
                 type="multiple" 
