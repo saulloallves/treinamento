@@ -8,10 +8,11 @@ interface StudentPreviewProps {
   courseId: string;
   courseName: string;
   onBack: () => void;
+  initialLessonId?: string;
 }
 
-const StudentPreview = ({ courseId, courseName, onBack }: StudentPreviewProps) => {
-  const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
+const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: StudentPreviewProps) => {
+  const [currentLessonId, setCurrentLessonId] = useState<string | null>(initialLessonId || null);
   const [watchedLessons, setWatchedLessons] = useState<Set<string>>(new Set());
   
   const { data: modules = [] } = useModules(courseId);

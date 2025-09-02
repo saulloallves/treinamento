@@ -69,6 +69,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>('');
   const [previewMode, setPreviewMode] = useState(false);
+  const [previewLessonId, setPreviewLessonId] = useState<string | null>(null);
 
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
@@ -227,6 +228,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       const fileName = `${courseId}/${Date.now()}-${file.name}`;
       const result = await uploadVideoMutation.mutateAsync({ file, fileName });
       
+      // Store the public URL for immediate playback
       setUploadedVideoUrl(result.publicUrl);
       setLessonForm(prev => ({
         ...prev,
@@ -246,7 +248,11 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
     <StudentPreview 
       courseId={courseId}
       courseName={courseName}
-      onBack={() => setPreviewMode(false)}
+      onBack={() => {
+        setPreviewMode(false);
+        setPreviewLessonId(null);
+      }}
+      initialLessonId={previewLessonId || undefined}
     />
   );
 
@@ -357,7 +363,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(lesson.video_url, '_blank')}
+                              onClick={() => {
+                                setPreviewLessonId(lesson.id);
+                                setPreviewMode(true);
+                              }}
                               className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                             >
                               <Play className="w-4 h-4" />
@@ -534,7 +543,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
           }`}>
             <input
               type="file"
-              accept="video/mp4,video/webm,video/mov"
+              accept="video/mp4,video/webm,video/mov,video/quicktime"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -561,7 +570,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                   <p className="font-medium">
                     {uploadingVideo ? 'Enviando vídeo...' : 'Clique para selecionar um vídeo'}
                   </p>
-                  <p className="text-xs text-gray-500">MP4, WebM, MOV • Máximo 100MB</p>
+                  <p className="text-xs text-gray-500">MP4, WebM, MOV (QuickTime) • Máximo 100MB</p>
                 </div>
               )}
             </label>
