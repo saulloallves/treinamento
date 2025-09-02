@@ -187,21 +187,12 @@ const CoursesList = () => {
                 </div>
                 
                 <div className="flex gap-1 ml-2">
-                  {course.tipo === 'gravado' ? (
+                  {course.tipo === 'gravado' && (
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleViewRecordedCourses(course.id, course.name)}
                       title="Gerenciar Módulos e Aulas"
-                    >
-                      <Video className="w-3 h-3" />
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewRecordedLessons(course.id, course.name)}
-                      title="Aulas Gravadas"
                     >
                       <Video className="w-3 h-3" />
                     </Button>
