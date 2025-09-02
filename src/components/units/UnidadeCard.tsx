@@ -29,7 +29,7 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 
-              className="font-semibold text-lg text-foreground truncate"
+              className="font-semibold text-lg text-foreground leading-tight"
               title={unidade.grupo || "N/A"}
             >
               {unidade.grupo || "N/A"}
