@@ -33,19 +33,13 @@ Deno.serve(async (req) => {
       .eq('email', email)
       .maybeSingle()
 
-    if (existingUser?.role === 'Franqueado') {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Já existe um franqueado cadastrado com este email' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
     let authUser;
+    let isUpdate = false;
     
     if (existingUser) {
+      isUpdate = true;
+      console.log('Atualizando usuário existente:', email, 'role:', existingUser.role)
+      
       // Atualizar senha do usuário existente
       const { data: updatedAuth, error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
         existingUser.id,
@@ -77,6 +71,8 @@ Deno.serve(async (req) => {
         throw updateUserError
       }
     } else {
+      console.log('Criando novo usuário:', email)
+      
       // Criar novo usuário no auth
       const { data: newAuth, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
         email,
@@ -120,7 +116,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Franqueado ${existingUser ? 'atualizado' : 'criado'} com sucesso!`,
+        message: `Franqueado ${isUpdate ? 'atualizado' : 'criado'} com sucesso!`,
         user: { id: authUser.id, email: authUser.email }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
