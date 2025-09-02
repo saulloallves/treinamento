@@ -223,22 +223,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
 
-    // Validate file type
-    const allowedTypes = [
-      'video/mp4',
-      'video/webm', 
-      'video/quicktime',
-      'video/x-msvideo', // AVI
-      'video/x-matroska', // MKV
-      'video/avi',
-      'video/mov'
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      toast.error(`Formato não suportado: ${file.type}. Use MP4, MOV, WebM, AVI ou MKV.`);
-      return;
-    }
-
+    // Accept any file - no format validation
     setUploadingVideo(true);
     try {
       const fileName = `${courseId}/${Date.now()}-${file.name}`;
@@ -562,7 +547,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
           }`}>
             <input
               type="file"
-              accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-matroska,video/avi,video/x-msvideo"
+              accept="video/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
@@ -593,7 +578,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                     <>
                       <Upload className="w-8 h-8 mx-auto mb-2" />
                       <p className="font-medium">Clique para selecionar um vídeo</p>
-                      <p className="text-xs text-gray-500">MP4, WebM, MOV, AVI, MKV • Vídeos grandes aceitos</p>
+                      <p className="text-xs text-gray-500">Todos os formatos de vídeo aceitos • Vídeos grandes aceitos</p>
                     </>
                   )}
                 </div>

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Play, ArrowLeft, CheckCircle, Circle } from "lucide-react";
+import { Play, ArrowLeft, CheckCircle, Circle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModules } from "@/hooks/useModules";
 import { useRecordedLessons } from "@/hooks/useRecordedLessons";
+import { canBrowserPlayVideo, getVideoFileName } from "@/lib/videoUtils";
 
 interface StudentPreviewProps {
   courseId: string;
@@ -81,14 +82,34 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         <div className="flex-1 bg-black flex items-center justify-center">
           {currentLesson?.video_url ? (
             <div className="w-full h-full max-w-4xl">
-              <video
-                controls
-                className="w-full h-full"
-                src={currentLesson.video_url}
-                onEnded={() => handleLessonComplete(currentLesson.id)}
-              >
-                Seu navegador não suporta o elemento de vídeo.
-              </video>
+              {canBrowserPlayVideo(currentLesson.video_url) ? (
+                <video
+                  controls
+                  className="w-full h-full"
+                  src={currentLesson.video_url}
+                  onEnded={() => handleLessonComplete(currentLesson.id)}
+                >
+                  Seu navegador não suporta o elemento de vídeo.
+                </video>
+              ) : (
+                <div className="text-white text-center p-8">
+                  <div className="bg-white/10 rounded-lg p-6 max-w-md mx-auto">
+                    <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg mb-4">Formato de vídeo não suportado no navegador</p>
+                    <p className="text-sm opacity-75 mb-6">
+                      Este formato de vídeo não pode ser reproduzido diretamente no navegador.
+                    </p>
+                    <Button 
+                      variant="outline"
+                      className="text-white border-white hover:bg-white hover:text-black"
+                      onClick={() => window.open(currentLesson.video_url, '_blank')}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-white text-center">
