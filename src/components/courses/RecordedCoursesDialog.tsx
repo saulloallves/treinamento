@@ -623,18 +623,20 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5" />
-            Curso Gravado: {courseName}
-          </DialogTitle>
-          <DialogDescription>
-            Gerencie os módulos e aulas gravadas deste curso
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className={previewMode ? "max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh] p-0" : "max-w-4xl max-h-[80vh]"}>
+        {!previewMode && (
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5" />
+              Curso Gravado: {courseName}
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie os módulos e aulas gravadas deste curso
+            </DialogDescription>
+          </DialogHeader>
+        )}
 
-        <div className="py-4">
+        <div className={previewMode ? "h-full" : "py-4"}>
           {previewMode ? renderStudentPreview() : (
             <>
               {activeView === 'overview' && renderOverview()}
