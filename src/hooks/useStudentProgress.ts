@@ -22,51 +22,61 @@ export const useStudentProgress = (courseId: string) => {
 
   // Buscar ou criar matrícula para o usuário neste curso
   const ensureEnrollment = async () => {
-    if (!user?.id) return null;
+    if (!user?.id) {
+      console.log('❌ Usuário não autenticado para ensureEnrollment');
+      return null;
+    }
 
-    // Primeiro, verificar se já existe matrícula
+    console.log('🔍 Buscando matrícula para usuário:', user.id, 'curso:', courseId);
+
+    // Primeiro, verificar se já existe matrícula - usar maybeSingle para evitar erro
     const { data: existingEnrollment, error: existingError } = await supabase
       .from('enrollments')
-      .select('id')
+      .select('id, student_name, student_email')
       .eq('course_id', courseId)
       .eq('user_id', user.id)
-      .single();
+      .order('created_at', { ascending: false }) // Pegar a mais recente se houver duplicatas
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('❌ Erro ao buscar matrícula existente:', existingError);
+      return null;
+    }
 
     if (existingEnrollment) {
+      console.log('✅ Matrícula encontrada:', existingEnrollment.id);
       return existingEnrollment.id;
     }
 
     // Se não existe, criar uma nova matrícula
-    if (existingError?.code === 'PGRST116') { // No rows returned
-      const { data: userData } = await supabase
-        .from('users')
-        .select('name, email, phone')
-        .eq('id', user.id)
-        .single();
+    console.log('📝 Criando nova matrícula...');
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name, email, phone')
+      .eq('id', user.id)
+      .maybeSingle();
 
-      const { data: newEnrollment, error: createError } = await supabase
-        .from('enrollments')
-        .insert([{
-          course_id: courseId,
-          user_id: user.id,
-          student_name: userData?.name || 'Estudante',
-          student_email: userData?.email || '',
-          student_phone: userData?.phone || '',
-          status: 'Ativo'
-        }])
-        .select('id')
-        .single();
+    const { data: newEnrollment, error: createError } = await supabase
+      .from('enrollments')
+      .insert([{
+        course_id: courseId,
+        user_id: user.id,
+        student_name: userData?.name || 'Estudante',
+        student_email: userData?.email || '',
+        student_phone: userData?.phone || '',
+        status: 'Ativo'
+      }])
+      .select('id')
+      .single();
 
-      if (createError) {
-        console.error('Error creating enrollment:', createError);
-        return null;
-      }
-
-      return newEnrollment.id;
+    if (createError) {
+      console.error('❌ Erro ao criar matrícula:', createError);
+      return null;
     }
 
-    console.error('Error checking enrollment:', existingError);
-    return null;
+    console.log('✅ Nova matrícula criada:', newEnrollment.id);
+    return newEnrollment.id;
   };
 
   // Buscar progresso do estudante para este curso
@@ -112,13 +122,20 @@ export const useStudentProgress = (courseId: string) => {
         throw new Error('Could not create or find enrollment');
       }
 
-      // Verificar se já existe progresso para esta aula
-      const { data: existingProgress } = await supabase
+      console.log('🎯 Atualizando progresso - Aula:', lessonId, 'Status:', status, 'Tempo:', watchTimeMinutes);
+
+      // Verificar se já existe progresso para esta aula - usar maybeSingle para evitar erro
+      const { data: existingProgress, error: progressError } = await supabase
         .from('student_progress')
-        .select('id')
+        .select('id, status, watch_time_minutes')
         .eq('enrollment_id', enrollmentId)
         .eq('lesson_id', lessonId)
-        .single();
+        .maybeSingle();
+
+      if (progressError) {
+        console.error('❌ Erro ao buscar progresso existente:', progressError);
+        throw progressError;
+      }
 
       const progressData = {
         enrollment_id: enrollmentId,
@@ -129,17 +146,30 @@ export const useStudentProgress = (courseId: string) => {
       };
 
       if (existingProgress) {
-        // Atualizar progresso existente
+        console.log('⏫ Atualizando progresso existente:', existingProgress.id);
+        // Atualizar progresso existente, mas manter o maior tempo assistido
+        const finalWatchTime = Math.max(existingProgress.watch_time_minutes || 0, watchTimeMinutes);
+        const finalProgressData = { 
+          ...progressData, 
+          watch_time_minutes: finalWatchTime 
+        };
+        
         const { data, error } = await supabase
           .from('student_progress')
-          .update(progressData)
+          .update(finalProgressData)
           .eq('id', existingProgress.id)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Erro ao atualizar progresso:', error);
+          throw error;
+        }
+        
+        console.log('✅ Progresso atualizado com sucesso:', data.id);
         return data;
       } else {
+        console.log('➕ Criando novo registro de progresso');
         // Criar novo progresso
         const { data, error } = await supabase
           .from('student_progress')
@@ -147,11 +177,25 @@ export const useStudentProgress = (courseId: string) => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Erro ao criar progresso:', error);
+          throw error;
+        }
+        
+        console.log('✅ Progresso criado com sucesso:', data.id);
         return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Progresso salvo com sucesso na base:', data.id);
+      // Salvar último progresso no localStorage para recuperação
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`lastProgress_${courseId}`, JSON.stringify({
+          lessonId: data.lesson_id,
+          status: data.status,
+          timestamp: new Date().toISOString()
+        }));
+      }
       queryClient.invalidateQueries({ queryKey: ['student-progress', courseId, user?.id] });
     },
     onError: (error: any) => {
@@ -195,13 +239,32 @@ export const useStudentProgress = (courseId: string) => {
       .map(progress => progress.lesson_id);
   };
 
+  // Função para recuperar último progresso do localStorage
+  const getLastProgress = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(`lastProgress_${courseId}`);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Função para marcar aula como completada manualmente
+  const markLessonCompletedManually = (lessonId: string) => {
+    console.log('👆 Marcação manual de aula completada:', lessonId);
+    markLessonCompleted(lessonId);
+  };
+
   return {
     progressData,
     isLoading,
     markLessonCompleted,
     markLessonInProgress,
+    markLessonCompletedManually,
     isLessonCompleted,
     getCompletedLessons,
+    getLastProgress,
     isUpdating: updateProgressMutation.isPending
   };
 };
