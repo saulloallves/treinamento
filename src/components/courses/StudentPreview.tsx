@@ -80,14 +80,31 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   // Check if a lesson is unlocked (progressive system)
   const isLessonUnlocked = (lesson: any, index: number, moduleLessons: any[]) => {
     // If progression lock is disabled (admin mode), all lessons are unlocked
-    if (!enableProgressionLock) return true;
+    if (!enableProgressionLock) {
+      console.log('🔓 Progression lock disabled - all lessons unlocked');
+      return true;
+    }
     
     // First lesson of each module is always unlocked
-    if (index === 0) return true;
+    if (index === 0) {
+      console.log('🆓 First lesson of module - always unlocked:', lesson.title);
+      return true;
+    }
     
     // Previous lesson must be watched to unlock this one
     const previousLesson = moduleLessons[index - 1];
-    return watchedLessons.has(previousLesson.id);
+    const isPreviousWatched = watchedLessons.has(previousLesson.id);
+    
+    console.log(`🔍 Checking lesson unlock for "${lesson.title}":`, {
+      lessonIndex: index,
+      previousLessonTitle: previousLesson.title,
+      previousLessonId: previousLesson.id,
+      isPreviousWatched,
+      watchedLessonsSet: Array.from(watchedLessons),
+      completedLessonsFromDB: completedLessons
+    });
+    
+    return isPreviousWatched;
   };
 
   // Get first lesson if none selected, with localStorage recovery
