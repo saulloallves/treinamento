@@ -288,7 +288,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 h-full border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden min-h-0`}>
+        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`} 
+             style={{ height: theaterMode ? '384px' : 'calc(100vh - 200px)', maxHeight: theaterMode ? '384px' : 'calc(100vh - 200px)' }}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
