@@ -226,19 +226,19 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         )}
       </div>
 
-      {/* Main Content Area - Fixed Height */}
-      <div className="flex-1 min-h-0 p-2" style={{ height: 'calc(100vh - 240px)' }}>
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
-          {/* Video Player Container - Stable dimensions */}
-          <div className={`${theaterMode ? 'flex-1' : 'flex-1 min-w-0'} bg-black rounded-lg shadow-lg overflow-hidden relative`}>
+      {/* Main Content Area - Fixed Layout */}
+      <div className="flex-1 min-h-0 p-2">
+        <div className={`${theaterMode ? 'flex flex-col' : 'flex'} gap-2 h-full`}>
+          {/* Video Player Container - Fixed Dimensions */}
+          <div className={`${theaterMode ? 'h-96' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden`}>
             {currentLesson?.video_url ? (
-              <div className="w-full h-full">
+              <div className="w-full h-full relative">
                 {!videoError ? (
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onEnded={() => handleLessonComplete(currentLesson.id)}
