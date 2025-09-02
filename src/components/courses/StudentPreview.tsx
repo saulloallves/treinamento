@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useModules } from "@/hooks/useModules";
 import { useRecordedLessons } from "@/hooks/useRecordedLessons";
@@ -217,29 +216,27 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
       )}
 
-      <div className={`flex-1 flex ${theaterMode ? 'flex-col' : ''}`}>
+      <div className={`flex-1 flex ${theaterMode ? 'flex-col' : ''} min-h-0`}>
         {/* Video Player */}
-        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative overflow-hidden`}>
+        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0`}>
           {currentLesson?.video_url ? (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center min-h-0">
               {!videoError ? (
-                <AspectRatio ratio={16 / 9} className="w-full max-w-none">
-                  <video
-                    ref={videoRef}
-                    key={currentLesson.id}
-                    controls
-                    className="w-full h-full object-contain"
-                    onLoadStart={handleVideoLoadStart}
-                    onCanPlay={handleVideoCanPlay}
-                    onEnded={() => handleLessonComplete(currentLesson.id)}
-                    onError={handleVideoError}
-                    preload="metadata"
-                    playsInline
-                  >
-                    <source src={currentLesson.video_url} />
-                    Seu navegador não suporta o elemento de vídeo.
-                  </video>
-                </AspectRatio>
+                <video
+                  ref={videoRef}
+                  key={currentLesson.id}
+                  controls
+                  className="w-full h-full object-contain"
+                  onLoadStart={handleVideoLoadStart}
+                  onCanPlay={handleVideoCanPlay}
+                  onEnded={() => handleLessonComplete(currentLesson.id)}
+                  onError={handleVideoError}
+                  preload="metadata"
+                  playsInline
+                >
+                  <source src={currentLesson.video_url} />
+                  Seu navegador não suporta o elemento de vídeo.
+                </video>
               ) : (
                 <div className="text-white text-center p-8 animate-fade-in">
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20">
@@ -293,8 +290,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300`}>
-          <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+        <div className={`${theaterMode ? 'w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col min-h-0`}>
+          <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
               Aulas do Curso
@@ -304,7 +301,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             </p>
           </div>
           
-          <ScrollArea className="flex-1" ref={sidebarRef}>
+          <ScrollArea className="flex-1 h-0" ref={sidebarRef}>
             <div className="p-2">
               <Accordion 
                 type="multiple" 
