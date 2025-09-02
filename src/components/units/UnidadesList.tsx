@@ -9,6 +9,8 @@ import EditUnidadeDialog from "./EditUnidadeDialog";
 import BulkCreateFranchiseesDialog from "./BulkCreateFranchiseesDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import { useQueryClient } from "@tanstack/react-query";
 
 const UnidadesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,7 +20,9 @@ const UnidadesList = () => {
   const [bulkCreateOpen, setBulkCreateOpen] = useState(false);
   const [faseFilter, setFaseFilter] = useState("all");
   const [accountFilter, setAccountFilter] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const queryClient = useQueryClient();
   const { data: unidades = [], isLoading, error } = useUnidades();
 
   const filteredUnidades = unidades.filter((unidade) => {
@@ -49,6 +53,15 @@ const UnidadesList = () => {
     setEditOpen(true);
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["unidades"] });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Get unique fases for filter
   const uniqueFases = Array.from(new Set(unidades.map(u => u.fase_loja).filter(Boolean)));
 
@@ -71,13 +84,20 @@ const UnidadesList = () => {
           </p>
         </div>
         
-        <Button
-          onClick={() => setBulkCreateOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <Users className="h-4 w-4" />
-          Criar Alunos Franqueados
-        </Button>
+        <div className="flex items-center gap-2">
+          <RefreshButton
+            onClick={handleRefresh}
+            isRefreshing={isRefreshing}
+            disabled={isLoading}
+          />
+          <Button
+            onClick={() => setBulkCreateOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Criar Alunos Franqueados
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
