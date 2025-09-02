@@ -1,23 +1,40 @@
-export const canBrowserPlayVideo = (videoUrl: string): boolean => {
-  const video = document.createElement('video');
+/**
+ * Gets the file extension from a URL or filename
+ */
+export const getFileExtension = (url: string): string => {
+  return url.split('.').pop()?.toLowerCase() || '';
+};
+
+/**
+ * Maps file extensions to MIME types for video elements
+ */
+export const getMimeFromExtension = (url: string): string => {
+  const extension = getFileExtension(url);
   
-  // Extract file extension from URL
-  const extension = videoUrl.split('.').pop()?.toLowerCase();
-  
-  // Check if browser can play common video formats
-  const formatSupport = {
-    mp4: video.canPlayType('video/mp4') !== '',
-    webm: video.canPlayType('video/webm') !== '',
-    ogg: video.canPlayType('video/ogg') !== '',
-    mov: video.canPlayType('video/quicktime') !== '',
-    avi: false, // Generally not supported in browsers
-    mkv: false, // Generally not supported in browsers
-    wmv: false, // Generally not supported in browsers
-    flv: false, // Generally not supported in browsers
+  const mimeTypes: Record<string, string> = {
+    mp4: 'video/mp4',
+    webm: 'video/webm',
+    ogg: 'video/ogg',
+    ogv: 'video/ogg',
+    mov: 'video/quicktime',
+    avi: 'video/x-msvideo',
+    mkv: 'video/x-matroska',
+    wmv: 'video/x-ms-wmv',
+    flv: 'video/x-flv',
+    m4v: 'video/mp4',
+    '3gp': 'video/3gpp',
   };
   
-  // Return true for supported formats, false for unsupported
-  return formatSupport[extension as keyof typeof formatSupport] ?? false;
+  return mimeTypes[extension] || 'video/mp4'; // Default to mp4
+};
+
+/**
+ * @deprecated Use direct video rendering with error handling instead
+ * This function is kept for backward compatibility but should not be used
+ */
+export const canBrowserPlayVideo = (videoUrl: string): boolean => {
+  console.warn('canBrowserPlayVideo is deprecated. Use direct video rendering with error handling instead.');
+  return true; // Always return true, let the browser handle it
 };
 
 export const getVideoFileName = (videoUrl: string): string => {
