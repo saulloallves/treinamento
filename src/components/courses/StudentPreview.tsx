@@ -139,16 +139,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={onBack} className="hover-scale">
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Button>
           <div>
-            <h2 className="font-semibold text-lg">{courseName}</h2>
+            <h2 className="font-semibold text-lg text-gray-900">{courseName}</h2>
             <p className="text-sm text-gray-600">
               Progresso: {watchedLessons.size}/{lessons.length} aulas ({progressPercentage}%)
             </p>
@@ -161,16 +161,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 h-2 flex-shrink-0">
+      <div className="w-full bg-gray-200 h-1 flex-shrink-0">
         <div 
-          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 transition-all duration-500 ease-out"
+          className="bg-gradient-to-r from-blue-500 to-blue-600 h-1 transition-all duration-500 ease-out"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
 
       {/* Video Controls Bar */}
       {currentLesson?.video_url && !videoError && (
-        <div className="flex items-center justify-between p-3 bg-gray-900 text-white flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white flex-shrink-0">
           <div className="flex items-center gap-4">
             <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
               <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
@@ -214,22 +214,22 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
       )}
 
-      <div className={`flex-1 flex ${theaterMode ? 'flex-col' : ''} min-h-0 overflow-hidden`}>
-        {/* Video Player */}
-        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0 ${theaterMode ? 'w-full' : 'max-w-[calc(100vw-24rem)]'} p-4`}>
-          {currentLesson?.video_url ? (
-            <div className="w-full h-full flex items-center justify-center max-w-full max-h-full">
-              {!videoError ? (
-                <div className="w-full h-full flex items-center justify-center relative" style={{ maxHeight: 'calc(100% - 2rem)' }}>
+      {/* Main Content Area */}
+      <div className="flex-1 p-4 overflow-hidden">
+        <div className={`${theaterMode ? 'flex flex-col' : 'flex'} h-full gap-4`}>
+          {/* Video Player Container */}
+          <div className={`${theaterMode ? 'flex-1 min-h-[400px]' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden flex items-center justify-center`}>
+            {currentLesson?.video_url ? (
+              <div className="w-full h-full flex items-center justify-center p-6 relative">
+                {!videoError ? (
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-contain rounded shadow-lg"
+                    className="w-full h-full object-contain rounded"
                     style={{ 
-                      maxWidth: 'calc(100% - 2rem)',
-                      maxHeight: 'calc(100% - 2rem)',
-                      minHeight: '300px'
+                      maxWidth: '100%',
+                      maxHeight: '100%'
                     }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
@@ -241,167 +241,167 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                     <source src={currentLesson.video_url} />
                     Seu navegador não suporta o elemento de vídeo.
                   </video>
-                </div>
-              ) : (
-                <div className="text-white text-center p-8 animate-fade-in">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20">
-                    <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
-                    <p className="text-sm opacity-75 mb-4">
-                      Este formato não é suportado pelo navegador.
-                    </p>
-                    <p className="text-xs opacity-60 mb-6">
-                      💡 Dica: Para máxima compatibilidade, use MP4 com codec H.264/AAC
-                    </p>
-                    <div className="space-y-3">
-                      <Button 
-                        variant="outline"
-                        className="text-white border-white/40 hover:bg-white hover:text-black w-full hover-scale"
-                        onClick={() => window.open(currentLesson.video_url, '_blank')}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
-                      </Button>
-                      <Button 
-                        variant="ghost"
-                        className="text-white/70 hover:text-white text-sm"
-                        onClick={() => {
-                          setVideoError(false);
-                          setVideoLoading(true);
-                        }}
-                      >
-                        Tentar novamente
-                      </Button>
+                ) : (
+                  <div className="text-white text-center p-8 animate-fade-in">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20">
+                      <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
+                      <p className="text-sm opacity-75 mb-4">
+                        Este formato não é suportado pelo navegador.
+                      </p>
+                      <p className="text-xs opacity-60 mb-6">
+                        💡 Dica: Para máxima compatibilidade, use MP4 com codec H.264/AAC
+                      </p>
+                      <div className="space-y-3">
+                        <Button 
+                          variant="outline"
+                          className="text-white border-white/40 hover:bg-white hover:text-black w-full hover-scale"
+                          onClick={() => window.open(currentLesson.video_url, '_blank')}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          className="text-white/70 hover:text-white text-sm"
+                          onClick={() => {
+                            setVideoError(false);
+                            setVideoLoading(true);
+                          }}
+                        >
+                          Tentar novamente
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              
-              {videoLoading && !videoError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 animate-fade-in">
-                  <div className="text-white text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
-                    <p className="text-sm">Carregando vídeo...</p>
+                )}
+                
+                {videoLoading && !videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 animate-fade-in">
+                    <div className="text-white text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+                      <p className="text-sm">Carregando vídeo...</p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-white text-center animate-fade-in">
-              <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Selecione uma aula para começar</p>
-            </div>
-          )}
-        </div>
-
-        {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden flex-shrink-0`}>
-          <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-              <Volume2 className="w-5 h-5 text-blue-500" />
-              Aulas do Curso
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">
-              {watchedLessons.size} de {lessons.length} assistidas
-            </p>
+                )}
+              </div>
+            ) : (
+              <div className="text-white text-center animate-fade-in">
+                <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg">Selecione uma aula para começar</p>
+              </div>
+            )}
           </div>
-          
-          <ScrollArea className="flex-1 min-h-0" ref={sidebarRef}>
-            <div className="p-2">
-              <Accordion 
-                type="multiple" 
-                value={openModules}
-                onValueChange={setOpenModules}
-                className="space-y-2"
-              >
-                {modules.map((module) => (
-                  <AccordionItem 
-                    key={module.id} 
-                    value={module.id}
-                    className="border rounded-lg overflow-hidden animate-fade-in"
-                  >
-                    <AccordionTrigger className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
-                      <div className="flex items-start gap-2 w-full">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
-                        <span className="flex-1 text-left leading-tight">{module.name}</span>
-                        <span className="text-xs bg-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
-                          {lessonsByModule[module.id]?.length || 0}
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    
-                    <AccordionContent className="p-0">
-                      {lessonsByModule[module.id]?.map((lesson, index) => {
-                        const isWatched = watchedLessons.has(lesson.id);
-                        const isCurrent = currentLesson?.id === lesson.id;
-                        
-                        return (
-                          <button
-                            key={lesson.id}
-                            data-lesson-id={lesson.id}
-                            onClick={() => handleLessonChange(lesson.id)}
-                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-all duration-200 hover-scale ${
-                              isCurrent 
-                                ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 
-                                : 'hover:shadow-sm'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="flex-shrink-0">
-                                {isWatched ? (
-                                  <CheckCircle className="w-5 h-5 text-green-500 animate-scale-in" />
-                                ) : (
-                                  <Circle className={`w-5 h-5 transition-colors ${
-                                    isCurrent ? 'text-blue-500' : 'text-gray-400'
-                                  }`} />
-                                )}
-                              </div>
-                              
-                              <div className="flex-1">
-                                <p className={`font-medium text-sm leading-relaxed transition-colors ${
-                                  isCurrent ? 'text-blue-700' : 'text-gray-800'
-                                }`}>
-                                  Aula {index + 1}: {lesson.title}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {lesson.duration_minutes} minutos
-                                </p>
-                                {lesson.description && (
-                                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                                    {lesson.description}
-                                  </p>
-                                )}
-                              </div>
-                              
-                              {isCurrent && (
-                                <div className="flex-shrink-0">
-                                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                      
-                      {(!lessonsByModule[module.id] || lessonsByModule[module.id].length === 0) && (
-                        <div className="p-4 text-center text-gray-500 text-sm">
-                          Nenhuma aula neste módulo
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-              
-              {lessons.length === 0 && (
-                <div className="p-8 text-center text-gray-500 animate-fade-in">
-                  <Volume2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p>Nenhuma aula encontrada</p>
-                  <p className="text-sm">Adicione aulas para visualizar o curso</p>
-                </div>
-              )}
+
+          {/* Enhanced Lessons Sidebar */}
+          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white rounded-lg shadow-lg transition-all duration-300 flex flex-col overflow-hidden flex-shrink-0`}>
+            <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0 rounded-t-lg">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                <Volume2 className="w-5 h-5 text-blue-500" />
+                Aulas do Curso
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {watchedLessons.size} de {lessons.length} assistidas
+              </p>
             </div>
-          </ScrollArea>
+            
+            <ScrollArea className="flex-1 min-h-0" ref={sidebarRef}>
+              <div className="p-2">
+                <Accordion 
+                  type="multiple" 
+                  value={openModules}
+                  onValueChange={setOpenModules}
+                  className="space-y-2"
+                >
+                  {modules.map((module) => (
+                    <AccordionItem 
+                      key={module.id} 
+                      value={module.id}
+                      className="border rounded-lg overflow-hidden animate-fade-in"
+                    >
+                      <AccordionTrigger className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
+                        <div className="flex items-start gap-2 w-full">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
+                          <span className="flex-1 text-left leading-tight">{module.name}</span>
+                          <span className="text-xs bg-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                            {lessonsByModule[module.id]?.length || 0}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      
+                      <AccordionContent className="p-0">
+                        {lessonsByModule[module.id]?.map((lesson, index) => {
+                          const isWatched = watchedLessons.has(lesson.id);
+                          const isCurrent = currentLesson?.id === lesson.id;
+                          
+                          return (
+                            <button
+                              key={lesson.id}
+                              data-lesson-id={lesson.id}
+                              onClick={() => handleLessonChange(lesson.id)}
+                              className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-all duration-200 hover-scale ${
+                                isCurrent 
+                                  ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 
+                                  : 'hover:shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0">
+                                  {isWatched ? (
+                                    <CheckCircle className="w-5 h-5 text-green-500 animate-scale-in" />
+                                  ) : (
+                                    <Circle className={`w-5 h-5 transition-colors ${
+                                      isCurrent ? 'text-blue-500' : 'text-gray-400'
+                                    }`} />
+                                  )}
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <p className={`font-medium text-sm leading-relaxed transition-colors ${
+                                    isCurrent ? 'text-blue-700' : 'text-gray-800'
+                                  }`}>
+                                    Aula {index + 1}: {lesson.title}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {lesson.duration_minutes} minutos
+                                  </p>
+                                  {lesson.description && (
+                                    <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                                      {lesson.description}
+                                    </p>
+                                  )}
+                                </div>
+                                
+                                {isCurrent && (
+                                  <div className="flex-shrink-0">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                        
+                        {(!lessonsByModule[module.id] || lessonsByModule[module.id].length === 0) && (
+                          <div className="p-4 text-center text-gray-500 text-sm">
+                            Nenhuma aula neste módulo
+                          </div>
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                
+                {lessons.length === 0 && (
+                  <div className="p-8 text-center text-gray-500 animate-fade-in">
+                    <Volume2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p>Nenhuma aula encontrada</p>
+                    <p className="text-sm">Adicione aulas para visualizar o curso</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
     </div>
