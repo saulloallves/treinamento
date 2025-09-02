@@ -85,23 +85,47 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
       return true;
     }
     
-    // First lesson of each module is always unlocked
-    if (index === 0) {
-      console.log('🆓 First lesson of module - always unlocked:', lesson.title);
+    // Find current module
+    const currentModule = modules.find(m => m.id === lesson.module_id);
+    const currentModuleIndex = modules.findIndex(m => m.id === lesson.module_id);
+    
+    // First lesson of the FIRST module is always unlocked
+    if (currentModuleIndex === 0 && index === 0) {
+      console.log('🆓 First lesson of first module - always unlocked:', lesson.title);
       return true;
     }
     
-    // Previous lesson must be watched to unlock this one
+    // For first lesson of other modules, check if previous module is completed
+    if (index === 0 && currentModuleIndex > 0) {
+      const previousModule = modules[currentModuleIndex - 1];
+      const previousModuleLessons = lessonsByModule[previousModule.id] || [];
+      
+      // Check if ALL lessons of previous module are completed
+      const previousModuleCompleted = previousModuleLessons.every(prevLesson => 
+        watchedLessons.has(prevLesson.id)
+      );
+      
+      console.log(`🔍 First lesson of module "${currentModule?.name}":`, {
+        previousModule: previousModule.name,
+        previousModuleLessonsCount: previousModuleLessons.length,
+        completedInPreviousModule: previousModuleLessons.filter(l => watchedLessons.has(l.id)).length,
+        previousModuleCompleted
+      });
+      
+      return previousModuleCompleted;
+    }
+    
+    // For other lessons in the same module, previous lesson must be watched
     const previousLesson = moduleLessons[index - 1];
     const isPreviousWatched = watchedLessons.has(previousLesson.id);
     
     console.log(`🔍 Checking lesson unlock for "${lesson.title}":`, {
+      moduleIndex: currentModuleIndex,
       lessonIndex: index,
       previousLessonTitle: previousLesson.title,
       previousLessonId: previousLesson.id,
       isPreviousWatched,
-      watchedLessonsSet: Array.from(watchedLessons),
-      completedLessonsFromDB: completedLessons
+      watchedLessonsSet: Array.from(watchedLessons)
     });
     
     return isPreviousWatched;
