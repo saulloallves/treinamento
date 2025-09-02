@@ -288,7 +288,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col`}>
+        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-80 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
@@ -299,7 +299,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             </p>
           </div>
           
-          <ScrollArea className="flex-1 overflow-auto" ref={sidebarRef}>
+          <ScrollArea className="flex-1" ref={sidebarRef}>
             <div className="p-2">
               <Accordion 
                 type="multiple" 
