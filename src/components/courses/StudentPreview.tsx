@@ -215,10 +215,17 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 min-h-0 p-4">
+      <div 
+        className="p-4 overflow-hidden"
+        style={{ 
+          height: currentLesson?.video_url && !videoError 
+            ? 'calc(100vh - 280px)' // Account for header + progress + controls
+            : 'calc(100vh - 240px)'  // Without controls
+        }}
+      >
         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-4`}>
           {/* Video Player Container */}
-          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden`}>
+          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} ${!currentLesson?.video_url || videoError ? 'bg-black' : 'bg-gray-100'} rounded-lg shadow-lg overflow-hidden`}>
             {currentLesson?.video_url ? (
               <div className="w-full h-full relative">
                 {!videoError ? (
@@ -226,7 +233,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onEnded={() => handleLessonComplete(currentLesson.id)}
