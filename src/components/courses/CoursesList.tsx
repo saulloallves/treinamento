@@ -121,7 +121,7 @@ const CoursesList = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-brand-black text-sm line-clamp-1">
+                    <h3 className="font-semibold text-brand-black text-sm">
                       {course.name}
                     </h3>
                   </div>
