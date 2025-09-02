@@ -311,14 +311,13 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             )}
           </div>
 
-          {/* Sidebar - Increased width for better space usage */}
+          {/* Sidebar - Same width as video */}
           <div 
-            className={`bg-white rounded-lg shadow-lg flex flex-col ${theaterMode ? 'h-72' : ''}`}
+            className={`${theaterMode ? '' : 'flex-1'} bg-white rounded-lg shadow-lg flex flex-col ${theaterMode ? 'h-72' : ''}`}
             style={{ 
-              width: theaterMode ? '100%' : '450px',
+              width: theaterMode ? '100%' : undefined,
               height: theaterMode ? '30%' : '100%',
-              minHeight: '300px',
-              flexShrink: 0
+              minHeight: '300px'
             }}
           >
             {/* Header - Fixed */}
