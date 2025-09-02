@@ -18,6 +18,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useModules } from "@/hooks/useModules";
 import { useRecordedLessons } from "@/hooks/useRecordedLessons";
+import { useStudentProgress } from "@/hooks/useStudentProgress";
 import { getVideoFileName, getMimeFromExtension } from "@/lib/videoUtils";
 
 interface StudentPreviewProps {
@@ -32,7 +33,6 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   console.log('StudentPreview renderizado:', { courseId, courseName, initialLessonId });
   
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(initialLessonId || null);
-  const [watchedLessons, setWatchedLessons] = useState<Set<string>>(new Set());
   const [videoError, setVideoError] = useState<boolean>(false);
   const [videoLoading, setVideoLoading] = useState<boolean>(true);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
@@ -44,10 +44,24 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
+  
+  // Use the progress hook instead of local state
+  const { 
+    getCompletedLessons, 
+    isLessonCompleted, 
+    markLessonCompleted, 
+    markLessonInProgress,
+    isLoading: progressLoading 
+  } = useStudentProgress(courseId);
+  
+  // Get completed lessons from the database
+  const completedLessons = getCompletedLessons();
+  const watchedLessons = new Set(completedLessons);
 
   console.log('StudentPreview dados:', { 
     modulesCount: modules.length, 
     lessonsCount: lessons.length,
+    completedLessonsCount: completedLessons.length,
     modules,
     lessons 
   });
@@ -127,7 +141,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   };
 
   const handleLessonComplete = (lessonId: string) => {
-    setWatchedLessons(prev => new Set([...prev, lessonId]));
+    // Mark lesson as completed using the progress hook
+    markLessonCompleted(lessonId);
     
     // Find the next unlocked lesson
     const currentModule = modules.find(m => m.id === currentLesson?.module_id);
@@ -281,6 +296,12 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                     style={{ objectFit: 'contain' }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
+                    onPlay={() => {
+                      // Mark lesson as in progress when user starts watching
+                      if (currentLesson && !isLessonCompleted(currentLesson.id)) {
+                        markLessonInProgress(currentLesson.id);
+                      }
+                    }}
                     onEnded={() => handleLessonComplete(currentLesson.id)}
                     onError={handleVideoError}
                     preload="metadata"
@@ -409,9 +430,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                   handleLessonChange(lesson.id);
                                 }
                               }}
-                              disabled={!isUnlocked}
+                              disabled={!isUnlocked || progressLoading}
                               className={`w-full text-left px-4 py-3 border-b last:border-b-0 transition-all duration-200 ${
-                                !isUnlocked 
+                                !isUnlocked || progressLoading
                                   ? 'opacity-50 cursor-not-allowed bg-gray-50' 
                                   : isCurrent 
                                     ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm hover:bg-blue-100' 
@@ -420,7 +441,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                             >
                               <div className="flex items-center gap-3">
                                 <div className="flex-shrink-0">
-                                  {!isUnlocked ? (
+                                  {progressLoading ? (
+                                    <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+                                  ) : !isUnlocked ? (
                                     <Lock className="w-5 h-5 text-gray-400" />
                                   ) : isWatched ? (
                                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -433,7 +456,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 
                                 <div className="flex-1">
                                   <p className={`font-medium text-sm leading-relaxed transition-colors ${
-                                    !isUnlocked 
+                                    !isUnlocked || progressLoading
                                       ? 'text-gray-400' 
                                       : isCurrent 
                                         ? 'text-blue-700' 
@@ -441,24 +464,29 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                   }`}>
                                     Aula {index + 1}: {lesson.title}
                                   </p>
-                                  <p className={`text-xs ${!isUnlocked ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <p className={`text-xs ${!isUnlocked || progressLoading ? 'text-gray-400' : 'text-gray-500'}`}>
                                     {lesson.duration_minutes} minutos
-                                    {!isUnlocked && index > 0 && (
+                                    {!isUnlocked && index > 0 && !progressLoading && (
                                       <span className="ml-2 text-xs bg-gray-200 px-2 py-0.5 rounded-full">
                                         Complete a aula anterior
+                                      </span>
+                                    )}
+                                    {progressLoading && (
+                                      <span className="ml-2 text-xs text-blue-500">
+                                        Carregando progresso...
                                       </span>
                                     )}
                                   </p>
                                   {lesson.description && (
                                     <p className={`text-xs mt-1 leading-relaxed ${
-                                      !isUnlocked ? 'text-gray-300' : 'text-gray-400'
+                                      !isUnlocked || progressLoading ? 'text-gray-300' : 'text-gray-400'
                                     }`}>
                                       {lesson.description}
                                     </p>
                                   )}
                                 </div>
                                 
-                                {isCurrent && isUnlocked && (
+                                {isCurrent && isUnlocked && !progressLoading && (
                                   <div className="flex-shrink-0">
                                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                                   </div>
