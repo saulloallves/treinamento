@@ -139,7 +139,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-dvh bg-gray-50 flex flex-col pb-safe-area-inset-bottom">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -215,10 +215,15 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <div className={`${theaterMode ? 'flex flex-col' : 'flex'} h-full gap-4`}>
+      <div className="flex-1 min-h-0 p-4 overflow-y-auto">
+        <div className={`${theaterMode ? 'flex flex-col' : 'flex'} h-full min-h-0 gap-4`}>
           {/* Video Player Container */}
-          <div className={`${theaterMode ? 'flex-1 min-h-[400px]' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden flex items-center justify-center`}>
+          <div 
+            className={`${theaterMode ? 'flex-1 min-h-[400px]' : 'flex-1'} bg-black rounded-lg shadow-lg flex items-center justify-center min-h-0`}
+            style={{
+              height: theaterMode ? 'calc(70vh - 8rem)' : 'calc(100vh - 16rem)'
+            }}
+          >
             {currentLesson?.video_url ? (
               <div className="w-full h-full flex items-center justify-center p-6 relative">
                 {!videoError ? (
