@@ -139,13 +139,13 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Consolidated Header Area */}
       <div className="flex-shrink-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={onBack} className="hover-scale">
+            <Button variant="outline" size="sm" onClick={onBack}>
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </Button>
@@ -218,18 +218,18 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       </div>
 
       {/* Main Content Area - Fixed Height */}
-      <div className="flex-1 min-h-0 p-4">
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-4`}>
+      <div className="flex-1 min-h-0 p-2">
+        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
           {/* Video Player Container */}
-          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} ${!currentLesson?.video_url || videoError ? 'bg-black' : 'bg-gray-100'} rounded-lg shadow-lg overflow-hidden`}>
+          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden flex`}>
             {currentLesson?.video_url ? (
-              <div className="w-full h-full relative">
+              <div className="w-full h-full relative flex-1">
                 {!videoError ? (
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onEnded={() => handleLessonComplete(currentLesson.id)}
@@ -254,7 +254,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                       <div className="space-y-3">
                         <Button 
                           variant="outline"
-                          className="text-white border-white/40 hover:bg-white hover:text-black w-full hover-scale"
+                          className="text-white border-white/40 hover:bg-white hover:text-black w-full"
                           onClick={() => window.open(currentLesson.video_url, '_blank')}
                         >
                           <Download className="w-4 h-4 mr-2" />
@@ -295,7 +295,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
           </div>
 
           {/* Enhanced Lessons Sidebar */}
-          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white rounded-lg shadow-lg transition-all duration-300 flex flex-col flex-shrink-0`}>
+          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white rounded-lg shadow-lg transition-all duration-300 flex flex-col flex-shrink-0 min-h-0`}>
             <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0 rounded-t-lg">
               <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                 <Volume2 className="w-5 h-5 text-blue-500" />
@@ -306,7 +306,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
               </p>
             </div>
             
-            <ScrollArea className="flex-1 min-h-0" ref={sidebarRef}>
+            <ScrollArea className="flex-1 min-h-0 h-full" ref={sidebarRef}>
               <div className="p-2">
                 <Accordion 
                   type="multiple" 
@@ -340,7 +340,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                               key={lesson.id}
                               data-lesson-id={lesson.id}
                               onClick={() => handleLessonChange(lesson.id)}
-                              className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-all duration-200 hover-scale ${
+                              className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b last:border-b-0 transition-all duration-200 ${
                                 isCurrent 
                                   ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-sm' 
                                   : 'hover:shadow-sm'
