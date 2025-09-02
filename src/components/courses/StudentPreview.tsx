@@ -36,9 +36,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [theaterMode, setTheaterMode] = useState<boolean>(false);
   const [openModules, setOpenModules] = useState<string[]>([]);
+  const [contentHeight, setContentHeight] = useState<number>(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
@@ -81,6 +83,24 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       }
     }
   }, [currentLesson]);
+
+  // Calculate and set content height to prevent video resizing
+  useEffect(() => {
+    const calculateHeight = () => {
+      if (headerRef.current) {
+        const headerHeight = headerRef.current.offsetHeight;
+        const availableHeight = window.innerHeight - headerHeight - 16; // 16px for padding
+        setContentHeight(availableHeight);
+      }
+    };
+
+    calculateHeight();
+    
+    const handleResize = () => calculateHeight();
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentLesson, modules]); // Recalculate when content changes
 
   // Reset video error when lesson changes
   const handleLessonChange = (lessonId: string) => {
@@ -150,7 +170,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   return (
     <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Consolidated Header Area */}
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0" ref={headerRef}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
           <div className="flex items-center gap-3">
@@ -227,7 +247,10 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       </div>
 
       {/* Main Content Area - Fixed Height */}
-      <div className="flex-1 min-h-0 p-2">
+      <div 
+        className="flex-1 min-h-0 p-2"
+        style={contentHeight > 0 ? { height: `${contentHeight}px` } : undefined}
+      >
         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
           {/* Video Player Container - Stable dimensions */}
           <div className={`${theaterMode ? 'flex-1' : 'flex-1 min-w-0'} bg-black rounded-lg shadow-lg overflow-hidden relative`}>
