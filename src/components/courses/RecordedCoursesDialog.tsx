@@ -471,6 +471,28 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       </div>
 
       <div className="space-y-4">
+        {!selectedModule && (
+          <div>
+            <Label htmlFor="moduleSelect">Módulo *</Label>
+            <select
+              id="moduleSelect"
+              className="w-full px-3 py-2 border border-input bg-background rounded-md"
+              onChange={(e) => {
+                const module = modules.find(m => m.id === e.target.value);
+                setSelectedModule(module || null);
+              }}
+              value={selectedModule?.id || ''}
+            >
+              <option value="">Selecione um módulo</option>
+              {modules.map((module) => (
+                <option key={module.id} value={module.id}>
+                  {module.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div>
           <Label htmlFor="lessonTitle">Título da Aula *</Label>
           <Input
