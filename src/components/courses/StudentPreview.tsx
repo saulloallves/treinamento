@@ -139,90 +139,86 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="min-h-dvh bg-gray-50 flex flex-col pb-safe-area-inset-bottom">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={onBack} className="hover-scale">
-            <ArrowLeft className="w-4 h-4" />
-            Voltar
-          </Button>
-          <div>
-            <h2 className="font-semibold text-lg text-gray-900">{courseName}</h2>
-            <p className="text-sm text-gray-600">
-              Progresso: {watchedLessons.size}/{lessons.length} aulas ({progressPercentage}%)
-            </p>
-          </div>
-        </div>
-        
-        <div className="bg-blue-100 px-3 py-1 rounded-full animate-fade-in">
-          <span className="text-blue-700 text-sm font-medium">👁️ Visualização do Aluno</span>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full bg-gray-200 h-1 flex-shrink-0">
-        <div 
-          className="bg-gradient-to-r from-blue-500 to-blue-600 h-1 transition-all duration-500 ease-out"
-          style={{ width: `${progressPercentage}%` }}
-        />
-      </div>
-
-      {/* Video Controls Bar */}
-      {currentLesson?.video_url && !videoError && (
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
-              <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0.25">0.25x</SelectItem>
-                <SelectItem value="0.5">0.5x</SelectItem>
-                <SelectItem value="0.75">0.75x</SelectItem>
-                <SelectItem value="1">1x</SelectItem>
-                <SelectItem value="1.25">1.25x</SelectItem>
-                <SelectItem value="1.5">1.5x</SelectItem>
-                <SelectItem value="2">2x</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handlePictureInPicture}
-              className="text-white hover:bg-gray-800"
-            >
-              <Settings className="w-4 h-4 mr-1" />
-              PiP
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Consolidated Header Area */}
+      <div className="flex-shrink-0">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={onBack} className="hover-scale">
+              <ArrowLeft className="w-4 h-4" />
+              Voltar
             </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={toggleTheaterMode}
-              className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
-            >
-              <Maximize className="w-4 h-4 mr-1" />
-              Cinema
-            </Button>
+            <div>
+              <h2 className="font-semibold text-lg text-gray-900">{courseName}</h2>
+              <p className="text-sm text-gray-600">
+                Progresso: {watchedLessons.size}/{lessons.length} aulas ({progressPercentage}%)
+              </p>
+            </div>
           </div>
           
-          <div className="text-sm opacity-75">
-            {currentLesson.title} • {currentLesson.duration_minutes} min
+          <div className="bg-blue-100 px-3 py-1 rounded-full animate-fade-in">
+            <span className="text-blue-700 text-sm font-medium">👁️ Visualização do Aluno</span>
           </div>
         </div>
-      )}
 
-      {/* Main Content Area */}
-      <div 
-        className="p-4 overflow-hidden"
-        style={{ 
-          height: currentLesson?.video_url && !videoError 
-            ? 'calc(100vh - 280px)' // Account for header + progress + controls
-            : 'calc(100vh - 240px)'  // Without controls
-        }}
-      >
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 h-1">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-blue-600 h-1 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+
+        {/* Video Controls Bar */}
+        {currentLesson?.video_url && !videoError && (
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white">
+            <div className="flex items-center gap-4">
+              <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
+                <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.25">0.25x</SelectItem>
+                  <SelectItem value="0.5">0.5x</SelectItem>
+                  <SelectItem value="0.75">0.75x</SelectItem>
+                  <SelectItem value="1">1x</SelectItem>
+                  <SelectItem value="1.25">1.25x</SelectItem>
+                  <SelectItem value="1.5">1.5x</SelectItem>
+                  <SelectItem value="2">2x</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handlePictureInPicture}
+                className="text-white hover:bg-gray-800"
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                PiP
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleTheaterMode}
+                className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
+              >
+                <Maximize className="w-4 h-4 mr-1" />
+                Cinema
+              </Button>
+            </div>
+            
+            <div className="text-sm opacity-75">
+              {currentLesson.title} • {currentLesson.duration_minutes} min
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Area - Fixed Height */}
+      <div className="flex-1 min-h-0 p-4">
         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-4`}>
           {/* Video Player Container */}
           <div className={`${theaterMode ? 'flex-1' : 'flex-1'} ${!currentLesson?.video_url || videoError ? 'bg-black' : 'bg-gray-100'} rounded-lg shadow-lg overflow-hidden`}>
