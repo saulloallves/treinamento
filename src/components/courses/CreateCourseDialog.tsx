@@ -30,6 +30,7 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
     mandatory: false,
     has_quiz: false,
     generates_certificate: false,
+    tipo: "ao_vivo",
     status: "Ativo"
   });
 
@@ -49,6 +50,7 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
       mandatory: false,
       has_quiz: false,
       generates_certificate: false,
+      tipo: "ao_vivo",
       status: "Ativo"
     });
     
@@ -91,6 +93,19 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
+              <Label htmlFor="tipo">Tipo de Curso</Label>
+              <select
+                id="tipo"
+                value={formData.tipo}
+                onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
+                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              >
+                <option value="ao_vivo">Ao Vivo (Zoom)</option>
+                <option value="gravado">Gravado (Online)</option>
+              </select>
+            </div>
+
+            <div className="grid gap-2">
               <Label htmlFor="theme">Tema</Label>
               <select
                 id="theme"
@@ -105,7 +120,9 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
                 <option value="Qualidade">Qualidade</option>
               </select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="publicTarget">Público-alvo</Label>
               <select

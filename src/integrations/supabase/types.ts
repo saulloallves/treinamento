@@ -222,6 +222,7 @@ export type Database = {
           public_target: string
           status: string
           theme: string
+          tipo: string
           updated_at: string
         }
         Insert: {
@@ -237,6 +238,7 @@ export type Database = {
           public_target: string
           status?: string
           theme: string
+          tipo?: string
           updated_at?: string
         }
         Update: {
@@ -252,6 +254,7 @@ export type Database = {
           public_target?: string
           status?: string
           theme?: string
+          tipo?: string
           updated_at?: string
         }
         Relationships: []
@@ -380,6 +383,50 @@ export type Database = {
           },
         ]
       }
+      modules: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          order_index: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz: {
         Row: {
           correct_answer: string
@@ -488,6 +535,69 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recorded_lessons: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          module_id: string
+          order_index: number
+          status: string
+          title: string
+          updated_at: string
+          video_file_path: string | null
+          video_url: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          module_id: string
+          order_index?: number
+          status?: string
+          title: string
+          updated_at?: string
+          video_file_path?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          module_id?: string
+          order_index?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          video_file_path?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recorded_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recorded_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
             referencedColumns: ["id"]
           },
         ]

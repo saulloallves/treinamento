@@ -75,6 +75,19 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
+              <Label htmlFor="tipo">Tipo de Curso</Label>
+              <select
+                id="tipo"
+                value={formData.tipo}
+                onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
+                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              >
+                <option value="ao_vivo">Ao Vivo (Zoom)</option>
+                <option value="gravado">Gravado (Online)</option>
+              </select>
+            </div>
+
+            <div className="grid gap-2">
               <Label htmlFor="theme">Tema</Label>
               <select
                 id="theme"
@@ -89,7 +102,9 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                 <option value="Qualidade">Qualidade</option>
               </select>
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="publicTarget">Público-alvo</Label>
               <select
@@ -103,20 +118,20 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                 <option value="ambos">Ambos</option>
               </select>
             </div>
-          </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-            >
-              <option value="Ativo">Ativo</option>
-              <option value="Em revisão">Em revisão</option>
-              <option value="Inativo">Inativo</option>
-            </select>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              >
+                <option value="Ativo">Ativo</option>
+                <option value="Em revisão">Em revisão</option>
+                <option value="Inativo">Inativo</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

@@ -1,94 +1,92 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface Course {
+export interface Module {
   id: string;
+  course_id: string;
   name: string;
   description?: string;
-  theme: string;
-  public_target: string;
-  mandatory: boolean;
-  has_quiz: boolean;
-  generates_certificate: boolean;
-  lessons_count: number;
+  order_index: number;
   status: string;
-  tipo: 'ao_vivo' | 'gravado';
   created_at: string;
   updated_at: string;
+  created_by?: string;
 }
 
-export interface CourseInput {
+export interface ModuleInput {
+  course_id: string;
   name: string;
   description?: string;
-  theme: string;
-  public_target: string;
-  mandatory: boolean;
-  has_quiz: boolean;
-  generates_certificate: boolean;
-  tipo: 'ao_vivo' | 'gravado';
+  order_index: number;
   status?: string;
 }
 
-export const useCourses = () => {
+export const useModules = (courseId?: string) => {
   const { toast } = useToast();
   
   return useQuery({
-    queryKey: ['courses'],
+    queryKey: ['modules', courseId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('courses')
+      let query = supabase
+        .from('modules')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('order_index', { ascending: true });
+
+      if (courseId) {
+        query = query.eq('course_id', courseId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching courses:', error);
+        console.error('Error fetching modules:', error);
         toast({
-          title: "Erro ao carregar cursos",
+          title: "Erro ao carregar módulos",
           description: error.message,
           variant: "destructive",
         });
         throw error;
       }
 
-      return data as Course[];
-    }
+      return data as Module[];
+    },
+    enabled: !!courseId,
   });
 };
 
-export const useCreateCourse = () => {
+export const useCreateModule = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (courseData: CourseInput) => {
+    mutationFn: async (moduleData: ModuleInput) => {
       const { data, error } = await supabase
-        .from('courses')
+        .from('modules')
         .insert([{
-          ...courseData,
+          ...moduleData,
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
-        console.error('Error creating course:', error);
+        console.error('Error creating module:', error);
         throw error;
       }
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
       toast({
-        title: "Curso criado com sucesso!",
-        description: "O novo curso foi adicionado à lista.",
+        title: "Módulo criado com sucesso!",
+        description: "O novo módulo foi adicionado ao curso.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao criar curso",
+        title: "Erro ao criar módulo",
         description: error.message,
         variant: "destructive",
       });
@@ -96,36 +94,36 @@ export const useCreateCourse = () => {
   });
 };
 
-export const useUpdateCourse = () => {
+export const useUpdateModule = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...courseData }: Course) => {
+    mutationFn: async ({ id, ...moduleData }: Module) => {
       const { data, error } = await supabase
-        .from('courses')
-        .update(courseData)
+        .from('modules')
+        .update(moduleData)
         .eq('id', id)
         .select()
-        .maybeSingle();
+        .single();
 
       if (error) {
-        console.error('Error updating course:', error);
+        console.error('Error updating module:', error);
         throw error;
       }
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
       toast({
-        title: "Curso atualizado com sucesso!",
+        title: "Módulo atualizado com sucesso!",
         description: "As alterações foram salvas.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar curso",
+        title: "Erro ao atualizar módulo",
         description: error.message,
         variant: "destructive",
       });
@@ -133,32 +131,33 @@ export const useUpdateCourse = () => {
   });
 };
 
-export const useDeleteCourse = () => {
+export const useDeleteModule = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (courseId: string) => {
+    mutationFn: async (moduleId: string) => {
       const { error } = await supabase
-        .from('courses')
+        .from('modules')
         .delete()
-        .eq('id', courseId);
+        .eq('id', moduleId);
 
       if (error) {
-        console.error('Error deleting course:', error);
+        console.error('Error deleting module:', error);
         throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['modules'] });
+      queryClient.invalidateQueries({ queryKey: ['recorded-lessons'] });
       toast({
-        title: "Curso excluído com sucesso!",
-        description: "O curso foi removido da lista.",
+        title: "Módulo excluído com sucesso!",
+        description: "O módulo e suas aulas foram removidos.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao excluir curso",
+        title: "Erro ao excluir módulo",
         description: error.message,
         variant: "destructive",
       });

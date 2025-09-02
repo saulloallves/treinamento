@@ -10,6 +10,7 @@ import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
 import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
 import RecordedLessonsDialog from "./RecordedLessonsDialog";
+import RecordedCoursesDialog from "./RecordedCoursesDialog";
 import { useCourses, useDeleteCourse, Course } from "@/hooks/useCourses";
 
 const CoursesList = () => {
@@ -22,6 +23,7 @@ const CoursesList = () => {
   const [selectedCourseName, setSelectedCourseName] = useState<string>("");
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [recordedLessonsDialogOpen, setRecordedLessonsDialogOpen] = useState(false);
+  const [recordedCoursesDialogOpen, setRecordedCoursesDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [statusFilter, setStatusFilter] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,6 +92,12 @@ const CoursesList = () => {
     setRecordedLessonsDialogOpen(true);
   };
 
+  const handleViewRecordedCourses = (courseId: string, courseName: string) => {
+    setSelectedCourseId(courseId);
+    setSelectedCourseName(courseName);
+    setRecordedCoursesDialogOpen(true);
+  };
+
   const getPublicTargetLabel = (target: string) => {
     switch (target) {
       case "franqueado": return "Franqueado";
@@ -126,6 +134,13 @@ const CoursesList = () => {
                   <div className="flex flex-wrap gap-1 mb-2">
                     <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
                       {course.theme}
+                    </span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      course.tipo === 'gravado' 
+                        ? 'bg-purple-100 text-purple-700' 
+                        : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      {course.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
                     </span>
                     {course.mandatory && (
                       <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
@@ -172,14 +187,25 @@ const CoursesList = () => {
                 </div>
                 
                 <div className="flex gap-1 ml-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewRecordedLessons(course.id, course.name)}
-                    title="Aulas Gravadas"
-                  >
-                    <Video className="w-3 h-3" />
-                  </Button>
+                  {course.tipo === 'gravado' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewRecordedCourses(course.id, course.name)}
+                      title="Gerenciar Módulos e Aulas"
+                    >
+                      <Video className="w-3 h-3" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewRecordedLessons(course.id, course.name)}
+                      title="Aulas Gravadas"
+                    >
+                      <Video className="w-3 h-3" />
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -423,6 +449,13 @@ const CoursesList = () => {
         courseName={selectedCourseName}
         open={recordedLessonsDialogOpen}
         onOpenChange={setRecordedLessonsDialogOpen}
+      />
+
+      <RecordedCoursesDialog
+        courseId={selectedCourseId}
+        courseName={selectedCourseName}
+        open={recordedCoursesDialogOpen}
+        onOpenChange={setRecordedCoursesDialogOpen}
       />
     </div>
   );
