@@ -184,132 +184,134 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       <div className="p-2" style={{ height: 'calc(100vh - 200px)' }}>
         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
           
-          {/* Video Player - FIXED SIZE */}
-          <div 
-            className={`${theaterMode ? '' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden`}
-            style={{ 
-              height: theaterMode ? '70%' : '100%',
-              minHeight: theaterMode ? '400px' : '300px'
-            }}
-          >
-            {currentLesson?.video_url ? (
-              <>
-                {!videoError ? (
-                  <video
-                    ref={videoRef}
-                    key={currentLesson.id}
-                    controls
-                    className="w-full h-full"
-                    style={{ objectFit: 'contain' }}
-                    onLoadStart={handleVideoLoadStart}
-                    onCanPlay={handleVideoCanPlay}
-                    onEnded={() => handleLessonComplete(currentLesson.id)}
-                    onError={handleVideoError}
-                    preload="metadata"
-                    playsInline
-                  >
-                    <source src={currentLesson.video_url} />
-                    Seu navegador não suporta o elemento de vídeo.
-                  </video>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-white">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20 text-center">
-                      <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
-                      <p className="text-sm opacity-75 mb-4">
-                        Este formato não é suportado pelo navegador.
-                      </p>
-                      <p className="text-xs opacity-60 mb-6">
-                        💡 Dica: Para máxima compatibilidade, use MP4 com codec H.264/AAC
-                      </p>
-                      <div className="space-y-3">
-                        <Button 
-                          variant="outline"
-                          className="text-white border-white/40 hover:bg-white hover:text-black w-full"
-                          onClick={() => window.open(currentLesson.video_url, '_blank')}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
-                        </Button>
-                        <Button 
-                          variant="ghost"
-                          className="text-white/70 hover:text-white text-sm"
-                          onClick={() => {
-                            setVideoError(false);
-                            setVideoLoading(true);
-                          }}
-                        >
-                          Tentar novamente
-                        </Button>
+          {/* Video Player Container */}
+          <div className={`${theaterMode ? 'flex-1' : 'flex-1'} flex flex-col gap-2`}>
+            {/* Video Player - FIXED SIZE */}
+            <div 
+              className="bg-black rounded-lg shadow-lg overflow-hidden flex-1"
+              style={{ 
+                minHeight: theaterMode ? '350px' : '400px'
+              }}
+            >
+              {currentLesson?.video_url ? (
+                <>
+                  {!videoError ? (
+                    <video
+                      ref={videoRef}
+                      key={currentLesson.id}
+                      controls
+                      className="w-full h-full"
+                      style={{ objectFit: 'contain' }}
+                      onLoadStart={handleVideoLoadStart}
+                      onCanPlay={handleVideoCanPlay}
+                      onEnded={() => handleLessonComplete(currentLesson.id)}
+                      onError={handleVideoError}
+                      preload="metadata"
+                      playsInline
+                    >
+                      <source src={currentLesson.video_url} />
+                      Seu navegador não suporta o elemento de vídeo.
+                    </video>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-white">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20 text-center">
+                        <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
+                        <p className="text-sm opacity-75 mb-4">
+                          Este formato não é suportado pelo navegador.
+                        </p>
+                        <p className="text-xs opacity-60 mb-6">
+                          💡 Dica: Para máxima compatibilidade, use MP4 com codec H.264/AAC
+                        </p>
+                        <div className="space-y-3">
+                          <Button 
+                            variant="outline"
+                            className="text-white border-white/40 hover:bg-white hover:text-black w-full"
+                            onClick={() => window.open(currentLesson.video_url, '_blank')}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            className="text-white/70 hover:text-white text-sm"
+                            onClick={() => {
+                              setVideoError(false);
+                              setVideoLoading(true);
+                            }}
+                          >
+                            Tentar novamente
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                {videoLoading && !videoError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <div className="text-white text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
-                      <p className="text-sm">Carregando vídeo...</p>
+                  )}
+                  
+                  {videoLoading && !videoError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <div className="text-white text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+                        <p className="text-sm">Carregando vídeo...</p>
+                      </div>
                     </div>
+                  )}
+                </>
+              ) : (
+                <div className="h-full flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">Selecione uma aula para começar</p>
                   </div>
-                )}
-              </>
-            ) : (
-              <div className="h-full flex items-center justify-center text-white">
-                <div className="text-center">
-                  <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Selecione uma aula para começar</p>
+                </div>
+              )}
+            </div>
+
+            {/* Video Controls Bar - BELOW VIDEO */}
+            {currentLesson?.video_url && !videoError && (
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white rounded-lg flex-shrink-0">
+                <div className="flex items-center gap-4">
+                  <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
+                    <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.25">0.25x</SelectItem>
+                      <SelectItem value="0.5">0.5x</SelectItem>
+                      <SelectItem value="0.75">0.75x</SelectItem>
+                      <SelectItem value="1">1x</SelectItem>
+                      <SelectItem value="1.25">1.25x</SelectItem>
+                      <SelectItem value="1.5">1.5x</SelectItem>
+                      <SelectItem value="2">2x</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handlePictureInPicture}
+                    className="text-white hover:bg-gray-800"
+                  >
+                    <Settings className="w-4 h-4 mr-1" />
+                    PiP
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={toggleTheaterMode}
+                    className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
+                  >
+                    <Maximize className="w-4 h-4 mr-1" />
+                    Cinema
+                  </Button>
+                </div>
+                
+                <div className="text-sm opacity-75">
+                  {currentLesson.title} • {currentLesson.duration_minutes} min
                 </div>
               </div>
             )}
           </div>
-
-          {/* Video Controls Bar - MOVED TO BOTTOM */}
-          {currentLesson?.video_url && !videoError && (
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white rounded-lg">
-              <div className="flex items-center gap-4">
-                <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
-                  <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.25">0.25x</SelectItem>
-                    <SelectItem value="0.5">0.5x</SelectItem>
-                    <SelectItem value="0.75">0.75x</SelectItem>
-                    <SelectItem value="1">1x</SelectItem>
-                    <SelectItem value="1.25">1.25x</SelectItem>
-                    <SelectItem value="1.5">1.5x</SelectItem>
-                    <SelectItem value="2">2x</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handlePictureInPicture}
-                  className="text-white hover:bg-gray-800"
-                >
-                  <Settings className="w-4 h-4 mr-1" />
-                  PiP
-                </Button>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={toggleTheaterMode}
-                  className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
-                >
-                  <Maximize className="w-4 h-4 mr-1" />
-                  Cinema
-                </Button>
-              </div>
-              
-              <div className="text-sm opacity-75">
-                {currentLesson.title} • {currentLesson.duration_minutes} min
-              </div>
-            </div>
-          )}
 
           {/* Sidebar - FIXED WIDTH WITH INTERNAL SCROLL */}
           <div 
