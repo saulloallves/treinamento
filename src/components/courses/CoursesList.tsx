@@ -342,70 +342,8 @@ const CoursesList = () => {
         </AccordionItem>
       </Accordion>
 
-      {/* Tabs por Status */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">
-            Todos ({filteredCourses.length})
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Ativos ({activeCourses.length})
-          </TabsTrigger>
-          <TabsTrigger value="review">
-            Em Revisão ({inReviewCourses.length})
-          </TabsTrigger>
-          <TabsTrigger value="draft">
-            Rascunhos ({draftCourses.length})
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-4">
-          {filteredCourses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-brand-gray-dark">
-                {courses.length === 0 
-                  ? "Nenhum curso encontrado. Crie o primeiro curso!" 
-                  : "Nenhum curso corresponde aos filtros aplicados."
-                }
-              </p>
-            </div>
-          ) : (
-            renderCourseGrid(filteredCourses)
-          )}
-        </TabsContent>
-        
-        <TabsContent value="active" className="mt-4">
-          {activeCourses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-brand-gray-dark">Nenhum curso ativo encontrado.</p>
-            </div>
-          ) : (
-            renderCourseGrid(activeCourses)
-          )}
-        </TabsContent>
-        
-        <TabsContent value="review" className="mt-4">
-          {inReviewCourses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-brand-gray-dark">Nenhum curso em revisão encontrado.</p>
-            </div>
-          ) : (
-            renderCourseGrid(inReviewCourses)
-          )}
-        </TabsContent>
-        
-        <TabsContent value="draft" className="mt-4">
-          {draftCourses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-brand-gray-dark">Nenhum rascunho encontrado.</p>
-            </div>
-          ) : (
-            renderCourseGrid(draftCourses)
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {filteredCourses.length === 0 && !isLoading && (
+      {/* Conteúdo dos Cursos */}
+      {filteredCourses.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-brand-gray-dark">
             {courses.length === 0 
@@ -414,6 +352,8 @@ const CoursesList = () => {
             }
           </p>
         </div>
+      ) : (
+        renderCourseGrid(filteredCourses)
       )}
 
       {/* Dialogs */}
