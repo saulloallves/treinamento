@@ -58,36 +58,51 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           });
         }
 
-        // Calcula o progresso real a partir das presenças registradas
-        const enrollmentIds = list.map((e) => e.id);
-        let countsByEnrollment = new Map<string, number>();
-        if (enrollmentIds.length > 0) {
-          const { data: attRows, error: attErr } = await supabase
-            .from('attendance')
-            .select('enrollment_id')
-            .in('enrollment_id', enrollmentIds);
-          if (attErr) throw attErr;
-          for (const row of (attRows ?? [])) {
-            const k = (row as any).enrollment_id as string;
-            countsByEnrollment.set(k, (countsByEnrollment.get(k) ?? 0) + 1);
-          }
-        }
+        // Calcula o progresso real baseado no tipo de curso
+        const enrichedEnrollments = await Promise.all(
+          list.map(async (e) => {
+            const courseInfo = e.course_id ? coursesMap[e.course_id] : null;
+            let realProgress = e.progress_percentage ?? 0;
+            
+            if (courseInfo?.tipo === 'gravado') {
+              // Para cursos gravados, usa student_progress
+              const { data: progressData } = await supabase
+                .from('student_progress')
+                .select('status')
+                .eq('enrollment_id', e.id);
+              
+              const completedLessons = (progressData || []).filter(p => p.status === 'completed').length;
+              const { data: totalLessonsData } = await supabase
+                .from('recorded_lessons')
+                .select('id')
+                .eq('course_id', e.course_id);
+              
+              const totalLessons = (totalLessonsData || []).length;
+              realProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+              
+            } else {
+              // Para cursos ao vivo, usa attendance
+              const { data: attendanceData } = await supabase
+                .from('attendance')
+                .select('id')
+                .eq('enrollment_id', e.id);
+              
+              const attended = (attendanceData || []).length;
+              const totalLessons = Math.max(0, Number(courseInfo?.lessons_count ?? 0));
+              realProgress = totalLessons > 0
+                ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
+                : (e.progress_percentage ?? 0);
+            }
+            
+            return {
+              ...e,
+              progress_percentage: realProgress,
+              course: courseInfo,
+            } as MyEnrollment;
+          })
+        );
 
-        const result = list.map((e) => {
-          const courseInfo = e.course_id ? coursesMap[e.course_id] : null;
-          const totalLessons = Math.max(0, Number(courseInfo?.lessons_count ?? 0));
-          const attended = countsByEnrollment.get(e.id) ?? 0;
-          const expected = totalLessons > 0
-            ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
-            : (e.progress_percentage ?? 0);
-          return {
-            ...e,
-            progress_percentage: expected,
-            course: courseInfo,
-          } as MyEnrollment;
-        });
-
-        return result;
+        return enrichedEnrollments;
       } catch (err: any) {
         toast({
           title: "Erro ao carregar inscrições",

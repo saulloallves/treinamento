@@ -36,12 +36,65 @@ const ProgressByCourse = () => {
   const enrollmentsQuery = useQuery({
     queryKey: ["enrollments", "with-course"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: enrollments, error } = await supabase
         .from("enrollments")
-        .select("id,student_name,student_email,progress_percentage,status,created_at,course_id,courses(name)")
+        .select(`
+          id,
+          student_name,
+          student_email,
+          progress_percentage,
+          status,
+          created_at,
+          course_id,
+          courses(name, tipo, lessons_count)
+        `)
         .order("created_at", { ascending: false });
+      
       if (error) throw error;
-      return data ?? [] as any[];
+      
+      // Calculate real progress based on course type
+      const enrichedEnrollments = await Promise.all(
+        (enrollments ?? []).map(async (enrollment: any) => {
+          const courseType = enrollment.courses?.tipo;
+          let realProgress = enrollment.progress_percentage || 0;
+          
+          if (courseType === 'gravado') {
+            // For recorded courses, calculate progress from student_progress table
+            const { data: progressData } = await supabase
+              .from('student_progress')
+              .select('status')
+              .eq('enrollment_id', enrollment.id);
+            
+            // Count completed lessons for recorded courses
+            const completedLessons = (progressData || []).filter(p => p.status === 'completed').length;
+            const { data: totalLessonsData } = await supabase
+              .from('recorded_lessons')
+              .select('id')
+              .eq('course_id', enrollment.course_id);
+            
+            const totalLessons = (totalLessonsData || []).length;
+            realProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+            
+          } else {
+            // For live courses, use attendance table (existing logic)
+            const { data: attendanceData } = await supabase
+              .from('attendance')
+              .select('id')
+              .eq('enrollment_id', enrollment.id);
+            
+            const attendedLessons = (attendanceData || []).length;
+            const totalLessons = enrollment.courses?.lessons_count || 0;
+            realProgress = totalLessons > 0 ? Math.round((attendedLessons / totalLessons) * 100) : 0;
+          }
+          
+          return {
+            ...enrollment,
+            progress_percentage: realProgress
+          };
+        })
+      );
+      
+      return enrichedEnrollments;
     },
   });
 
