@@ -4,19 +4,51 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Calendar, Clock, Users, BookOpen } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import StudentPreview from "@/components/courses/StudentPreview";
 const StudentLessons = () => {
+  const { courseId } = useParams<{ courseId: string }>();
   const { data: lessons = [], isLoading, refetch, isRefetching } = useUpcomingLessons();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const queryClient = useQueryClient();
+
+  // Se courseId existe, buscar dados do curso para renderizar StudentPreview
+  const { data: courseData } = useQuery({
+    queryKey: ["course", courseId],
+    queryFn: async () => {
+      if (!courseId) return null;
+      
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, name, tipo")
+        .eq("id", courseId)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!courseId,
+  });
+
+  // Se é uma visualização de curso gravado, renderizar StudentPreview
+  if (courseId && courseData?.tipo === 'gravado') {
+    return (
+      <StudentPreview
+        courseId={courseId}
+        courseName={courseData.name}
+        onBack={() => navigate('/aluno')}
+      />
+    );
+  }
 
   useEffect(() => {
     document.title = "Aulas Agendadas | Área do Aluno";

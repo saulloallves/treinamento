@@ -66,6 +66,16 @@ const StudentPortal = () => {
                       <span>Status</span>
                       <span className="font-medium">{enroll.status}</span>
                     </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Tipo</span>
+                      <span className={`font-medium px-2 py-1 rounded-full text-xs ${
+                        enroll.course?.tipo === 'gravado' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {enroll.course?.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
+                      </span>
+                    </div>
                     <Progress value={enroll.progress_percentage ?? 0} />
                     <div className="flex items-center justify-between text-sm">
                       <span>Progresso</span>
@@ -73,7 +83,11 @@ const StudentPortal = () => {
                     </div>
                     <div className="pt-2">
                       <Button asChild variant="outline" className="w-full">
-                        <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
+                        {enroll.course?.tipo === 'gravado' ? (
+                          <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
+                        ) : (
+                          <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
+                        )}
                       </Button>
                     </div>
                   </div>

@@ -133,6 +133,11 @@ const App = () => (
                   <StudentCourse />
                 </ProtectedRoute>
               } />
+              <Route path="/aluno/curso/:courseId/aulas-gravadas" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentLessons />
+                </ProtectedRoute>
+              } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
