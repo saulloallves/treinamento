@@ -26,6 +26,7 @@ import { useModules, useCreateModule, useUpdateModule, useDeleteModule, Module }
 import { useRecordedLessons, useCreateRecordedLesson, useUpdateRecordedLesson, useDeleteRecordedLesson, useUploadVideo, RecordedLesson } from "@/hooks/useRecordedLessons";
 import StudentPreview from "./StudentPreview";
 import { toast } from "sonner";
+import { MAX_UPLOAD_BYTES, formatBytes } from "@/lib/config";
 
 interface RecordedCoursesDialogProps {
   courseId: string;
@@ -222,6 +223,12 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
 
   const handleVideoUpload = async (file: File) => {
     if (!file) return;
+
+    // Check file size before upload
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error(`Arquivo muito grande! O arquivo tem ${formatBytes(file.size)}, mas o limite é ${formatBytes(MAX_UPLOAD_BYTES)}. Comprima o vídeo ou reduza a qualidade.`);
+      return;
+    }
 
     // Accept any file - no format validation
     setUploadingVideo(true);
@@ -579,7 +586,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                     <>
                       <Upload className="w-8 h-8 mx-auto mb-2" />
                       <p className="font-medium">Clique para selecionar um vídeo</p>
-                      <p className="text-xs text-gray-500">Todos os formatos de vídeo aceitos • Vídeos grandes aceitos</p>
+                      <p className="text-xs text-gray-500">Todos os formatos de vídeo aceitos • Tamanho máximo: {formatBytes(MAX_UPLOAD_BYTES)}</p>
                     </>
                   )}
                 </div>

@@ -238,6 +238,16 @@ export const useUploadVideo = () => {
       }
     },
     onError: (error: any) => {
+      // Check for size limit errors first
+      if (error.message?.includes('maximum allowed size') || error.message?.includes('exceeded')) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O vídeo excede o limite permitido. Aumente o limite global no Dashboard do Supabase (Storage > Settings) ou envie um arquivo menor.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       toast({
         title: "Erro ao fazer upload do vídeo",
         description: error.message,
