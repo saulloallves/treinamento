@@ -27,6 +27,8 @@ interface StudentPreviewProps {
 }
 
 const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: StudentPreviewProps) => {
+  console.log('StudentPreview renderizado:', { courseId, courseName, initialLessonId });
+  
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(initialLessonId || null);
   const [watchedLessons, setWatchedLessons] = useState<Set<string>>(new Set());
   const [videoError, setVideoError] = useState<boolean>(false);
@@ -40,6 +42,13 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
+
+  console.log('StudentPreview dados:', { 
+    modulesCount: modules.length, 
+    lessonsCount: lessons.length,
+    modules,
+    lessons 
+  });
 
   // Group lessons by module
   const lessonsByModule = lessons.reduce((acc, lesson) => {

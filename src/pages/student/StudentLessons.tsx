@@ -22,32 +22,84 @@ const StudentLessons = () => {
   const queryClient = useQueryClient();
 
   // Se courseId existe, buscar dados do curso para renderizar StudentPreview
-  const { data: courseData } = useQuery({
+  const { data: courseData, error: courseError, isLoading: courseLoading } = useQuery({
     queryKey: ["course", courseId],
     queryFn: async () => {
       if (!courseId) return null;
       
+      console.log('Buscando curso:', courseId);
       const { data, error } = await supabase
         .from("courses")
         .select("id, name, tipo")
         .eq("id", courseId)
-        .single();
+        .maybeSingle();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar curso:', error);
+        throw error;
+      }
+      console.log('Dados do curso:', data);
       return data;
     },
     enabled: !!courseId,
   });
 
-  // Se é uma visualização de curso gravado, renderizar StudentPreview
-  if (courseId && courseData?.tipo === 'gravado') {
-    return (
-      <StudentPreview
-        courseId={courseId}
-        courseName={courseData.name}
-        onBack={() => navigate('/aluno')}
-      />
-    );
+  // Tratamento de erros e loading para curso gravado
+  if (courseId) {
+    if (courseLoading) {
+      return (
+        <BaseLayout title="Carregando Curso">
+          <div className="text-center py-8">
+            <p>Carregando curso...</p>
+          </div>
+        </BaseLayout>
+      );
+    }
+    
+    if (courseError) {
+      console.error('Erro no curso:', courseError);
+      return (
+        <BaseLayout title="Erro">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold mb-4">Erro ao carregar curso</h2>
+            <p className="text-muted-foreground mb-4">
+              Não foi possível carregar os dados do curso.
+            </p>
+            <Button onClick={() => navigate('/aluno')}>
+              Voltar para Área do Aluno
+            </Button>
+          </div>
+        </BaseLayout>
+      );
+    }
+
+    if (!courseData) {
+      return (
+        <BaseLayout title="Curso não encontrado">
+          <div className="text-center py-8">
+            <h2 className="text-xl font-semibold mb-4">Curso não encontrado</h2>
+            <p className="text-muted-foreground mb-4">
+              O curso solicitado não foi encontrado.
+            </p>
+            <Button onClick={() => navigate('/aluno')}>
+              Voltar para Área do Aluno
+            </Button>
+          </div>
+        </BaseLayout>
+      );
+    }
+
+    // Se é uma visualização de curso gravado, renderizar StudentPreview
+    if (courseData.tipo === 'gravado') {
+      console.log('Renderizando StudentPreview para curso gravado:', courseData);
+      return (
+        <StudentPreview
+          courseId={courseId}
+          courseName={courseData.name}
+          onBack={() => navigate('/aluno')}
+        />
+      );
+    }
   }
 
   useEffect(() => {
