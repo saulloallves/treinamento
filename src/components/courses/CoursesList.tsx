@@ -1,10 +1,9 @@
 
 import { useState, useMemo } from "react";
-import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video, Grid3X3, List } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaginationCustom } from "@/components/ui/pagination-custom";
 import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
@@ -24,7 +23,6 @@ const CoursesList = () => {
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [recordedLessonsDialogOpen, setRecordedLessonsDialogOpen] = useState(false);
   const [recordedCoursesDialogOpen, setRecordedCoursesDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [statusFilter, setStatusFilter] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -42,11 +40,6 @@ const CoursesList = () => {
       return matchesSearch && matchesFilter && matchesType;
     });
   }, [courses, searchTerm, filterPublic, statusFilter]);
-
-  // Group courses by status for tabs
-  const activeCourses = useMemo(() => filteredCourses.filter(c => c.status === "Ativo"), [filteredCourses]);
-  const inReviewCourses = useMemo(() => filteredCourses.filter(c => c.status === "Em revisão"), [filteredCourses]);
-  const draftCourses = useMemo(() => filteredCourses.filter(c => c.status === "Rascunho"), [filteredCourses]);
 
   // Pagination logic
   const getPaginatedCourses = (coursesList: Course[]) => {
@@ -122,13 +115,13 @@ const CoursesList = () => {
     
     return (
       <div className="space-y-4">
-        <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'grid gap-3'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginatedCourses.map((course) => (
-            <div key={course.id} className={`card-clean ${viewMode === 'grid' ? 'p-3' : 'p-4'}`}>
+            <div key={course.id} className="card-clean p-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className={`font-semibold text-brand-black ${viewMode === 'grid' ? 'text-sm' : 'text-base'} line-clamp-1`}>
+                    <h3 className="font-semibold text-brand-black text-sm line-clamp-1">
                       {course.name}
                     </h3>
                   </div>
@@ -162,11 +155,7 @@ const CoursesList = () => {
                     </span>
                   </div>
                   
-                  {viewMode === 'list' && (
-                    <p className="text-brand-gray-dark text-sm mb-2 line-clamp-1">{course.description || "Sem descrição"}</p>
-                  )}
-                  
-                  <div className={`${viewMode === 'grid' ? 'flex flex-col gap-1' : 'grid grid-cols-2 md:grid-cols-4 gap-3'} text-xs`}>
+                  <div className="flex flex-col gap-1 text-xs">
                     <div className="flex items-center gap-1">
                       <Users className="w-3 h-3 text-brand-blue" />
                       <span className="text-brand-gray-dark truncate">
@@ -253,22 +242,6 @@ const CoursesList = () => {
           <p className="text-brand-gray-dark">Gerencie os cursos de treinamento</p>
         </div>
         <div className="flex gap-2">
-          <div className="flex bg-gray-100 rounded-md p-1">
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </Button>
-          </div>
           <Button 
             className="btn-primary"
             onClick={() => setCreateDialogOpen(true)}
