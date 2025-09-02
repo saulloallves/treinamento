@@ -228,11 +228,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
 
       {/* Main Content Area - Fixed Height */}
       <div className="flex-1 min-h-0 p-2">
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'grid grid-cols-[1fr_384px] h-full'} gap-2`}>
-          {/* Video Player Container - Grid prevents resizing */}
-          <div className="bg-black rounded-lg shadow-lg overflow-hidden">
+        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-2`}>
+          {/* Video Player Container - Stable dimensions */}
+          <div className={`${theaterMode ? 'flex-1' : 'flex-1 min-w-0'} bg-black rounded-lg shadow-lg overflow-hidden relative`}>
             {currentLesson?.video_url ? (
-              <div className="w-full h-full relative">
+              <div className="absolute inset-0">
                 {!videoError ? (
                   <video
                     ref={videoRef}
@@ -294,7 +294,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                 )}
               </div>
             ) : (
-              <div className="text-white text-center animate-fade-in h-full flex items-center justify-center">
+              <div className="absolute inset-0 text-white text-center animate-fade-in flex items-center justify-center">
                 <div>
                   <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p className="text-lg">Selecione uma aula para começar</p>
@@ -303,8 +303,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             )}
           </div>
 
-          {/* Enhanced Lessons Sidebar - Fixed grid column */}
-          <div className={`${theaterMode ? 'h-80 w-full border-t' : ''} bg-white rounded-lg shadow-lg flex flex-col min-h-0`}>
+          {/* Enhanced Lessons Sidebar - Fixed width */}
+          <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 flex-shrink-0'} bg-white rounded-lg shadow-lg flex flex-col min-h-0`}>
             <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0 rounded-t-lg">
               <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                 <Volume2 className="w-5 h-5 text-blue-500" />
