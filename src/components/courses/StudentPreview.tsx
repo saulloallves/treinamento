@@ -139,9 +139,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={onBack} className="hover-scale">
             <ArrowLeft className="w-4 h-4" />
@@ -161,7 +161,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
       </div>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 h-2">
+      <div className="w-full bg-gray-200 h-2 flex-shrink-0">
         <div 
           className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 transition-all duration-500 ease-out"
           style={{ width: `${progressPercentage}%` }}
@@ -170,7 +170,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
 
       {/* Video Controls Bar */}
       {currentLesson?.video_url && !videoError && (
-        <div className="flex items-center justify-between p-3 bg-gray-900 text-white">
+        <div className="flex items-center justify-between p-3 bg-gray-900 text-white flex-shrink-0">
           <div className="flex items-center gap-4">
             <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
               <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
@@ -218,18 +218,17 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         {/* Video Player */}
         <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0 ${theaterMode ? 'w-full' : 'max-w-[calc(100vw-24rem)]'}`}>
           {currentLesson?.video_url ? (
-            <div className="w-full h-full flex items-center justify-center min-h-0 max-w-full">
+            <div className="w-full h-full flex items-center justify-center p-2">
               {!videoError ? (
-                <div className="w-full h-full flex items-center justify-center relative">
+                <div className="w-full h-full flex items-center justify-center">
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="max-w-full max-h-full object-contain"
+                    className="w-full h-full object-contain rounded"
                     style={{ 
-                      width: '100%', 
-                      height: '100%',
-                      aspectRatio: '16/9'
+                      maxWidth: '100%',
+                      maxHeight: '100%'
                     }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
@@ -295,8 +294,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
         </div>
 
         {/* Enhanced Lessons Sidebar */}
-        <div className={`${theaterMode ? 'h-96 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden`} 
-             style={{ height: theaterMode ? '384px' : 'calc(100vh - 200px)', maxHeight: theaterMode ? '384px' : 'calc(100vh - 200px)' }}>
+        <div className={`${theaterMode ? 'h-80 w-full border-t' : 'w-96 border-l'} bg-white transition-all duration-300 flex flex-col overflow-hidden flex-shrink-0`}>
           <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 flex-shrink-0">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-blue-500" />
