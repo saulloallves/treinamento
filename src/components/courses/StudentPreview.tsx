@@ -314,10 +314,10 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                     className="border rounded-lg overflow-hidden animate-fade-in"
                   >
                     <AccordionTrigger className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        {module.name}
-                        <span className="text-xs bg-blue-200 px-2 py-0.5 rounded-full">
+                      <div className="flex items-start gap-2 w-full">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
+                        <span className="flex-1 text-left leading-tight">{module.name}</span>
+                        <span className="text-xs bg-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
                           {lessonsByModule[module.id]?.length || 0}
                         </span>
                       </div>
