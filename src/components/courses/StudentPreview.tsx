@@ -336,7 +336,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             <div 
               className="flex-1 overflow-y-auto" 
               style={{ 
-                maxHeight: theaterMode ? 'calc(30vh - 100px)' : 'calc(100vh - 320px)'
+                maxHeight: theaterMode ? 'calc(30vh - 100px)' : 'calc(100vh - 280px)'
               }}
             >
               <div className="p-2">
