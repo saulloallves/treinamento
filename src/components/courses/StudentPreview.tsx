@@ -216,19 +216,20 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
 
       <div className={`flex-1 flex ${theaterMode ? 'flex-col' : ''} min-h-0 overflow-hidden`}>
         {/* Video Player */}
-        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0 ${theaterMode ? 'w-full' : 'max-w-[calc(100vw-24rem)]'}`}>
+        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0 ${theaterMode ? 'w-full' : 'max-w-[calc(100vw-24rem)]'} p-4`}>
           {currentLesson?.video_url ? (
-            <div className="w-full h-full flex items-center justify-center p-2">
+            <div className="w-full h-full flex items-center justify-center max-w-full max-h-full">
               {!videoError ? (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center relative" style={{ maxHeight: 'calc(100% - 2rem)' }}>
                   <video
                     ref={videoRef}
                     key={currentLesson.id}
                     controls
-                    className="w-full h-full object-contain rounded"
+                    className="w-full h-full object-contain rounded shadow-lg"
                     style={{ 
-                      maxWidth: '100%',
-                      maxHeight: '100%'
+                      maxWidth: 'calc(100% - 2rem)',
+                      maxHeight: 'calc(100% - 2rem)',
+                      minHeight: '300px'
                     }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
