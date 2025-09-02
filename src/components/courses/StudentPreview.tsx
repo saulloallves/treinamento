@@ -16,6 +16,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(initialLessonId || null);
   const [watchedLessons, setWatchedLessons] = useState<Set<string>>(new Set());
   const [videoError, setVideoError] = useState<boolean>(false);
+  const [videoLoading, setVideoLoading] = useState<boolean>(true);
   
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
@@ -38,6 +39,25 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
   const handleLessonChange = (lessonId: string) => {
     setCurrentLessonId(lessonId);
     setVideoError(false);
+    setVideoLoading(true);
+  };
+
+  const handleVideoLoadStart = () => {
+    setVideoLoading(true);
+    setVideoError(false);
+  };
+
+  const handleVideoCanPlay = () => {
+    setVideoLoading(false);
+  };
+
+  const handleVideoError = (e: any) => {
+    console.log('Video error:', e);
+    // Give it a moment before showing error - sometimes it's just a temporary network issue
+    setTimeout(() => {
+      setVideoError(true);
+      setVideoLoading(false);
+    }, 2000);
   };
 
   const handleLessonComplete = (lessonId: string) => {
@@ -91,15 +111,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
             <div className="w-full h-full max-w-4xl">
               {!videoError ? (
                 <video
+                  key={currentLesson.id} // Force re-render when lesson changes
                   controls
                   className="w-full h-full"
+                  onLoadStart={handleVideoLoadStart}
+                  onCanPlay={handleVideoCanPlay}
                   onEnded={() => handleLessonComplete(currentLesson.id)}
-                  onError={() => setVideoError(true)}
+                  onError={handleVideoError}
+                  preload="metadata"
                 >
-                  <source 
-                    src={currentLesson.video_url} 
-                    type={getMimeFromExtension(currentLesson.video_url)}
-                  />
+                  <source src={currentLesson.video_url} />
                   Seu navegador não suporta o elemento de vídeo.
                 </video>
               ) : (
@@ -113,14 +134,35 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
                     <p className="text-xs opacity-60 mb-6">
                       💡 Dica: Para máxima compatibilidade, use MP4 com codec H.264/AAC
                     </p>
-                    <Button 
-                      variant="outline"
-                      className="text-white border-white/40 hover:bg-white hover:text-black"
-                      onClick={() => window.open(currentLesson.video_url, '_blank')}
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
-                    </Button>
+                    <div className="space-y-3">
+                      <Button 
+                        variant="outline"
+                        className="text-white border-white/40 hover:bg-white hover:text-black w-full"
+                        onClick={() => window.open(currentLesson.video_url, '_blank')}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        className="text-white/70 hover:text-white text-sm"
+                        onClick={() => {
+                          setVideoError(false);
+                          setVideoLoading(true);
+                        }}
+                      >
+                        Tentar novamente
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {videoLoading && !videoError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+                    <p className="text-sm">Carregando vídeo...</p>
                   </div>
                 </div>
               )}
