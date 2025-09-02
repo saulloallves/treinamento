@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useModules, useCreateModule, useUpdateModule, useDeleteModule, Module } from "@/hooks/useModules";
 import { useRecordedLessons, useCreateRecordedLesson, useUpdateRecordedLesson, useDeleteRecordedLesson, useUploadVideo, RecordedLesson } from "@/hooks/useRecordedLessons";
+import StudentPreview from "./StudentPreview";
 import { toast } from "sonner";
 
 interface RecordedCoursesDialogProps {
@@ -42,7 +43,6 @@ interface ModuleFormData {
 interface LessonFormData {
   title: string;
   description: string;
-  video_url: string;
   duration_minutes: number;
   order_index: number;
 }
@@ -62,12 +62,13 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
   const [lessonForm, setLessonForm] = useState<LessonFormData>({
     title: '',
     description: '',
-    video_url: '',
     duration_minutes: 0,
     order_index: 0
   });
 
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>('');
+  const [previewMode, setPreviewMode] = useState(false);
 
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
@@ -102,9 +103,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
 
   const resetForms = () => {
     setModuleForm({ name: '', description: '', order_index: 0 });
-    setLessonForm({ title: '', description: '', video_url: '', duration_minutes: 0, order_index: 0 });
+    setLessonForm({ title: '', description: '', duration_minutes: 0, order_index: 0 });
     setSelectedModule(null);
     setSelectedLesson(null);
+    setUploadedVideoUrl('');
   };
 
   const handleAddModule = () => {
@@ -137,10 +139,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
     setLessonForm({
       title: lesson.title,
       description: lesson.description || '',
-      video_url: lesson.video_url || '',
       duration_minutes: lesson.duration_minutes,
       order_index: lesson.order_index
     });
+    setUploadedVideoUrl(lesson.video_url || '');
     setActiveView('edit-lesson');
   };
 
@@ -175,17 +177,27 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       return;
     }
 
+    if (!uploadedVideoUrl && activeView === 'add-lesson') {
+      toast.error("Upload de vídeo é obrigatório");
+      return;
+    }
+
     try {
+      const lessonData = {
+        ...lessonForm,
+        video_url: uploadedVideoUrl
+      };
+
       if (activeView === 'add-lesson') {
         await createLessonMutation.mutateAsync({
           module_id: selectedModule.id,
           course_id: courseId,
-          ...lessonForm
+          ...lessonData
         });
       } else if (selectedLesson) {
         await updateLessonMutation.mutateAsync({
           ...selectedLesson,
-          ...lessonForm
+          ...lessonData
         });
       }
       setActiveView('overview');
@@ -215,9 +227,9 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       const fileName = `${courseId}/${Date.now()}-${file.name}`;
       const result = await uploadVideoMutation.mutateAsync({ file, fileName });
       
+      setUploadedVideoUrl(result.publicUrl);
       setLessonForm(prev => ({
         ...prev,
-        video_url: result.publicUrl,
         // Try to extract duration from file if possible (this is basic, would need proper video analysis)
         duration_minutes: prev.duration_minutes || 10
       }));
@@ -230,14 +242,32 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
     }
   };
 
+  const renderStudentPreview = () => (
+    <StudentPreview 
+      courseId={courseId}
+      courseName={courseName}
+      onBack={() => setPreviewMode(false)}
+    />
+  );
+
   const renderOverview = () => (
     <div className="space-y-4 max-h-[60vh] overflow-y-auto">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Módulos e Aulas</h3>
-        <Button onClick={handleAddModule} className="btn-primary">
-          <Plus className="w-4 h-4" />
-          Adicionar Módulo
-        </Button>
+        <h3 className="text-lg font-semibold">Linha do Tempo das Aulas</h3>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setPreviewMode(true)} 
+            variant="outline"
+            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+          >
+            <Play className="w-4 h-4" />
+            👁️ Visualizar como Aluno
+          </Button>
+          <Button onClick={handleAddModule} className="btn-primary">
+            <Plus className="w-4 h-4" />
+            Adicionar Módulo
+          </Button>
+        </div>
       </div>
 
       {modules.length === 0 ? (
@@ -279,8 +309,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                     variant="outline"
                     size="sm"
                     onClick={() => handleAddLesson(module)}
+                    className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-4 h-4" />
+                    Adicionar Aula
                   </Button>
                   <Button
                     variant="outline"
@@ -300,44 +332,56 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
               </div>
 
               {expandedModules.has(module.id) && (
-                <div className="p-3 space-y-2">
-                  {lessonsByModule[module.id]?.map((lesson) => (
-                    <div key={lesson.id} className="flex items-center justify-between p-2 bg-white border rounded">
-                      <div className="flex items-center gap-2">
-                        <FileVideo className="w-4 h-4 text-green-500" />
-                        <div>
-                          <p className="font-medium text-sm">{lesson.title}</p>
-                          <p className="text-xs text-gray-500">
-                            {lesson.duration_minutes} min
-                            {lesson.video_url && " • Vídeo disponível"}
-                          </p>
+                <div className="p-3 space-y-3">
+                  {lessonsByModule[module.id]?.map((lesson, index) => (
+                    <div key={lesson.id} className="bg-gradient-to-r from-white to-gray-50 border-l-4 border-blue-400 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-blue-100 rounded-full p-2">
+                            <FileVideo className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
+                            <p className="text-sm text-gray-600">
+                              Aula {index + 1} • {lesson.duration_minutes} min
+                              {lesson.video_url && " • Vídeo carregado"}
+                            </p>
+                            {lesson.description && (
+                              <p className="text-xs text-gray-500 mt-1">{lesson.description}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-1">
-                        {lesson.video_url && (
+                        
+                        <div className="flex items-center gap-2">
+                          {lesson.video_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(lesson.video_url, '_blank')}
+                              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                            >
+                              <Play className="w-4 h-4" />
+                              Assistir
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(lesson.video_url, '_blank')}
+                            onClick={() => handleEditLesson(lesson)}
+                            className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
                           >
-                            <Play className="w-3 h-3" />
+                            <Edit className="w-4 h-4" />
+                            Editar
                           </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditLesson(lesson)}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteLesson(lesson)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteLesson(lesson)}
+                            className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )) || (
@@ -460,34 +504,44 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
         </div>
 
         <div>
-          <Label htmlFor="videoUrl">Link do Vídeo (YouTube, Vimeo, etc.)</Label>
-          <Input
-            id="videoUrl"
-            value={lessonForm.video_url}
-            onChange={(e) => setLessonForm(prev => ({ ...prev, video_url: e.target.value }))}
-            placeholder="https://www.youtube.com/watch?v=..."
-          />
-        </div>
-
-        <div>
-          <Label>Ou faça upload do vídeo</Label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+          <Label>Upload do Vídeo *</Label>
+          <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+            uploadedVideoUrl 
+              ? 'border-green-300 bg-green-50' 
+              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+          }`}>
             <input
               type="file"
-              accept="video/*"
+              accept="video/mp4,video/webm,video/mov"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleVideoUpload(file);
+                if (file) {
+                  if (file.size > 100 * 1024 * 1024) {
+                    toast.error("Arquivo muito grande. Máximo 100MB");
+                    return;
+                  }
+                  handleVideoUpload(file);
+                }
               }}
               className="hidden"
               id="videoUpload"
             />
-            <label htmlFor="videoUpload" className="cursor-pointer">
-              <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-              <p className="text-sm text-gray-600">
-                {uploadingVideo ? 'Enviando vídeo...' : 'Clique para selecionar um vídeo'}
-              </p>
-              <p className="text-xs text-gray-500">MP4, WebM, MOV até 100MB</p>
+            <label htmlFor="videoUpload" className="cursor-pointer block">
+              {uploadedVideoUrl ? (
+                <div className="text-green-600">
+                  <Video className="w-8 h-8 mx-auto mb-2" />
+                  <p className="font-medium">Vídeo carregado com sucesso!</p>
+                  <p className="text-xs text-green-700 mt-1">Clique para substituir</p>
+                </div>
+              ) : (
+                <div className="text-gray-600">
+                  <Upload className="w-8 h-8 mx-auto mb-2" />
+                  <p className="font-medium">
+                    {uploadingVideo ? 'Enviando vídeo...' : 'Clique para selecionar um vídeo'}
+                  </p>
+                  <p className="text-xs text-gray-500">MP4, WebM, MOV • Máximo 100MB</p>
+                </div>
+              )}
             </label>
           </div>
         </div>
@@ -532,9 +586,13 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
         </DialogHeader>
 
         <div className="py-4">
-          {activeView === 'overview' && renderOverview()}
-          {(activeView === 'add-module' || activeView === 'edit-module') && renderModuleForm()}
-          {(activeView === 'add-lesson' || activeView === 'edit-lesson') && renderLessonForm()}
+          {previewMode ? renderStudentPreview() : (
+            <>
+              {activeView === 'overview' && renderOverview()}
+              {(activeView === 'add-module' || activeView === 'edit-module') && renderModuleForm()}
+              {(activeView === 'add-lesson' || activeView === 'edit-lesson') && renderLessonForm()}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
