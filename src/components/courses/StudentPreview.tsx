@@ -216,25 +216,32 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId }: Stude
 
       <div className={`flex-1 flex ${theaterMode ? 'flex-col' : ''} min-h-0 overflow-hidden`}>
         {/* Video Player */}
-        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0`}>
+        <div className={`${theaterMode ? 'flex-1' : 'flex-1'} bg-black flex items-center justify-center relative min-h-0 ${theaterMode ? 'w-full' : 'max-w-[calc(100vw-24rem)]'}`}>
           {currentLesson?.video_url ? (
-            <div className="w-full h-full flex items-center justify-center min-h-0">
+            <div className="w-full h-full flex items-center justify-center min-h-0 max-w-full">
               {!videoError ? (
-                <video
-                  ref={videoRef}
-                  key={currentLesson.id}
-                  controls
-                  className="w-full h-full object-contain"
-                  onLoadStart={handleVideoLoadStart}
-                  onCanPlay={handleVideoCanPlay}
-                  onEnded={() => handleLessonComplete(currentLesson.id)}
-                  onError={handleVideoError}
-                  preload="metadata"
-                  playsInline
-                >
-                  <source src={currentLesson.video_url} />
-                  Seu navegador não suporta o elemento de vídeo.
-                </video>
+                <div className="w-full h-full flex items-center justify-center relative">
+                  <video
+                    ref={videoRef}
+                    key={currentLesson.id}
+                    controls
+                    className="max-w-full max-h-full object-contain"
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      aspectRatio: '16/9'
+                    }}
+                    onLoadStart={handleVideoLoadStart}
+                    onCanPlay={handleVideoCanPlay}
+                    onEnded={() => handleLessonComplete(currentLesson.id)}
+                    onError={handleVideoError}
+                    preload="metadata"
+                    playsInline
+                  >
+                    <source src={currentLesson.video_url} />
+                    Seu navegador não suporta o elemento de vídeo.
+                  </video>
+                </div>
               ) : (
                 <div className="text-white text-center p-8 animate-fade-in">
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20">
