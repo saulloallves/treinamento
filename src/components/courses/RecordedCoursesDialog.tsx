@@ -226,7 +226,8 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
     // Accept any file - no format validation
     setUploadingVideo(true);
     try {
-      const fileName = `${courseId}/${Date.now()}-${file.name}`;
+      const { buildSafeVideoPath } = await import('@/lib/storageUtils');
+      const fileName = buildSafeVideoPath(courseId, file.name);
       const result = await uploadVideoMutation.mutateAsync({ file, fileName });
       
       // Store the public URL for immediate playback

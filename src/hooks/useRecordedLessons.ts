@@ -181,26 +181,61 @@ export const useUploadVideo = () => {
 
   return useMutation({
     mutationFn: async ({ file, fileName }: { file: File; fileName: string }) => {
-      const { data, error } = await supabase.storage
-        .from('course-videos')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          // Remove size restrictions for large videos
-          duplex: 'half'
-        });
+      // First attempt with proper contentType
+      const contentType = file.type || 'application/octet-stream';
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from('course-videos')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType,
+            duplex: 'half'
+          });
 
-      if (error) {
-        console.error('Error uploading video:', error);
-        throw error;
+        if (error) {
+          // If we get "Invalid key" error, try with a more restrictive filename
+          if (error.message.includes('Invalid key') || error.message.includes('invalid')) {
+            console.log('Retrying upload with restrictive filename due to:', error.message);
+            
+            const { createRestrictiveFileName } = await import('@/lib/storageUtils');
+            const restrictiveFileName = fileName.split('/')[0] + '/' + createRestrictiveFileName(fileName);
+            
+            const retryResult = await supabase.storage
+              .from('course-videos')
+              .upload(restrictiveFileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType,
+                duplex: 'half'
+              });
+              
+            if (retryResult.error) {
+              throw retryResult.error;
+            }
+            
+            // Get public URL for retry
+            const { data: { publicUrl } } = supabase.storage
+              .from('course-videos')
+              .getPublicUrl(retryResult.data.path);
+
+            return { path: retryResult.data.path, publicUrl };
+          }
+          
+          throw error;
+        }
+
+        // Get public URL for successful first attempt
+        const { data: { publicUrl } } = supabase.storage
+          .from('course-videos')
+          .getPublicUrl(data.path);
+
+        return { path: data.path, publicUrl };
+      } catch (uploadError) {
+        console.error('Error uploading video:', uploadError);
+        throw uploadError;
       }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('course-videos')
-        .getPublicUrl(data.path);
-
-      return { path: data.path, publicUrl };
     },
     onError: (error: any) => {
       toast({
