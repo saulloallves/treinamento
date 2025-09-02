@@ -547,10 +547,6 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  if (file.size > 100 * 1024 * 1024) {
-                    toast.error("Arquivo muito grande. Máximo 100MB");
-                    return;
-                  }
                   handleVideoUpload(file);
                 }
               }}
@@ -570,7 +566,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                   <p className="font-medium">
                     {uploadingVideo ? 'Enviando vídeo...' : 'Clique para selecionar um vídeo'}
                   </p>
-                  <p className="text-xs text-gray-500">MP4, WebM, MOV (QuickTime) • Máximo 100MB</p>
+                  <p className="text-xs text-gray-500">MP4, WebM, MOV (QuickTime) • Vídeos grandes aceitos</p>
                 </div>
               )}
             </label>

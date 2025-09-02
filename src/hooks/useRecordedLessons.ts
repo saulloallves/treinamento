@@ -185,7 +185,9 @@ export const useUploadVideo = () => {
         .from('course-videos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          // Remove size restrictions for large videos
+          duplex: 'half'
         });
 
       if (error) {
