@@ -51,6 +51,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
     isLessonCompleted, 
     markLessonCompleted, 
     markLessonInProgress,
+    markLessonCompletedManually,
+    getLastProgress,
     isLoading: progressLoading 
   } = useStudentProgress(courseId);
   
@@ -88,10 +90,24 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
     return watchedLessons.has(previousLesson.id);
   };
 
-  // Get first lesson if none selected
+  // Get first lesson if none selected, with localStorage recovery
   const currentLesson = currentLessonId 
     ? lessons.find(l => l.id === currentLessonId)
     : lessons[0];
+
+  // Auto-recover last progress from localStorage
+  useEffect(() => {
+    if (!currentLessonId && lessons.length > 0) {
+      const lastProgress = getLastProgress();
+      if (lastProgress && lessons.find(l => l.id === lastProgress.lessonId)) {
+        console.log('🔄 Recuperando último progresso:', lastProgress.lessonId);
+        setCurrentLessonId(lastProgress.lessonId);
+      } else {
+        // Fallback to first lesson
+        setCurrentLessonId(lessons[0].id);
+      }
+    }
+  }, [lessons, currentLessonId, getLastProgress]);
 
   // Auto-expand module containing current lesson (only once, don't force it open)
   useEffect(() => {
@@ -486,11 +502,27 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                   )}
                                 </div>
                                 
-                                {isCurrent && isUnlocked && !progressLoading && (
-                                  <div className="flex-shrink-0">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                {(isCurrent && isUnlocked && !progressLoading) || (isUnlocked && !isWatched) ? (
+                                  <div className="flex-shrink-0 flex items-center gap-2">
+                                    {isCurrent && isUnlocked && !progressLoading && (
+                                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                    )}
+                                    {isUnlocked && !isWatched && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="px-2 py-1 text-xs hover:bg-green-100 hover:text-green-700"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markLessonCompletedManually(lesson.id);
+                                        }}
+                                        disabled={progressLoading}
+                                      >
+                                        ✓
+                                      </Button>
+                                    )}
                                   </div>
-                                )}
+                                ) : null}
                               </div>
                             </button>
                           );
