@@ -1,4 +1,3 @@
-
 import { 
   LayoutDashboard, 
   GraduationCap, 
@@ -17,7 +16,9 @@ import {
   User,
   FileQuestion,
   Menu,
-  X
+  X,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +34,13 @@ const Sidebar = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    treinamentos: true,
+    gestaoAlunos: true,
+    avaliacoes: true,
+    comunicacao: true,
+    administracao: true,
+  });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: currentUser } = useCurrentUser();
@@ -63,25 +71,169 @@ const Sidebar = () => {
       path: "/aluno/colaboradores"
     });
   }
-  
-  const menuItems = shouldShowAdminMenu
-    ? [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-        
-        { icon: GraduationCap, label: "Cursos", path: "/courses" },
-        { icon: BookOpen, label: "Aulas", path: "/lessons" },
-        { icon: Calendar, label: "Turmas", path: "/turmas" },
-        { icon: FileQuestion, label: "Quiz", path: "/quiz" },
-        { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
-        { icon: UserCheck, label: "Presenças", path: "/attendance" },
-        { icon: TrendingUp, label: "Progresso", path: "/progress" },
-        { icon: Award, label: "Certificados", path: "/certificates" },
-        { icon: MessageSquare, label: "Disparos WhatsApp", path: "/whatsapp" },
-        { icon: Users, label: "Usuários", path: "/users" },
-        { icon: Building2, label: "Unidades", path: "/units" },
-        { icon: Settings, label: "Configurações", path: "/settings" },
+
+  const adminMenuStructure = [
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      path: '/',
+      icon: LayoutDashboard,
+      isGroup: false
+    },
+    {
+      id: 'treinamentos',
+      name: 'Treinamentos',
+      icon: BookOpen,
+      isGroup: true,
+      items: [
+        { name: 'Cursos', path: '/courses', icon: GraduationCap },
+        { name: 'Turmas', path: '/turmas', icon: Calendar },
+        { name: 'Aulas', path: '/lessons', icon: BookOpen },
       ]
-    : studentMenuItems;
+    },
+    {
+      id: 'gestaoAlunos',
+      name: 'Gestão de Alunos',
+      icon: Users,
+      isGroup: true,
+      items: [
+        { name: 'Inscrições', path: '/enrollments', icon: ClipboardList },
+        { name: 'Presenças', path: '/attendance', icon: UserCheck },
+        { name: 'Progresso', path: '/progress', icon: TrendingUp },
+        { name: 'Certificados', path: '/certificates', icon: Award },
+      ]
+    },
+    {
+      id: 'avaliacoes',
+      name: 'Avaliações',
+      icon: FileQuestion,
+      isGroup: true,
+      items: [
+        { name: 'Quiz', path: '/quiz', icon: FileQuestion },
+      ]
+    },
+    {
+      id: 'comunicacao',
+      name: 'Comunicação',
+      icon: MessageSquare,
+      isGroup: true,
+      items: [
+        { name: 'Disparos WhatsApp', path: '/whatsapp', icon: MessageSquare },
+      ]
+    },
+    {
+      id: 'administracao',
+      name: 'Administração',
+      icon: Settings,
+      isGroup: true,
+      items: [
+        { name: 'Usuários', path: '/users', icon: Users },
+        { name: 'Unidades', path: '/units', icon: Building2 },
+        { name: 'Configurações', path: '/settings', icon: Settings },
+      ]
+    }
+  ];
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
+  };
+
+  const isGroupActive = (group: any) => {
+    return group.items?.some((item: any) => location.pathname === item.path);
+  };
+
+  const renderMenuItem = (item: any, isSubItem = false) => {
+    const Icon = item.icon;
+    const isActive = location.pathname === item.path;
+    
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        onClick={isMobile ? () => setIsOpen(false) : undefined}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+          isActive 
+            ? "bg-primary text-white font-medium" 
+            : "text-foreground hover:bg-secondary hover:text-primary"
+        } ${isSubItem ? 'ml-6' : ''}`}
+      >
+        <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+          <Icon className="w-5 h-5" />
+        </div>
+        <span className="text-sm">{item.name || item.label}</span>
+      </Link>
+    );
+  };
+
+  const renderAdminMenu = () => {
+    return adminMenuStructure.map((item) => {
+      if (!item.isGroup) {
+        return renderMenuItem(item);
+      }
+
+      const isExpanded = expandedGroups[item.id];
+      const hasActiveChild = isGroupActive(item);
+      
+      return (
+        <div key={item.id} className="space-y-1">
+          <button
+            onClick={() => toggleGroup(item.id)}
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              hasActiveChild
+                ? 'bg-secondary text-primary'
+                : 'text-foreground hover:bg-secondary hover:text-primary'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+                <item.icon className="w-5 h-5" />
+              </div>
+              {item.name}
+            </div>
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+          
+          {isExpanded && item.items && (
+            <div className="space-y-1">
+              {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
+  const renderStudentMenu = () => {
+    return studentMenuItems.map((item, index) => {
+      const Icon = item.icon;
+      const isActive = location.pathname === item.path;
+      
+      return (
+        <Link
+          key={index}
+          to={item.path}
+          onClick={isMobile ? () => setIsOpen(false) : undefined}
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+            isActive 
+              ? "bg-primary text-white font-medium" 
+              : "text-foreground hover:bg-secondary hover:text-primary"
+          }`}
+        >
+          <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+            <Icon className="w-5 h-5" />
+          </div>
+          <span className="text-sm">{item.label}</span>
+        </Link>
+      );
+    });
+  };
 
   if (isMobile) {
     return (
@@ -127,29 +279,8 @@ const Sidebar = () => {
             </div>
 
             {/* Menu de navegação */}
-            <nav className="flex-1 p-4 space-y-1">
-              {menuItems.map((item, index) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                
-                return (
-                  <Link
-                    key={index}
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-md transition-colors w-full ${
-                      isActive 
-                        ? "bg-primary text-white font-medium" 
-                        : "text-foreground hover:bg-secondary hover:text-primary"
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-sm">{item.label}</span>
-                  </Link>
-                );
-              })}
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+              {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
             </nav>
 
             {/* Footer da sidebar */}
@@ -196,28 +327,8 @@ const Sidebar = () => {
       </div>
 
       {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <Link
-              key={index}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
-                isActive 
-                  ? "bg-primary text-white font-medium" 
-                  : "text-foreground hover:bg-secondary hover:text-primary"
-              }`}
-            >
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className="text-sm">{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
       </nav>
 
       {/* Footer da sidebar */}
