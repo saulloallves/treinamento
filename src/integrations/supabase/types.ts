@@ -58,6 +58,7 @@ export type Database = {
           enrollment_id: string
           id: string
           lesson_id: string
+          turma_id: string
           user_id: string
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           enrollment_id: string
           id?: string
           lesson_id: string
+          turma_id: string
           user_id: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           enrollment_id?: string
           id?: string
           lesson_id?: string
+          turma_id?: string
           user_id?: string
         }
         Relationships: [
@@ -91,6 +94,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
             referencedColumns: ["id"]
           },
           {
@@ -110,6 +120,7 @@ export type Database = {
           generated_at: string
           id: string
           status: string
+          turma_id: string
           user_id: string
           valid_until: string | null
         }
@@ -120,6 +131,7 @@ export type Database = {
           generated_at?: string
           id?: string
           status?: string
+          turma_id: string
           user_id: string
           valid_until?: string | null
         }
@@ -130,6 +142,7 @@ export type Database = {
           generated_at?: string
           id?: string
           status?: string
+          turma_id?: string
           user_id?: string
           valid_until?: string | null
         }
@@ -146,6 +159,13 @@ export type Database = {
             columns: ["enrollment_id"]
             isOneToOne: false
             referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
             referencedColumns: ["id"]
           },
           {
@@ -390,7 +410,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone: string | null
-          turma_id: string | null
+          turma_id: string
           unit_code: string | null
           updated_at: string
           user_id: string | null
@@ -407,7 +427,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone?: string | null
-          turma_id?: string | null
+          turma_id: string
           unit_code?: string | null
           updated_at?: string
           user_id?: string | null
@@ -424,7 +444,7 @@ export type Database = {
           student_email?: string
           student_name?: string
           student_phone?: string | null
-          turma_id?: string | null
+          turma_id?: string
           unit_code?: string | null
           updated_at?: string
           user_id?: string | null
