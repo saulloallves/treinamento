@@ -26,6 +26,13 @@ export interface Lesson {
     name: string;
     tipo?: string;
   };
+  lesson_sessions?: Array<{
+    turma_id: string;
+    turmas?: {
+      responsavel_name?: string | null;
+      responsavel_user?: { id: string; name: string | null } | null;
+    } | null;
+  }>;
 }
 
 export interface LessonInput {
@@ -53,6 +60,13 @@ export const useLessons = (futureOnly: boolean = false) => {
           courses (
             name,
             tipo
+          ),
+          lesson_sessions (
+            turma_id,
+            turmas (
+              responsavel_name,
+              responsavel_user:users!responsavel_user_id (id, name)
+            )
           )
         `);
 
@@ -79,10 +93,17 @@ export const useLessons = (futureOnly: boolean = false) => {
         throw error;
       }
 
-      // Para cursos ao vivo, buscar informações do professor das turmas ativas
+      // Enriquecer com professor (preferir sessão -> turma)
       const lessonsWithProfessor = await Promise.all(
-        lessons.map(async (lesson) => {
-          // Se é um curso do tipo "ao_vivo", buscar professor da turma
+        lessons.map(async (lesson: any) => {
+          // 1) Preferir professor da turma vinculada via lesson_sessions
+          const sessionTurma = lesson.lesson_sessions?.[0]?.turmas;
+          if (sessionTurma) {
+            const professorName = sessionTurma.responsavel_user?.name || sessionTurma.responsavel_name;
+            return { ...lesson, professor_name: professorName };
+          }
+
+          // 2) Fallback: se é curso ao vivo, buscar última turma ativa do curso
           if (lesson.courses?.tipo === 'ao_vivo' && lesson.course_id) {
             const { data: turma } = await supabase
               .from('turmas')
@@ -98,13 +119,10 @@ export const useLessons = (futureOnly: boolean = false) => {
 
             if (turma) {
               const professorName = turma.responsavel_user?.name || turma.responsavel_name;
-              return {
-                ...lesson,
-                professor_name: professorName
-              };
+              return { ...lesson, professor_name: professorName };
             }
           }
-          
+
           return lesson;
         })
       );
