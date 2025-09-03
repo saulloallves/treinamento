@@ -3,21 +3,23 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { getAutoDetectedProfile, setSelectedProfile } from '@/lib/profile';
 import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRole?: 'Admin' | 'Aluno';
+  requiredRole?: 'Admin' | 'Aluno' | 'Professor';
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
+  const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
 
-  if (loading || checkingAdmin || loadingCurrentUser) {
+  if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -45,7 +47,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   // Auto-detect and set profile if needed
-  const detectedProfile = getAutoDetectedProfile(isAdmin);
+  const detectedProfile = getAutoDetectedProfile(isAdmin, isProfessor);
   
   // Auto-save the detected profile for consistency across sessions
   if (detectedProfile) {
@@ -56,6 +58,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     requiredRole,
     detectedProfile,
     isAdmin,
+    isProfessor,
     userId: user.id
   });
   
@@ -67,6 +70,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     if (requiredRole === 'Aluno' && detectedProfile !== 'Aluno') {
       console.log('Redirecting to /dashboard because required Aluno but detected:', detectedProfile);
       return <Navigate to="/dashboard" replace />;
+    }
+    if (requiredRole === 'Professor' && detectedProfile !== 'Professor') {
+      console.log('Redirecting based on detected profile:', detectedProfile);
+      if (detectedProfile === 'Admin') return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/aluno" replace />;
     }
   }
 

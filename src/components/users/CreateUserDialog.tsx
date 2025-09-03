@@ -18,8 +18,10 @@ const CreateUserDialog = () => {
     email: "",
     password: "",
     unitCode: "",
-    userType: "Aluno" as "Aluno" | "Colaborador",
+    userType: "Aluno" as "Aluno" | "Colaborador" | "Professor",
     position: "",
+    cpf: "",
+    phone: "",
   });
   const { toast } = useToast();
   const createCollaboratorMutation = useCreateCollaborator();
@@ -56,7 +58,7 @@ const CreateUserDialog = () => {
           position: formData.position
         });
       } else {
-        // Para usuários normais (Aluno), continua com o fluxo atual
+        // Para usuários normais (Aluno e Professor), continua com o fluxo atual
         let unitId = null;
         if (formData.unitCode) {
           const unit = units?.find(u => u.code === formData.unitCode);
@@ -71,7 +73,7 @@ const CreateUserDialog = () => {
           password: formData.password,
           user_metadata: {
             full_name: formData.name,
-            user_type: 'Aluno',
+            user_type: formData.userType,
             unit_code: formData.unitCode
           },
           email_confirm: true
@@ -87,10 +89,12 @@ const CreateUserDialog = () => {
           id: authData.user.id,
           name: formData.name,
           email: formData.email,
-          user_type: 'Aluno',
+          user_type: formData.userType,
           unit_id: unitId,
           unit_code: formData.unitCode || null,
           position: formData.position || null,
+          cpf: formData.cpf || null,
+          phone: formData.phone || null,
           approval_status: 'aprovado',
           active: true,
         }]);
@@ -104,7 +108,7 @@ const CreateUserDialog = () => {
       }
 
       // Reset form and close dialog
-      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "" });
+      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "", cpf: "", phone: "" });
       setOpen(false);
 
     } catch (error: any) {
@@ -120,7 +124,7 @@ const CreateUserDialog = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "" });
+    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "", cpf: "", phone: "" });
   };
 
   return (
@@ -147,7 +151,7 @@ const CreateUserDialog = () => {
             <Label htmlFor="user-type">Tipo de Usuário</Label>
             <Select 
               value={formData.userType} 
-              onValueChange={(value: "Aluno" | "Colaborador") => setFormData(prev => ({ ...prev, userType: value }))}
+              onValueChange={(value: "Aluno" | "Colaborador" | "Professor") => setFormData(prev => ({ ...prev, userType: value }))}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -155,11 +159,14 @@ const CreateUserDialog = () => {
               <SelectContent>
                 <SelectItem value="Aluno">Aluno</SelectItem>
                 <SelectItem value="Colaborador">Colaborador</SelectItem>
+                <SelectItem value="Professor">Professor</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
               {formData.userType === "Colaborador" 
                 ? "Colaboradores precisam de aprovação do franqueado da unidade"
+                : formData.userType === "Professor"
+                ? "Professores têm acesso ao sistema e podem gerenciar turmas"
                 : "Alunos têm acesso imediato ao sistema"}
             </p>
           </div>
@@ -179,6 +186,8 @@ const CreateUserDialog = () => {
             <p className="text-xs text-muted-foreground">
               {formData.userType === "Colaborador" 
                 ? "Obrigatório para colaboradores"
+                : formData.userType === "Professor"
+                ? "Opcional para professores"
                 : "Deixe em branco se não tiver unidade específica"}
             </p>
           </div>
@@ -229,6 +238,32 @@ const CreateUserDialog = () => {
               required
             />
           </div>
+
+          {(formData.userType === "Professor" || formData.userType === "Colaborador") && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="user-cpf">CPF</Label>
+                <Input
+                  id="user-cpf"
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={formData.cpf}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cpf: e.target.value }))}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="user-phone">Telefone</Label>
+                <Input
+                  id="user-phone"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+            </>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="user-password">Senha Inicial</Label>
@@ -266,6 +301,8 @@ const CreateUserDialog = () => {
         <div className="text-xs text-muted-foreground mt-4 p-3 bg-muted rounded-md">
           <strong>Nota:</strong> {formData.userType === "Colaborador" 
             ? "Colaboradores precisam da aprovação do franqueado da unidade para acessar o sistema."
+            : formData.userType === "Professor"
+            ? "Professores têm acesso imediato ao sistema e podem gerenciar turmas."
             : "Alunos terão acesso imediato ao sistema."}
         </div>
       </DialogContent>

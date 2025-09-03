@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, GraduationCap } from 'lucide-react';
+import { Shield, GraduationCap, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { setSelectedProfile } from '@/lib/profile';
@@ -11,6 +12,7 @@ import { setSelectedProfile } from '@/lib/profile';
 const ProfileSelection = () => {
   const { user, loading, signOut } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
+  const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const [hasStudentProfile, setHasStudentProfile] = useState(false);
   const navigate = useNavigate();
 
@@ -36,21 +38,26 @@ const ProfileSelection = () => {
 
   // Auto-redirect effect (separate from data fetching)
   useEffect(() => {
-    if (loading || checking) return;
+    if (loading || checking || checkingProfessor) return;
     
     // Se só tem um perfil, redireciona automaticamente
-    if (!isAdmin && hasStudentProfile) {
+    if (!isAdmin && !isProfessor && hasStudentProfile) {
       navigate('/aluno');
       return;
     }
     
-    if (isAdmin && !hasStudentProfile) {
+    if (!isAdmin && isProfessor && !hasStudentProfile) {
+      navigate('/professor');
+      return;
+    }
+    
+    if (isAdmin && !hasStudentProfile && !isProfessor) {
       navigate('/dashboard');
       return;
     }
-  }, [loading, checking, isAdmin, hasStudentProfile, navigate]);
+  }, [loading, checking, checkingProfessor, isAdmin, isProfessor, hasStudentProfile, navigate]);
 
-  if (loading || checking) {
+  if (loading || checking || checkingProfessor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -58,10 +65,13 @@ const ProfileSelection = () => {
     );
   }
 
-  const handleProfileSelection = (profile: 'admin' | 'student') => {
+  const handleProfileSelection = (profile: 'admin' | 'student' | 'professor') => {
     if (profile === 'admin') {
       setSelectedProfile('Admin');
       navigate('/dashboard');
+    } else if (profile === 'professor') {
+      setSelectedProfile('Professor');
+      navigate('/professor');
     } else {
       setSelectedProfile('Aluno');
       navigate('/aluno');
@@ -76,7 +86,7 @@ const ProfileSelection = () => {
           <p className="text-gray-600">Você tem acesso a múltiplos perfis. Escolha como deseja acessar o sistema.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           {isAdmin && (
             <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-purple-200">
               <CardHeader className="text-center pb-4">
@@ -94,6 +104,28 @@ const ProfileSelection = () => {
                   className="w-full bg-purple-600 hover:bg-purple-700"
                 >
                   Entrar como Admin
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {isProfessor && (
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-green-200">
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-8 h-8 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">Professor</CardTitle>
+                <CardDescription>
+                  Acesse suas turmas e gerencie cursos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => handleProfileSelection('professor')}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  Entrar como Professor
                 </Button>
               </CardContent>
             </Card>

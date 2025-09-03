@@ -108,6 +108,31 @@ const App = () => (
                   <SettingsPage />
                 </AdminRoute>
               } />
+              <Route path="/professor" element={
+                <ProtectedRoute requiredRole="Professor">
+                  <StudentPortal />
+                </ProtectedRoute>
+              } />
+              <Route path="/professor/aulas" element={
+                <ProtectedRoute requiredRole="Professor">
+                  <StudentLessons />
+                </ProtectedRoute>
+              } />
+              <Route path="/professor/quiz" element={
+                <ProtectedRoute requiredRole="Professor">
+                  <StudentQuiz />
+                </ProtectedRoute>
+              } />
+              <Route path="/professor/curso/:courseId" element={
+                <ProtectedRoute requiredRole="Professor">
+                  <StudentCourse />
+                </ProtectedRoute>
+              } />
+              <Route path="/professor/curso/:courseId/aulas-gravadas" element={
+                <ProtectedRoute requiredRole="Professor">
+                  <StudentLessons />
+                </ProtectedRoute>
+              } />
               <Route path="/aluno" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentPortal />

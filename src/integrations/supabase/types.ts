@@ -157,6 +157,121 @@ export type Database = {
           },
         ]
       }
+      class_audit_logs: {
+        Row: {
+          action: string
+          class_id: string
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          performed_by: string
+        }
+        Insert: {
+          action: string
+          class_id: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by: string
+        }
+        Update: {
+          action?: string
+          class_id?: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_audit_logs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string | null
+          deadline: string
+          description: string | null
+          ended_at: string | null
+          id: string
+          max_students: number | null
+          name: string
+          responsible_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["class_status"]
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by?: string | null
+          deadline: string
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          max_students?: number | null
+          name: string
+          responsible_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["class_status"]
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          max_students?: number | null
+          name?: string
+          responsible_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["class_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collaboration_approvals: {
         Row: {
           approval_token: string | null
@@ -602,6 +717,54 @@ export type Database = {
           },
         ]
       }
+      student_classes: {
+        Row: {
+          class_id: string
+          completion_date: string | null
+          created_at: string
+          enrolled_at: string
+          id: string
+          status: Database["public"]["Enums"]["student_class_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          completion_date?: string | null
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["student_class_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          completion_date?: string | null
+          created_at?: string
+          enrolled_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["student_class_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_classes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_classes_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_progress: {
         Row: {
           completed_at: string | null
@@ -1010,6 +1173,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      enroll_student_in_class: {
+        Args: { _class_id: string; _student_id: string }
+        Returns: undefined
+      }
       ensure_admin_bootstrap: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1050,6 +1217,17 @@ export type Database = {
         Args: { _user: string }
         Returns: boolean
       }
+      is_professor: {
+        Args: { _user: string }
+        Returns: boolean
+      }
+      manage_class_status: {
+        Args: {
+          _class_id: string
+          _new_status: Database["public"]["Enums"]["class_status"]
+        }
+        Returns: undefined
+      }
       recalc_enrollment_progress: {
         Args: { p_enrollment_id: string }
         Returns: undefined
@@ -1078,7 +1256,9 @@ export type Database = {
     }
     Enums: {
       approval_status: "pendente" | "aprovado" | "rejeitado"
-      user_role_type: "Franqueado" | "Colaborador"
+      class_status: "criada" | "iniciada" | "encerrada"
+      student_class_status: "inscrito" | "concluido" | "cancelado"
+      user_role_type: "Franqueado" | "Colaborador" | "Professor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1207,7 +1387,9 @@ export const Constants = {
   public: {
     Enums: {
       approval_status: ["pendente", "aprovado", "rejeitado"],
-      user_role_type: ["Franqueado", "Colaborador"],
+      class_status: ["criada", "iniciada", "encerrada"],
+      student_class_status: ["inscrito", "concluido", "cancelado"],
+      user_role_type: ["Franqueado", "Colaborador", "Professor"],
     },
   },
 } as const

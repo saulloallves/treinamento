@@ -1,4 +1,4 @@
-export type SelectedProfile = 'Admin' | 'Aluno';
+export type SelectedProfile = 'Admin' | 'Aluno' | 'Professor';
 
 const PROFILE_KEY = 'selected_profile';
 
@@ -28,11 +28,15 @@ export function clearSelectedProfile(): void {
 }
 
 // Auto-detect profile based on user permissions
-export function getAutoDetectedProfile(isAdmin: boolean): SelectedProfile {
+export function getAutoDetectedProfile(isAdmin: boolean, isProfessor?: boolean): SelectedProfile {
   // If there's a stored profile, use it
   const stored = getSelectedProfile();
   if (stored) return stored;
   
-  // Auto-detect: if user is admin, default to Admin, otherwise Aluno
-  return isAdmin ? 'Admin' : 'Aluno';
+  // Auto-detect: if user is admin, default to Admin
+  // If user is professor, default to Professor
+  // Otherwise default to Aluno
+  if (isAdmin) return 'Admin';
+  if (isProfessor) return 'Professor';
+  return 'Aluno';
 }
