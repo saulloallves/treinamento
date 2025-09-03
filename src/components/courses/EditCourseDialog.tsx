@@ -168,18 +168,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
             </select>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="mandatory"
-                checked={formData.mandatory}
-                onChange={(e) => setFormData({ ...formData, mandatory: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="mandatory" className="text-sm">Obrigatório</Label>
-            </div>
-
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"

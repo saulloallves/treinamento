@@ -25,7 +25,6 @@ export interface CourseInput {
   description?: string;
   theme: string[];
   public_target: string;
-  mandatory: boolean;
   has_quiz: boolean;
   generates_certificate: boolean;
   tipo: 'ao_vivo' | 'gravado';

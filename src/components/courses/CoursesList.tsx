@@ -154,11 +154,6 @@ const CoursesList = () => {
                     }`}>
                       {course.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
                     </span>
-                    {course.mandatory && (
-                      <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
-                        Obrigatório
-                      </span>
-                    )}
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${
                         course.status === "Ativo"
