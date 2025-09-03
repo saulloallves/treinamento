@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink, Calendar } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -196,28 +196,35 @@ const LessonsList = () => {
                           <span className="font-medium">{lesson.courses?.name}</span>
                         </p>
                         
-                        <div className="flex items-center gap-4 text-xs text-brand-gray-dark">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-brand-blue" />
-                            <span>{lesson.duration_minutes} min</span>
-                          </div>
-                          
-                          {lesson.zoom_start_time && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-brand-blue" />
-                              <span>
-                                {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {lesson.video_url && (
-                            <div className="flex items-center gap-1">
-                              <Video className="w-3 h-3 text-brand-blue" />
-                              <span>Vídeo</span>
-                            </div>
-                          )}
-                        </div>
+                         <div className="flex items-center gap-4 text-xs text-brand-gray-dark">
+                           <div className="flex items-center gap-1">
+                             <Clock className="w-3 h-3 text-brand-blue" />
+                             <span>{lesson.duration_minutes} min</span>
+                           </div>
+                           
+                           {lesson.zoom_start_time && (
+                             <div className="flex items-center gap-1">
+                               <Calendar className="w-3 h-3 text-brand-blue" />
+                               <span>
+                                 {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                               </span>
+                             </div>
+                           )}
+                           
+                           {lesson.professor_name && lesson.zoom_start_time && (
+                             <div className="flex items-center gap-1">
+                               <User className="w-3 h-3 text-brand-blue" />
+                               <span>Prof. {lesson.professor_name}</span>
+                             </div>
+                           )}
+                           
+                           {lesson.video_url && (
+                             <div className="flex items-center gap-1">
+                               <Video className="w-3 h-3 text-brand-blue" />
+                               <span>Vídeo</span>
+                             </div>
+                           )}
+                         </div>
                       </div>
                       
                       <div className="flex gap-1">
@@ -297,24 +304,30 @@ const LessonsList = () => {
                                 </span>
                               </div>
                               
-                              <div className="flex items-center gap-4 text-sm text-brand-gray-dark">
-                                <div className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {lesson.duration_minutes} min
-                                </div>
-                                {lesson.zoom_start_time && (
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
-                                  </div>
-                                )}
-                                {lesson.video_url && (
-                                  <div className="flex items-center gap-1">
-                                    <Video className="w-3 h-3" />
-                                    Link disponível
-                                  </div>
-                                )}
-                              </div>
+                               <div className="flex items-center gap-4 text-sm text-brand-gray-dark">
+                                 <div className="flex items-center gap-1">
+                                   <Clock className="w-3 h-3" />
+                                   {lesson.duration_minutes} min
+                                 </div>
+                                 {lesson.zoom_start_time && (
+                                   <div className="flex items-center gap-1">
+                                     <Calendar className="w-3 h-3" />
+                                     {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                                   </div>
+                                 )}
+                                 {lesson.professor_name && lesson.zoom_start_time && (
+                                   <div className="flex items-center gap-1">
+                                     <User className="w-3 h-3" />
+                                     Prof. {lesson.professor_name}
+                                   </div>
+                                 )}
+                                 {lesson.video_url && (
+                                   <div className="flex items-center gap-1">
+                                     <Video className="w-3 h-3" />
+                                     Link disponível
+                                   </div>
+                                 )}
+                               </div>
                             </div>
                             
                             <div className="flex gap-1">

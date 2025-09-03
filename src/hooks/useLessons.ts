@@ -21,8 +21,10 @@ export interface Lesson {
   zoom_start_url?: string | null;
   zoom_join_url?: string | null;
   zoom_start_time?: string | null;
+  professor_name?: string; // Nome do professor para aulas ao vivo
   courses?: {
     name: string;
+    tipo?: string;
   };
 }
 
@@ -49,7 +51,8 @@ export const useLessons = (futureOnly: boolean = false) => {
         .select(`
           *,
           courses (
-            name
+            name,
+            tipo
           )
         `);
 
@@ -64,7 +67,7 @@ export const useLessons = (futureOnly: boolean = false) => {
         query = query.order('created_at', { ascending: false });
       }
 
-      const { data, error } = await query;
+      const { data: lessons, error } = await query;
 
       if (error) {
         console.error('Error fetching lessons:', error);
@@ -76,7 +79,37 @@ export const useLessons = (futureOnly: boolean = false) => {
         throw error;
       }
 
-      return data as Lesson[];
+      // Para aulas ao vivo, buscar informações do professor das turmas ativas
+      const lessonsWithProfessor = await Promise.all(
+        lessons.map(async (lesson) => {
+          // Se tem zoom_start_time, é uma aula ao vivo - buscar professor da turma
+          if (lesson.zoom_start_time && lesson.course_id) {
+            const { data: turma } = await supabase
+              .from('turmas')
+              .select(`
+                responsavel_name,
+                responsavel_user:users!responsavel_user_id(id, name)
+              `)
+              .eq('course_id', lesson.course_id)
+              .in('status', ['agendada', 'em_andamento'])
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (turma) {
+              const professorName = turma.responsavel_user?.name || turma.responsavel_name;
+              return {
+                ...lesson,
+                professor_name: professorName
+              };
+            }
+          }
+          
+          return lesson;
+        })
+      );
+
+      return lessonsWithProfessor as Lesson[];
     }
   });
 };
