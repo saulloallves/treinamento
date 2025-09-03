@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { supabase } from "@/integrations/supabase/client";
 import { getAutoDetectedProfile, setSelectedProfile } from "@/lib/profile";
 import { toast } from 'sonner';
 
@@ -11,40 +10,13 @@ const RoleRedirect = () => {
   const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
-  const [hasStudentProfile, setHasStudentProfile] = useState<boolean | null>(null);
 
   useEffect(() => {
     document.title = "Direcionando...";
-    
-    const checkStudentProfile = async () => {
-      if (!user?.id) {
-        setHasStudentProfile(false);
-        return;
-      }
-      
-      try {
-        const { data: studentData, error } = await supabase
-          .from('users')
-          .select('id, user_type, role')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('RoleRedirect - Error fetching student data:', error);
-          setHasStudentProfile(false);
-        } else {
-          setHasStudentProfile(!!studentData);
-        }
-      } catch (e) {
-        console.error('RoleRedirect - Exception:', e);
-        setHasStudentProfile(false);
-      }
-    };
-    
-    checkStudentProfile();
-  }, [user?.id]);
+  }, []);
 
-  if (loading || checking || loadingCurrentUser || hasStudentProfile === null) {
+  // Show loading only while essential auth data is loading
+  if (loading || checking || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -73,6 +45,9 @@ const RoleRedirect = () => {
   if (detectedProfile) {
     setSelectedProfile(detectedProfile);
   }
+
+  // Check if user has student profile (exists in users table)
+  const hasStudentProfile = !!currentUser;
 
   // Se o usuário tem ambos os perfis (admin E aluno), verificar preferência
   if (isAdmin && hasStudentProfile) {
