@@ -211,7 +211,7 @@ const LessonsList = () => {
                              </div>
                            )}
                            
-                           {lesson.professor_name && lesson.zoom_start_time && (
+                           {lesson.professor_name && lesson.courses?.tipo === 'ao_vivo' && (
                              <div className="flex items-center gap-1">
                                <User className="w-3 h-3 text-brand-blue" />
                                <span>Prof. {lesson.professor_name}</span>
@@ -315,12 +315,12 @@ const LessonsList = () => {
                                      {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
                                    </div>
                                  )}
-                                 {lesson.professor_name && lesson.zoom_start_time && (
-                                   <div className="flex items-center gap-1">
-                                     <User className="w-3 h-3" />
-                                     Prof. {lesson.professor_name}
-                                   </div>
-                                 )}
+                                  {lesson.professor_name && lesson.courses?.tipo === 'ao_vivo' && (
+                                    <div className="flex items-center gap-1">
+                                      <User className="w-3 h-3" />
+                                      Prof. {lesson.professor_name}
+                                    </div>
+                                  )}
                                  {lesson.video_url && (
                                    <div className="flex items-center gap-1">
                                      <Video className="w-3 h-3" />

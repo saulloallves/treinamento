@@ -79,11 +79,11 @@ export const useLessons = (futureOnly: boolean = false) => {
         throw error;
       }
 
-      // Para aulas ao vivo, buscar informações do professor das turmas ativas
+      // Para cursos ao vivo, buscar informações do professor das turmas ativas
       const lessonsWithProfessor = await Promise.all(
         lessons.map(async (lesson) => {
-          // Se tem zoom_start_time, é uma aula ao vivo - buscar professor da turma
-          if (lesson.zoom_start_time && lesson.course_id) {
+          // Se é um curso do tipo "ao_vivo", buscar professor da turma
+          if (lesson.courses?.tipo === 'ao_vivo' && lesson.course_id) {
             const { data: turma } = await supabase
               .from('turmas')
               .select(`
