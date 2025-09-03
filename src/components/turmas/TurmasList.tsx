@@ -56,7 +56,6 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Turmas</h3>
-        <CreateTurmaDialog courseId={courseId} />
       </div>
 
       {!turmas || turmas.length === 0 ? (

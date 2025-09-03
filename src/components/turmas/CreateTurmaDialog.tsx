@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 import { useCreateTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CreateTurmaDialogProps {
-  courseId: string;
+  courseId?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const CreateTurmaDialog = ({ courseId }: CreateTurmaDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaDialogProps) => {
   const [formData, setFormData] = useState({
+    course_id: courseId || "",
     name: "",
     code: "",
     responsavel_user_id: "",
@@ -25,7 +26,7 @@ export const CreateTurmaDialog = ({ courseId }: CreateTurmaDialogProps) => {
 
   const createTurma = useCreateTurma();
 
-  // Fetch professors for the dropdown
+  // Fetch professors and live courses for the dropdown
   const { data: professors } = useQuery({
     queryKey: ['professors'],
     queryFn: async () => {
@@ -41,16 +42,31 @@ export const CreateTurmaDialog = ({ courseId }: CreateTurmaDialogProps) => {
     }
   });
 
+  const { data: liveCourses } = useQuery({
+    queryKey: ['live-courses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, name')
+        .eq('tipo', 'ao_vivo')
+        .eq('status', 'Ativo')
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.responsavel_user_id || !formData.completion_deadline) {
+    if (!formData.course_id || !formData.responsavel_user_id || !formData.completion_deadline) {
       return;
     }
 
     try {
       await createTurma.mutateAsync({
-        course_id: courseId,
+        course_id: formData.course_id,
         name: formData.name || undefined,
         code: formData.code || undefined,
         responsavel_user_id: formData.responsavel_user_id,
@@ -59,31 +75,47 @@ export const CreateTurmaDialog = ({ courseId }: CreateTurmaDialogProps) => {
       });
       
       setFormData({
+        course_id: courseId || "",
         name: "",
         code: "",
         responsavel_user_id: "",
         completion_deadline: "",
         capacity: ""
       });
-      setOpen(false);
+      onOpenChange(false);
     } catch (error) {
       console.error('Error creating turma:', error);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Criar Turma
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Criar Nova Turma</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!courseId && (
+            <div>
+              <Label htmlFor="course">Curso *</Label>
+              <Select
+                value={formData.course_id}
+                onValueChange={(value) => setFormData({ ...formData, course_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um curso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {liveCourses?.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <Label htmlFor="name">Nome da Turma (opcional)</Label>
             <Input
@@ -147,12 +179,12 @@ export const CreateTurmaDialog = ({ courseId }: CreateTurmaDialogProps) => {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button 
               type="submit" 
-              disabled={createTurma.isPending || !formData.responsavel_user_id || !formData.completion_deadline}
+              disabled={createTurma.isPending || !formData.responsavel_user_id || !formData.completion_deadline || (!courseId && !formData.course_id)}
             >
               {createTurma.isPending ? "Criando..." : "Criar Turma"}
             </Button>

@@ -70,6 +70,7 @@ const Sidebar = () => {
         
         { icon: GraduationCap, label: "Cursos", path: "/courses" },
         { icon: BookOpen, label: "Aulas", path: "/lessons" },
+        { icon: Calendar, label: "Turmas", path: "/turmas" },
         { icon: FileQuestion, label: "Quiz", path: "/quiz" },
         { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
         { icon: UserCheck, label: "Presenças", path: "/attendance" },

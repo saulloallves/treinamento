@@ -20,6 +20,7 @@ import WhatsAppPage from "./pages/WhatsAppPage";
 import UsersPage from "./pages/UsersPage";
 import UnitsPage from "./pages/UnitsPage";
 import SettingsPage from "./pages/SettingsPage";
+import TurmasPage from "./pages/TurmasPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
@@ -61,6 +62,11 @@ const App = () => (
               <Route path="/lessons" element={
                 <AdminRoute>
                   <LessonsPage />
+                </AdminRoute>
+              } />
+              <Route path="/turmas" element={
+                <AdminRoute>
+                  <TurmasPage />
                 </AdminRoute>
               } />
               <Route path="/quiz" element={

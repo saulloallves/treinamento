@@ -79,8 +79,7 @@ export const useTurmas = (courseId?: string) => {
       );
 
       return turmasWithCounts as Turma[];
-    },
-    enabled: !!courseId
+    }
   });
 };
 
