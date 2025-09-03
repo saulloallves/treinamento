@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import BaseLayout from "@/components/BaseLayout";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,26 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AttendanceButton from "@/components/student/AttendanceButton";
 import RequestCertificateButton from "@/components/student/RequestCertificateButton";
 import { useAuth } from "@/hooks/useAuth";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 const StudentCourse = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     document.title = "Meu Curso | Área do Aluno";
   }, []);
-
-  useEffect(() => {
-    if (!checkingAdmin && isAdmin) {
-      navigate('/', { replace: true });
-    }
-  }, [checkingAdmin, isAdmin, navigate]);
 
   const handleRefresh = async () => {
     try {
