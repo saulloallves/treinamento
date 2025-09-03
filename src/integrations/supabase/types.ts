@@ -387,6 +387,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone: string | null
+          turma_id: string | null
           unit_code: string | null
           updated_at: string
           user_id: string | null
@@ -403,6 +404,7 @@ export type Database = {
           student_email: string
           student_name: string
           student_phone?: string | null
+          turma_id?: string | null
           unit_code?: string | null
           updated_at?: string
           user_id?: string | null
@@ -419,6 +421,7 @@ export type Database = {
           student_email?: string
           student_name?: string
           student_phone?: string | null
+          turma_id?: string | null
           unit_code?: string | null
           updated_at?: string
           user_id?: string | null
@@ -429,6 +432,67 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          join_url: string | null
+          lesson_id: string
+          scheduled_at: string | null
+          start_url: string | null
+          status: string
+          turma_id: string
+          updated_at: string | null
+          zoom_meeting_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          join_url?: string | null
+          lesson_id: string
+          scheduled_at?: string | null
+          start_url?: string | null
+          status?: string
+          turma_id: string
+          updated_at?: string | null
+          zoom_meeting_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          join_url?: string | null
+          lesson_id?: string
+          scheduled_at?: string | null
+          start_url?: string | null
+          status?: string
+          turma_id?: string
+          updated_at?: string | null
+          zoom_meeting_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_sessions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_sessions_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
             referencedColumns: ["id"]
           },
         ]
@@ -858,6 +922,131 @@ export type Database = {
         }
         Relationships: []
       }
+      transformation_kanban: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          status: string
+          turma_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+          turma_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          turma_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transformation_kanban_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transformation_kanban_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transformation_kanban_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      turmas: {
+        Row: {
+          capacity: number | null
+          code: string | null
+          completion_deadline: string
+          course_id: string
+          created_at: string | null
+          created_by: string | null
+          end_at: string | null
+          id: string
+          name: string | null
+          responsavel_user_id: string
+          start_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          code?: string | null
+          completion_deadline: string
+          course_id: string
+          created_at?: string | null
+          created_by?: string | null
+          end_at?: string | null
+          id?: string
+          name?: string | null
+          responsavel_user_id: string
+          start_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          code?: string | null
+          completion_deadline?: string
+          course_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          end_at?: string | null
+          id?: string
+          name?: string | null
+          responsavel_user_id?: string
+          start_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turmas_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turmas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turmas_responsavel_user_id_fkey"
+            columns: ["responsavel_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unidades: {
         Row: {
           bairro: string | null
@@ -1173,6 +1362,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      conclude_turma: {
+        Args: { p_turma_id: string; p_user_id: string }
+        Returns: undefined
+      }
       enroll_student_in_class: {
         Args: { _class_id: string; _student_id: string }
         Returns: undefined
@@ -1234,6 +1427,10 @@ export type Database = {
       }
       reject_admin_user: {
         Args: { admin_user_id: string }
+        Returns: undefined
+      }
+      start_turma: {
+        Args: { p_turma_id: string; p_user_id: string }
         Returns: undefined
       }
       update_system_settings: {

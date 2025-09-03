@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from "react";
-import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,6 +10,7 @@ import CreateCourseDialog from "./CreateCourseDialog";
 import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
 import RecordedLessonsDialog from "./RecordedLessonsDialog";
 import RecordedCoursesDialog from "./RecordedCoursesDialog";
+import { CourseDetailDialog } from "./CourseDetailDialog";
 import { useCourses, useDeleteCourse, Course } from "@/hooks/useCourses";
 
 const CoursesList = () => {
@@ -23,6 +24,8 @@ const CoursesList = () => {
   const [studentsDialogOpen, setStudentsDialogOpen] = useState(false);
   const [recordedLessonsDialogOpen, setRecordedLessonsDialogOpen] = useState(false);
   const [recordedCoursesDialogOpen, setRecordedCoursesDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [statusFilter, setStatusFilter] = useState("todos");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -91,6 +94,11 @@ const CoursesList = () => {
     setSelectedCourseId(courseId);
     setSelectedCourseName(courseName);
     setRecordedCoursesDialogOpen(true);
+  };
+
+  const handleViewCourseDetail = (course: Course) => {
+    setSelectedCourse(course);
+    setDetailDialogOpen(true);
   };
 
   const getPublicTargetLabel = (target: string) => {
@@ -178,6 +186,14 @@ const CoursesList = () => {
                 </div>
                 
                 <div className="flex gap-1 ml-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewCourseDetail(course)}
+                    title={course.tipo === 'ao_vivo' ? "Gerenciar Turmas e Aulas" : "Gerenciar Aulas"}
+                  >
+                    <Settings className="w-3 h-3" />
+                  </Button>
                   {course.tipo === 'gravado' && (
                     <Button 
                       variant="outline" 
@@ -361,6 +377,12 @@ const CoursesList = () => {
         courseName={selectedCourseName}
         open={recordedCoursesDialogOpen}
         onOpenChange={setRecordedCoursesDialogOpen}
+      />
+
+      <CourseDetailDialog
+        course={selectedCourse}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
       />
     </div>
   );

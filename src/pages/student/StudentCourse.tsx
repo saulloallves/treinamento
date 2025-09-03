@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AttendanceButton from "@/components/student/AttendanceButton";
 import RequestCertificateButton from "@/components/student/RequestCertificateButton";
+import { TurmaEnrollmentCard } from "@/components/student/TurmaEnrollmentCard";
+import { MyTurmaCard } from "@/components/student/MyTurmaCard";
+import { useTurmaEnrollment } from "@/hooks/useTurmaEnrollment";
 import { useAuth } from "@/hooks/useAuth";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient } from "@tanstack/react-query";
@@ -41,7 +44,13 @@ const StudentCourse = () => {
 
       const { data, error } = await supabase
         .from("enrollments")
-        .select("id, progress_percentage, status, course_id")
+        .select(`
+          id, 
+          progress_percentage, 
+          status, 
+          course_id,
+          course:courses(name, tipo)
+        `)
         .eq("user_id", userResp.user.id)
         .eq("course_id", courseId)
         .maybeSingle();
@@ -72,6 +81,9 @@ const StudentCourse = () => {
 
   const enrollment = enrollmentQuery.data;
   const lessons = lessonsQuery.data ?? [];
+  const { data: turmaEnrollment } = useTurmaEnrollment(courseId!);
+
+  const isLiveCourse = enrollment?.course?.tipo === 'ao_vivo';
 
   // Count how many lessons have attendance confirmed for this enrollment
   const attendanceCountQuery = useQuery({
@@ -149,6 +161,23 @@ const StudentCourse = () => {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Turma information for live courses */}
+      {enrollment && isLiveCourse && (
+        <div className="mb-6">
+          {turmaEnrollment?.turma ? (
+            <MyTurmaCard 
+              turma={turmaEnrollment.turma}
+              courseName={enrollment.course?.name || "Curso"}
+            />
+          ) : (
+            <TurmaEnrollmentCard 
+              courseId={courseId!}
+              courseName={enrollment.course?.name || "Curso"}
+            />
+          )}
+        </div>
       )}
 
       {enrollment && (
