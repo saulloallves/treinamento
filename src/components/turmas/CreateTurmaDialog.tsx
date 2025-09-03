@@ -21,6 +21,8 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
     code: "",
     responsavel_user_id: "",
     completion_deadline: "",
+    enrollment_open_at: "",
+    enrollment_close_at: "",
     capacity: ""
   });
 
@@ -71,6 +73,8 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         code: formData.code || undefined,
         responsavel_user_id: formData.responsavel_user_id,
         completion_deadline: formData.completion_deadline,
+        enrollment_open_at: formData.enrollment_open_at || undefined,
+        enrollment_close_at: formData.enrollment_close_at || undefined,
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined
       });
       
@@ -80,6 +84,8 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         code: "",
         responsavel_user_id: "",
         completion_deadline: "",
+        enrollment_open_at: "",
+        enrollment_close_at: "",
         capacity: ""
       });
       onOpenChange(false);
@@ -94,7 +100,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         <DialogHeader>
           <DialogTitle>Criar Nova Turma</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto">
           {!courseId && (
             <div>
               <Label htmlFor="course">Curso *</Label>
@@ -153,6 +159,26 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="enrollment_open_at">Abertura das Inscrições (opcional)</Label>
+            <Input
+              id="enrollment_open_at"
+              type="datetime-local"
+              value={formData.enrollment_open_at}
+              onChange={(e) => setFormData({ ...formData, enrollment_open_at: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="enrollment_close_at">Fechamento das Inscrições (opcional)</Label>
+            <Input
+              id="enrollment_close_at"
+              type="datetime-local"
+              value={formData.enrollment_close_at}
+              onChange={(e) => setFormData({ ...formData, enrollment_close_at: e.target.value })}
+            />
           </div>
 
           <div>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Play, Square, UserPlus, Users, Calendar, GraduationCap } from "lucide-react";
-import { useStartTurma, useConcludeTurma } from "@/hooks/useTurmas";
+import { useStartTurma, useConcludeTurma, useForceCloseEnrollments } from "@/hooks/useTurmas";
 import { EnrollStudentDialog } from "./EnrollStudentDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -20,18 +20,21 @@ interface TurmasManagementCardProps {
 }
 
 const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'agendada':
-      return <Badge variant="secondary">Agendada</Badge>;
-    case 'em_andamento':
-      return <Badge variant="default">Em Andamento</Badge>;  
-    case 'encerrada':
-      return <Badge variant="outline">Encerrada</Badge>;
-    case 'cancelada':
-      return <Badge variant="destructive">Cancelada</Badge>;
-    default:
-      return <Badge variant="secondary">{status}</Badge>;
-  }
+  const statusConfig = {
+    'agendada': { label: 'Agendada', variant: 'secondary' as const },
+    'inscricoes_abertas': { label: 'Inscrições Abertas', variant: 'default' as const },
+    'inscricoes_encerradas': { label: 'Inscrições Encerradas', variant: 'outline' as const },
+    'em_andamento': { label: 'Em Andamento', variant: 'destructive' as const },
+    'encerrada': { label: 'Encerrada', variant: 'secondary' as const },
+    'cancelada': { label: 'Cancelada', variant: 'secondary' as const },
+  };
+  
+  const config = statusConfig[status as keyof typeof statusConfig] || { 
+    label: status, 
+    variant: 'secondary' as const 
+  };
+  
+  return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
 export const TurmasManagementCard = ({ course, turmas, onCreateTurma }: TurmasManagementCardProps) => {
@@ -40,6 +43,11 @@ export const TurmasManagementCard = ({ course, turmas, onCreateTurma }: TurmasMa
   
   const startTurma = useStartTurma();
   const concludeTurma = useConcludeTurma();
+  const forceCloseEnrollments = useForceCloseEnrollments();
+
+  const handleForceClose = (turmaId: string) => {
+    forceCloseEnrollments.mutate(turmaId);
+  };
 
   const handleStartTurma = (turmaId: string) => {
     startTurma.mutate(turmaId);
@@ -79,16 +87,17 @@ export const TurmasManagementCard = ({ course, turmas, onCreateTurma }: TurmasMa
           </div>
         ) : (
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Turma</TableHead>
-                <TableHead>Responsável</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Prazo</TableHead>
-                <TableHead>Inscritos</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Turma</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Janela de Inscrição</TableHead>
+                  <TableHead>Prazo</TableHead>
+                  <TableHead>Inscritos</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {turmas.map((turma) => (
                 <TableRow key={turma.id}>
@@ -119,6 +128,19 @@ export const TurmasManagementCard = ({ course, turmas, onCreateTurma }: TurmasMa
                   </TableCell>
                   <TableCell>{getStatusBadge(turma.status)}</TableCell>
                   <TableCell>
+                    <div className="space-y-1 text-sm">
+                      {turma.enrollment_open_at && (
+                        <div>Abre: {format(new Date(turma.enrollment_open_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</div>
+                      )}
+                      {turma.enrollment_close_at && (
+                        <div>Fecha: {format(new Date(turma.enrollment_close_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</div>
+                      )}
+                      {!turma.enrollment_open_at && !turma.enrollment_close_at && (
+                        <div className="text-muted-foreground">Não definida</div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-muted-foreground" />
                       <span className="text-sm">
@@ -134,6 +156,46 @@ export const TurmasManagementCard = ({ course, turmas, onCreateTurma }: TurmasMa
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      {turma.status === 'inscricoes_abertas' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleForceClose(turma.id)}
+                            disabled={forceCloseEnrollments.isPending}
+                          >
+                            Fechar Inscrições
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEnrollStudent(turma.id)}
+                          >
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Inscrever
+                          </Button>
+                        </>
+                      )}
+                      {turma.status === 'inscricoes_encerradas' && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleStartTurma(turma.id)}
+                            disabled={startTurma.isPending}
+                          >
+                            <Play className="h-3 w-3 mr-1" />
+                            Iniciar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEnrollStudent(turma.id)}
+                          >
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Inscrever
+                          </Button>
+                        </>
+                      )}
                       {turma.status === 'agendada' && (
                         <>
                           <Button

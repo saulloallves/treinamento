@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, User } from "lucide-react";
-import { useTurmas, useEnrollInTurma } from "@/hooks/useTurmas";
+import { useTurmasForEnrollment, useEnrollInTurma } from "@/hooks/useTurmas";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface TurmaEnrollmentCardProps {
@@ -14,7 +15,7 @@ interface TurmaEnrollmentCardProps {
 }
 
 export const TurmaEnrollmentCard = ({ courseId, courseName }: TurmaEnrollmentCardProps) => {
-  const { data: turmas, isLoading } = useTurmas(courseId);
+  const { data: turmas, isLoading } = useTurmasForEnrollment(courseId);
   const { data: currentUser } = useCurrentUser();
   const enrollInTurma = useEnrollInTurma();
 

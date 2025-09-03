@@ -8,9 +8,11 @@ export interface Turma {
   name?: string;
   code?: string;
   responsavel_user_id: string;
-  status: 'agendada' | 'em_andamento' | 'encerrada' | 'cancelada';
+  status: 'agendada' | 'inscricoes_abertas' | 'inscricoes_encerradas' | 'em_andamento' | 'encerrada' | 'cancelada';
   start_at?: string;
   end_at?: string;
+  enrollment_open_at?: string;
+  enrollment_close_at?: string;
   completion_deadline: string;
   capacity?: number;
   created_by?: string;
@@ -30,6 +32,8 @@ export interface TurmaInput {
   code?: string;
   responsavel_user_id: string;
   completion_deadline: string;
+  enrollment_open_at?: string;
+  enrollment_close_at?: string;
   capacity?: number;
 }
 
@@ -247,7 +251,7 @@ export const useEnrollInTurma = () => {
 
       if (studentError) throw studentError;
 
-      // Create enrollment with turma_id
+      // Create enrollment with turma_id - the backend will validate enrollment window
       const { data, error } = await supabase
         .from('enrollments')
         .insert([{
@@ -263,6 +267,12 @@ export const useEnrollInTurma = () => {
 
       if (error) {
         console.error('Error enrolling in turma:', error);
+        
+        // Provide specific error messages for enrollment window issues
+        if (error.code === '42501' || error.message.includes('can_enroll_in_turma')) {
+          throw new Error('Não é possível se inscrever nesta turma. Verifique se as inscrições estão abertas e se você atende aos critérios.');
+        }
+        
         throw error;
       }
 
@@ -279,6 +289,91 @@ export const useEnrollInTurma = () => {
     onError: (error: any) => {
       toast({
         title: "Erro ao inscrever aluno",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+};
+
+export const useTurmasForEnrollment = (courseId: string) => {
+  const { toast } = useToast();
+  
+  return useQuery({
+    queryKey: ['turmas-enrollment', courseId],
+    queryFn: async () => {
+      let query = supabase
+        .from('turmas')
+        .select(`
+          *,
+          responsavel_user:users!responsavel_user_id(id, name, email)
+        `)
+        .eq('course_id', courseId)
+        .eq('status', 'inscricoes_abertas') // Only show open enrollments
+        .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching enrollment turmas:', error);
+        toast({
+          title: "Erro ao carregar turmas",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      // Get enrollment count for each turma
+      const turmasWithCounts = await Promise.all(
+        (data || []).map(async (turma) => {
+          const { count } = await supabase
+            .from('enrollments')
+            .select('*', { count: 'exact', head: true })
+            .eq('turma_id', turma.id);
+          
+          return {
+            ...turma,
+            enrollments_count: count || 0
+          };
+        })
+      );
+
+      return turmasWithCounts as Turma[];
+    },
+    enabled: !!courseId
+  });
+};
+
+export const useForceCloseEnrollments = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (turmaId: string) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { error } = await supabase.rpc('force_close_turma_enrollments', {
+        p_turma_id: turmaId,
+        p_user_id: user.user.id
+      });
+
+      if (error) {
+        console.error('Error force closing enrollments:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['turmas'] });
+      toast({
+        title: "Inscrições encerradas com sucesso!",
+        description: "As inscrições da turma foram fechadas.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao encerrar inscrições",
         description: error.message,
         variant: "destructive",
       });

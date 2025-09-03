@@ -986,6 +986,8 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           end_at: string | null
+          enrollment_close_at: string | null
+          enrollment_open_at: string | null
           id: string
           name: string | null
           responsavel_user_id: string
@@ -1001,6 +1003,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           end_at?: string | null
+          enrollment_close_at?: string | null
+          enrollment_open_at?: string | null
           id?: string
           name?: string | null
           responsavel_user_id: string
@@ -1016,6 +1020,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           end_at?: string | null
+          enrollment_close_at?: string | null
+          enrollment_open_at?: string | null
           id?: string
           name?: string | null
           responsavel_user_id?: string
@@ -1350,6 +1356,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_turmas_close: {
+        Args: { p_now: string }
+        Returns: undefined
+      }
+      advance_turmas_open: {
+        Args: { p_now: string }
+        Returns: undefined
+      }
       approve_admin_user: {
         Args: { admin_user_id: string }
         Returns: undefined
@@ -1361,6 +1375,10 @@ export type Database = {
       backfill_users_unit_code: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      can_enroll_in_turma: {
+        Args: { p_turma: string; p_user: string }
+        Returns: boolean
       }
       conclude_turma: {
         Args: { p_turma_id: string; p_user_id: string }
@@ -1377,6 +1395,10 @@ export type Database = {
       find_franchisee_by_unit_code: {
         Args: { _unit_code: string }
         Returns: string
+      }
+      force_close_turma_enrollments: {
+        Args: { p_turma_id: string; p_user_id: string }
+        Returns: undefined
       }
       get_pending_admin_approvals: {
         Args: Record<PropertyKey, never>
