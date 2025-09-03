@@ -148,10 +148,10 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                     <BookOpen className="h-5 w-5 text-primary" />
                     <div>
                       <Label htmlFor="ao_vivo" className="font-medium cursor-pointer">
-                        Curso Presencial
+                        Curso Ao Vivo
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        Aulas ao vivo com professor
+                        Aulas ao vivo com professor (online)
                       </p>
                     </div>
                   </div>
