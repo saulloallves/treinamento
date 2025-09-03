@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCourses } from "@/hooks/useCourses";
 import { useCreateEnrollment } from "@/hooks/useEnrollments";
+import { useTurmasForEnrollment } from "@/hooks/useTurmas";
 
 interface CreateManualEnrollmentDialogProps {
   open: boolean;
@@ -14,16 +15,18 @@ interface CreateManualEnrollmentDialogProps {
 const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnrollmentDialogProps) => {
   const { data: courses = [], isLoading } = useCourses();
   const [courseId, setCourseId] = useState("");
+  const [turmaId, setTurmaId] = useState("");
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [studentPhone, setStudentPhone] = useState("");
   const [unitCode, setUnitCode] = useState("");
 
   const createEnrollment = useCreateEnrollment();
+  const { data: turmas = [], isLoading: turmasLoading } = useTurmasForEnrollment(courseId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!courseId || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()) return;
+    if (!courseId || !turmaId || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()) return;
 
     try {
       await createEnrollment.mutateAsync({
@@ -32,10 +35,12 @@ const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnroll
         student_email: studentEmail.trim(),
         student_phone: studentPhone.trim() || undefined,
         unit_code: unitCode.trim(),
+        turma_id: turmaId,
       });
 
       // Reset
       setCourseId("");
+      setTurmaId("");
       setStudentName("");
       setStudentEmail("");
       setStudentPhone("");
@@ -62,7 +67,10 @@ const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnroll
             <label className="block text-sm font-medium text-brand-black mb-1">Curso *</label>
             <select
               value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
+              onChange={(e) => {
+                setCourseId(e.target.value);
+                setTurmaId(""); // Reset turma when course changes
+              }}
               className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
               disabled={isLoading}
               required
@@ -73,6 +81,26 @@ const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnroll
               ))}
             </select>
           </div>
+
+          {courseId && (
+            <div>
+              <label className="block text-sm font-medium text-brand-black mb-1">Turma *</label>
+              <select
+                value={turmaId}
+                onChange={(e) => setTurmaId(e.target.value)}
+                className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                disabled={turmasLoading}
+                required
+              >
+                <option value="">{turmasLoading ? "Carregando turmas..." : "Selecione uma turma"}</option>
+                {turmas.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name || t.code} - Prof. {t.responsavel_user?.name || 'Não definido'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-brand-black mb-1">Nome do Aluno *</label>
@@ -96,7 +124,7 @@ const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnroll
 
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-            <Button type="submit" className="btn-primary flex-1" disabled={createEnrollment.isPending || !courseId || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()}>
+            <Button type="submit" className="btn-primary flex-1" disabled={createEnrollment.isPending || !courseId || !turmaId || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()}>
               {createEnrollment.isPending ? "Criando..." : "Criar Inscrição"}
             </Button>
           </div>

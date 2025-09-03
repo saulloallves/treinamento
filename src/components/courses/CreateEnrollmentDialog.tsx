@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateEnrollment } from "@/hooks/useEnrollments";
+import { useTurmasForEnrollment } from "@/hooks/useTurmas";
 
 interface CreateEnrollmentDialogProps {
   courseId: string;
@@ -23,13 +24,15 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
   const [studentEmail, setStudentEmail] = useState("");
   const [studentPhone, setStudentPhone] = useState("");
   const [unitCode, setUnitCode] = useState("");
+  const [turmaId, setTurmaId] = useState("");
 
   const createEnrollmentMutation = useCreateEnrollment();
+  const { data: turmas = [], isLoading: turmasLoading } = useTurmasForEnrollment(courseId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!studentName.trim() || !studentEmail.trim() || !unitCode.trim()) {
+    if (!studentName.trim() || !studentEmail.trim() || !unitCode.trim() || !turmaId) {
       return;
     }
 
@@ -40,6 +43,7 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
         student_email: studentEmail.trim(),
         student_phone: studentPhone.trim() || undefined,
         unit_code: unitCode.trim(),
+        turma_id: turmaId,
       });
 
       // Reset form
@@ -47,6 +51,7 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
       setStudentEmail("");
       setStudentPhone("");
       setUnitCode("");
+      setTurmaId("");
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating enrollment:', error);
@@ -67,6 +72,26 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-brand-black mb-1">
+              Turma *
+            </label>
+            <select
+              value={turmaId}
+              onChange={(e) => setTurmaId(e.target.value)}
+              className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              disabled={turmasLoading}
+              required
+            >
+              <option value="">{turmasLoading ? "Carregando turmas..." : "Selecione uma turma"}</option>
+              {turmas.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name || t.code} - Prof. {t.responsavel_user?.name || 'Não definido'}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-brand-black mb-1">
               Nome do Aluno *
@@ -127,7 +152,7 @@ const CreateEnrollmentDialog = ({ courseId, courseName, open, onOpenChange }: Cr
             <Button
               type="submit"
               className="btn-primary flex-1"
-              disabled={createEnrollmentMutation.isPending || !studentName.trim() || !studentEmail.trim() || !unitCode.trim()}
+              disabled={createEnrollmentMutation.isPending || !studentName.trim() || !studentEmail.trim() || !unitCode.trim() || !turmaId}
             >
               {createEnrollmentMutation.isPending ? "Criando..." : "Adicionar Aluno"}
             </Button>

@@ -18,6 +18,7 @@ export interface Enrollment {
   created_by?: string;
   unit_code?: string;
   user_id?: string;
+  turma_id: string;
   courses?: {
     name: string;
   };
@@ -25,6 +26,12 @@ export interface Enrollment {
     id: string;
     name: string;
     code: string;
+  };
+  turmas?: {
+    id: string;
+    name: string;
+    code: string;
+    responsavel_name?: string;
   };
 }
 
@@ -35,6 +42,7 @@ export interface EnrollmentInput {
   student_phone?: string;
   status?: string;
   unit_code: string;
+  turma_id: string;
 }
 
 export const useEnrollments = (courseId?: string) => {
@@ -49,6 +57,12 @@ export const useEnrollments = (courseId?: string) => {
           *,
           courses (
             name
+          ),
+          turmas (
+            id,
+            name,
+            code,
+            responsavel_name
           )
         `)
         .order('created_at', { ascending: false });
@@ -107,16 +121,17 @@ export const useCreateEnrollment = () => {
 
   return useMutation({
     mutationFn: async (enrollmentData: EnrollmentInput) => {
-      // Evita duplicidade: mesmo email + curso
+      // Evita duplicidade: mesmo email + curso + turma
       const { data: existing } = await supabase
         .from('enrollments')
         .select('id')
         .eq('student_email', enrollmentData.student_email)
         .eq('course_id', enrollmentData.course_id)
+        .eq('turma_id', enrollmentData.turma_id)
         .maybeSingle();
 
       if (existing?.id) {
-        throw new Error('Aluno já inscrito neste curso.');
+        throw new Error('Aluno já inscrito nesta turma.');
       }
 
       const { data, error } = await supabase

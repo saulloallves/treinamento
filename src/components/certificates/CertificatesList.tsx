@@ -15,7 +15,16 @@ const CertificatesList = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("certificates")
-        .select("id,generated_at,status,certificate_url,course_id,enrollment_id,user_id")
+        .select(`
+          id,
+          generated_at,
+          status,
+          certificate_url,
+          course_id,
+          enrollment_id,
+          user_id,
+          turma_id
+        `)
         .order("generated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -53,7 +62,13 @@ const CertificatesList = () => {
       if (ids.length === 0) return [];
       const { data, error } = await supabase
         .from("enrollments")
-        .select("id,student_name,course_id")
+        .select(`
+          id,
+          student_name,
+          course_id,
+          turma_id,
+          turmas(id, name, code, responsavel_name)
+        `)
         .in("id", ids);
       if (error) throw error;
       return data ?? [];
@@ -77,10 +92,13 @@ const CertificatesList = () => {
     const enriched = all.map((c) => {
       const enr = enrollmentsMap.get(c.enrollment_id);
       const course = coursesMap.get(c.course_id ?? enr?.course_id);
+      const turma = enr?.turmas;
       return {
         id: c.id,
         studentName: enr?.student_name ?? "—",
         courseName: course?.name ?? "—",
+        turmaName: turma?.name || turma?.code || "Turma não definida",
+        professorName: turma?.responsavel_name || "Professor não definido",
         generatedAt: c.generated_at,
         status: c.status,
         url: c.certificate_url as string | null,
@@ -162,11 +180,13 @@ const CertificatesList = () => {
           <table className="w-full table-fixed">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium text-brand-black w-[25%]">Aluno</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[25%]">Curso</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Data da Solicitação</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Status</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Ações</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Aluno</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Curso</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Turma</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Professor</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Data da Solicitação</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[10%]">Status</th>
+                <th className="text-left p-4 font-medium text-brand-black w-[5%]">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -185,6 +205,12 @@ const CertificatesList = () => {
                       <Award className="w-4 h-4 text-brand-blue flex-shrink-0" />
                       <span className="text-brand-gray-dark truncate">{r.courseName}</span>
                     </div>
+                  </td>
+                  <td className="p-4">
+                    <span className="text-brand-gray-dark truncate">{r.turmaName}</span>
+                  </td>
+                  <td className="p-4">
+                    <span className="text-brand-gray-dark truncate">{r.professorName}</span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">

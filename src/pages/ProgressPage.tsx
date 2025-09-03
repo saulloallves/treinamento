@@ -34,7 +34,7 @@ const ProgressByCourse = () => {
   });
 
   const enrollmentsQuery = useQuery({
-    queryKey: ["enrollments", "with-course"],
+    queryKey: ["enrollments", "with-course-turma"],
     queryFn: async () => {
       const { data: enrollments, error } = await supabase
         .from("enrollments")
@@ -46,7 +46,9 @@ const ProgressByCourse = () => {
           status,
           created_at,
           course_id,
-          courses(name, tipo, lessons_count)
+          turma_id,
+          courses(name, tipo, lessons_count),
+          turmas(id, name, code, responsavel_name)
         `)
         .order("created_at", { ascending: false });
       
@@ -137,6 +139,8 @@ const ProgressByCourse = () => {
               <TableRow>
                 <TableHead>Aluno</TableHead>
                 <TableHead>Curso</TableHead>
+                <TableHead>Turma</TableHead>
+                <TableHead>Professor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Progresso</TableHead>
               </TableRow>
@@ -146,6 +150,8 @@ const ProgressByCourse = () => {
                 <TableRow key={e.id}>
                   <TableCell className="font-medium">{e.student_name}</TableCell>
                   <TableCell>{e.courses?.name ?? '—'}</TableCell>
+                  <TableCell>{e.turmas?.name || e.turmas?.code || 'Turma não definida'}</TableCell>
+                  <TableCell>{e.turmas?.responsavel_name || 'Professor não definido'}</TableCell>
                   <TableCell>{e.status}</TableCell>
                   <TableCell className="min-w-[200px]">
                     <div className="flex items-center gap-3">

@@ -8,11 +8,27 @@ const EnrollmentsByCourse = () => {
   const { data: enrollments = [], isLoading } = useEnrollments();
 
   const grouped = useMemo(() => {
-    const map = new Map<string, { name: string; items: typeof enrollments }>();
+    const map = new Map<string, { 
+      name: string; 
+      turmaName: string;
+      professorName: string;
+      items: typeof enrollments 
+    }>();
     for (const e of enrollments) {
-      const key = e.course_id || "sem-curso";
-      const name = (e.courses?.name || "Sem curso").trim();
-      if (!map.has(key)) map.set(key, { name, items: [] as any });
+      const key = `${e.course_id}-${e.turma_id}` || "sem-turma";
+      const courseName = (e.courses?.name || "Sem curso").trim();
+      const turmaName = e.turmas?.name || e.turmas?.code || "Turma não definida";
+      const professorName = e.turmas?.responsavel_name || "Professor não definido";
+      const name = `${courseName} - ${turmaName}`;
+      
+      if (!map.has(key)) {
+        map.set(key, { 
+          name, 
+          turmaName,
+          professorName,
+          items: [] as any 
+        });
+      }
       map.get(key)!.items.push(e);
     }
     return Array.from(map.entries()).map(([id, g]) => ({ id, ...g }));
@@ -39,9 +55,14 @@ const EnrollmentsByCourse = () => {
       {grouped.map((group) => (
         <div key={group.id} className="card-clean p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-brand-black">
-              {group.name}
-            </h3>
+            <div>
+              <h3 className="text-lg font-semibold text-brand-black">
+                {group.name}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Professor: {group.professorName}
+              </p>
+            </div>
             <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
               {group.items.length} inscrição{group.items.length > 1 ? "s" : ""}
             </span>
@@ -52,9 +73,9 @@ const EnrollmentsByCourse = () => {
               <thead>
                 <tr className="text-left text-brand-gray-dark">
                   <th className="py-2 pr-4 font-medium w-[15%]">Aluno</th>
-                  <th className="py-2 pr-4 font-medium w-[20%]">Email</th>
-                  <th className="py-2 pr-4 font-medium w-[12%]">Telefone</th>
-                  <th className="py-2 pr-4 font-medium w-[12%]">Unidade</th>
+                  <th className="py-2 pr-4 font-medium w-[18%]">Email</th>
+                  <th className="py-2 pr-4 font-medium w-[10%]">Telefone</th>
+                  <th className="py-2 pr-4 font-medium w-[10%]">Unidade</th>
                   <th className="py-2 pr-4 font-medium w-[8%]">Status</th>
                   <th className="py-2 pr-4 font-medium w-[15%]">Progresso</th>
                   <th className="py-2 pr-4 font-medium w-[10%]">Data</th>
