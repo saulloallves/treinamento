@@ -17,8 +17,7 @@ import {
   User,
   FileQuestion,
   Menu,
-  X,
-  UsersRound
+  X
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,7 +69,6 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
         
         { icon: GraduationCap, label: "Cursos", path: "/courses" },
-        { icon: UsersRound, label: "Turmas", path: "/classes" },
         { icon: BookOpen, label: "Aulas", path: "/lessons" },
         { icon: FileQuestion, label: "Quiz", path: "/quiz" },
         { icon: ClipboardList, label: "Inscrições", path: "/enrollments" },
