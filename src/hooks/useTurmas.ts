@@ -94,14 +94,12 @@ export const useCreateTurma = () => {
 
   return useMutation({
     mutationFn: async (turmaData: TurmaInput) => {
-      let finalTurmaData = { ...turmaData };
+      let finalTurmaData: any = { ...turmaData };
       
       // If responsavel_name is provided but responsavel_user_id is not,
-      // we'll use a placeholder or find a matching professor
+      // we'll use responsavel_name and set responsavel_user_id to null
       if (turmaData.responsavel_name && !turmaData.responsavel_user_id) {
-        // For now, we'll set responsavel_user_id to null and use responsavel_name
-        // The database should allow this since we made responsavel_user_id optional
-        delete finalTurmaData.responsavel_user_id;
+        finalTurmaData.responsavel_user_id = null;
       }
 
       const { data, error } = await supabase

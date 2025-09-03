@@ -997,7 +997,7 @@ export type Database = {
           id: string
           name: string | null
           responsavel_name: string | null
-          responsavel_user_id: string
+          responsavel_user_id: string | null
           start_at: string | null
           status: string
           updated_at: string | null
@@ -1015,7 +1015,7 @@ export type Database = {
           id?: string
           name?: string | null
           responsavel_name?: string | null
-          responsavel_user_id: string
+          responsavel_user_id?: string | null
           start_at?: string | null
           status?: string
           updated_at?: string | null
@@ -1033,7 +1033,7 @@ export type Database = {
           id?: string
           name?: string | null
           responsavel_name?: string | null
-          responsavel_user_id?: string
+          responsavel_user_id?: string | null
           start_at?: string | null
           status?: string
           updated_at?: string | null
