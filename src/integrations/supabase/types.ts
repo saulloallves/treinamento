@@ -996,6 +996,7 @@ export type Database = {
           enrollment_open_at: string | null
           id: string
           name: string | null
+          responsavel_name: string | null
           responsavel_user_id: string
           start_at: string | null
           status: string
@@ -1013,6 +1014,7 @@ export type Database = {
           enrollment_open_at?: string | null
           id?: string
           name?: string | null
+          responsavel_name?: string | null
           responsavel_user_id: string
           start_at?: string | null
           status?: string
@@ -1030,6 +1032,7 @@ export type Database = {
           enrollment_open_at?: string | null
           id?: string
           name?: string | null
+          responsavel_name?: string | null
           responsavel_user_id?: string
           start_at?: string | null
           status?: string

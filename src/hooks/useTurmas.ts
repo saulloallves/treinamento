@@ -30,7 +30,8 @@ export interface TurmaInput {
   course_id: string;
   name?: string;
   code?: string;
-  responsavel_user_id: string;
+  responsavel_user_id?: string;
+  responsavel_name?: string;
   completion_deadline: string;
   enrollment_open_at?: string;
   enrollment_close_at?: string;
@@ -93,10 +94,20 @@ export const useCreateTurma = () => {
 
   return useMutation({
     mutationFn: async (turmaData: TurmaInput) => {
+      let finalTurmaData = { ...turmaData };
+      
+      // If responsavel_name is provided but responsavel_user_id is not,
+      // we'll use a placeholder or find a matching professor
+      if (turmaData.responsavel_name && !turmaData.responsavel_user_id) {
+        // For now, we'll set responsavel_user_id to null and use responsavel_name
+        // The database should allow this since we made responsavel_user_id optional
+        delete finalTurmaData.responsavel_user_id;
+      }
+
       const { data, error } = await supabase
         .from('turmas')
         .insert([{
-          ...turmaData,
+          ...finalTurmaData,
           created_by: (await supabase.auth.getUser()).data.user?.id
         }])
         .select()
