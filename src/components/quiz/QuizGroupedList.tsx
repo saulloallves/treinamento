@@ -101,12 +101,11 @@ const QuizGroupedList = () => {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Curso</label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+              <Select value={selectedCourse || undefined} onValueChange={(value) => setSelectedCourse(value || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os cursos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os cursos</SelectItem>
                   {courses.map((course: any) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.name}
@@ -117,12 +116,11 @@ const QuizGroupedList = () => {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Tipo</label>
-              <Select value={selectedType} onValueChange={setSelectedType}>
+              <Select value={selectedType || undefined} onValueChange={(value) => setSelectedType(value || "")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
                   <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
                   <SelectItem value="essay">Dissertativa</SelectItem>
                 </SelectContent>
