@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
+import ClassesPage from "./pages/ClassesPage";
 import LessonsPage from "./pages/LessonsPage";
 import QuizPage from "./pages/QuizPage";
 import EnrollmentsPage from "./pages/EnrollmentsPage";
@@ -56,6 +57,11 @@ const App = () => (
               <Route path="/courses" element={
                 <AdminRoute>
                   <CoursesPage />
+                </AdminRoute>
+              } />
+              <Route path="/classes" element={
+                <AdminRoute>
+                  <ClassesPage />
                 </AdminRoute>
               } />
               <Route path="/lessons" element={
