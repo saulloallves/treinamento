@@ -21,7 +21,8 @@ export interface Lesson {
   zoom_start_url?: string | null;
   zoom_join_url?: string | null;
   zoom_start_time?: string | null;
-  professor_name?: string; // Nome do professor para aulas ao vivo
+  professor_name?: string; // Compat: string única para UI antiga
+  professor_names?: string[]; // Nomes múltiplos de professores
   courses?: {
     name: string;
     tipo?: string;
@@ -59,7 +60,8 @@ export const useLessons = (futureOnly: boolean = false) => {
           *,
           courses (
             name,
-            tipo
+            tipo,
+            instructor
           ),
           lesson_sessions (
             turma_id,
@@ -93,18 +95,22 @@ export const useLessons = (futureOnly: boolean = false) => {
         throw error;
       }
 
-      // Enriquecer com professor (preferir sessão -> turma)
+      // Enriquecer com professor (preferir sessão -> turma) e suportar múltiplos nomes
       const lessonsWithProfessor = await Promise.all(
         lessons.map(async (lesson: any) => {
-          // 1) Preferir professor da turma vinculada via lesson_sessions
-          const sessionTurma = lesson.lesson_sessions?.[0]?.turmas;
-          if (sessionTurma) {
-            const professorName = sessionTurma.responsavel_user?.name || sessionTurma.responsavel_name;
-            return { ...lesson, professor_name: professorName };
-          }
+          const namesSet = new Map<string, string>();
+
+          // 1) Preferir professores das turmas vinculadas via lesson_sessions
+          const sessionNames: string[] = (lesson.lesson_sessions || [])
+            .flatMap((s: any) => {
+              const raw = s?.turmas?.responsavel_user?.name || s?.turmas?.responsavel_name;
+              if (!raw) return [] as string[];
+              return String(raw).split(/,|\/|\se\s|\s&\s|;|\+/).map((t) => t.trim()).filter(Boolean);
+            });
+          sessionNames.forEach((n) => namesSet.set(n.trim().toLowerCase(), n.trim()));
 
           // 2) Fallback: se é curso ao vivo, buscar última turma ativa do curso
-          if (lesson.courses?.tipo === 'ao_vivo' && lesson.course_id) {
+          if (namesSet.size === 0 && lesson.courses?.tipo === 'ao_vivo' && lesson.course_id) {
             const { data: turma } = await supabase
               .from('turmas')
               .select(`
@@ -116,11 +122,20 @@ export const useLessons = (futureOnly: boolean = false) => {
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle();
+            const n = turma?.responsavel_user?.name || turma?.responsavel_name;
+            if (n) namesSet.set(n.trim().toLowerCase(), n.trim());
+          }
 
-            if (turma) {
-              const professorName = turma.responsavel_user?.name || turma.responsavel_name;
-              return { ...lesson, professor_name: professorName };
-            }
+          // 3) Fallback final: usar course.instructor (pode conter múltiplos nomes)
+          if (namesSet.size === 0 && lesson.courses?.tipo === 'ao_vivo' && lesson.courses?.instructor) {
+            const raw = String(lesson.courses.instructor);
+            raw.split(/,|\/|\se\s|\s&\s|;|\+/).map(s => s.trim()).filter(Boolean)
+              .forEach((n) => namesSet.set(n.toLowerCase(), n));
+          }
+
+          const names = Array.from(namesSet.values());
+          if (names.length > 0) {
+            return { ...lesson, professor_names: names, professor_name: names.join(', ') };
           }
 
           return lesson;
