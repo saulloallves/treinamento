@@ -1,21 +1,28 @@
 import BaseLayout from "@/components/BaseLayout";
 import { useState } from "react";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
-import { TurmasManagementCard } from "@/components/turmas/TurmasManagementCard";
+import { TurmaCard } from "@/components/turmas/TurmaCard";
+import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
+import { EnrollStudentDialog } from "@/components/turmas/EnrollStudentDialog";
 
 const TurmasPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [professorFilter, setProfessorFilter] = useState("todos");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedCourseForCreate, setSelectedCourseForCreate] = useState("");
+  const [selectedTurmaForDetails, setSelectedTurmaForDetails] = useState<any>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
+  const [selectedTurmaId, setSelectedTurmaId] = useState("");
 
   const { data: allTurmas, isLoading } = useTurmas();
   const { data: courses = [] } = useCourses();
@@ -31,27 +38,38 @@ const TurmasPage = () => {
     
     const matchesCourse = selectedCourse === "todos" || turma.course_id === selectedCourse;
     const matchesStatus = statusFilter === "todos" || turma.status === statusFilter;
+    const matchesProfessor = professorFilter === "todos" || 
+      turma.responsavel_user_id === professorFilter ||
+      turma.responsavel_user?.name?.toLowerCase().includes(professorFilter.toLowerCase());
     
-    return matchesSearch && matchesCourse && matchesStatus;
+    return matchesSearch && matchesCourse && matchesStatus && matchesProfessor;
   });
 
-  // Group turmas by course
-  const turmasByCourse = filteredTurmas.reduce((acc, turma) => {
-    const courseId = turma.course_id;
-    if (!acc[courseId]) {
-      const course = courses.find(c => c.id === courseId);
-      acc[courseId] = {
-        course,
-        turmas: []
-      };
-    }
-    acc[courseId].turmas.push(turma);
-    return acc;
-  }, {} as Record<string, { course: any; turmas: any[] }>);
+  // Get unique professors for filter
+  const professors = Array.from(
+    new Set(
+      (allTurmas || [])
+        .filter(turma => turma.responsavel_user?.name)
+        .map(turma => ({
+          id: turma.responsavel_user_id,
+          name: turma.responsavel_user?.name
+        }))
+    )
+  );
 
-  const handleCreateTurma = (courseId: string) => {
-    setSelectedCourseForCreate(courseId);
+  const handleCreateTurma = (courseId?: string) => {
+    setSelectedCourseForCreate(courseId || "");
     setCreateDialogOpen(true);
+  };
+
+  const handleViewTurmaDetails = (turma: any) => {
+    setSelectedTurmaForDetails(turma);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEnrollStudent = (turmaId: string) => {
+    setSelectedTurmaId(turmaId);
+    setEnrollDialogOpen(true);
   };
 
   if (isLoading) {
@@ -89,7 +107,7 @@ const TurmasPage = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Buscar turma
@@ -141,13 +159,32 @@ const TurmasPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Professor
+                  </label>
+                  <Select value={professorFilter} onValueChange={setProfessorFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar professor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os professores</SelectItem>
+                      {professors.map(professor => (
+                        <SelectItem key={professor.id} value={professor.id}>
+                          {professor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
 
         {/* Content */}
-        {Object.keys(turmasByCourse).length === 0 ? (
+        {filteredTurmas.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-muted-foreground mb-4">
               {allTurmas?.length === 0 
@@ -156,7 +193,7 @@ const TurmasPage = () => {
               }
             </div>
             {liveCourses.length > 0 ? (
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button onClick={() => handleCreateTurma()}>
                 <Plus className="w-4 h-4 mr-2" />
                 Criar primeira turma
               </Button>
@@ -167,19 +204,23 @@ const TurmasPage = () => {
             )}
           </div>
         ) : (
-          <div className="space-y-6">
-            {Object.entries(turmasByCourse).map(([courseId, { course, turmas }]) => (
-              <TurmasManagementCard
-                key={courseId}
-                course={course}
-                turmas={turmas}
-                onCreateTurma={() => handleCreateTurma(courseId)}
-              />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTurmas.map((turma) => {
+              const course = courses.find(c => c.id === turma.course_id);
+              return (
+                <TurmaCard
+                  key={turma.id}
+                  turma={turma}
+                  course={course}
+                  onViewDetails={handleViewTurmaDetails}
+                  onEnrollStudent={handleEnrollStudent}
+                />
+              );
+            })}
           </div>
         )}
 
-        {/* Create Dialog */}
+        {/* Dialogs */}
         <CreateTurmaDialog
           courseId={selectedCourseForCreate}
           open={createDialogOpen}
@@ -187,6 +228,20 @@ const TurmasPage = () => {
             setCreateDialogOpen(open);
             if (!open) setSelectedCourseForCreate("");
           }}
+        />
+
+        <TurmaDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          turma={selectedTurmaForDetails}
+          course={selectedTurmaForDetails ? courses.find(c => c.id === selectedTurmaForDetails.course_id) : null}
+        />
+
+        <EnrollStudentDialog
+          open={enrollDialogOpen}
+          onOpenChange={setEnrollDialogOpen}
+          turmaId={selectedTurmaId}
+          courseId={selectedTurmaForDetails?.course_id || ""}
         />
       </div>
     </BaseLayout>
