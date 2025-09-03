@@ -24,6 +24,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useState } from "react";
+import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
@@ -35,11 +36,11 @@ const Sidebar = () => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    treinamentos: true,
-    gestaoAlunos: true,
-    avaliacoes: true,
-    comunicacao: true,
-    administracao: true,
+    treinamentos: false,
+    gestaoAlunos: false,
+    avaliacoes: false,
+    comunicacao: false,
+    administracao: false,
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
@@ -144,6 +145,27 @@ const Sidebar = () => {
   const isGroupActive = (group: any) => {
     return group.items?.some((item: any) => location.pathname === item.path);
   };
+
+  // Auto-expand group that contains the current active page
+  const getCurrentActiveGroup = () => {
+    for (const group of adminMenuStructure) {
+      if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
+        return group.id;
+      }
+    }
+    return null;
+  };
+
+  // Update expanded state when route changes to show active group
+  React.useEffect(() => {
+    const activeGroup = getCurrentActiveGroup();
+    if (activeGroup && !expandedGroups[activeGroup]) {
+      setExpandedGroups(prev => ({
+        ...prev,
+        [activeGroup]: true
+      }));
+    }
+  }, [location.pathname]);
 
   const renderMenuItem = (item: any, isSubItem = false) => {
     const Icon = item.icon;
