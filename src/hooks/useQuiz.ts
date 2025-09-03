@@ -21,6 +21,7 @@ export const useQuiz = () => {
             title
           )
         `)
+        .order("quiz_name", { ascending: true })
         .order("order_index", { ascending: true });
 
       if (error) throw error;

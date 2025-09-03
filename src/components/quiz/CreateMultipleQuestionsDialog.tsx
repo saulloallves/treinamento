@@ -50,6 +50,7 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
   
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedLesson, setSelectedLesson] = useState("");
+  const [quizName, setQuizName] = useState("");
   const [questions, setQuestions] = useState<QuestionForm[]>([{
     id: "1",
     question: "",
@@ -94,10 +95,10 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCourse || !selectedLesson) {
+    if (!selectedCourse || !selectedLesson || !quizName.trim()) {
       toast({
         title: "Erro",
-        description: "Selecione um curso e uma aula.",
+        description: "Preencha o nome do quiz, selecione um curso e uma aula.",
         variant: "destructive",
       });
       return;
@@ -132,6 +133,7 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
         const questionData = {
           course_id: selectedCourse,
           lesson_id: selectedLesson,
+          quiz_name: quizName.trim(),
           question: question.question,
           question_type: question.question_type,
           option_a: question.question_type === "multiple_choice" ? question.option_a : null,
@@ -155,6 +157,7 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
       // Reset form
       setSelectedCourse("");
       setSelectedLesson("");
+      setQuizName("");
       setQuestions([{
         id: "1",
         question: "",
@@ -186,6 +189,17 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Nome do Quiz */}
+          <div className="space-y-2">
+            <Label htmlFor="quiz_name">Nome do Quiz *</Label>
+            <Input
+              id="quiz_name"
+              value={quizName}
+              onChange={(e) => setQuizName(e.target.value)}
+              placeholder="Ex: Quiz - Módulo 1: Introdução"
+            />
+          </div>
+
           {/* Seleção de Curso e Aula */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">

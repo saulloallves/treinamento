@@ -38,6 +38,7 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
   const [formData, setFormData] = useState({
     course_id: "",
     lesson_id: "",
+    quiz_name: "",
     question: "",
     question_type: "multiple_choice",
     option_a: "",
@@ -56,6 +57,7 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
       setFormData({
         course_id: question.course_id || "",
         lesson_id: question.lesson_id || "",
+        quiz_name: question.quiz_name || "",
         question: question.question || "",
         question_type: question.question_type || "multiple_choice",
         option_a: question.option_a || "",
@@ -121,6 +123,16 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="quiz_name">Nome do Quiz</Label>
+            <Input
+              id="quiz_name"
+              value={formData.quiz_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, quiz_name: e.target.value }))}
+              placeholder="Nome do quiz (opcional)"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="course_id">Curso *</Label>
             <Select

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, List, Grid3X3 } from "lucide-react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import QuizGroupedList from "@/components/quiz/QuizGroupedList";
 import QuizList from "@/components/quiz/QuizList";
 import CreateQuizDialog from "@/components/quiz/CreateQuizDialog";
 import CreateMultipleQuestionsDialog from "@/components/quiz/CreateMultipleQuestionsDialog";
@@ -10,6 +11,7 @@ import CreateMultipleQuestionsDialog from "@/components/quiz/CreateMultipleQuest
 const QuizPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateMultipleDialogOpen, setIsCreateMultipleDialogOpen] = useState(false);
+  const [showGroupedView, setShowGroupedView] = useState(true);
 
   return (
     <BaseLayout title="Quiz">
@@ -40,10 +42,30 @@ const QuizPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Perguntas do Quiz</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Perguntas do Quiz</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGroupedView(!showGroupedView)}
+                className="flex items-center gap-2"
+              >
+                {showGroupedView ? (
+                  <>
+                    <List className="w-4 h-4" />
+                    Visualização Individual
+                  </>
+                ) : (
+                  <>
+                    <Grid3X3 className="w-4 h-4" />
+                    Visualização Agrupada
+                  </>
+                )}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <QuizList />
+            {showGroupedView ? <QuizGroupedList /> : <QuizList />}
           </CardContent>
         </Card>
 

@@ -620,6 +620,7 @@ export type Database = {
           order_index: number
           question: string
           question_type: string
+          quiz_name: string | null
         }
         Insert: {
           correct_answer: string
@@ -634,6 +635,7 @@ export type Database = {
           order_index?: number
           question: string
           question_type?: string
+          quiz_name?: string | null
         }
         Update: {
           correct_answer?: string
@@ -648,6 +650,7 @@ export type Database = {
           order_index?: number
           question?: string
           question_type?: string
+          quiz_name?: string | null
         }
         Relationships: [
           {
