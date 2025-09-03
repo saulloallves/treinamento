@@ -57,6 +57,24 @@ export const useStudentProgress = (courseId: string) => {
       .eq('id', user.id)
       .maybeSingle();
 
+    // Buscar uma turma disponível para o curso
+    const { data: turma, error: turmaErr } = await supabase
+      .from('turmas')
+      .select('id')
+      .eq('course_id', courseId)
+      .eq('status', 'agendada')
+      .limit(1)
+      .maybeSingle();
+
+    if (turmaErr) {
+      console.error('Erro ao buscar turma:', turmaErr);
+      throw turmaErr;
+    }
+
+    if (!turma?.id) {
+      throw new Error('Não há turmas disponíveis para este curso no momento.');
+    }
+
     const { data: newEnrollment, error: createError } = await supabase
       .from('enrollments')
       .insert([{
@@ -65,6 +83,7 @@ export const useStudentProgress = (courseId: string) => {
         student_name: userData?.name || 'Estudante',
         student_email: userData?.email || '',
         student_phone: userData?.phone || '',
+        turma_id: turma.id,
         status: 'Ativo'
       }])
       .select('id')

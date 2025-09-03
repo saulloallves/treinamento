@@ -12,6 +12,7 @@ const EnrollmentsByCourse = () => {
       name: string; 
       turmaName: string;
       professorName: string;
+      courseName: string;
       items: typeof enrollments 
     }>();
     for (const e of enrollments) {
@@ -26,12 +27,15 @@ const EnrollmentsByCourse = () => {
           name, 
           turmaName,
           professorName,
+          courseName,
           items: [] as any 
         });
       }
       map.get(key)!.items.push(e);
     }
-    return Array.from(map.entries()).map(([id, g]) => ({ id, ...g }));
+    return Array.from(map.entries())
+      .map(([id, g]) => ({ id, ...g }))
+      .sort((a, b) => a.courseName.localeCompare(b.courseName));
   }, [enrollments]);
 
   if (isLoading) {
@@ -53,59 +57,101 @@ const EnrollmentsByCourse = () => {
   return (
     <div className="space-y-6">
       {grouped.map((group) => (
-        <div key={group.id} className="card-clean p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-brand-black">
-                {group.name}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Professor: {group.professorName}
-              </p>
+        <div key={group.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+          {/* Header da Turma */}
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {group.courseName}
+                </h3>
+                <div className="flex items-center gap-4 mt-1">
+                  <span className="text-sm text-gray-600">
+                    Turma: <span className="font-medium">{group.turmaName}</span>
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    Professor: <span className="font-medium">{group.professorName}</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {group.items.length} inscrição{group.items.length > 1 ? "s" : ""}
+                </span>
+              </div>
             </div>
-            <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-              {group.items.length} inscrição{group.items.length > 1 ? "s" : ""}
-            </span>
           </div>
 
-          <div className="w-full">
-            <table className="w-full table-fixed text-sm">
-              <thead>
-                <tr className="text-left text-brand-gray-dark">
-                  <th className="py-2 pr-4 font-medium w-[15%]">Aluno</th>
-                  <th className="py-2 pr-4 font-medium w-[18%]">Email</th>
-                  <th className="py-2 pr-4 font-medium w-[10%]">Telefone</th>
-                  <th className="py-2 pr-4 font-medium w-[10%]">Unidade</th>
-                  <th className="py-2 pr-4 font-medium w-[8%]">Status</th>
-                  <th className="py-2 pr-4 font-medium w-[15%]">Progresso</th>
-                  <th className="py-2 pr-4 font-medium w-[10%]">Data</th>
-                  <th className="py-2 pr-4 font-medium w-[8%]">Ações</th>
+          {/* Tabela de Inscrições */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aluno
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Telefone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Unidade
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Progresso
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
                 {group.items.map((e) => (
-                  <tr key={e.id} className="border-t border-border">
-                    <td className="py-3 pr-4 text-foreground truncate">{e.student_name}</td>
-                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.student_email}</td>
-                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.student_phone || "-"}</td>
-                    <td className="py-3 pr-4 text-muted-foreground truncate">{e.units?.name || "-"}</td>
-                    <td className="py-3 pr-4">
-                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                  <tr key={e.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{e.student_name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{e.student_email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{e.student_phone || "-"}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">{e.units?.name || "-"}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                         {e.status}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 min-w-[160px]">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                          <Progress value={e.progress_percentage ?? 0} />
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${e.progress_percentage ?? 0}%` }}
+                          ></div>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">{e.progress_percentage ?? 0}%</span>
+                        <span className="text-sm text-gray-600 whitespace-nowrap">
+                          {e.progress_percentage ?? 0}%
+                        </span>
                       </div>
                     </td>
-                    <td className="py-3 pr-4 text-muted-foreground">
-                      {e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString("pt-BR") : "-"}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-600">
+                        {e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString("pt-BR") : "-"}
+                      </div>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {!e.user_id && (
                         <LinkEnrollmentButton 
                           enrollmentId={e.id} 

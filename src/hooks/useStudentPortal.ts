@@ -50,12 +50,12 @@ export const useSelfEnroll = () => {
       // Usar o telefone do input ou o do usuário cadastrado
       const phoneToUse = input.phone || userData.phone;
 
-      // Evita duplicidade: mesmo user no mesmo curso
+      // Verificar se o usuário já está inscrito neste curso
       const { data: existing, error: dupErr } = await supabase
         .from('enrollments')
         .select('id')
-        .eq('course_id', input.course_id)
         .eq('user_id', userId)
+        .eq('course_id', input.course_id)
         .maybeSingle();
 
       if (dupErr) {
@@ -64,6 +64,24 @@ export const useSelfEnroll = () => {
       }
       if (existing?.id) {
         throw new Error('Você já está inscrito neste curso.');
+      }
+
+      // Buscar uma turma disponível para o curso
+      const { data: turma, error: turmaErr } = await supabase
+        .from('turmas')
+        .select('id')
+        .eq('course_id', input.course_id)
+        .eq('status', 'agendada')
+        .limit(1)
+        .maybeSingle();
+
+      if (turmaErr) {
+        console.error('Erro ao buscar turma:', turmaErr);
+        throw turmaErr;
+      }
+
+      if (!turma?.id) {
+        throw new Error('Não há turmas disponíveis para este curso no momento.');
       }
 
       const { data, error } = await supabase
@@ -75,6 +93,7 @@ export const useSelfEnroll = () => {
           student_phone: phoneToUse,
           unit_code: userData.unit_code,
           user_id: userId,
+          turma_id: turma.id,
           status: 'Ativo',
         }])
         .select()
@@ -128,6 +147,17 @@ export const useMarkAttendance = () => {
       }
       const userId = userResp.user.id;
 
+      // Buscar turma_id do enrollment
+      const { data: enrollment, error: enrollmentErr } = await supabase
+        .from('enrollments')
+        .select('turma_id')
+        .eq('id', enrollment_id)
+        .single();
+
+      if (enrollmentErr || !enrollment?.turma_id) {
+        throw new Error('Não foi possível encontrar a turma desta inscrição.');
+      }
+
       const { error } = await supabase
         .from('attendance')
         .insert([{
@@ -135,6 +165,7 @@ export const useMarkAttendance = () => {
           lesson_id,
           attendance_type: 'manual',
           user_id: userId,
+          turma_id: enrollment.turma_id,
         }]);
 
       if (error) {
@@ -214,6 +245,17 @@ export const useRequestCertificate = () => {
       }
       const userId = userResp.user.id;
 
+      // Buscar turma_id do enrollment
+      const { data: enrollment, error: enrollmentErr } = await supabase
+        .from('enrollments')
+        .select('turma_id')
+        .eq('id', enrollment_id)
+        .single();
+
+      if (enrollmentErr || !enrollment?.turma_id) {
+        throw new Error('Não foi possível encontrar a turma desta inscrição.');
+      }
+
       const { data, error } = await supabase
         .from('certificates')
         .insert([{
@@ -221,6 +263,7 @@ export const useRequestCertificate = () => {
           course_id,
           status: 'active',
           user_id: userId,
+          turma_id: enrollment.turma_id,
         }])
         .select()
         .maybeSingle();
