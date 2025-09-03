@@ -134,8 +134,8 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                 onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
                 className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
-                <option value="ao_vivo">Ao Vivo (Zoom)</option>
-                <option value="gravado">Gravado (Online)</option>
+                <option value="ao_vivo">Curso (Ao Vivo)</option>
+                <option value="gravado">Treinamento (Online)</option>
               </select>
             </div>
 

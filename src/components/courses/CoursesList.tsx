@@ -152,7 +152,7 @@ const CoursesList = () => {
                         ? 'bg-purple-100 text-purple-700' 
                         : 'bg-orange-100 text-orange-700'
                     }`}>
-                      {course.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
+                      {course.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
                     </span>
                     {course.mandatory && (
                       <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
@@ -328,16 +328,16 @@ const CoursesList = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-brand-black mb-1">
-                    Tipo de Curso
+                    Tipo
                   </label>
                   <select
                     value={statusFilter}
                     onChange={(e) => handleFilterChange(setStatusFilter, e.target.value)}
                     className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
                   >
-                    <option value="todos">Todas</option>
-                    <option value="gravado">Gravado</option>
-                    <option value="ao_vivo">Ao Vivo</option>
+                    <option value="todos">Todos</option>
+                    <option value="gravado">Treinamento</option>
+                    <option value="ao_vivo">Curso</option>
                   </select>
                 </div>
               </div>
