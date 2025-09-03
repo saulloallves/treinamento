@@ -19,7 +19,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
     course_id: courseId || "",
     name: "",
     code: "",
-    responsavel_user_id: "",
+    responsavel_name: "",
     completion_deadline: "",
     enrollment_open_at: "",
     enrollment_close_at: "",
@@ -28,15 +28,15 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
 
   const createTurma = useCreateTurma();
 
-  // Fetch professors and live courses for the dropdown
-  const { data: professors } = useQuery({
-    queryKey: ['professors'],
+  // Fetch courses segmented by type
+  const { data: cursos } = useQuery({
+    queryKey: ['courses-ao-vivo'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('user_type', 'Professor')
-        .eq('active', true)
+        .from('courses')
+        .select('id, name, tipo')
+        .eq('tipo', 'ao_vivo')
+        .eq('status', 'Ativo')
         .order('name');
 
       if (error) throw error;
@@ -44,13 +44,13 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
     }
   });
 
-  const { data: liveCourses } = useQuery({
-    queryKey: ['live-courses'],
+  const { data: treinamentos } = useQuery({
+    queryKey: ['courses-gravado'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('courses')
-        .select('id, name')
-        .eq('tipo', 'ao_vivo')
+        .select('id, name, tipo')
+        .eq('tipo', 'gravado')
         .eq('status', 'Ativo')
         .order('name');
 
@@ -62,7 +62,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.responsavel_user_id || !formData.completion_deadline) {
+    if (!formData.course_id || !formData.responsavel_name || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at) {
       return;
     }
 
@@ -71,10 +71,10 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         course_id: formData.course_id,
         name: formData.name || undefined,
         code: formData.code || undefined,
-        responsavel_user_id: formData.responsavel_user_id,
+        responsavel_name: formData.responsavel_name,
         completion_deadline: formData.completion_deadline,
-        enrollment_open_at: formData.enrollment_open_at || undefined,
-        enrollment_close_at: formData.enrollment_close_at || undefined,
+        enrollment_open_at: formData.enrollment_open_at,
+        enrollment_close_at: formData.enrollment_close_at,
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined
       });
       
@@ -82,7 +82,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         course_id: courseId || "",
         name: "",
         code: "",
-        responsavel_user_id: "",
+        responsavel_name: "",
         completion_deadline: "",
         enrollment_open_at: "",
         enrollment_close_at: "",
@@ -109,10 +109,17 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 onValueChange={(value) => setFormData({ ...formData, course_id: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um curso" />
+                  <SelectValue placeholder="Selecione um curso ou treinamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {liveCourses?.map((course) => (
+                  <div className="px-2 py-1 text-sm font-semibold text-muted-foreground">Cursos (Ao Vivo)</div>
+                  {cursos?.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                  <div className="px-2 py-1 text-sm font-semibold text-muted-foreground mt-2">Treinamentos (Online)</div>
+                  {treinamentos?.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.name}
                     </SelectItem>
@@ -143,41 +150,35 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
           </div>
 
           <div>
-            <Label htmlFor="responsavel">Responsável (Professor) *</Label>
-            <Select
-              value={formData.responsavel_user_id}
-              onValueChange={(value) => setFormData({ ...formData, responsavel_user_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um professor" />
-              </SelectTrigger>
-              <SelectContent>
-                {professors?.map((professor) => (
-                  <SelectItem key={professor.id} value={professor.id}>
-                    {professor.name} ({professor.email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="responsavel">Nome do Responsável (Professor) *</Label>
+            <Input
+              id="responsavel"
+              value={formData.responsavel_name}
+              onChange={(e) => setFormData({ ...formData, responsavel_name: e.target.value })}
+              placeholder="Digite o nome completo do professor"
+              required
+            />
           </div>
 
           <div>
-            <Label htmlFor="enrollment_open_at">Abertura das Inscrições (opcional)</Label>
+            <Label htmlFor="enrollment_open_at">Abertura das Inscrições *</Label>
             <Input
               id="enrollment_open_at"
               type="datetime-local"
               value={formData.enrollment_open_at}
               onChange={(e) => setFormData({ ...formData, enrollment_open_at: e.target.value })}
+              required
             />
           </div>
 
           <div>
-            <Label htmlFor="enrollment_close_at">Fechamento das Inscrições (opcional)</Label>
+            <Label htmlFor="enrollment_close_at">Fechamento das Inscrições *</Label>
             <Input
               id="enrollment_close_at"
               type="datetime-local"
               value={formData.enrollment_close_at}
               onChange={(e) => setFormData({ ...formData, enrollment_close_at: e.target.value })}
+              required
             />
           </div>
 
@@ -210,7 +211,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
             </Button>
             <Button 
               type="submit" 
-              disabled={createTurma.isPending || !formData.responsavel_user_id || !formData.completion_deadline || (!courseId && !formData.course_id)}
+              disabled={createTurma.isPending || !formData.responsavel_name || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at || (!courseId && !formData.course_id)}
             >
               {createTurma.isPending ? "Criando..." : "Criar Turma"}
             </Button>
