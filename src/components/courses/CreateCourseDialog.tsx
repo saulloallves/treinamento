@@ -25,12 +25,13 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
   const [formData, setFormData] = useState<CourseInput>({
     name: "",
     description: "",
-    theme: "Segurança",
+    theme: ["Estrutura de Loja"],
     public_target: "ambos",
     mandatory: false,
     has_quiz: false,
     generates_certificate: false,
     tipo: "ao_vivo",
+    instructor: "",
     status: "Ativo"
   });
 
@@ -45,12 +46,13 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
     setFormData({
       name: "",
       description: "",
-      theme: "Segurança",
+      theme: ["Estrutura de Loja"],
       public_target: "ambos",
       mandatory: false,
       has_quiz: false,
       generates_certificate: false,
       tipo: "ao_vivo",
+      instructor: "",
       status: "Ativo"
     });
     
@@ -91,6 +93,58 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
             />
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="instructor">Nome do Instrutor (Opcional)</Label>
+            <Input
+              id="instructor"
+              value={formData.instructor || ""}
+              onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
+              placeholder="Digite o nome do instrutor"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="theme">Temas</Label>
+            <div className="border rounded-md p-3 max-h-40 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  "Estrutura de Loja",
+                  "Redes Sociais", 
+                  "Tráfego Pago",
+                  "Bastidores",
+                  "Eventos",
+                  "Conceitos sobre o Sistema",
+                  "Funcionalidades do Sistema",
+                  "Captação",
+                  "Conceito da Avaliação",
+                  "Organização de Loja",
+                  "Equipes e Colaboradores",
+                  "Itens e Produtos",
+                  "Orientações Gerais",
+                  "Inauguração",
+                  "Operação de Loja Modelo"
+                ].map((theme) => (
+                  <div key={theme} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={theme}
+                      checked={formData.theme.includes(theme)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ ...formData, theme: [...formData.theme, theme] });
+                        } else {
+                          setFormData({ ...formData, theme: formData.theme.filter(t => t !== theme) });
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor={theme} className="text-sm">{theme}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="tipo">Tipo de Curso</Label>
@@ -105,24 +159,6 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
               </select>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="theme">Tema</Label>
-              <select
-                id="theme"
-                value={formData.theme}
-                onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              >
-                <option value="Segurança">Segurança</option>
-                <option value="Vendas">Vendas</option>
-                <option value="Gestão">Gestão</option>
-                <option value="Atendimento">Atendimento</option>
-                <option value="Qualidade">Qualidade</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="publicTarget">Público-alvo</Label>
               <select

@@ -331,12 +331,13 @@ export type Database = {
           generates_certificate: boolean
           has_quiz: boolean
           id: string
+          instructor: string | null
           lessons_count: number
           mandatory: boolean
           name: string
           public_target: string
           status: string
-          theme: string
+          theme: string[]
           tipo: string
           updated_at: string
         }
@@ -347,12 +348,13 @@ export type Database = {
           generates_certificate?: boolean
           has_quiz?: boolean
           id?: string
+          instructor?: string | null
           lessons_count?: number
           mandatory?: boolean
           name: string
           public_target: string
           status?: string
-          theme: string
+          theme: string[]
           tipo?: string
           updated_at?: string
         }
@@ -363,12 +365,13 @@ export type Database = {
           generates_certificate?: boolean
           has_quiz?: boolean
           id?: string
+          instructor?: string | null
           lessons_count?: number
           mandatory?: boolean
           name?: string
           public_target?: string
           status?: string
-          theme?: string
+          theme?: string[]
           tipo?: string
           updated_at?: string
         }

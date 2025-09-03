@@ -7,7 +7,7 @@ export interface Course {
   id: string;
   name: string;
   description?: string;
-  theme: string;
+  theme: string[];
   public_target: string;
   mandatory: boolean;
   has_quiz: boolean;
@@ -15,6 +15,7 @@ export interface Course {
   lessons_count: number;
   status: string;
   tipo: 'ao_vivo' | 'gravado';
+  instructor?: string;
   created_at: string;
   updated_at: string;
 }
@@ -22,12 +23,13 @@ export interface Course {
 export interface CourseInput {
   name: string;
   description?: string;
-  theme: string;
+  theme: string[];
   public_target: string;
   mandatory: boolean;
   has_quiz: boolean;
   generates_certificate: boolean;
   tipo: 'ao_vivo' | 'gravado';
+  instructor?: string;
   status?: string;
 }
 
