@@ -21,48 +21,52 @@ const AttendanceList = () => {
     queryFn: async () => {
       const { data: att, error } = await supabase
         .from("attendance")
-        .select("id,enrollment_id,lesson_id,confirmed_at")
+        .select(`
+          id,
+          enrollment_id,
+          lesson_id,
+          confirmed_at,
+          enrollments!inner(
+            id,
+            student_name,
+            course_id,
+            turma_id,
+            turmas(id, name, code, responsavel_name)
+          ),
+          lessons!inner(
+            id,
+            title,
+            course_id
+          )
+        `)
         .order("confirmed_at", { ascending: false })
         .limit(100);
       if (error) throw error;
 
-      const enrollmentIds = Array.from(new Set((att ?? []).map(a => a.enrollment_id)));
-      const lessonIds = Array.from(new Set((att ?? []).map(a => a.lesson_id)));
-
-      const [enrollmentsRes, lessonsRes] = await Promise.all([
-        enrollmentIds.length
-          ? supabase.from("enrollments").select("id,student_name,course_id").in("id", enrollmentIds)
-          : Promise.resolve({ data: [], error: null } as any),
-        lessonIds.length
-          ? supabase.from("lessons").select("id,title,course_id").in("id", lessonIds)
-          : Promise.resolve({ data: [], error: null } as any),
-      ]);
-      if (enrollmentsRes.error) throw enrollmentsRes.error;
-      if (lessonsRes.error) throw lessonsRes.error;
-
-      const enrollments = new Map<string, any>();
-      for (const e of (enrollmentsRes.data ?? [])) enrollments.set(e.id, e);
-      const lessons = new Map<string, any>();
-      const courseIds = new Set<string>();
-      for (const l of (lessonsRes.data ?? [])) { lessons.set(l.id, l); if (l.course_id) courseIds.add(l.course_id); }
-
-      const coursesRes = courseIds.size
-        ? await supabase.from("courses").select("id,name").in("id", Array.from(courseIds))
+      // Buscar informações dos cursos
+      const courseIds = Array.from(new Set(att?.map(a => a.lessons?.course_id).filter(Boolean) ?? []));
+      const coursesRes = courseIds.length
+        ? await supabase.from("courses").select("id,name").in("id", courseIds)
         : { data: [], error: null } as any;
       if (coursesRes.error) throw coursesRes.error;
+      
       const courses = new Map<string, any>();
       for (const c of (coursesRes.data ?? [])) courses.set(c.id, c);
 
       return (att ?? []).map((a) => {
-        const enr = enrollments.get(a.enrollment_id);
-        const les = lessons.get(a.lesson_id);
-        const course = (les?.course_id && courses.get(les.course_id)) || (enr?.course_id && courses.get(enr.course_id));
+        const enrollment = a.enrollments;
+        const lesson = a.lessons;
+        const course = lesson?.course_id ? courses.get(lesson.course_id) : null;
+        const turma = enrollment?.turmas;
+        
         return {
           id: a.id,
           confirmedAt: a.confirmed_at,
-          student: enr?.student_name ?? "—",
-          lesson: les?.title ?? "—",
+          student: enrollment?.student_name ?? "—",
+          lesson: lesson?.title ?? "—",
           course: course?.name ?? "—",
+          turma: turma?.name || turma?.code || "Turma não definida",
+          professor: turma?.responsavel_name ?? "Professor não definido",
         };
       });
     },
@@ -86,6 +90,8 @@ const AttendanceList = () => {
                 <TableHead>Aluno</TableHead>
                 <TableHead>Curso</TableHead>
                 <TableHead>Aula</TableHead>
+                <TableHead>Turma</TableHead>
+                <TableHead>Professor</TableHead>
                 <TableHead>Confirmado em</TableHead>
               </TableRow>
             </TableHeader>
@@ -95,6 +101,8 @@ const AttendanceList = () => {
                   <TableCell className="font-medium">{r.student}</TableCell>
                   <TableCell>{r.course}</TableCell>
                   <TableCell>{r.lesson}</TableCell>
+                  <TableCell>{r.turma}</TableCell>
+                  <TableCell>{r.professor}</TableCell>
                   <TableCell>{new Date(r.confirmedAt).toLocaleString('pt-BR')}</TableCell>
                 </TableRow>
               ))}
