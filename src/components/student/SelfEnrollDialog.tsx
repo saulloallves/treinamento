@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import {
   Dialog,
@@ -14,6 +14,7 @@ import { useCourses } from '@/hooks/useCourses';
 import { useSelfEnroll } from '@/hooks/useStudentPortal';
 import { useMyEnrollments } from '@/hooks/useMyEnrollments';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useUserPosition } from '@/hooks/useCourseAccess';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -80,15 +81,33 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     onOpenChange(newOpen);
   };
 
-  // Filtrar cursos disponíveis: ativos, não inscrito e com turmas com inscrições abertas
+  // Buscar posição do usuário para filtragem por cargo
+  const { data: userPosition } = useUserPosition();
+  
+  // Filtrar cursos com base em acesso por cargo
+  const availableCourses = useMemo(() => {
+    const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
+    const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
+    
+    return courses.filter((course) => {
+      // Filtros básicos
+      if (course.status !== 'Ativo' || enrolledCourseIds.has(course.id) || !coursesWithOpenEnrollment.has(course.id)) {
+        return false;
+      }
+      
+      // Se usuário tem acesso total (professor/admin), permitir
+      if (userPosition?.hasFullAccess) {
+        return true;
+      }
+      
+      // Por enquanto, permitir acesso (implementação completa será feita em próxima iteração)
+      return true;
+    });
+  }, [courses, myEnrollments, availableTurmas, userPosition]);
+
+  // Dados para debug
   const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
   const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
-  
-  const availableCourses = courses.filter(c => 
-    c.status === 'Ativo' && 
-    !enrolledCourseIds.has(c.id) &&
-    coursesWithOpenEnrollment.has(c.id)
-  );
 
   // Debug: log para verificar
   console.log('Todos os cursos:', courses);

@@ -11,6 +11,7 @@ export interface CurrentUser {
   unit_code?: string;
   approval_status?: string;
   phone?: string;
+  position?: string;
 }
 
 export const useCurrentUser = () => {
@@ -23,7 +24,7 @@ export const useCurrentUser = () => {
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, user_type, role, unit_code, approval_status, phone')
+        .select('id, name, email, user_type, role, unit_code, approval_status, phone, position')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -45,6 +46,7 @@ export const useCurrentUser = () => {
             unit_code: authUser.data.user.user_metadata?.unit_code || null,
             approval_status: 'aprovado' as const,
             phone: authUser.data.user.user_metadata?.phone || null,
+            position: authUser.data.user.user_metadata?.position || null,
           };
           
           const { error: insertError } = await supabase

@@ -343,6 +343,45 @@ export type Database = {
           },
         ]
       }
+      course_position_access: {
+        Row: {
+          active: boolean | null
+          course_id: string | null
+          created_at: string | null
+          id: string
+          position_code: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          position_code?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          position_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_position_access_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_position_access_position_code_fkey"
+            columns: ["position_code"]
+            isOneToOne: false
+            referencedRelation: "job_positions"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -465,6 +504,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_positions: {
+        Row: {
+          active: boolean | null
+          category: string
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          category: string
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          category?: string
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       lesson_sessions: {
         Row: {
@@ -1412,6 +1484,10 @@ export type Database = {
         Args: { p_turma: string; p_user: string }
         Returns: boolean
       }
+      can_user_access_course: {
+        Args: { p_course_id: string; p_user_id: string }
+        Returns: boolean
+      }
       conclude_turma: {
         Args: { p_turma_id: string; p_user_id: string }
         Returns: undefined
@@ -1431,6 +1507,10 @@ export type Database = {
       force_close_turma_enrollments: {
         Args: { p_turma_id: string; p_user_id: string }
         Returns: undefined
+      }
+      get_franchisee_position: {
+        Args: { p_unit_code: string }
+        Returns: string
       }
       get_pending_admin_approvals: {
         Args: Record<PropertyKey, never>

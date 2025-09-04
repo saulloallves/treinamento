@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Plus, Save, X } from "lucide-react";
+import { Plus, Save, X, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useCreateCourse, CourseInput } from "@/hooks/useCourses";
+import { useJobPositions } from "@/hooks/useJobPositions";
+import { useManageCourseAccess } from "@/hooks/useCourseAccess";
 
 interface CreateCourseDialogProps {
   open: boolean;
@@ -21,6 +24,11 @@ interface CreateCourseDialogProps {
 
 const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => {
   const createCourseMutation = useCreateCourse();
+  const { updateAccess } = useManageCourseAccess();
+  
+  // Buscar cargos disponíveis
+  const { data: franchiseePositions } = useJobPositions('franqueado');
+  const { data: collaboratorPositions } = useJobPositions('colaborador');
   
   const [formData, setFormData] = useState<CourseInput>({
     name: "",
@@ -34,27 +42,189 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
     status: "Ativo"
   });
 
+  // Estado para controlar quais cargos têm acesso
+  const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
+
   const handleSave = async () => {
     if (!formData.name.trim()) {
       return;
     }
 
-    await createCourseMutation.mutateAsync(formData);
-    
-    // Reset form
-    setFormData({
-      name: "",
-      description: "",
-      theme: ["Estrutura de Loja"],
-      public_target: "ambos",
-      has_quiz: false,
-      generates_certificate: false,
-      tipo: "ao_vivo",
-      instructor: "",
-      status: "Ativo"
-    });
-    
-    onOpenChange(false);
+    try {
+      const course = await createCourseMutation.mutateAsync(formData);
+      
+      // Se há cargos específicos selecionados, configurar as permissões
+      if (selectedPositions.length > 0 && course?.id) {
+        await updateAccess.mutateAsync({
+          courseId: course.id,
+          positionCodes: selectedPositions
+        });
+      }
+      
+      // Reset form
+      setFormData({
+        name: "",
+        description: "",
+        theme: ["Estrutura de Loja"],
+        public_target: "ambos",
+        has_quiz: false,
+        generates_certificate: false,
+        tipo: "ao_vivo",
+        instructor: "",
+        status: "Ativo"
+      });
+      setSelectedPositions([]);
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating course:', error);
+    }
+  };
+
+  // Função para lidar com mudanças no público-alvo
+  const handlePublicTargetChange = (newTarget: string) => {
+    setFormData({ ...formData, public_target: newTarget });
+    // Limpar seleções anteriores quando mudar o público-alvo
+    setSelectedPositions([]);
+  };
+
+  // Função para renderizar seleção de cargos
+  const renderPositionSelection = () => {
+    if (formData.public_target === 'ambos') {
+      return (
+        <div className="grid gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <Label className="text-sm font-medium">Cargos com Acesso (opcional)</Label>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Se nenhum cargo for selecionado, todos os usuários terão acesso. Selecione cargos específicos para restringir o acesso.
+          </p>
+          
+          {franchiseePositions && franchiseePositions.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-blue-600">Franqueados</Label>
+              <div className="grid grid-cols-1 gap-2">
+                {franchiseePositions.map((position) => (
+                  <div key={position.code} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={position.code}
+                      checked={selectedPositions.includes(position.code)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedPositions([...selectedPositions, position.code]);
+                        } else {
+                          setSelectedPositions(selectedPositions.filter(p => p !== position.code));
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {collaboratorPositions && collaboratorPositions.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-green-600">Colaboradores</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {collaboratorPositions.map((position) => (
+                  <div key={position.code} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={position.code}
+                      checked={selectedPositions.includes(position.code)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedPositions([...selectedPositions, position.code]);
+                        } else {
+                          setSelectedPositions(selectedPositions.filter(p => p !== position.code));
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (formData.public_target === 'franqueado' && franchiseePositions && franchiseePositions.length > 0) {
+      return (
+        <div className="grid gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <Label className="text-sm font-medium">Tipos de Franqueado com Acesso (opcional)</Label>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Se nenhum tipo for selecionado, todos os franqueados terão acesso.
+          </p>
+          <div className="grid grid-cols-1 gap-2">
+            {franchiseePositions.map((position) => (
+              <div key={position.code} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={position.code}
+                  checked={selectedPositions.includes(position.code)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedPositions([...selectedPositions, position.code]);
+                    } else {
+                      setSelectedPositions(selectedPositions.filter(p => p !== position.code));
+                    }
+                  }}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (formData.public_target === 'colaborador' && collaboratorPositions && collaboratorPositions.length > 0) {
+      return (
+        <div className="grid gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <Label className="text-sm font-medium">Cargos de Colaborador com Acesso (opcional)</Label>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Se nenhum cargo for selecionado, todos os colaboradores terão acesso.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {collaboratorPositions.map((position) => (
+              <div key={position.code} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={position.code}
+                  checked={selectedPositions.includes(position.code)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedPositions([...selectedPositions, position.code]);
+                    } else {
+                      setSelectedPositions(selectedPositions.filter(p => p !== position.code));
+                    }
+                  }}
+                  className="rounded border-gray-300"
+                />
+                <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -162,7 +332,7 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
               <select
                 id="publicTarget"
                 value={formData.public_target}
-                onChange={(e) => setFormData({ ...formData, public_target: e.target.value })}
+                onChange={(e) => handlePublicTargetChange(e.target.value)}
                 className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
                 <option value="franqueado">Franqueado</option>
@@ -171,6 +341,13 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
               </select>
             </div>
           </div>
+
+          {/* Seção de seleção de cargos */}
+          {renderPositionSelection() && (
+            <div className="border rounded-md p-4 bg-gray-50">
+              {renderPositionSelection()}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
