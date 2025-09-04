@@ -178,13 +178,18 @@ const Sidebar = () => {
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
+    const isActive = location.pathname === item.path;
     
     return (
       <Link
         key={item.path}
         to={item.path}
         onClick={isMobile ? () => setIsOpen(false) : undefined}
-        className={`flex items-center gap-3 px-3 py-2 rounded-md w-full font-medium text-foreground ${isSubItem ? 'ml-6' : ''}`}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
+          isActive 
+            ? "bg-primary text-white" 
+            : "text-foreground hover:bg-secondary hover:text-primary"
+        } ${isSubItem ? 'ml-6' : ''}`}
       >
         <div className="w-8 h-8 rounded-sm flex items-center justify-center">
           <Icon className="w-5 h-5" />
@@ -192,7 +197,7 @@ const Sidebar = () => {
         <span className="text-sm">{item.name || item.label}</span>
       </Link>
     );
-  }, [isMobile]);
+  }, [location.pathname, isMobile]);
 
   const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
@@ -208,7 +213,11 @@ const Sidebar = () => {
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
-            className={"w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md focus:outline-none text-foreground"}
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
+              hasActiveChild
+                ? 'bg-secondary text-primary'
+                : 'text-foreground hover:bg-secondary hover:text-primary'
+            }`}
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-sm flex items-center justify-center">
@@ -234,13 +243,18 @@ const Sidebar = () => {
   const renderStudentMenu = useCallback(() => {
     return studentMenuItems.map((item, index) => {
       const Icon = item.icon;
+      const isActive = location.pathname === item.path;
       
       return (
         <Link
           key={index}
           to={item.path}
           onClick={isMobile ? () => setIsOpen(false) : undefined}
-          className={"flex items-center gap-3 px-3 py-2 rounded-md w-full font-medium text-foreground"}
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
+            isActive 
+              ? "bg-primary text-white" 
+              : "text-foreground hover:bg-secondary hover:text-primary"
+          }`}
         >
           <div className="w-8 h-8 rounded-sm flex items-center justify-center">
             <Icon className="w-5 h-5" />
@@ -249,7 +263,7 @@ const Sidebar = () => {
         </Link>
       );
     });
-  }, [studentMenuItems, isMobile]);
+  }, [studentMenuItems, location.pathname, isMobile]);
 
   if (isMobile) {
     return (
@@ -308,9 +322,9 @@ const Sidebar = () => {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
-                  </p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
+            </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
                   </p>
