@@ -15,7 +15,6 @@ interface EditTurmaDialogProps {
 export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
-    code: "",
     responsavel_name: "",
     completion_deadline: "",
     enrollment_open_at: "",
@@ -36,7 +35,6 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
 
       setFormData({
         name: turma.name || "",
-        code: turma.code || "",
         responsavel_name: turma.responsavel_name || "",
         completion_deadline: turma.completion_deadline ? new Date(turma.completion_deadline).toISOString().split('T')[0] : "",
         enrollment_open_at: formatDateTime(turma.enrollment_open_at),
@@ -56,7 +54,6 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
     const updateData = {
       id: turma.id,
       name: formData.name,
-      code: formData.code || null,
       responsavel_name: formData.responsavel_name || null,
       completion_deadline: formData.completion_deadline,
       enrollment_open_at: formData.enrollment_open_at ? new Date(formData.enrollment_open_at).toISOString() : null,
@@ -74,7 +71,6 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
   const handleReset = () => {
     setFormData({
       name: "",
-      code: "",
       responsavel_name: "",
       completion_deadline: "",
       enrollment_open_at: "",
@@ -102,16 +98,6 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="Ex: Turma Janeiro 2025"
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="turma-code">Código da Turma</Label>
-              <Input
-                id="turma-code"
-                value={formData.code}
-                onChange={(e) => setFormData({...formData, code: e.target.value})}
-                placeholder="Ex: T2025-001"
               />
             </div>
 
