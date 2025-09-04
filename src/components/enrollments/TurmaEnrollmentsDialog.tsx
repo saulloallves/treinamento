@@ -7,10 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Search, Users, GraduationCap, User, Trash2, ExternalLink } from "lucide-react";
-import { TurmaEnrollmentsList } from "@/components/turmas/TurmaEnrollmentsList";
+import { Search, Users, GraduationCap, Trash2, ExternalLink } from "lucide-react";
 import LinkEnrollmentButton from "./LinkEnrollmentButton";
 import { useDeleteEnrollment } from "@/hooks/useEnrollments";
 
@@ -56,9 +54,6 @@ export const TurmaEnrollmentsDialog = ({
     enrollment.student_email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const avgProgress = group.items.length > 0 
-    ? Math.round(group.items.reduce((sum, item) => sum + (item.progress_percentage || 0), 0) / group.items.length)
-    : 0;
 
   const handleDeleteEnrollment = (enrollmentId: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta inscrição?')) {
@@ -83,22 +78,9 @@ export const TurmaEnrollmentsDialog = ({
                 <span>{group.turmaName}</span>
               </div>
               <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{group.professorName}</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <Badge variant="secondary">{group.items.length} inscritos</Badge>
               </div>
-            </div>
-            
-            {/* Progress overview */}
-            <div className="flex items-center gap-4 pt-2">
-              <span className="text-sm text-muted-foreground">Progresso médio:</span>
-              <div className="flex-1 max-w-xs">
-                <Progress value={avgProgress} className="h-2" />
-              </div>
-              <span className="text-sm font-medium">{avgProgress}%</span>
             </div>
           </div>
         </DialogHeader>
@@ -135,9 +117,6 @@ export const TurmaEnrollmentsDialog = ({
                     Status
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
-                    Progresso
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
                     Data
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-sm text-muted-foreground">
@@ -172,16 +151,6 @@ export const TurmaEnrollmentsDialog = ({
                     </td>
                     <td className="py-3 px-4">
                       {getStatusBadge(enrollment.status)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16">
-                          <Progress value={enrollment.progress_percentage || 0} className="h-2" />
-                        </div>
-                        <span className="text-sm text-muted-foreground whitespace-nowrap">
-                          {enrollment.progress_percentage || 0}%
-                        </span>
-                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="text-sm text-muted-foreground">
