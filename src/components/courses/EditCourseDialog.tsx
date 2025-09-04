@@ -189,8 +189,10 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                     className="h-10 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="Ativo">Ativo</option>
-                    <option value="Em revisão">Em revisão</option>
                     <option value="Inativo">Inativo</option>
+                    <option value="Em Desenvolvimento">Em Desenvolvimento</option>
+                    <option value="Em revisão">Em revisão</option>
+                    <option value="Pronto para virar treinamento">Pronto para virar treinamento</option>
                   </select>
                 </div>
               </div>

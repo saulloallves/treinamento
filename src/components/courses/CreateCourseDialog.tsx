@@ -190,10 +190,18 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Status</Label>
-                  <div className="h-10 px-3 rounded-md border bg-muted flex items-center">
-                    <Badge variant="default">Ativo</Badge>
-                  </div>
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    value={formData.status || "Ativo"}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="h-10 px-3 rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                    <option value="Em Desenvolvimento">Em Desenvolvimento</option>
+                    <option value="Pronto para virar treinamento">Pronto para virar treinamento</option>
+                  </select>
                 </div>
               </div>
             </TabsContent>
