@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { CheckCircle, KeyRound } from 'lucide-react';
+import { CheckCircle, KeyRound, AlertCircle } from 'lucide-react';
 
 interface AttendanceKeywordModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface AttendanceKeywordModalProps {
   onSubmit: (keyword: string) => void;
   isSubmitting: boolean;
   lessonTitle: string;
+  error?: string;
 }
 
 const AttendanceKeywordModal = ({ 
@@ -25,7 +27,8 @@ const AttendanceKeywordModal = ({
   onOpenChange, 
   onSubmit, 
   isSubmitting,
-  lessonTitle 
+  lessonTitle,
+  error 
 }: AttendanceKeywordModalProps) => {
   const [keyword, setKeyword] = useState('');
 
@@ -52,7 +55,7 @@ const AttendanceKeywordModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="w-5 h-5" />
-            Confirmar Presença
+            Confirmar Presença - Aula ao Vivo
           </DialogTitle>
           <DialogDescription>
             Para marcar sua presença na aula <strong>"{lessonTitle}"</strong>, 
@@ -61,6 +64,13 @@ const AttendanceKeywordModal = ({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid gap-2">
             <Label htmlFor="keyword">Palavra-chave da Aula</Label>
             <Input

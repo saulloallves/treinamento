@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useMarkAttendance } from '@/hooks/useStudentPortal';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, KeyRound } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AttendanceKeywordModal from './AttendanceKeywordModal';
@@ -17,6 +18,7 @@ interface AttendanceButtonProps {
 const AttendanceButton = ({ enrollmentId, lessonId, className, children }: AttendanceButtonProps) => {
   const markAttendance = useMarkAttendance();
   const [showKeywordModal, setShowKeywordModal] = useState(false);
+  const [keywordError, setKeywordError] = useState<string | undefined>(undefined);
 
   // Check if attendance already exists for this lesson/enrollment
   const { data: attendance } = useQuery({
@@ -55,6 +57,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
   const handleClick = () => {
     if (!confirmed) {
       if (isLiveLesson) {
+        setKeywordError(undefined); // Limpar erro anterior
         setShowKeywordModal(true);
       } else {
         markAttendance.mutate({ enrollment_id: enrollmentId, lesson_id: lessonId });
@@ -63,6 +66,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
   };
 
   const handleKeywordSubmit = (keyword: string) => {
+    setKeywordError(undefined); // Limpar erro antes de tentar novamente
     markAttendance.mutate(
       { 
         enrollment_id: enrollmentId, 
@@ -72,8 +76,12 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
       {
         onSuccess: () => {
           setShowKeywordModal(false);
+          setKeywordError(undefined);
         },
-        onError: () => {
+        onError: (error: any) => {
+          // Capturar erro e exibir no modal
+          const errorMessage = error?.message || 'Erro ao confirmar presença';
+          setKeywordError(errorMessage);
           // Modal permanece aberto para nova tentativa
         }
       }
@@ -82,21 +90,30 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
 
   return (
     <>
-      <Button
-        onClick={handleClick}
-        disabled={markAttendance.isPending}
-        className={className}
-        variant={confirmed ? 'success' : (children ? 'default' : 'outline')}
-      >
-        <CheckCircle className="w-4 h-4 mr-2" />
-        {markAttendance.isPending
-          ? 'Confirmando...'
-          : confirmed
-          ? 'Presença confirmada'
-          : isLiveLesson
-          ? 'Marcar Presença (Aula ao Vivo)'
-          : (children ?? 'Marcar Presença')}
-      </Button>
+      <div className="flex flex-col gap-2">
+        {isLiveLesson && (
+          <Badge variant="secondary" className="w-fit flex items-center gap-1">
+            <KeyRound className="w-3 h-3" />
+            Aula ao Vivo • Requer Palavra-chave
+          </Badge>
+        )}
+        
+        <Button
+          onClick={handleClick}
+          disabled={markAttendance.isPending}
+          className={className}
+          variant={confirmed ? 'success' : (children ? 'default' : 'outline')}
+        >
+          <CheckCircle className="w-4 h-4 mr-2" />
+          {markAttendance.isPending
+            ? 'Confirmando...'
+            : confirmed
+            ? 'Presença confirmada'
+            : isLiveLesson
+            ? 'Marcar Presença'
+            : (children ?? 'Marcar Presença')}
+        </Button>
+      </div>
 
       <AttendanceKeywordModal
         open={showKeywordModal}
@@ -104,6 +121,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
         onSubmit={handleKeywordSubmit}
         isSubmitting={markAttendance.isPending}
         lessonTitle={lesson?.title || 'Aula'}
+        error={keywordError}
       />
     </>
   );
