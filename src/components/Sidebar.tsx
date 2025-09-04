@@ -35,12 +35,15 @@ const Sidebar = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    treinamentos: false,
-    gestaoAlunos: false,
-    avaliacoes: false,
-    comunicacao: false,
-    administracao: false,
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const path = location.pathname;
+    return {
+      treinamentos: ['/courses','/turmas','/lessons'].includes(path),
+      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates'].includes(path),
+      avaliacoes: ['/quiz'].includes(path),
+      comunicacao: ['/whatsapp'].includes(path),
+      administracao: ['/users','/units','/settings'].includes(path),
+    };
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
