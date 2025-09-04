@@ -522,6 +522,7 @@ export type Database = {
       }
       lessons: {
         Row: {
+          attendance_keyword: string | null
           content: string | null
           course_id: string | null
           created_at: string
@@ -540,6 +541,7 @@ export type Database = {
           zoom_start_url: string | null
         }
         Insert: {
+          attendance_keyword?: string | null
           content?: string | null
           course_id?: string | null
           created_at?: string
@@ -558,6 +560,7 @@ export type Database = {
           zoom_start_url?: string | null
         }
         Update: {
+          attendance_keyword?: string | null
           content?: string | null
           course_id?: string | null
           created_at?: string

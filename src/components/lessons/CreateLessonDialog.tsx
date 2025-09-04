@@ -36,7 +36,8 @@ const [formData, setFormData] = useState<LessonInput>({
   content: "",
   duration_minutes: 0,
   order_index: 1,
-  status: "Ativo"
+  status: "Ativo",
+  attendance_keyword: ""
 });
 
 const [isLiveZoom, setIsLiveZoom] = useState(false);
@@ -56,6 +57,15 @@ const handleSave = async () => {
       toast({
         title: "Dados incompletos",
         description: "Informe data, hora e duração para criar a aula ao vivo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3) {
+      toast({
+        title: "Palavra-chave obrigatória",
+        description: "Informe uma palavra-chave com pelo menos 3 caracteres para aulas ao vivo.",
         variant: "destructive",
       });
       return;
@@ -119,6 +129,7 @@ const handleSave = async () => {
         duration_minutes: 0,
         order_index: 1,
         status: "Ativo",
+        attendance_keyword: ""
       });
       setIsLiveZoom(false);
       setLiveDate("");
@@ -147,6 +158,7 @@ const handleSave = async () => {
     duration_minutes: 0,
     order_index: 1,
     status: "Ativo",
+    attendance_keyword: ""
   });
   setIsLiveZoom(false);
   setLiveDate("");
@@ -163,7 +175,8 @@ const handleClose = () => {
     content: "",
     duration_minutes: 0,
     order_index: 1,
-    status: "Ativo"
+    status: "Ativo",
+    attendance_keyword: ""
   });
   setIsLiveZoom(false);
   setLiveDate("");
@@ -268,24 +281,38 @@ const handleClose = () => {
   </div>
 </div>
 {isLiveZoom && (
-  <div className="grid grid-cols-2 gap-4">
-    <div className="grid gap-2">
-      <Label htmlFor="liveDate">Data</Label>
-      <Input
-        id="liveDate"
-        type="date"
-        value={liveDate}
-        onChange={(e) => setLiveDate(e.target.value)}
-      />
+  <div className="grid gap-4">
+    <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor="liveDate">Data</Label>
+        <Input
+          id="liveDate"
+          type="date"
+          value={liveDate}
+          onChange={(e) => setLiveDate(e.target.value)}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="liveTime">Hora</Label>
+        <Input
+          id="liveTime"
+          type="time"
+          value={liveTime}
+          onChange={(e) => setLiveTime(e.target.value)}
+        />
+      </div>
     </div>
     <div className="grid gap-2">
-      <Label htmlFor="liveTime">Hora</Label>
+      <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
       <Input
-        id="liveTime"
-        type="time"
-        value={liveTime}
-        onChange={(e) => setLiveTime(e.target.value)}
+        id="attendance_keyword"
+        value={formData.attendance_keyword || ""}
+        onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
+        placeholder="Ex: crescer, meta2024, sucesso"
       />
+      <p className="text-sm text-muted-foreground">
+        Os alunos precisarão inserir esta palavra-chave para confirmar presença na aula.
+      </p>
     </div>
   </div>
 )}
@@ -323,7 +350,7 @@ const handleClose = () => {
     createLessonMutation.isPending ||
     !formData.title.trim() ||
     !formData.course_id ||
-    (isLiveZoom && (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0))
+    (isLiveZoom && (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0 || !formData.attendance_keyword || formData.attendance_keyword.trim().length < 3))
   }
 >
   <Save className="w-4 h-4" />

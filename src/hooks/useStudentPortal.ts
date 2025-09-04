@@ -12,6 +12,7 @@ export interface SelfEnrollmentInput {
 export interface MarkAttendanceInput {
   enrollment_id: UUID;
   lesson_id: UUID;
+  attendance_keyword?: string;
 }
 
 export interface RequestCertificateInput {
@@ -139,13 +140,40 @@ export const useMarkAttendance = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ enrollment_id, lesson_id }: MarkAttendanceInput) => {
+    mutationFn: async ({ enrollment_id, lesson_id, attendance_keyword }: MarkAttendanceInput) => {
       // Garante que há um usuário autenticado e captura seu id
       const { data: userResp, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userResp.user) {
         throw new Error('É necessário estar autenticado para marcar presença.');
       }
       const userId = userResp.user.id;
+
+      // Buscar dados da aula para verificar se requer palavra-chave
+      const { data: lesson, error: lessonErr } = await supabase
+        .from('lessons')
+        .select('attendance_keyword, zoom_meeting_id, title')
+        .eq('id', lesson_id)
+        .single();
+
+      if (lessonErr) {
+        console.error('Erro ao buscar dados da aula:', lessonErr);
+        throw new Error('Não foi possível verificar os dados da aula.');
+      }
+
+      // Validar palavra-chave se a aula for ao vivo e tiver palavra-chave definida
+      if (lesson.attendance_keyword && lesson.zoom_meeting_id) {
+        if (!attendance_keyword) {
+          throw new Error('Esta aula requer uma palavra-chave para confirmação de presença.');
+        }
+        
+        // Comparação case-insensitive e trim de espaços
+        const providedKeyword = attendance_keyword.trim().toLowerCase();
+        const requiredKeyword = lesson.attendance_keyword.trim().toLowerCase();
+        
+        if (providedKeyword !== requiredKeyword) {
+          throw new Error('Palavra-chave incorreta. Verifique com o professor e tente novamente.');
+        }
+      }
 
       // Buscar turma_id do enrollment
       const { data: enrollment, error: enrollmentErr } = await supabase

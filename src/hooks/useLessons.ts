@@ -16,6 +16,7 @@ export interface Lesson {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  attendance_keyword?: string;
   // Zoom fields (when aula é ao vivo)
   zoom_meeting_id?: string | null;
   zoom_start_url?: string | null;
@@ -46,6 +47,7 @@ export interface LessonInput {
   order_index: number;
   status?: string;
   zoom_start_time?: string;
+  attendance_keyword?: string;
 }
 
 export const useLessons = (futureOnly: boolean = false) => {
