@@ -19,6 +19,21 @@ const AttendancesByCourse = () => {
   const { data: attendances, isLoading } = useQuery({
     queryKey: ["attendance", "by-course"],
     queryFn: async () => {
+      // Primeiro buscar todas as turmas ativas
+      const { data: turmas, error: turmasError } = await supabase
+        .from("turmas")
+        .select(`
+          id,
+          name,
+          code,
+          course_id,
+          courses(id, name)
+        `)
+        .order("created_at", { ascending: false });
+        
+      if (turmasError) throw turmasError;
+
+      // Depois buscar todas as presenças
       const { data: att, error } = await supabase
         .from("attendance")
         .select(`
@@ -44,34 +59,43 @@ const AttendancesByCourse = () => {
         
       if (error) throw error;
 
-      // Buscar informações dos cursos
-      const courseIds = Array.from(new Set(att?.map(a => a.lessons?.course_id).filter(Boolean) ?? []));
-      const coursesRes = courseIds.length
-        ? await supabase.from("courses").select("id,name").in("id", courseIds)
-        : { data: [], error: null } as any;
-      if (coursesRes.error) throw coursesRes.error;
+      // Mapear presenças por turma
+      const attendancesByTurma = new Map<string, any[]>();
       
-      const courses = new Map<string, any>();
-      for (const c of (coursesRes.data ?? [])) courses.set(c.id, c);
-
-      return (att ?? []).map((a) => {
+      (att ?? []).forEach((a) => {
         const enrollment = a.enrollments;
         const lesson = a.lessons;
-        const course = lesson?.course_id ? courses.get(lesson.course_id) : null;
         const turma = enrollment?.turmas;
         
-        return {
+        const attendanceData = {
           id: a.id,
           confirmedAt: a.confirmed_at,
           typedKeyword: a.typed_keyword,
           student: enrollment?.student_name ?? "—",
           lesson: lesson?.title ?? "—",
-          course: course?.name ?? "—",
-          courseName: course?.name ?? "—",
-          turma: turma?.name || turma?.code || "Turma não definida",
-          turmaName: turma?.name || turma?.code || "Turma não definida",
           turmaId: turma?.id,
+          courseId: lesson?.course_id,
+        };
+
+        if (turma?.id) {
+          if (!attendancesByTurma.has(turma.id)) {
+            attendancesByTurma.set(turma.id, []);
+          }
+          attendancesByTurma.get(turma.id)!.push(attendanceData);
+        }
+      });
+
+      // Criar dados para todas as turmas
+      return (turmas ?? []).map((turma) => {
+        const course = turma.courses;
+        const attendancesForTurma = attendancesByTurma.get(turma.id) || [];
+        
+        return {
+          turmaId: turma.id,
           courseId: course?.id,
+          courseName: course?.name ?? "—",
+          turmaName: turma.name || turma.code || "Turma não definida",
+          attendances: attendancesForTurma
         };
       });
     },
@@ -80,27 +104,13 @@ const AttendancesByCourse = () => {
   const groupedAttendances = useMemo(() => {
     if (!attendances) return [];
 
-    const groups = new Map<string, AttendanceGroup>();
-
-    attendances.forEach((attendance) => {
-      const key = `${attendance.courseId}-${attendance.turmaId}`;
-      
-      if (!groups.has(key)) {
-        groups.set(key, {
-          id: key,
-          name: key,
-          turmaName: attendance.turmaName,
-          courseName: attendance.courseName,
-          items: []
-        });
-      }
-      
-      groups.get(key)!.items.push(attendance);
-    });
-
-    return Array.from(groups.values()).sort((a, b) => 
-      a.courseName.localeCompare(b.courseName)
-    );
+    return attendances.map((turmaData) => ({
+      id: `${turmaData.courseId}-${turmaData.turmaId}`,
+      name: `${turmaData.courseId}-${turmaData.turmaId}`,
+      turmaName: turmaData.turmaName,
+      courseName: turmaData.courseName,
+      items: turmaData.attendances
+    })).sort((a, b) => a.courseName.localeCompare(b.courseName));
   }, [attendances]);
 
   const handleCardClick = (group: AttendanceGroup) => {
@@ -121,7 +131,7 @@ const AttendancesByCourse = () => {
   if (groupedAttendances.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">Nenhuma presença encontrada.</p>
+        <p className="text-muted-foreground">Nenhuma turma encontrada.</p>
       </div>
     );
   }

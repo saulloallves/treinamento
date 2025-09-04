@@ -43,7 +43,7 @@ export const AttendanceDetailsDialog = ({ group, open, onOpenChange }: Attendanc
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              <span>{group.items.length} presenças registradas</span>
+              <span>{group.items.length} {group.items.length === 1 ? 'presença confirmada' : 'presenças confirmadas'}</span>
             </div>
           </div>
         </DialogHeader>
@@ -65,7 +65,7 @@ export const AttendanceDetailsDialog = ({ group, open, onOpenChange }: Attendanc
             {filteredAttendances.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                  {searchTerm ? "Nenhuma presença encontrada para a busca." : "Nenhuma presença registrada."}
+                  {searchTerm ? "Nenhuma presença encontrada para a busca." : "Nenhuma presença confirmada para esta turma."}
                 </p>
               </div>
             ) : (
