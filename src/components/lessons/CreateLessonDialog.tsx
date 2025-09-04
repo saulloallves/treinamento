@@ -303,15 +303,16 @@ const handleClose = () => {
       </div>
     </div>
     <div className="grid gap-2">
-      <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
+      <Label htmlFor="attendance_keyword">Palavra-chave para Presença *</Label>
       <Input
         id="attendance_keyword"
         value={formData.attendance_keyword || ""}
         onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
         placeholder="Ex: crescer, meta2024, sucesso"
+        required
       />
       <p className="text-sm text-muted-foreground">
-        Os alunos precisarão inserir esta palavra-chave para confirmar presença na aula.
+        <strong>Obrigatório:</strong> Todos os alunos precisarão inserir esta palavra-chave para confirmar presença na aula ao vivo.
       </p>
     </div>
   </div>

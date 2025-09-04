@@ -39,6 +39,11 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
       return;
     }
 
+    // Validar palavra-chave para aulas ao vivo
+    if (formData.zoom_meeting_id && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3)) {
+      return; // Validação visual já está no disabled do botão
+    }
+
     await updateLessonMutation.mutateAsync(formData);
     onOpenChange(false);
   };
@@ -146,6 +151,23 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             />
           </div>
+
+          {/* Campo palavra-chave para aulas ao vivo */}
+          {formData.zoom_meeting_id && (
+            <div className="grid gap-2">
+              <Label htmlFor="attendance_keyword">Palavra-chave para Presença *</Label>
+              <Input
+                id="attendance_keyword"
+                value={formData.attendance_keyword || ""}
+                onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
+                placeholder="Ex: crescer, meta2024, sucesso"
+                required
+              />
+              <p className="text-sm text-muted-foreground">
+                <strong>Aula ao Vivo:</strong> Todos os alunos precisarão inserir esta palavra-chave para confirmar presença.
+              </p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -155,7 +177,11 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={updateLessonMutation.isPending || !formData.title.trim()}
+            disabled={
+              updateLessonMutation.isPending || 
+              !formData.title.trim() ||
+              (formData.zoom_meeting_id && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3))
+            }
           >
             <Save className="w-4 h-4" />
             {updateLessonMutation.isPending ? "Salvando..." : "Salvar Alterações"}

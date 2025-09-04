@@ -160,10 +160,14 @@ export const useMarkAttendance = () => {
         throw new Error('Não foi possível verificar os dados da aula.');
       }
 
-      // Validar palavra-chave se a aula for ao vivo e tiver palavra-chave definida
-      if (lesson.attendance_keyword && lesson.zoom_meeting_id) {
+      // Validar palavra-chave para aulas ao vivo (que têm zoom_meeting_id)
+      if (lesson.zoom_meeting_id) {
         if (!attendance_keyword) {
-          throw new Error('Esta aula requer uma palavra-chave para confirmação de presença.');
+          throw new Error('Esta aula ao vivo requer uma palavra-chave para confirmação de presença.');
+        }
+        
+        if (!lesson.attendance_keyword) {
+          throw new Error('Esta aula ainda não possui palavra-chave definida pelo professor.');
         }
         
         // Comparação case-insensitive e trim de espaços
