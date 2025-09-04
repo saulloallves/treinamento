@@ -50,11 +50,11 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
   });
 
   const confirmed = Boolean(attendance?.id);
-  const requiresKeyword = Boolean(lesson?.zoom_meeting_id); // Toda aula ao vivo requer palavra-chave
+  const isLiveLesson = Boolean(lesson?.zoom_meeting_id); // Aula ao vivo sempre requer palavra-chave
 
   const handleClick = () => {
     if (!confirmed) {
-      if (requiresKeyword) {
+      if (isLiveLesson) {
         setShowKeywordModal(true);
       } else {
         markAttendance.mutate({ enrollment_id: enrollmentId, lesson_id: lessonId });
@@ -93,7 +93,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
           ? 'Confirmando...'
           : confirmed
           ? 'Presença confirmada'
-          : requiresKeyword
+          : isLiveLesson
           ? 'Marcar Presença (Aula ao Vivo)'
           : (children ?? 'Marcar Presença')}
       </Button>
