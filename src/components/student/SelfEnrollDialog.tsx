@@ -14,6 +14,8 @@ import { useCourses } from '@/hooks/useCourses';
 import { useSelfEnroll } from '@/hooks/useStudentPortal';
 import { useMyEnrollments } from '@/hooks/useMyEnrollments';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SelfEnrollDialogProps {
   open: boolean;
@@ -28,6 +30,29 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const { data: myEnrollments = [] } = useMyEnrollments();
   const { data: currentUser } = useCurrentUser();
   const selfEnroll = useSelfEnroll();
+
+  // Buscar turmas com inscrições abertas
+  const { data: availableTurmas = [] } = useQuery({
+    queryKey: ['available-turmas-for-enrollment'],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('turmas')
+        .select('course_id, enrollment_open_at, enrollment_close_at')
+        .eq('status', 'agendada')
+        .or(`enrollment_open_at.is.null,enrollment_open_at.lte.${now}`)
+        .or(`enrollment_close_at.is.null,enrollment_close_at.gte.${now}`);
+
+      if (error) {
+        console.error('Error fetching available turmas:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: open, // Só busca quando o diálogo está aberto
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,15 +80,20 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     onOpenChange(newOpen);
   };
 
-  // Filtrar cursos ativos e onde o usuário ainda não está inscrito
+  // Filtrar cursos disponíveis: ativos, não inscrito e com turmas com inscrições abertas
   const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
+  const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
+  
   const availableCourses = courses.filter(c => 
-    c.status === 'Ativo' && !enrolledCourseIds.has(c.id)
+    c.status === 'Ativo' && 
+    !enrolledCourseIds.has(c.id) &&
+    coursesWithOpenEnrollment.has(c.id)
   );
 
   // Debug: log para verificar
   console.log('Todos os cursos:', courses);
   console.log('Cursos inscritos:', enrolledCourseIds);
+  console.log('Turmas com inscrições abertas:', availableTurmas);
   console.log('Cursos disponíveis:', availableCourses);
 
   return (
@@ -83,7 +113,10 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
             </label>
             {availableCourses.length === 0 ? (
               <div className="text-sm text-muted-foreground p-3 border rounded-md bg-muted">
-                Nenhum curso disponível para inscrição. Você já está inscrito em todos os cursos ativos.
+                {coursesWithOpenEnrollment.size === 0 
+                  ? "Nenhum curso está com inscrições abertas no momento."
+                  : "Nenhum curso disponível para inscrição. Você já está inscrito em todos os cursos com inscrições abertas."
+                }
               </div>
             ) : (
               <Select value={courseId} onValueChange={setCourseId}>

@@ -67,12 +67,15 @@ export const useSelfEnroll = () => {
         throw new Error('Você já está inscrito neste curso.');
       }
 
-      // Buscar uma turma disponível para o curso
+      // Buscar uma turma disponível para o curso com inscrições abertas
+      const now = new Date().toISOString();
       const { data: turma, error: turmaErr } = await supabase
         .from('turmas')
         .select('id')
         .eq('course_id', input.course_id)
         .eq('status', 'agendada')
+        .or(`enrollment_open_at.is.null,enrollment_open_at.lte.${now}`)
+        .or(`enrollment_close_at.is.null,enrollment_close_at.gte.${now}`)
         .limit(1)
         .maybeSingle();
 
@@ -82,7 +85,7 @@ export const useSelfEnroll = () => {
       }
 
       if (!turma?.id) {
-        throw new Error('Não há turmas disponíveis para este curso no momento.');
+        throw new Error('Não há turmas com inscrições abertas para este curso no momento.');
       }
 
       const { data, error } = await supabase
