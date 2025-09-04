@@ -158,13 +158,23 @@ const Sidebar = () => {
 
   // Update expanded state when route changes to show active group
   React.useEffect(() => {
-    if (getCurrentActiveGroup && !expandedGroups[getCurrentActiveGroup]) {
+    // Only auto-expand when the route changes (don't fight user toggles)
+    const activeGroup = (() => {
+      for (const group of adminMenuStructure) {
+        if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
+          return group.id;
+        }
+      }
+      return null;
+    })();
+
+    if (activeGroup && !expandedGroups[activeGroup]) {
       setExpandedGroups(prev => ({
         ...prev,
-        [getCurrentActiveGroup]: true
+        [activeGroup]: true
       }));
     }
-  }, [getCurrentActiveGroup, expandedGroups]);
+  }, [location.pathname]);
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
