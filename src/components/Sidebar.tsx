@@ -234,7 +234,6 @@ const Sidebar = () => {
   const renderStudentMenu = useCallback(() => {
     return studentMenuItems.map((item, index) => {
       const Icon = item.icon;
-      const isActive = location.pathname === item.path;
       
       return (
         <Link
@@ -248,6 +247,22 @@ const Sidebar = () => {
           </div>
           <span className="text-sm">{item.label}</span>
         </Link>
+      );
+    });
+  }, [studentMenuItems, isMobile]);
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Toggle Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50 md:hidden"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
 
         {/* Mobile Overlay */}
         {isOpen && (
@@ -293,9 +308,9 @@ const Sidebar = () => {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
-            </p>
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
                   </p>
