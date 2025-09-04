@@ -66,7 +66,14 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEdi
     onViewDetails(turma);
   };
 
-  const professorName: string = turma.responsavel_user?.name || turma.responsavel_name || course?.instructor || 'Professor não definido';
+  const isPlaceholder = (name?: string) => {
+    if (!name) return false;
+    const n = name.trim().toLowerCase();
+    return n === 'professor não definido' || n === 'professor nao definido';
+  };
+
+  const explicitProfessor = turma.responsavel_user?.name || (!isPlaceholder(turma.responsavel_name) ? turma.responsavel_name : undefined);
+  const professorName: string = explicitProfessor || course?.instructor || 'Professor não definido';
   const professorEmail: string | undefined = turma.responsavel_user?.email;
 
   return (
