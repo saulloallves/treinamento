@@ -25,9 +25,6 @@ const getStatusColor = (count: number) => {
 
 export const EnrollmentTurmaCard = ({ group, onClick }: EnrollmentTurmaCardProps) => {
   const enrollmentCount = group.items.length;
-  const avgProgress = enrollmentCount > 0 
-    ? Math.round(group.items.reduce((sum, item) => sum + (item.progress_percentage || 0), 0) / enrollmentCount)
-    : 0;
 
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-border hover:border-primary/20" onClick={onClick}>
@@ -64,22 +61,6 @@ export const EnrollmentTurmaCard = ({ group, onClick }: EnrollmentTurmaCardProps
               {enrollmentCount}
             </Badge>
           </div>
-
-          {/* Progress bar */}
-          {enrollmentCount > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Progresso médio</span>
-                <span className="text-sm font-medium text-foreground">{avgProgress}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${avgProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
