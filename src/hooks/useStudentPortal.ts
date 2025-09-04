@@ -204,6 +204,7 @@ export const useMarkAttendance = () => {
           attendance_type: 'manual',
           user_id: userId,
           turma_id: enrollment.turma_id,
+          typed_keyword: attendance_keyword, // Store the typed keyword
         }]);
 
       if (error) {
