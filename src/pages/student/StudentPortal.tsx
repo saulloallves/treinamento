@@ -3,12 +3,16 @@ import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useMyEnrollments, type MyEnrollment } from "@/hooks/useMyEnrollments";
 import SelfEnrollDialog from "@/components/student/SelfEnrollDialog";
 import { Link } from "react-router-dom";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Calendar, Users } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
@@ -76,6 +80,38 @@ const StudentPortal = () => {
                         {enroll.course?.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
                       </span>
                     </div>
+                    
+                    {/* Informações da Turma */}
+                    {enroll.turma && (
+                      <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            Turma: {enroll.turma.name || enroll.turma.code || `Turma ${enroll.turma.id.slice(0, 8)}`}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span>
+                            Prazo: {format(new Date(enroll.turma.completion_deadline), "dd/MM/yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Status da Turma:</span>
+                          <Badge variant={
+                            enroll.turma.status === 'em_andamento' ? 'default' : 
+                            enroll.turma.status === 'encerrada' ? 'outline' : 
+                            enroll.turma.status === 'cancelada' ? 'destructive' : 'secondary'
+                          } className="text-xs">
+                            {enroll.turma.status === 'agendada' ? 'Agendada' :
+                             enroll.turma.status === 'em_andamento' ? 'Em Andamento' :
+                             enroll.turma.status === 'encerrada' ? 'Encerrada' :
+                             enroll.turma.status === 'cancelada' ? 'Cancelada' : enroll.turma.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    
                     <Progress value={enroll.progress_percentage ?? 0} />
                     <div className="flex items-center justify-between text-sm">
                       <span>Progresso</span>

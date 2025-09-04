@@ -10,9 +10,18 @@ export interface MyEnrollmentCourse {
   tipo?: string | null;
 }
 
+export interface MyEnrollmentTurma {
+  id: string;
+  name?: string | null;
+  code?: string | null;
+  completion_deadline: string;
+  status: string;
+}
+
 export interface MyEnrollment {
   id: string;
   course_id: string;
+  turma_id?: string | null;
   progress_percentage: number;
   status: string;
   created_at: string;
@@ -20,6 +29,7 @@ export interface MyEnrollment {
   student_email?: string | null;
   student_phone?: string | null;
   course?: MyEnrollmentCourse | null;
+  turma?: MyEnrollmentTurma | null;
 }
 
 export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
@@ -37,7 +47,7 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
 
         const { data: enrollments, error } = await supabase
           .from("enrollments")
-          .select("id, course_id, progress_percentage, status, created_at, student_name, student_email, student_phone")
+          .select("id, course_id, turma_id, progress_percentage, status, created_at, student_name, student_email, student_phone")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -45,6 +55,7 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
 
         const list = enrollments ?? [];
         const courseIds = Array.from(new Set(list.map((e) => e.course_id).filter(Boolean)));
+        const turmaIds = Array.from(new Set(list.map((e) => e.turma_id).filter(Boolean)));
 
         let coursesMap: Record<string, MyEnrollmentCourse> = {};
         if (courseIds.length > 0) {
@@ -58,10 +69,23 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           });
         }
 
+        let turmasMap: Record<string, MyEnrollmentTurma> = {};
+        if (turmaIds.length > 0) {
+          const { data: turmasData, error: turmasErr } = await supabase
+            .from("turmas")
+            .select("id, name, code, completion_deadline, status")
+            .in("id", turmaIds);
+          if (turmasErr) throw turmasErr;
+          (turmasData ?? []).forEach((t) => {
+            turmasMap[t.id as string] = t as unknown as MyEnrollmentTurma;
+          });
+        }
+
         // Calcula o progresso real baseado no tipo de curso
         const enrichedEnrollments = await Promise.all(
           list.map(async (e) => {
             const courseInfo = e.course_id ? coursesMap[e.course_id] : null;
+            const turmaInfo = e.turma_id ? turmasMap[e.turma_id] : null;
             let realProgress = e.progress_percentage ?? 0;
             
             if (courseInfo?.tipo === 'gravado') {
@@ -98,6 +122,7 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
               ...e,
               progress_percentage: realProgress,
               course: courseInfo,
+              turma: turmaInfo,
             } as MyEnrollment;
           })
         );
