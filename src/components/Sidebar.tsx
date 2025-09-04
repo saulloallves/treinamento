@@ -23,7 +23,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -45,33 +45,33 @@ const Sidebar = () => {
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: currentUser } = useCurrentUser();
-  const selectedProfile = getSelectedProfile();
+  const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
   // Determinar qual menu mostrar baseado na preferência do usuário
-  const shouldShowAdminMenu = selectedProfile === 'Admin' || (selectedProfile === null && isAdmin);
-  
-  console.log('Sidebar Debug:', {
-    isAdmin,
-    selectedProfile,
-    shouldShowAdminMenu,
-    currentPath: location.pathname
-  });
+  const shouldShowAdminMenu = useMemo(() => 
+    selectedProfile === 'Admin' || (selectedProfile === null && isAdmin),
+    [selectedProfile, isAdmin]
+  );
   
   // Menu para alunos (inclui gestão de colaboradores para franqueados)
-  const studentMenuItems = [
-    { icon: GraduationCap, label: "Cursos", path: "/aluno" },
-    { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
-    { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
-  ];
+  const studentMenuItems = useMemo(() => {
+    const baseItems = [
+      { icon: GraduationCap, label: "Cursos", path: "/aluno" },
+      { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
+      { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
+    ];
 
-  // Adicionar gestão de colaboradores se for franqueado
-  if (currentUser?.role === 'Franqueado' && currentUser?.unit_code) {
-    studentMenuItems.push({
-      icon: Users,
-      label: "Gestão de Colaboradores",
-      path: "/aluno/colaboradores"
-    });
-  }
+    // Adicionar gestão de colaboradores se for franqueado
+    if (currentUser?.role === 'Franqueado' && currentUser?.unit_code) {
+      baseItems.push({
+        icon: Users,
+        label: "Gestão de Colaboradores",
+        path: "/aluno/colaboradores"
+      });
+    }
+
+    return baseItems;
+  }, [currentUser?.role, currentUser?.unit_code]);
 
   const adminMenuStructure = [
     {
@@ -135,39 +135,38 @@ const Sidebar = () => {
     }
   ];
 
-  const toggleGroup = (groupId: string) => {
+  const toggleGroup = useCallback((groupId: string) => {
     setExpandedGroups(prev => ({
       ...prev,
       [groupId]: !prev[groupId]
     }));
-  };
+  }, []);
 
-  const isGroupActive = (group: any) => {
+  const isGroupActive = useCallback((group: any) => {
     return group.items?.some((item: any) => location.pathname === item.path);
-  };
+  }, [location.pathname]);
 
   // Auto-expand group that contains the current active page
-  const getCurrentActiveGroup = () => {
+  const getCurrentActiveGroup = useMemo(() => {
     for (const group of adminMenuStructure) {
       if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
         return group.id;
       }
     }
     return null;
-  };
+  }, [location.pathname]);
 
   // Update expanded state when route changes to show active group
   React.useEffect(() => {
-    const activeGroup = getCurrentActiveGroup();
-    if (activeGroup && !expandedGroups[activeGroup]) {
+    if (getCurrentActiveGroup && !expandedGroups[getCurrentActiveGroup]) {
       setExpandedGroups(prev => ({
         ...prev,
-        [activeGroup]: true
+        [getCurrentActiveGroup]: true
       }));
     }
-  }, [location.pathname]);
+  }, [getCurrentActiveGroup, expandedGroups]);
 
-  const renderMenuItem = (item: any, isSubItem = false) => {
+  const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.path;
     
@@ -176,7 +175,7 @@ const Sidebar = () => {
         key={item.path}
         to={item.path}
         onClick={isMobile ? () => setIsOpen(false) : undefined}
-        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full ${
           isActive 
             ? "bg-primary text-white font-medium" 
             : "text-foreground hover:bg-secondary hover:text-primary"
@@ -188,9 +187,9 @@ const Sidebar = () => {
         <span className="text-sm">{item.name || item.label}</span>
       </Link>
     );
-  };
+  }, [location.pathname, isMobile]);
 
-  const renderAdminMenu = () => {
+  const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
       if (!item.isGroup) {
         return renderMenuItem(item);
@@ -203,7 +202,7 @@ const Sidebar = () => {
         <div key={item.id} className="space-y-1">
           <button
             onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
               hasActiveChild
                 ? 'bg-secondary text-primary'
                 : 'text-foreground hover:bg-secondary hover:text-primary'
@@ -215,24 +214,26 @@ const Sidebar = () => {
               </div>
               {item.name}
             </div>
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : 'rotate-0'}`}>
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </div>
           </button>
           
           {isExpanded && item.items && (
-            <div className="space-y-1">
+            <div className="space-y-1 animate-fade-in">
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
         </div>
       );
     });
-  };
+  }, [expandedGroups, isGroupActive, toggleGroup, renderMenuItem]);
 
-  const renderStudentMenu = () => {
+  const renderStudentMenu = useCallback(() => {
     return studentMenuItems.map((item, index) => {
       const Icon = item.icon;
       const isActive = location.pathname === item.path;
@@ -242,7 +243,7 @@ const Sidebar = () => {
           key={index}
           to={item.path}
           onClick={isMobile ? () => setIsOpen(false) : undefined}
-          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full ${
             isActive 
               ? "bg-primary text-white font-medium" 
               : "text-foreground hover:bg-secondary hover:text-primary"
@@ -255,7 +256,7 @@ const Sidebar = () => {
         </Link>
       );
     });
-  };
+  }, [studentMenuItems, location.pathname, isMobile]);
 
   if (isMobile) {
     return (
