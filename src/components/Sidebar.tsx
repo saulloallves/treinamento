@@ -224,12 +224,8 @@ const Sidebar = () => {
               </div>
               {item.name}
             </div>
-            <div className={`transition-transform duration-200 ${isExpanded ? 'rotate-0' : 'rotate-0'}`}>
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
+            <div className="transition-transform duration-200">
+              <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
             </div>
           </button>
           
@@ -312,7 +308,7 @@ const Sidebar = () => {
             </div>
 
             {/* Menu de navegação */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
               {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
             </nav>
 
@@ -360,7 +356,7 @@ const Sidebar = () => {
       </div>
 
       {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
         {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
       </nav>
 
