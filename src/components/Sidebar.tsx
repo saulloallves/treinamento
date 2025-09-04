@@ -211,8 +211,9 @@ const Sidebar = () => {
       return (
         <div key={item.id} className="space-y-1">
           <button
+            type="button"
             onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
               hasActiveChild
                 ? 'bg-secondary text-primary'
                 : 'text-foreground hover:bg-secondary hover:text-primary'
@@ -224,13 +225,13 @@ const Sidebar = () => {
               </div>
               {item.name}
             </div>
-            <div className="transition-transform duration-200">
-              <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
+            <div className="will-change-transform">
+              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
             </div>
           </button>
           
-          {isExpanded && item.items && (
-            <div className="space-y-1">
+          {item.items && (
+            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
