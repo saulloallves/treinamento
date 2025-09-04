@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, Square, UserPlus, Users, Calendar, GraduationCap, Clock, ChevronRight } from "lucide-react";
+import { Play, Square, UserPlus, Users, Calendar, GraduationCap, Clock, ChevronRight, Edit } from "lucide-react";
 import { useStartTurma, useConcludeTurma, useForceCloseEnrollments } from "@/hooks/useTurmas";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -11,6 +11,7 @@ interface TurmaCardProps {
   course: any;
   onViewDetails: (turma: any) => void;
   onEnrollStudent: (turmaId: string) => void;
+  onEditTurma: (turma: any) => void;
 }
 
 const getStatusBadge = (status: string) => {
@@ -31,7 +32,7 @@ const getStatusBadge = (status: string) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent }: TurmaCardProps) => {
+export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEditTurma }: TurmaCardProps) => {
   const startTurma = useStartTurma();
   const concludeTurma = useConcludeTurma();
   const forceCloseEnrollments = useForceCloseEnrollments();
@@ -56,6 +57,11 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent }: Tur
     onEnrollStudent(turma.id);
   };
 
+  const handleEditTurma = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEditTurma(turma);
+  };
+
   const handleCardClick = () => {
     onViewDetails(turma);
   };
@@ -75,11 +81,6 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent }: Tur
               <h3 className="text-lg font-semibold text-title">
                 {turma.name || `Turma ${turma.code || turma.id.slice(0, 8)}`}
               </h3>
-              {turma.code && (
-                <p className="text-sm text-muted-foreground">
-                  Código: {turma.code}
-                </p>
-              )}
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(turma.status)}
@@ -89,7 +90,17 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent }: Tur
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleEditTurma}
+              className="h-8 w-8 p-0"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </div>
         </div>
       </CardHeader>
       

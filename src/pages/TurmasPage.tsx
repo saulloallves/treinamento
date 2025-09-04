@@ -10,6 +10,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { TurmaCard } from "@/components/turmas/TurmaCard";
 import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
+import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
 import { EnrollStudentDialog } from "@/components/turmas/EnrollStudentDialog";
 
 const TurmasPage = () => {
@@ -21,6 +22,8 @@ const TurmasPage = () => {
   const [selectedCourseForCreate, setSelectedCourseForCreate] = useState("");
   const [selectedTurmaForDetails, setSelectedTurmaForDetails] = useState<any>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedTurmaForEdit, setSelectedTurmaForEdit] = useState<any>(null);
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedTurmaId, setSelectedTurmaId] = useState("");
 
@@ -70,6 +73,11 @@ const TurmasPage = () => {
   const handleEnrollStudent = (turmaId: string) => {
     setSelectedTurmaId(turmaId);
     setEnrollDialogOpen(true);
+  };
+
+  const handleEditTurma = (turma: any) => {
+    setSelectedTurmaForEdit(turma);
+    setEditDialogOpen(true);
   };
 
   if (isLoading) {
@@ -214,6 +222,7 @@ const TurmasPage = () => {
                   course={course}
                   onViewDetails={handleViewTurmaDetails}
                   onEnrollStudent={handleEnrollStudent}
+                  onEditTurma={handleEditTurma}
                 />
               );
             })}
@@ -235,6 +244,12 @@ const TurmasPage = () => {
           onOpenChange={setDetailsDialogOpen}
           turma={selectedTurmaForDetails}
           course={selectedTurmaForDetails ? courses.find(c => c.id === selectedTurmaForDetails.course_id) : null}
+        />
+
+        <EditTurmaDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          turma={selectedTurmaForEdit}
         />
 
         <EnrollStudentDialog
