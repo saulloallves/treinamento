@@ -18,6 +18,7 @@ import { useCreateLesson, LessonInput } from "@/hooks/useLessons";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_ATTENDANCE_KEYWORD } from "@/lib/config";
 
 interface CreateLessonDialogProps {
   open: boolean;
@@ -37,7 +38,7 @@ const [formData, setFormData] = useState<LessonInput>({
   duration_minutes: 0,
   order_index: 1,
   status: "Ativo",
-  attendance_keyword: ""
+  attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
 });
 
 const [isLiveZoom, setIsLiveZoom] = useState(false);
@@ -129,7 +130,7 @@ const handleSave = async () => {
         duration_minutes: 0,
         order_index: 1,
         status: "Ativo",
-        attendance_keyword: ""
+        attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
       });
       setIsLiveZoom(false);
       setLiveDate("");
@@ -158,7 +159,7 @@ const handleSave = async () => {
     duration_minutes: 0,
     order_index: 1,
     status: "Ativo",
-    attendance_keyword: ""
+    attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
   });
   setIsLiveZoom(false);
   setLiveDate("");
@@ -176,7 +177,7 @@ const handleClose = () => {
     duration_minutes: 0,
     order_index: 1,
     status: "Ativo",
-    attendance_keyword: ""
+    attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
   });
   setIsLiveZoom(false);
   setLiveDate("");
@@ -302,19 +303,21 @@ const handleClose = () => {
         />
       </div>
     </div>
-    <div className="grid gap-2">
-      <Label htmlFor="attendance_keyword">Palavra-chave para Presença *</Label>
-      <Input
-        id="attendance_keyword"
-        value={formData.attendance_keyword || ""}
-        onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
-        placeholder="Ex: crescer, meta2024, sucesso"
-        required
-      />
-      <p className="text-sm text-muted-foreground">
-        <strong>Obrigatório:</strong> Todos os alunos precisarão inserir esta palavra-chave para confirmar presença na aula ao vivo.
-      </p>
-    </div>
+            <div className="grid gap-2">
+              <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
+              <Input
+                id="attendance_keyword"
+                value={formData.attendance_keyword || ""}
+                onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
+                placeholder="Palavra-chave para confirmar presença"
+              />
+              <p className="text-sm text-muted-foreground">
+                {formData.status === 'Ativo' 
+                  ? 'Aulas ativas sempre requerem palavra-chave para presença'
+                  : 'Alunos precisarão inserir esta palavra-chave para confirmar presença'
+                }
+              </p>
+            </div>
   </div>
 )}
 
@@ -336,6 +339,22 @@ const handleClose = () => {
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
+            <Input
+              id="attendance_keyword"
+              value={formData.attendance_keyword || ""}
+              onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
+              placeholder="Palavra-chave para confirmar presença"
+            />
+            <p className="text-sm text-muted-foreground">
+              {formData.status === 'Ativo' 
+                ? 'Aulas ativas sempre requerem palavra-chave para presença'
+                : 'Alunos precisarão inserir esta palavra-chave para confirmar presença'
+              }
+            </p>
           </div>
         </div>
 

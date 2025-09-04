@@ -151,7 +151,7 @@ export const useMarkAttendance = () => {
       // Buscar dados da aula para verificar se requer palavra-chave
       const { data: lesson, error: lessonErr } = await supabase
         .from('lessons')
-        .select('attendance_keyword, zoom_meeting_id, title')
+        .select('attendance_keyword, status, title')
         .eq('id', lesson_id)
         .single();
 
@@ -160,19 +160,22 @@ export const useMarkAttendance = () => {
         throw new Error('Não foi possível verificar os dados da aula.');
       }
 
-      // Validar palavra-chave para aulas ao vivo (que têm zoom_meeting_id)
-      if (lesson.zoom_meeting_id) {
+      // Verificar se aula requer palavra-chave (aulas ativas sempre requerem)
+      const requiresKeyword = lesson.status === 'Ativo' || lesson.attendance_keyword;
+      
+      if (requiresKeyword) {
         if (!attendance_keyword) {
-          throw new Error('Esta aula ao vivo requer uma palavra-chave para confirmação de presença.');
+          throw new Error('Esta aula requer uma palavra-chave para confirmação de presença.');
         }
         
-        if (!lesson.attendance_keyword) {
-          throw new Error('Esta aula ainda não possui palavra-chave definida pelo professor.');
-        }
+        const expectedKeyword = lesson.attendance_keyword || 'Cresci e Perdi 2025';
         
-        // Comparação case-insensitive e trim de espaços
-        const providedKeyword = attendance_keyword.trim().toLowerCase();
-        const requiredKeyword = lesson.attendance_keyword.trim().toLowerCase();
+        // Normalizar palavras-chave: lowercase, trim e remover espaços extras
+        const normalizeKeyword = (str: string) => 
+          str.trim().toLowerCase().replace(/\s+/g, ' ');
+        
+        const providedKeyword = normalizeKeyword(attendance_keyword);
+        const requiredKeyword = normalizeKeyword(expectedKeyword);
         
         if (providedKeyword !== requiredKeyword) {
           throw new Error('Palavra-chave incorreta. Verifique com o professor e tente novamente.');

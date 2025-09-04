@@ -7,6 +7,7 @@ import { CheckCircle, KeyRound } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AttendanceKeywordModal from './AttendanceKeywordModal';
+import { DEFAULT_ATTENDANCE_KEYWORD } from '@/lib/config';
 
 interface AttendanceButtonProps {
   enrollmentId: string;
@@ -43,7 +44,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lessons')
-        .select('id, title, attendance_keyword, zoom_meeting_id')
+        .select('id, title, attendance_keyword, status')
         .eq('id', lessonId)
         .single();
       if (error) throw error;
@@ -52,11 +53,11 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
   });
 
   const confirmed = Boolean(attendance?.id);
-  const isLiveLesson = Boolean(lesson?.zoom_meeting_id); // Aula ao vivo sempre requer palavra-chave
+  const requiresKeyword = lesson?.status === 'Ativo' || lesson?.attendance_keyword;
 
   const handleClick = () => {
     if (!confirmed) {
-      if (isLiveLesson) {
+      if (requiresKeyword) {
         setKeywordError(undefined); // Limpar erro anterior
         setShowKeywordModal(true);
       } else {
@@ -91,10 +92,10 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
   return (
     <>
       <div className="flex flex-col gap-2">
-        {isLiveLesson && (
+        {requiresKeyword && (
           <Badge variant="secondary" className="w-fit flex items-center gap-1">
             <KeyRound className="w-3 h-3" />
-            Aula ao Vivo • Requer Palavra-chave
+            Requer Palavra-chave
           </Badge>
         )}
         
@@ -109,7 +110,7 @@ const AttendanceButton = ({ enrollmentId, lessonId, className, children }: Atten
             ? 'Confirmando...'
             : confirmed
             ? 'Presença confirmada'
-            : isLiveLesson
+            : requiresKeyword
             ? 'Marcar Presença'
             : (children ?? 'Marcar Presença')}
         </Button>

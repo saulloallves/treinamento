@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Edit, Save, X } from "lucide-react";
 import {
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCourses } from "@/hooks/useCourses";
 import { useUpdateLesson, Lesson } from "@/hooks/useLessons";
+import { DEFAULT_ATTENDANCE_KEYWORD } from "@/lib/config";
 
 interface EditLessonDialogProps {
   lesson: Lesson | null;
@@ -28,7 +28,13 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
 
   useEffect(() => {
     if (lesson) {
-      setFormData({ ...lesson });
+      const updatedLesson = { 
+        ...lesson,
+        // Se é aula ativa e não tem palavra-chave, usar a padrão
+        attendance_keyword: lesson.attendance_keyword || 
+          (lesson.status === 'Ativo' ? DEFAULT_ATTENDANCE_KEYWORD : '')
+      };
+      setFormData(updatedLesson);
     }
   }, [lesson]);
 
@@ -39,8 +45,8 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
       return;
     }
 
-    // Validar palavra-chave para aulas ao vivo
-    if (formData.zoom_meeting_id && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3)) {
+    // Para aulas ativas, garantir que tenha palavra-chave
+    if (formData.status === 'Ativo' && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3)) {
       return; // Validação visual já está no disabled do botão
     }
 
@@ -152,19 +158,21 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             />
           </div>
 
-          {/* Campo palavra-chave para aulas ao vivo */}
-          {formData.zoom_meeting_id && (
+          {/* Campo palavra-chave - sempre visível para aulas ativas ou com palavra já definida */}
+          {(formData.status === 'Ativo' || formData.attendance_keyword) && (
             <div className="grid gap-2">
-              <Label htmlFor="attendance_keyword">Palavra-chave para Presença *</Label>
+              <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
               <Input
                 id="attendance_keyword"
                 value={formData.attendance_keyword || ""}
                 onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
-                placeholder="Ex: crescer, meta2024, sucesso"
-                required
+                placeholder="Palavra-chave para confirmar presença"
               />
               <p className="text-sm text-muted-foreground">
-                <strong>Aula ao Vivo:</strong> Todos os alunos precisarão inserir esta palavra-chave para confirmar presença.
+                {formData.status === 'Ativo' 
+                  ? 'Aulas ativas sempre requerem palavra-chave para presença'
+                  : 'Alunos precisarão inserir esta palavra-chave para confirmar presença'
+                }
               </p>
             </div>
           )}
@@ -180,7 +188,7 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             disabled={
               updateLessonMutation.isPending || 
               !formData.title.trim() ||
-              (formData.zoom_meeting_id && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3))
+              (formData.status === 'Ativo' && (!formData.attendance_keyword || formData.attendance_keyword.trim().length < 3))
             }
           >
             <Save className="w-4 h-4" />

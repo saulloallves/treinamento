@@ -55,7 +55,7 @@ const AttendanceKeywordModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="w-5 h-5" />
-            Confirmar Presença - Aula ao Vivo
+            Confirmar Presença
           </DialogTitle>
           <DialogDescription>
             Para marcar sua presença na aula <strong>"{lessonTitle}"</strong>, 
