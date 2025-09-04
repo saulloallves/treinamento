@@ -23,7 +23,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
     course_id: courseId || "",
     name: "",
     code: "",
-    responsavel_name: "",
+    responsavel_user_id: "",
     completion_deadline: "",
     enrollment_open_at: "",
     enrollment_close_at: "",
@@ -31,6 +31,22 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
   });
 
   const createTurma = useCreateTurma();
+
+  // Fetch professors/teachers
+  const { data: professors = [] } = useQuery({
+    queryKey: ['professors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('user_type', 'Professor')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Get course info when courseId is provided
   const { data: preselectedCourse } = useQuery({
@@ -87,16 +103,19 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.responsavel_name || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at) {
+    if (!formData.course_id || !formData.responsavel_user_id || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at) {
       return;
     }
+
+    const selectedProfessor = professors.find(p => p.id === formData.responsavel_user_id);
 
     try {
       await createTurma.mutateAsync({
         course_id: formData.course_id,
         name: formData.name || undefined,
         code: formData.code || undefined,
-        responsavel_name: formData.responsavel_name,
+        responsavel_user_id: formData.responsavel_user_id,
+        responsavel_name: selectedProfessor?.name || "",
         completion_deadline: formData.completion_deadline,
         enrollment_open_at: formData.enrollment_open_at,
         enrollment_close_at: formData.enrollment_close_at,
@@ -107,7 +126,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         course_id: courseId || "",
         name: "",
         code: "",
-        responsavel_name: "",
+        responsavel_user_id: "",
         completion_deadline: "",
         enrollment_open_at: "",
         enrollment_close_at: "",
@@ -247,14 +266,22 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 </div>
 
                 <div>
-                  <Label htmlFor="responsavel">Nome do Responsável (Professor) *</Label>
-                  <Input
-                    id="responsavel"
-                    value={formData.responsavel_name}
-                    onChange={(e) => setFormData({ ...formData, responsavel_name: e.target.value })}
-                    placeholder="Digite o nome completo do professor"
-                    required
-                  />
+                  <Label htmlFor="responsavel">Professor Responsável *</Label>
+                  <Select
+                    value={formData.responsavel_user_id}
+                    onValueChange={(value) => setFormData({ ...formData, responsavel_user_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um professor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {professors.map((professor) => (
+                        <SelectItem key={professor.id} value={professor.id}>
+                          {professor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -323,7 +350,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={createTurma.isPending || !formData.responsavel_name || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at || (!courseId && !formData.course_id)}
+                  disabled={createTurma.isPending || !formData.responsavel_user_id || !formData.completion_deadline || !formData.enrollment_open_at || !formData.enrollment_close_at || (!courseId && !formData.course_id)}
                   className="min-w-[120px]"
                 >
                   {createTurma.isPending ? "Criando..." : "Criar Turma"}

@@ -3,8 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useUpdateTurma } from "@/hooks/useTurmas";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditTurmaDialogProps {
   turma: any;
@@ -15,7 +18,7 @@ interface EditTurmaDialogProps {
 export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
-    responsavel_name: "",
+    responsavel_user_id: "",
     completion_deadline: "",
     enrollment_open_at: "",
     enrollment_close_at: "",
@@ -23,6 +26,22 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
   });
 
   const updateTurma = useUpdateTurma();
+
+  // Fetch professors/teachers
+  const { data: professors = [] } = useQuery({
+    queryKey: ['professors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('user_type', 'Professor')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Populate form when turma data changes
   useEffect(() => {
@@ -35,7 +54,7 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
 
       setFormData({
         name: turma.name || "",
-        responsavel_name: turma.responsavel_name || "",
+        responsavel_user_id: turma.responsavel_user_id || "",
         completion_deadline: turma.completion_deadline ? new Date(turma.completion_deadline).toISOString().split('T')[0] : "",
         enrollment_open_at: formatDateTime(turma.enrollment_open_at),
         enrollment_close_at: formatDateTime(turma.enrollment_close_at),
@@ -51,10 +70,13 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
       return;
     }
 
+    const selectedProfessor = professors.find(p => p.id === formData.responsavel_user_id);
+    
     const updateData = {
       id: turma.id,
       name: formData.name,
-      responsavel_name: formData.responsavel_name || null,
+      responsavel_user_id: formData.responsavel_user_id || null,
+      responsavel_name: selectedProfessor?.name || null,
       completion_deadline: formData.completion_deadline,
       enrollment_open_at: formData.enrollment_open_at ? new Date(formData.enrollment_open_at).toISOString() : null,
       enrollment_close_at: formData.enrollment_close_at ? new Date(formData.enrollment_close_at).toISOString() : null,
@@ -71,7 +93,7 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
   const handleReset = () => {
     setFormData({
       name: "",
-      responsavel_name: "",
+      responsavel_user_id: "",
       completion_deadline: "",
       enrollment_open_at: "",
       enrollment_close_at: "",
@@ -102,13 +124,22 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="responsavel-name">Nome do Responsável</Label>
-              <Input
-                id="responsavel-name"
-                value={formData.responsavel_name}
-                onChange={(e) => setFormData({...formData, responsavel_name: e.target.value})}
-                placeholder="Nome do professor/responsável"
-              />
+              <Label htmlFor="responsavel-user">Professor Responsável</Label>
+              <Select
+                value={formData.responsavel_user_id}
+                onValueChange={(value) => setFormData({...formData, responsavel_user_id: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um professor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {professors.map((professor) => (
+                    <SelectItem key={professor.id} value={professor.id}>
+                      {professor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
