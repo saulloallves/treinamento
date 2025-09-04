@@ -5,6 +5,9 @@
 // Maximum upload size in bytes (default 10GB)
 export const MAX_UPLOAD_BYTES = Number(import.meta.env.VITE_MAX_UPLOAD_BYTES) || 10 * 1024 * 1024 * 1024;
 
+// Default attendance keyword for active lessons
+export const DEFAULT_ATTENDANCE_KEYWORD = "Cresci e Perdi 2025";
+
 /**
  * Format bytes to human readable string
  */
