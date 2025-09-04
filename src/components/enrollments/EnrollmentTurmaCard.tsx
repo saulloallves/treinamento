@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, GraduationCap, User, ChevronRight } from "lucide-react";
+import { Users, GraduationCap, ChevronRight } from "lucide-react";
 
 interface EnrollmentGroup {
   id: string;
@@ -31,36 +31,24 @@ export const EnrollmentTurmaCard = ({ group, onClick }: EnrollmentTurmaCardProps
 
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-border hover:border-primary/20" onClick={onClick}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <GraduationCap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground truncate">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <GraduationCap className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-xs font-medium text-muted-foreground truncate">
                 {group.courseName}
               </span>
             </div>
-            <h3 className="text-lg font-semibold text-foreground line-clamp-2">
+            <h3 className="text-base font-semibold text-foreground line-clamp-1">
               {group.turmaName}
             </h3>
           </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {/* Professor */}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {group.professorName}
-            </p>
-          </div>
-        </div>
-
+      <CardContent className="space-y-3 p-4">
         {/* Statistics */}
         <div className="space-y-3">
           {/* Enrollments count */}
