@@ -175,9 +175,9 @@ const Sidebar = () => {
         key={item.path}
         to={item.path}
         onClick={isMobile ? () => setIsOpen(false) : undefined}
-        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full ${
+        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
           isActive 
-            ? "bg-primary text-white font-medium" 
+            ? "bg-primary text-white" 
             : "text-foreground hover:bg-secondary hover:text-primary"
         } ${isSubItem ? 'ml-6' : ''}`}
       >
@@ -202,7 +202,7 @@ const Sidebar = () => {
         <div key={item.id} className="space-y-1">
           <button
             onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
               hasActiveChild
                 ? 'bg-secondary text-primary'
                 : 'text-foreground hover:bg-secondary hover:text-primary'
@@ -224,7 +224,7 @@ const Sidebar = () => {
           </button>
           
           {isExpanded && item.items && (
-            <div className="space-y-1 animate-fade-in">
+            <div className="space-y-1">
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
@@ -243,9 +243,9 @@ const Sidebar = () => {
           key={index}
           to={item.path}
           onClick={isMobile ? () => setIsOpen(false) : undefined}
-          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full ${
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
             isActive 
-              ? "bg-primary text-white font-medium" 
+              ? "bg-primary text-white" 
               : "text-foreground hover:bg-secondary hover:text-primary"
           }`}
         >
