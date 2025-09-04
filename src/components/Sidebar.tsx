@@ -178,18 +178,13 @@ const Sidebar = () => {
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
-    const isActive = location.pathname === item.path;
     
     return (
       <Link
         key={item.path}
         to={item.path}
         onClick={isMobile ? () => setIsOpen(false) : undefined}
-        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
-          isActive 
-            ? "bg-primary text-white" 
-            : "text-foreground hover:bg-secondary hover:text-primary"
-        } ${isSubItem ? 'ml-6' : ''}`}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md w-full font-medium text-foreground ${isSubItem ? 'ml-6' : ''}`}
       >
         <div className="w-8 h-8 rounded-sm flex items-center justify-center">
           <Icon className="w-5 h-5" />
@@ -197,7 +192,7 @@ const Sidebar = () => {
         <span className="text-sm">{item.name || item.label}</span>
       </Link>
     );
-  }, [location.pathname, isMobile]);
+  }, [isMobile]);
 
   const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
@@ -213,11 +208,7 @@ const Sidebar = () => {
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
-              hasActiveChild
-                ? 'bg-secondary text-primary'
-                : 'text-foreground hover:bg-secondary hover:text-primary'
-            }`}
+            className={"w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md focus:outline-none text-foreground"}
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-sm flex items-center justify-center">
@@ -250,33 +241,13 @@ const Sidebar = () => {
           key={index}
           to={item.path}
           onClick={isMobile ? () => setIsOpen(false) : undefined}
-          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
-            isActive 
-              ? "bg-primary text-white" 
-              : "text-foreground hover:bg-secondary hover:text-primary"
-          }`}
+          className={"flex items-center gap-3 px-3 py-2 rounded-md w-full font-medium text-foreground"}
         >
           <div className="w-8 h-8 rounded-sm flex items-center justify-center">
             <Icon className="w-5 h-5" />
           </div>
           <span className="text-sm">{item.label}</span>
         </Link>
-      );
-    });
-  }, [studentMenuItems, location.pathname, isMobile]);
-
-  if (isMobile) {
-    return (
-      <>
-        {/* Mobile Toggle Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
 
         {/* Mobile Overlay */}
         {isOpen && (
