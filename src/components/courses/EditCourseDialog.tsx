@@ -78,11 +78,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
     }
   };
 
-  const handlePublicTargetChange = (newTarget: string) => {
-    setFormData({ ...formData, public_target: newTarget });
-    // Reset selected positions when changing public target
-    setSelectedPositions([]);
-  };
+  // Removed handlePublicTargetChange as we no longer use public_target
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -168,37 +164,21 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="tipo">Tipo de Curso</Label>
-              <select
-                id="tipo"
-                value={formData.tipo}
-                onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
-                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              >
-                <option value="ao_vivo">Curso (Ao Vivo)</option>
-                <option value="gravado">Treinamento (Online)</option>
-              </select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="publicTarget">Público-alvo</Label>
-              <select
-                id="publicTarget"
-                value={formData.public_target}
-                onChange={(e) => handlePublicTargetChange(e.target.value)}
-                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              >
-                <option value="franqueado">Franqueado</option>
-                <option value="colaborador">Colaborador</option>
-                <option value="ambos">Ambos</option>
-              </select>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="tipo">Tipo de Curso</Label>
+            <select
+              id="tipo"
+              value={formData.tipo}
+              onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
+              className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            >
+              <option value="ao_vivo">Curso (Ao Vivo)</option>
+              <option value="gravado">Treinamento (Online)</option>
+            </select>
           </div>
 
-          {/* Seleção de Cargos Específicos */}
-          {(formData.public_target === 'franqueado' || formData.public_target === 'ambos') && (
+          {/* Seleção de Cargos com Acesso */}
+          <div className="grid gap-4">
             <div className="grid gap-2">
               <Label>Cargos de Franqueado com Acesso</Label>
               <div className="border rounded-md p-3 space-y-2">
@@ -220,9 +200,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                   ))}
               </div>
             </div>
-          )}
 
-          {(formData.public_target === 'colaborador' || formData.public_target === 'ambos') && (
             <div className="grid gap-2">
               <Label>Cargos de Colaborador com Acesso</Label>
               <div className="border rounded-md p-3 space-y-2">
@@ -244,7 +222,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                   ))}
               </div>
             </div>
-          )}
+          </div>
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status</Label>

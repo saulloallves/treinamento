@@ -27,14 +27,13 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
   const { updateAccess } = useManageCourseAccess();
   
   // Buscar cargos disponíveis
-  const { data: franchiseePositions } = useJobPositions('franqueado');
-  const { data: collaboratorPositions } = useJobPositions('colaborador');
+  const { data: jobPositions = [] } = useJobPositions();
   
   const [formData, setFormData] = useState<CourseInput>({
     name: "",
     description: "",
     theme: ["Estrutura de Loja"],
-    public_target: "ambos",
+    public_target: "ambos", // Default since access is controlled by job positions
     has_quiz: false,
     generates_certificate: false,
     tipo: "ao_vivo",
@@ -44,6 +43,14 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
 
   // Estado para controlar quais cargos têm acesso
   const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
+
+  const handlePositionChange = (positionCode: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPositions(prev => [...prev, positionCode]);
+    } else {
+      setSelectedPositions(prev => prev.filter(code => code !== positionCode));
+    }
+  };
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
@@ -79,152 +86,6 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
     } catch (error) {
       console.error('Error creating course:', error);
     }
-  };
-
-  // Função para lidar com mudanças no público-alvo
-  const handlePublicTargetChange = (newTarget: string) => {
-    setFormData({ ...formData, public_target: newTarget });
-    // Limpar seleções anteriores quando mudar o público-alvo
-    setSelectedPositions([]);
-  };
-
-  // Função para renderizar seleção de cargos
-  const renderPositionSelection = () => {
-    if (formData.public_target === 'ambos') {
-      return (
-        <div className="grid gap-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <Label className="text-sm font-medium">Cargos com Acesso (opcional)</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Se nenhum cargo for selecionado, todos os usuários terão acesso. Selecione cargos específicos para restringir o acesso.
-          </p>
-          
-          {franchiseePositions && franchiseePositions.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-blue-600">Franqueados</Label>
-              <div className="grid grid-cols-1 gap-2">
-                {franchiseePositions.map((position) => (
-                  <div key={position.code} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={position.code}
-                      checked={selectedPositions.includes(position.code)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedPositions([...selectedPositions, position.code]);
-                        } else {
-                          setSelectedPositions(selectedPositions.filter(p => p !== position.code));
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {collaboratorPositions && collaboratorPositions.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-green-600">Colaboradores</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {collaboratorPositions.map((position) => (
-                  <div key={position.code} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={position.code}
-                      checked={selectedPositions.includes(position.code)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedPositions([...selectedPositions, position.code]);
-                        } else {
-                          setSelectedPositions(selectedPositions.filter(p => p !== position.code));
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (formData.public_target === 'franqueado' && franchiseePositions && franchiseePositions.length > 0) {
-      return (
-        <div className="grid gap-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <Label className="text-sm font-medium">Tipos de Franqueado com Acesso (opcional)</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Se nenhum tipo for selecionado, todos os franqueados terão acesso.
-          </p>
-          <div className="grid grid-cols-1 gap-2">
-            {franchiseePositions.map((position) => (
-              <div key={position.code} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id={position.code}
-                  checked={selectedPositions.includes(position.code)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedPositions([...selectedPositions, position.code]);
-                    } else {
-                      setSelectedPositions(selectedPositions.filter(p => p !== position.code));
-                    }
-                  }}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (formData.public_target === 'colaborador' && collaboratorPositions && collaboratorPositions.length > 0) {
-      return (
-        <div className="grid gap-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            <Label className="text-sm font-medium">Cargos de Colaborador com Acesso (opcional)</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Se nenhum cargo for selecionado, todos os colaboradores terão acesso.
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {collaboratorPositions.map((position) => (
-              <div key={position.code} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id={position.code}
-                  checked={selectedPositions.includes(position.code)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedPositions([...selectedPositions, position.code]);
-                    } else {
-                      setSelectedPositions(selectedPositions.filter(p => p !== position.code));
-                    }
-                  }}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor={position.code} className="text-sm">{position.name}</Label>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    return null;
   };
 
   return (
@@ -313,41 +174,79 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="tipo">Tipo de Curso</Label>
-              <select
-                id="tipo"
-                value={formData.tipo}
-                onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
-                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              >
-                <option value="ao_vivo">Curso (Ao Vivo)</option>
-                <option value="gravado">Treinamento (Online)</option>
-              </select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="publicTarget">Público-alvo</Label>
-              <select
-                id="publicTarget"
-                value={formData.public_target}
-                onChange={(e) => handlePublicTargetChange(e.target.value)}
-                className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
-              >
-                <option value="franqueado">Franqueado</option>
-                <option value="colaborador">Colaborador</option>
-                <option value="ambos">Ambos</option>
-              </select>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="tipo">Tipo de Curso</Label>
+            <select
+              id="tipo"
+              value={formData.tipo}
+              onChange={(e) => setFormData({ ...formData, tipo: e.target.value as 'ao_vivo' | 'gravado' })}
+              className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            >
+              <option value="ao_vivo">Curso (Ao Vivo)</option>
+              <option value="gravado">Treinamento (Online)</option>
+            </select>
           </div>
 
-          {/* Seção de seleção de cargos */}
-          {renderPositionSelection() && (
-            <div className="border rounded-md p-4 bg-gray-50">
-              {renderPositionSelection()}
+          {/* Seleção de Cargos com Acesso */}
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <Label className="text-sm font-medium">Cargos com Acesso (opcional)</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Se nenhum cargo for selecionado, todos os usuários terão acesso. Selecione cargos específicos para restringir o acesso.
+              </p>
+              
+              <div className="border rounded-md p-3 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-blue-600">Cargos de Franqueado</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {jobPositions
+                      .filter(position => position.category === 'franqueado')
+                      .map(position => (
+                        <div key={position.code} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`pos-${position.code}`}
+                            checked={selectedPositions.includes(position.code)}
+                            onChange={(e) => handlePositionChange(position.code, e.target.checked)}
+                            className="rounded border-gray-300"
+                          />
+                          <Label htmlFor={`pos-${position.code}`} className="text-sm">
+                            {position.name}
+                          </Label>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-green-600">Cargos de Colaborador</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {jobPositions
+                      .filter(position => position.category === 'colaborador')
+                      .map(position => (
+                        <div key={position.code} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`pos-${position.code}`}
+                            checked={selectedPositions.includes(position.code)}
+                            onChange={(e) => handlePositionChange(position.code, e.target.checked)}
+                            className="rounded border-gray-300"
+                          />
+                          <Label htmlFor={`pos-${position.code}`} className="text-sm">
+                            {position.name}
+                          </Label>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
