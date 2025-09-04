@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Course, useUpdateCourse } from "@/hooks/useCourses";
+import { useJobPositions } from "@/hooks/useJobPositions";
+import { useCoursePositionAccess, useManageCourseAccess } from "@/hooks/useCourseAccess";
 
 interface EditCourseDialogProps {
   course: Course | null;
@@ -22,13 +24,26 @@ interface EditCourseDialogProps {
 
 const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps) => {
   const updateCourseMutation = useUpdateCourse();
+  const { updateAccess } = useManageCourseAccess();
+  const { data: jobPositions = [] } = useJobPositions();
+  const { data: courseAccess = [] } = useCoursePositionAccess(course?.id || '');
+  
   const [formData, setFormData] = useState<Course | null>(null);
+  const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
 
   useEffect(() => {
     if (course) {
       setFormData({ ...course });
     }
   }, [course]);
+
+  useEffect(() => {
+    if (courseAccess.length > 0) {
+      setSelectedPositions(courseAccess.map(access => access.position_code));
+    } else {
+      setSelectedPositions([]);
+    }
+  }, [courseAccess]);
 
   if (!formData) return null;
 
@@ -37,8 +52,36 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
       return;
     }
 
-    await updateCourseMutation.mutateAsync(formData);
-    onOpenChange(false);
+    try {
+      // Atualizar o curso
+      await updateCourseMutation.mutateAsync(formData);
+      
+      // Atualizar as permissões de acesso
+      if (course?.id) {
+        await updateAccess.mutateAsync({
+          courseId: course.id,
+          positionCodes: selectedPositions
+        });
+      }
+      
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Erro ao salvar curso:', error);
+    }
+  };
+
+  const handlePositionChange = (positionCode: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPositions(prev => [...prev, positionCode]);
+    } else {
+      setSelectedPositions(prev => prev.filter(code => code !== positionCode));
+    }
+  };
+
+  const handlePublicTargetChange = (newTarget: string) => {
+    setFormData({ ...formData, public_target: newTarget });
+    // Reset selected positions when changing public target
+    setSelectedPositions([]);
   };
 
   return (
@@ -144,7 +187,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
               <select
                 id="publicTarget"
                 value={formData.public_target}
-                onChange={(e) => setFormData({ ...formData, public_target: e.target.value })}
+                onChange={(e) => handlePublicTargetChange(e.target.value)}
                 className="h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
                 <option value="franqueado">Franqueado</option>
@@ -153,6 +196,55 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
               </select>
             </div>
           </div>
+
+          {/* Seleção de Cargos Específicos */}
+          {(formData.public_target === 'franqueado' || formData.public_target === 'ambos') && (
+            <div className="grid gap-2">
+              <Label>Cargos de Franqueado com Acesso</Label>
+              <div className="border rounded-md p-3 space-y-2">
+                {jobPositions
+                  .filter(position => position.category === 'franqueado')
+                  .map(position => (
+                    <div key={position.code} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`pos-${position.code}`}
+                        checked={selectedPositions.includes(position.code)}
+                        onChange={(e) => handlePositionChange(position.code, e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor={`pos-${position.code}`} className="text-sm">
+                        {position.name}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {(formData.public_target === 'colaborador' || formData.public_target === 'ambos') && (
+            <div className="grid gap-2">
+              <Label>Cargos de Colaborador com Acesso</Label>
+              <div className="border rounded-md p-3 space-y-2">
+                {jobPositions
+                  .filter(position => position.category === 'colaborador')
+                  .map(position => (
+                    <div key={position.code} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`pos-${position.code}`}
+                        checked={selectedPositions.includes(position.code)}
+                        onChange={(e) => handlePositionChange(position.code, e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor={`pos-${position.code}`} className="text-sm">
+                        {position.name}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor="status">Status</Label>
@@ -200,10 +292,10 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
           </Button>
           <Button 
             onClick={handleSave}
-            disabled={updateCourseMutation.isPending || !formData.name.trim()}
+            disabled={updateCourseMutation.isPending || updateAccess.isPending || !formData.name.trim()}
           >
             <Save className="w-4 h-4" />
-            {updateCourseMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            {(updateCourseMutation.isPending || updateAccess.isPending) ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </DialogFooter>
       </DialogContent>
