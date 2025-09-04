@@ -66,6 +66,9 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEdi
     onViewDetails(turma);
   };
 
+  const professorName: string = turma.responsavel_user?.name || turma.responsavel_name || course?.instructor || 'Professor não definido';
+  const professorEmail: string | undefined = turma.responsavel_user?.email;
+
   return (
     <Card className="card-clean cursor-pointer hover:shadow-clean-md transition-all duration-200" onClick={handleCardClick}>
       <CardHeader className="pb-3">
@@ -109,16 +112,18 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEdi
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
             <span className="text-xs font-medium text-primary">
-              {turma.responsavel_user?.name?.charAt(0) || 'P'}
+              {professorName?.charAt(0) || 'P'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {turma.responsavel_user?.name || 'Professor não definido'}
+              {professorName}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {turma.responsavel_user?.email}
-            </p>
+            {professorEmail && (
+              <p className="text-xs text-muted-foreground truncate">
+                {professorEmail}
+              </p>
+            )}
           </div>
         </div>
 
