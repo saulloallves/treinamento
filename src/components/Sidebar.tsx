@@ -23,6 +23,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useState, useCallback, useMemo } from "react";
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -47,6 +48,7 @@ const Sidebar = () => {
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
+  const { data: isProfessor = false } = useIsProfessor(user?.id);
   const { data: currentUser } = useCurrentUser();
   const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
@@ -57,8 +59,8 @@ const Sidebar = () => {
   );
   
   const shouldShowProfessorMenu = useMemo(() => 
-    selectedProfile === 'Professor' && currentUser?.user_type === 'Professor',
-    [selectedProfile, currentUser?.user_type]
+    selectedProfile === 'Professor' || (selectedProfile === null && isProfessor && !isAdmin),
+    [selectedProfile, isProfessor, isAdmin]
   );
   
   // Menu para alunos (inclui gestão de colaboradores para franqueados)
@@ -208,19 +210,21 @@ const Sidebar = () => {
 
   // Auto-expand group that contains the current active page
   const getCurrentActiveGroup = useMemo(() => {
-    for (const group of adminMenuStructure) {
+    const menuStructure = shouldShowProfessorMenu ? professorMenuStructure : adminMenuStructure;
+    for (const group of menuStructure) {
       if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
         return group.id;
       }
     }
     return null;
-  }, [location.pathname]);
+  }, [location.pathname, shouldShowProfessorMenu]);
 
   // Update expanded state when route changes to show active group
   React.useEffect(() => {
     // Only auto-expand when the route changes (don't fight user toggles)
+    const menuStructure = shouldShowProfessorMenu ? professorMenuStructure : adminMenuStructure;
     const activeGroup = (() => {
-      for (const group of adminMenuStructure) {
+      for (const group of menuStructure) {
         if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
           return group.id;
         }
@@ -234,7 +238,7 @@ const Sidebar = () => {
         [activeGroup]: true
       }));
     }
-  }, [location.pathname]);
+  }, [location.pathname, shouldShowProfessorMenu]);
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
@@ -261,6 +265,47 @@ const Sidebar = () => {
 
   const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
+      if (!item.isGroup) {
+        return renderMenuItem(item);
+      }
+
+      const isExpanded = expandedGroups[item.id];
+      const hasActiveChild = isGroupActive(item);
+      
+      return (
+        <div key={item.id} className="space-y-1">
+          <button
+            type="button"
+            onClick={() => toggleGroup(item.id)}
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
+              hasActiveChild
+                ? 'bg-secondary text-primary'
+                : 'text-foreground hover:bg-secondary hover:text-primary'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+                <item.icon className="w-5 h-5" />
+              </div>
+              {item.name}
+            </div>
+            <div className="will-change-transform">
+              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
+            </div>
+          </button>
+          
+          {item.items && (
+            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
+              {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
+            </div>
+          )}
+        </div>
+      );
+    });
+  }, [expandedGroups, isGroupActive, toggleGroup, renderMenuItem]);
+
+  const renderProfessorMenu = useCallback(() => {
+    return professorMenuStructure.map((item) => {
       if (!item.isGroup) {
         return renderMenuItem(item);
       }
@@ -370,7 +415,7 @@ const Sidebar = () => {
 
             {/* Menu de navegação */}
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
-              {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
+              {shouldShowAdminMenu ? renderAdminMenu() : shouldShowProfessorMenu ? renderProfessorMenu() : renderStudentMenu()}
             </nav>
 
             {/* Footer da sidebar */}
@@ -383,7 +428,7 @@ const Sidebar = () => {
                 </div>
                 <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
+              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
             </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
@@ -418,7 +463,7 @@ const Sidebar = () => {
 
       {/* Menu de navegação */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
-        {shouldShowAdminMenu ? renderAdminMenu() : renderStudentMenu()}
+        {shouldShowAdminMenu ? renderAdminMenu() : shouldShowProfessorMenu ? renderProfessorMenu() : renderStudentMenu()}
       </nav>
 
       {/* Footer da sidebar */}
@@ -431,7 +476,7 @@ const Sidebar = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">
-              {selectedProfile || (isAdmin ? 'Admin' : 'Aluno')}
+              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
             </p>
             <p className="text-xs text-muted-foreground">
               {user?.email ?? ''}
