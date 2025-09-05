@@ -23,8 +23,8 @@ const CourseScheduleCard = ({
   onClick 
 }: CourseScheduleCardProps) => {
   return (
-    <Card className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 h-64 bg-gradient-to-br from-background to-muted/30">
-      <CardHeader className="pb-3">
+    <Card className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 h-64 bg-gradient-to-br from-background to-muted/30 flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
         <div className="flex items-center justify-center mb-2">
           <div className="h-12 w-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
             <BookOpen className="h-6 w-6 text-primary" />
@@ -35,7 +35,7 @@ const CourseScheduleCard = ({
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-3 flex flex-col justify-between flex-1">
+      <CardContent className="flex flex-col justify-between flex-1 p-4">
         <div className="space-y-2 flex-1">
           <div className="flex justify-center">
             <Badge variant="secondary" className="text-xs">
@@ -62,7 +62,7 @@ const CourseScheduleCard = ({
         
         <Button 
           onClick={onClick}
-          className="w-full mt-4" 
+          className="w-full mt-3" 
           size="sm"
           variant="default"
         >
