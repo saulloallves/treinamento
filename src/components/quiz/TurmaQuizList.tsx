@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,34 +59,36 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
+    <div className="space-y-8">
+      {/* Filtros - Layout otimizado */}
+      <Card className="border-0 shadow-clean bg-muted/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-lg">
+            <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
+              <Filter className="w-4 h-4 text-primary" />
+            </div>
             Filtrar Turmas
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Buscar</label>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">Buscar</label>
               <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Nome da turma, código ou curso..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-11 border-0 bg-background shadow-sm"
                 />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Curso</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">Curso</label>
               <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 border-0 bg-background shadow-sm">
                   <SelectValue placeholder="Todos os cursos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -100,10 +102,10 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground">Status</label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 border-0 bg-background shadow-sm">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -120,8 +122,17 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
         </CardContent>
       </Card>
 
-      {/* Lista de Turmas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Cabeçalho dos resultados */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {filteredTurmas.length} turma{filteredTurmas.length !== 1 ? 's' : ''} encontrada{filteredTurmas.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* Grid otimizada - Responsiva e com melhor espaçamento */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredTurmas.map((turma) => (
           <TurmaQuizCard
             key={turma.id}
@@ -131,9 +142,18 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
         ))}
       </div>
 
+      {/* Estado vazio melhorado */}
       {filteredTurmas.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          Nenhuma turma encontrada com os filtros aplicados.
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-muted/50 rounded-full flex items-center justify-center">
+            <BookOpen className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            Nenhuma turma encontrada
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Tente ajustar os filtros ou verificar se existem turmas cadastradas.
+          </p>
         </div>
       )}
     </div>

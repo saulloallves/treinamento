@@ -1,5 +1,5 @@
 import { Calendar, Users, BookOpen, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Turma } from "@/hooks/useTurmas";
@@ -41,62 +41,78 @@ const TurmaQuizCard = ({ turma, onManageQuizzes }: TurmaQuizCardProps) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="space-y-2">
-            <CardTitle className="text-lg">{turma.name || `Turma ${turma.code}`}</CardTitle>
+    <Card className="group relative overflow-hidden border-0 bg-card shadow-clean hover:shadow-clean-md transition-all duration-300 hover:scale-105">
+      {/* Status Badge - Proeminente no topo */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 to-primary/5"></div>
+      <div className="absolute top-3 right-3">
+        <Badge className={`${getStatusColor(turma.status)} text-white shadow-sm`}>
+          {getStatusText(turma.status)}
+        </Badge>
+      </div>
+
+      <CardContent className="p-6">
+        {/* Header da turma */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-foreground line-clamp-1 mb-2">
+            {turma.name || `Turma ${turma.code}`}
+          </h3>
+          {turma.course && (
             <div className="flex items-center gap-2">
-              <Badge className={`${getStatusColor(turma.status)} text-white`}>
-                {getStatusText(turma.status)}
+              <Badge variant="outline" className="text-xs">
+                {turma.course.name}
               </Badge>
-              {turma.course && (
-                <Badge variant="outline">
-                  {turma.course.name}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button
-            onClick={() => onManageQuizzes(turma)}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <BookOpen className="w-4 h-4" />
-            Gerenciar Quizzes
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span>{turma.enrollments_count || 0} inscritos</span>
-          </div>
-          
-          {turma.start_at && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span>Início: {new Date(turma.start_at).toLocaleDateString()}</span>
             </div>
           )}
+        </div>
+
+        {/* Grid de informações - Mais compacto e visual */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="text-center">
+            <div className="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-sm font-medium text-foreground">{turma.enrollments_count || 0}</div>
+            <div className="text-xs text-muted-foreground">inscritos</div>
+          </div>
           
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-muted-foreground" />
-            <span>{turma.quizCount || 0} quizzes criados</span>
+          <div className="text-center">
+            <div className="w-10 h-10 mx-auto mb-2 bg-accent/10 rounded-full flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-accent" />
+            </div>
+            <div className="text-sm font-medium text-foreground">{turma.quizCount || 0}</div>
+            <div className="text-xs text-muted-foreground">quizzes</div>
+          </div>
+
+          <div className="text-center">
+            <div className="w-10 h-10 mx-auto mb-2 bg-secondary/10 rounded-full flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-secondary-foreground" />
+            </div>
+            <div className="text-sm font-medium text-foreground">
+              {turma.start_at ? new Date(turma.start_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--'}
+            </div>
+            <div className="text-xs text-muted-foreground">início</div>
           </div>
         </div>
-        
+
+        {/* Responsável - Layout mais discreto */}
         {turma.responsavel_user && (
-          <div className="mt-4 p-3 bg-muted rounded-lg">
-            <p className="text-sm">
-              <strong>Responsável:</strong> {turma.responsavel_user.name}
+          <div className="mb-4 p-3 bg-muted/50 rounded-md border border-border/50">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium">Responsável:</span> {turma.responsavel_user.name}
             </p>
           </div>
         )}
+
+        {/* Botão de ação - Redesenhado e mais chamativo */}
+        <Button
+          onClick={() => onManageQuizzes(turma)}
+          className="w-full group-hover:scale-105 transition-transform duration-200"
+          size="sm"
+        >
+          <BookOpen className="w-4 h-4 mr-2" />
+          Gerenciar Quizzes
+          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+        </Button>
       </CardContent>
     </Card>
   );
