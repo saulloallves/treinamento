@@ -34,6 +34,7 @@ interface CreateQuizDialogProps {
   turmaName?: string;
   courseName?: string;
   lessonTitle?: string;
+  defaultQuizName?: string;
 }
 
 const CreateQuizDialog = ({ 
@@ -44,7 +45,8 @@ const CreateQuizDialog = ({
   preselectedTurmaId,
   turmaName,
   courseName,
-  lessonTitle
+  lessonTitle,
+  defaultQuizName
 }: CreateQuizDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
@@ -54,7 +56,7 @@ const CreateQuizDialog = ({
   const [formData, setFormData] = useState({
     course_id: preselectedCourseId || "",
     lesson_id: preselectedLessonId || "",
-    quiz_name: "",
+    quiz_name: defaultQuizName || "",
     question: "",
     question_type: "multiple_choice",
     option_a: "",
@@ -119,7 +121,7 @@ const CreateQuizDialog = ({
       setFormData({
         course_id: preselectedCourseId || "",
         lesson_id: preselectedLessonId || "",
-        quiz_name: "",
+        quiz_name: defaultQuizName || "",
         question: "",
         question_type: "multiple_choice",
         option_a: "",
@@ -208,6 +210,16 @@ const CreateQuizDialog = ({
               </div>
             </>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="quiz_name">Nome do Quiz</Label>
+            <Input
+              id="quiz_name"
+              value={formData.quiz_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, quiz_name: e.target.value }))}
+              placeholder="Nome do quiz (opcional)"
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="question_type">Tipo de Pergunta *</Label>

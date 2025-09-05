@@ -10,7 +10,7 @@ import { Turma } from "@/hooks/useTurmas";
 import CreateQuizDialog from "./CreateQuizDialog";
 import CreateMultipleQuestionsDialog from "./CreateMultipleQuestionsDialog";
 import EditQuizDialog from "./EditQuizDialog";
-import EditQuizNameDialog from "./EditQuizNameDialog";
+import EditFullQuizDialog from "./EditFullQuizDialog";
 import DuplicateQuizDialog from "./DuplicateQuizDialog";
 
 interface LessonQuizManagerProps {
@@ -251,10 +251,14 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           onOpenChange={(open) => !open && setEditingQuestion(null)}
         />
 
-        <EditQuizNameDialog
+        <EditFullQuizDialog
           quiz={editingQuiz}
           open={!!editingQuiz}
           onOpenChange={(open) => !open && setEditingQuiz(null)}
+          turmaId={turma.id}
+          turmaName={turma.name || `Turma ${turma.code}`}
+          courseName={turma.course?.name}
+          lessonTitle={selectedLesson?.title}
         />
 
         {duplicatingQuiz && (
