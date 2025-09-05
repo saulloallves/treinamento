@@ -77,7 +77,7 @@ const StudentPortal = () => {
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-blue-100 text-blue-700'
                       }`}>
-                        {enroll.course?.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
+                        {enroll.course?.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
                       </span>
                     </div>
                     
