@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Settings, UserX, UserCheck, Trash2, Edit } from "lucide-react";
+import { Plus, Settings, UserX, UserCheck, Trash2, Edit, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useProfessors, useUpdateProfessorStatus, useDeleteProfessor } from "@/hooks/useProfessors";
 import CreateProfessorDialog from "./CreateProfessorDialog";
 import ProfessorPermissionsDialog from "./ProfessorPermissionsDialog";
+import ResetPasswordDialog from "./ResetPasswordDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -31,6 +32,8 @@ const ProfessorsList = () => {
   const [selectedProfessorId, setSelectedProfessorId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [professorToDelete, setProfessorToDelete] = useState<string | null>(null);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [selectedProfessor, setSelectedProfessor] = useState<{ id: string; name: string } | null>(null);
 
   const { data: professors = [], isLoading } = useProfessors();
   const updateStatusMutation = useUpdateProfessorStatus();
@@ -51,6 +54,11 @@ const ProfessorsList = () => {
   const handleDeleteClick = (professorId: string) => {
     setProfessorToDelete(professorId);
     setDeleteDialogOpen(true);
+  };
+
+  const handleResetPasswordClick = (professorId: string, professorName: string) => {
+    setSelectedProfessor({ id: professorId, name: professorName });
+    setResetPasswordDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
@@ -129,6 +137,12 @@ const ProfessorsList = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Gerenciar Permissões
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleResetPasswordClick(professor.id, professor.name)}
+                        >
+                          <Key className="h-4 w-4 mr-2" />
+                          Redefinir Senha
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => handleToggleStatus(professor.id, professor.active)}
@@ -180,6 +194,13 @@ const ProfessorsList = () => {
         professorId={selectedProfessorId}
         open={permissionsDialogOpen}
         onOpenChange={setPermissionsDialogOpen}
+      />
+
+      <ResetPasswordDialog
+        open={resetPasswordDialogOpen}
+        onOpenChange={setResetPasswordDialogOpen}
+        professorId={selectedProfessor?.id || null}
+        professorName={selectedProfessor?.name || ""}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

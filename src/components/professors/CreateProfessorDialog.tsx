@@ -25,6 +25,7 @@ import { useCreateProfessor } from "@/hooks/useProfessors";
 const formSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   phone: z.string().optional(),
   position: z.string().optional(),
 });
@@ -42,6 +43,7 @@ const CreateProfessorDialog = ({ open, onOpenChange }: CreateProfessorDialogProp
     defaultValues: {
       name: "",
       email: "",
+      password: "",
       phone: "",
       position: "",
     },
@@ -52,6 +54,7 @@ const CreateProfessorDialog = ({ open, onOpenChange }: CreateProfessorDialogProp
       await createProfessorMutation.mutateAsync({
         name: values.name,
         email: values.email,
+        password: values.password,
         phone: values.phone || undefined,
         position: values.position || undefined,
       });
@@ -69,7 +72,8 @@ const CreateProfessorDialog = ({ open, onOpenChange }: CreateProfessorDialogProp
         <DialogHeader>
           <DialogTitle>Novo Professor</DialogTitle>
           <DialogDescription>
-            Preencha os dados do professor. Uma senha temporária será gerada automaticamente.
+            Preencha os dados do professor e defina uma senha inicial. 
+            O professor não poderá alterar a senha posteriormente.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,6 +103,24 @@ const CreateProfessorDialog = ({ open, onOpenChange }: CreateProfessorDialogProp
                     <Input 
                       type="email" 
                       placeholder="professor@exemplo.com" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="password" 
+                      placeholder="Digite uma senha segura" 
                       {...field} 
                     />
                   </FormControl>

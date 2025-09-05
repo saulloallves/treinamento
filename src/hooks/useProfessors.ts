@@ -50,13 +50,14 @@ export const useCreateProfessor = () => {
     mutationFn: async (professorData: {
       name: string;
       email: string;
+      password: string;
       phone?: string;
       position?: string;
     }) => {
       // First create the user in auth
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: professorData.email,
-        password: 'TrocaEstaSenh@123', // Senha temporária
+        password: professorData.password,
         email_confirm: true,
         user_metadata: {
           full_name: professorData.name,
@@ -95,7 +96,7 @@ export const useCreateProfessor = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professors"] });
       toast.success("Professor criado com sucesso!", {
-        description: "Senha temporária: TrocaEstaSenh@123"
+        description: "A senha foi definida conforme informado"
       });
     },
     onError: (error: Error) => {
