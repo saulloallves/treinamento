@@ -12,12 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 interface LessonQuizProps {
   lessonId: string;
   courseId: string;
+  turmaId?: string;
 }
 
-const LessonQuiz = ({ lessonId, courseId }: LessonQuizProps) => {
+const LessonQuiz = ({ lessonId, courseId, turmaId }: LessonQuizProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: questions = [], isLoading } = useQuestionsByLesson(lessonId);
+  const { data: questions = [], isLoading } = useQuestionsByLesson(lessonId, turmaId);
   
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

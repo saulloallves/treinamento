@@ -163,7 +163,8 @@ const CreateMultipleQuestionsDialog = ({
           option_b: question.question_type === "multiple_choice" ? question.option_b : null,
           option_c: question.question_type === "multiple_choice" ? question.option_c : null,
           option_d: question.question_type === "multiple_choice" ? question.option_d : null,
-          correct_answer: question.question_type === "multiple_choice" ? question.correct_answer : null,
+          // Para perguntas dissertativas, correct_answer deve ser null
+          correct_answer: question.question_type === "essay" ? null : question.correct_answer,
           order_index: index,
         };
 

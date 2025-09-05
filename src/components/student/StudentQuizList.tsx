@@ -3,27 +3,51 @@ import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/hooks/useQuiz";
 import { useState } from "react";
 import LessonQuiz from "@/components/quiz/LessonQuiz";
+import { useMyEnrollments } from "@/hooks/useMyEnrollments";
 
 const StudentQuizList = () => {
-  const { data: quizzes = [], isLoading } = useQuiz();
-  const [selectedQuiz, setSelectedQuiz] = useState<{ lessonId: string; courseId: string; lessonTitle: string } | null>(null);
+  const { data: quizzes = [], isLoading: quizzesLoading } = useQuiz();
+  const { data: enrollments = [], isLoading: enrollmentsLoading } = useMyEnrollments();
+  const [selectedQuiz, setSelectedQuiz] = useState<{ lessonId: string; courseId: string; lessonTitle: string; turmaId?: string } | null>(null);
 
-  // Agrupar quizzes por aula
-  const quizzesByLesson = quizzes.reduce((acc, quiz) => {
+  const isLoading = quizzesLoading || enrollmentsLoading;
+
+  // Get enrolled course IDs and turma IDs
+  const enrolledCourseIds = new Set(enrollments.map(e => e.course.id));
+  const enrolledTurmaIds = new Set(enrollments.map(e => e.turma?.id).filter(Boolean));
+
+  // Filter quizzes based on enrollment
+  const relevantQuizzes = quizzes.filter(quiz => {
+    // Must be for a course the student is enrolled in
+    if (!enrolledCourseIds.has(quiz.course_id)) return false;
+    
+    // If quiz has no turma_id (general quiz), include it
+    if (!quiz.turma_id) return true;
+    
+    // If quiz has turma_id, student must be enrolled in that turma
+    return enrolledTurmaIds.has(quiz.turma_id);
+  });
+
+  // Group relevant quizzes by lesson
+  const quizzesByLesson = relevantQuizzes.reduce((acc, quiz) => {
     const lessonId = quiz.lesson_id;
     if (!lessonId) return acc;
     
     if (!acc[lessonId]) {
+      // Find the enrollment for this course to get turma info
+      const enrollment = enrollments.find(e => e.course.id === quiz.course_id);
+      
       acc[lessonId] = {
         lessonTitle: quiz.lessons?.title || 'Aula sem título',
         courseId: quiz.course_id,
         courseName: quiz.courses?.name || 'Curso sem nome',
+        turmaId: enrollment?.turma?.id,
         quizzes: []
       };
     }
     acc[lessonId].quizzes.push(quiz);
     return acc;
-  }, {} as Record<string, { lessonTitle: string; courseId: string; courseName: string; quizzes: any[] }>);
+  }, {} as Record<string, { lessonTitle: string; courseId: string; courseName: string; turmaId?: string; quizzes: any[] }>);
 
   if (isLoading) {
     return <p>Carregando quizzes...</p>;
@@ -45,7 +69,7 @@ const StudentQuizList = () => {
           </Button>
           <h3 className="text-lg font-semibold">{selectedQuiz.lessonTitle}</h3>
         </div>
-        <LessonQuiz lessonId={selectedQuiz.lessonId} courseId={selectedQuiz.courseId} />
+        <LessonQuiz lessonId={selectedQuiz.lessonId} courseId={selectedQuiz.courseId} turmaId={selectedQuiz.turmaId} />
       </div>
     );
   }
@@ -69,7 +93,8 @@ const StudentQuizList = () => {
                 onClick={() => setSelectedQuiz({
                   lessonId,
                   courseId: lessonData.courseId,
-                  lessonTitle: lessonData.lessonTitle
+                  lessonTitle: lessonData.lessonTitle,
+                  turmaId: lessonData.turmaId
                 })}
               >
                 Responder Quiz

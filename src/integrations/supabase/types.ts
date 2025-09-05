@@ -709,7 +709,7 @@ export type Database = {
       }
       quiz: {
         Row: {
-          correct_answer: string
+          correct_answer: string | null
           course_id: string
           created_at: string
           id: string
@@ -725,7 +725,7 @@ export type Database = {
           turma_id: string | null
         }
         Insert: {
-          correct_answer: string
+          correct_answer?: string | null
           course_id: string
           created_at?: string
           id?: string
@@ -741,7 +741,7 @@ export type Database = {
           turma_id?: string | null
         }
         Update: {
-          correct_answer?: string
+          correct_answer?: string | null
           course_id?: string
           created_at?: string
           id?: string
@@ -785,7 +785,7 @@ export type Database = {
           answered_at: string
           course_id: string
           id: string
-          is_correct: boolean
+          is_correct: boolean | null
           quiz_id: string
           selected_answer: string
           user_id: string
@@ -794,7 +794,7 @@ export type Database = {
           answered_at?: string
           course_id: string
           id?: string
-          is_correct: boolean
+          is_correct?: boolean | null
           quiz_id: string
           selected_answer: string
           user_id: string
@@ -803,7 +803,7 @@ export type Database = {
           answered_at?: string
           course_id?: string
           id?: string
-          is_correct?: boolean
+          is_correct?: boolean | null
           quiz_id?: string
           selected_answer?: string
           user_id?: string

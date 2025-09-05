@@ -124,10 +124,11 @@ export const useQuestionsByLesson = (lessonId: string, turmaId?: string) => {
         .eq("lesson_id", lessonId)
         .order("order_index", { ascending: true });
 
-      // If turmaId is provided, filter by it, otherwise get general quizzes (no turma_id)
+      // If turmaId is provided, get both general quizzes and turma-specific quizzes
       if (turmaId) {
-        query = query.eq("turma_id", turmaId);
+        query = query.or(`turma_id.is.null,turma_id.eq.${turmaId}`);
       } else {
+        // If no turmaId provided, get only general quizzes (no turma_id)
         query = query.is("turma_id", null);
       }
 
