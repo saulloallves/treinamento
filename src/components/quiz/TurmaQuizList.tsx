@@ -39,8 +39,8 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
       turma.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       turma.course?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCourse = !selectedCourse || turma.course_id === selectedCourse;
-    const matchesStatus = !selectedStatus || turma.status === selectedStatus;
+    const matchesCourse = !selectedCourse || selectedCourse === "all" || turma.course_id === selectedCourse;
+    const matchesStatus = !selectedStatus || selectedStatus === "all" || turma.status === selectedStatus;
     
     return matchesSearch && matchesCourse && matchesStatus;
   });
@@ -90,7 +90,7 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
                   <SelectValue placeholder="Todos os cursos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os cursos</SelectItem>
+                  <SelectItem value="all">Todos os cursos</SelectItem>
                   {courses.map((course: any) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.name}
@@ -107,7 +107,7 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="agendada">Agendada</SelectItem>
                   <SelectItem value="inscricoes_abertas">Inscrições Abertas</SelectItem>
                   <SelectItem value="inscricoes_encerradas">Inscrições Encerradas</SelectItem>
