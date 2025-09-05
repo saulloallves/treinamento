@@ -10,6 +10,7 @@ import { Turma } from "@/hooks/useTurmas";
 import CreateQuizDialog from "./CreateQuizDialog";
 import CreateMultipleQuestionsDialog from "./CreateMultipleQuestionsDialog";
 import EditQuizDialog from "./EditQuizDialog";
+import EditQuizNameDialog from "./EditQuizNameDialog";
 import DuplicateQuizDialog from "./DuplicateQuizDialog";
 
 interface LessonQuizManagerProps {
@@ -30,6 +31,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateMultipleDialogOpen, setIsCreateMultipleDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [editingQuiz, setEditingQuiz] = useState<{ name: string; questions: any[] } | null>(null);
   const [duplicatingQuiz, setDuplicatingQuiz] = useState<{ questions: any[], quizName: string } | null>(null);
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<LessonByCourse | null>(null);
@@ -156,15 +158,26 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
                           {quiz.questions.length} pergunta{quiz.questions.length !== 1 ? 's' : ''}
                         </Badge>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name })}
-                        className="flex items-center gap-2"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Duplicar
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingQuiz({ name: quiz.name, questions: quiz.questions })}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Editar Quiz
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name })}
+                          className="flex items-center gap-2"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Duplicar
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   
@@ -236,6 +249,12 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           question={editingQuestion}
           open={!!editingQuestion}
           onOpenChange={(open) => !open && setEditingQuestion(null)}
+        />
+
+        <EditQuizNameDialog
+          quiz={editingQuiz}
+          open={!!editingQuiz}
+          onOpenChange={(open) => !open && setEditingQuiz(null)}
         />
 
         {duplicatingQuiz && (
