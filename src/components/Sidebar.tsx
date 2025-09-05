@@ -55,6 +55,11 @@ const Sidebar = () => {
   const { data: currentUser } = useCurrentUser();
   const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
+  // Reset active group when navigating to a different route
+  useEffect(() => {
+    setActiveGroup(null);
+  }, [location.pathname]);
+  
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => 
     selectedProfile === 'Admin' || (selectedProfile === null && isAdmin),
