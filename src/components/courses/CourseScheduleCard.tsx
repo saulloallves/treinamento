@@ -24,26 +24,6 @@ interface CourseScheduleCardProps {
   onClick: () => void;
 }
 
-// Gradientes padrão baseados nos temas
-const getThemeGradient = (themes: string[] = [], tipo: string = 'ao_vivo') => {
-  if (themes.includes('Vendas')) {
-    return 'bg-gradient-to-br from-emerald-400 to-emerald-600';
-  }
-  if (themes.includes('Atendimento')) {
-    return 'bg-gradient-to-br from-blue-400 to-blue-600';
-  }
-  if (themes.includes('Liderança')) {
-    return 'bg-gradient-to-br from-purple-400 to-purple-600';
-  }
-  if (themes.includes('Operacional')) {
-    return 'bg-gradient-to-br from-orange-400 to-orange-600';
-  }
-  if (tipo === 'ao_vivo') {
-    return 'bg-gradient-to-br from-blue-500 to-blue-700';
-  }
-  return 'bg-gradient-to-br from-indigo-400 to-indigo-600';
-};
-
 const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
   courseId,
   courseName,
@@ -53,8 +33,6 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
   theme = [],
   onClick
 }) => {
-  const gradientClass = getThemeGradient(theme, tipo);
-
   const handleCardClick = () => {
     onClick();
   };
@@ -69,35 +47,28 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
       className="overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-200"
       onClick={handleCardClick}
     >
-      {/* Cover Area - Only solid gradient colors */}
-      <div className="relative aspect-video">
-        <div className={`w-full h-full ${gradientClass}`} />
-        
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        
-        {/* Course Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-white font-bold text-lg leading-tight mb-2">
-            {courseName}
-          </h3>
-          <div className="flex flex-wrap gap-1">
+      {/* Header */}
+      <div className="p-4 pb-2">
+        <h3 className="font-bold text-lg leading-tight mb-2">
+          {courseName}
+        </h3>
+        {theme.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
             {theme.slice(0, 2).map((themeItem, index) => (
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs bg-white/20 text-white border-white/30"
+                className="text-xs"
               >
                 {themeItem}
               </Badge>
             ))}
           </div>
-        </div>
-
+        )}
       </div>
 
       {/* Content */}
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-4 pt-0 space-y-3">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <BookOpen className="w-4 h-4" />
