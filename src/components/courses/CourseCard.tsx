@@ -189,39 +189,31 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             Detalhes
           </Button>
           
-          {/* Course Type Specific Actions */}
-          {course.tipo === 'ao_vivo' && onViewRecordedLessons && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewRecordedLessons(course.id, course.name)}
-              title="Gerenciar Aulas"
-            >
-              <BookOpen className="w-4 h-4" />
-            </Button>
-          )}
-          
-          {course.tipo === 'gravado' && onViewRecordedCourses && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewRecordedCourses(course.id, course.name)}
-              title="Gerenciar Módulos"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          )}
-          
-          {/* View as Student */}
-          {onViewAsStudent && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewAsStudent(course)}
-              title="Visualizar como Aluno"
-            >
-              👁️
-            </Button>
+          {/* Only show management buttons for recorded courses */}
+          {course.tipo === 'gravado' && (
+            <>
+              {onViewRecordedCourses && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewRecordedCourses(course.id, course.name)}
+                  title="Gerenciar Módulos"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+              
+              {onViewAsStudent && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewAsStudent(course)}
+                  title="Visualizar como Aluno"
+                >
+                  👁️
+                </Button>
+              )}
+            </>
           )}
           
           <Button

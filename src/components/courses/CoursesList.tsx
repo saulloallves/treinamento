@@ -103,8 +103,12 @@ const CoursesList = () => {
   };
 
   const handleViewAsStudent = (course: Course) => {
-    // Navigate to student view of the course
-    window.open(`/student/course/${course.id}`, '_blank');
+    // For recorded courses, open the dialog in preview mode
+    if (course.tipo === 'gravado') {
+      setSelectedCourseId(course.id);
+      setSelectedCourseName(course.name);
+      setRecordedCoursesDialogOpen(true);
+    }
   };
 
   const getPublicTargetLabel = (target: string) => {
