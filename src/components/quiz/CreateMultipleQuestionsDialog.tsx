@@ -113,7 +113,11 @@ const CreateMultipleQuestionsDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCourse || !selectedLesson || !quizName.trim()) {
+    // Use effective IDs that consider both state and props
+    const effectiveCourseId = selectedCourse || preselectedCourseId;
+    const effectiveLessonId = selectedLesson || preselectedLessonId;
+    
+    if (!effectiveCourseId || !effectiveLessonId || !quizName.trim()) {
       toast({
         title: "Erro",
         description: "Preencha o nome do quiz, selecione um curso e uma aula.",
@@ -149,8 +153,8 @@ const CreateMultipleQuestionsDialog = ({
       // Criar todas as perguntas
       for (const [index, question] of questions.entries()) {
         const questionData = {
-          course_id: selectedCourse,
-          lesson_id: selectedLesson,
+          course_id: effectiveCourseId,
+          lesson_id: effectiveLessonId,
         turma_id: preselectedTurmaId || null,
         quiz_name: quizName.trim(),
           question: question.question,

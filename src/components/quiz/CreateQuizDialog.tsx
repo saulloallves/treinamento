@@ -77,7 +77,11 @@ const CreateQuizDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.lesson_id || !formData.question) {
+    // Use effective IDs that consider both state and props
+    const effectiveCourseId = formData.course_id || preselectedCourseId;
+    const effectiveLessonId = formData.lesson_id || preselectedLessonId;
+    
+    if (!effectiveCourseId || !effectiveLessonId || !formData.question) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios (curso, aula, pergunta).",
@@ -98,6 +102,8 @@ const CreateQuizDialog = ({
     try {
       const questionData = {
         ...formData,
+        course_id: effectiveCourseId,
+        lesson_id: effectiveLessonId,
         turma_id: preselectedTurmaId || null,
         quiz_name: formData.quiz_name || `Quiz ${currentLesson?.title || 'Aula'}`,
       };
