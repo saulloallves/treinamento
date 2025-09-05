@@ -24,7 +24,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
@@ -35,6 +35,7 @@ const Sidebar = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const userInteracting = useRef(false);
   
   // Initialize expanded groups based on current route
@@ -205,6 +206,8 @@ const Sidebar = () => {
       ...prev,
       [groupId]: !prev[groupId]
     }));
+    // Set the group as active when clicked
+    setActiveGroup(groupId);
     // Reset interaction flag after a short delay
     setTimeout(() => {
       userInteracting.current = false;
@@ -212,8 +215,16 @@ const Sidebar = () => {
   }, []);
 
   const isGroupActive = useCallback((group: any) => {
-    return group.items?.some((item: any) => location.pathname === item.path);
-  }, [location.pathname]);
+    // If there's an active group set by user click, use that
+    if (activeGroup === group.id) {
+      return true;
+    }
+    // Only check URL-based activation if no group was manually clicked
+    if (activeGroup === null) {
+      return group.items?.some((item: any) => location.pathname === item.path);
+    }
+    return false;
+  }, [location.pathname, activeGroup]);
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
@@ -223,7 +234,11 @@ const Sidebar = () => {
       <Link
         key={item.path}
         to={item.path}
-        onClick={isMobile ? () => setIsOpen(false) : undefined}
+        onClick={() => {
+          if (isMobile) setIsOpen(false);
+          // Reset active group when navigating to a new page
+          setActiveGroup(null);
+        }}
         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
           isActive 
             ? "bg-primary text-white" 
@@ -329,7 +344,11 @@ const Sidebar = () => {
         <Link
           key={index}
           to={item.path}
-          onClick={isMobile ? () => setIsOpen(false) : undefined}
+          onClick={() => {
+            if (isMobile) setIsOpen(false);
+            // Reset active group when navigating to a new page
+            setActiveGroup(null);
+          }}
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
             isActive 
               ? "bg-primary text-white" 
