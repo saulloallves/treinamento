@@ -39,7 +39,7 @@ const getThemeGradient = (themes: string[] = [], tipo: string = 'ao_vivo') => {
     return 'bg-gradient-to-br from-orange-400 to-orange-600';
   }
   if (tipo === 'ao_vivo') {
-    return 'bg-gradient-to-br from-red-400 to-red-600';
+    return 'bg-gradient-to-br from-blue-500 to-blue-700';
   }
   return 'bg-gradient-to-br from-indigo-400 to-indigo-600';
 };
