@@ -23,7 +23,6 @@ interface CourseCardProps {
   onDelete: (courseId: string) => void;
   onViewStudents: (course: Course) => void;
   onViewDetails: (course: Course) => void;
-  getPublicTargetLabel: (target: string) => string;
 }
 
 // Gradientes padrão baseados nos temas
@@ -51,8 +50,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onEdit,
   onDelete,
   onViewStudents,
-  onViewDetails,
-  getPublicTargetLabel
+  onViewDetails
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
   const { positionNames } = useCourseAccess(course.id);
@@ -63,7 +61,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     if (positionNames && positionNames.length > 0) {
       return positionNames.slice(0, 2).join(', ') + (positionNames.length > 2 ? '...' : '');
     }
-    return getPublicTargetLabel(course.public_target);
+    // Fallback to basic labels
+    switch (course.public_target) {
+      case "franqueado": return "Franqueado";
+      case "colaborador": return "Colaborador"; 
+      case "ambos": return "Ambos";
+      default: return course.public_target;
+    }
   };
 
   return (

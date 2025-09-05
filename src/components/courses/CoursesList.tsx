@@ -133,7 +133,6 @@ const CoursesList = () => {
               onDelete={handleDeleteCourse}
               onViewStudents={(course) => handleViewStudents(course.id, course.name)}
               onViewDetails={handleViewCourseDetail}
-              getPublicTargetLabel={getPublicTargetLabel}
             />
           ))}
         </div>
