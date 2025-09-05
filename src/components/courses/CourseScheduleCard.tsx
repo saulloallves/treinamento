@@ -69,7 +69,7 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
       className="overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-200"
       onClick={handleCardClick}
     >
-      {/* Cover Area */}
+      {/* Cover Area - Only solid gradient colors */}
       <div className="relative aspect-video">
         <div className={`w-full h-full ${gradientClass}`} />
         
