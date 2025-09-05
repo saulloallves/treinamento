@@ -58,11 +58,11 @@ const StudentPortal = () => {
         {isLoading ? (
           <p>Carregando...</p>
         ) : (enrollments && enrollments.length > 0 ? (
-          <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {enrollments.map((enroll) => (
               <Card key={enroll.id} className="overflow-hidden">
                 {enroll.course?.cover_image_url && (
-                  <div className="aspect-video w-full overflow-hidden">
+                  <div className="aspect-[4/3] w-full overflow-hidden">
                     <img 
                       src={enroll.course.cover_image_url} 
                       alt={enroll.course.name || "Capa do curso"}
@@ -70,72 +70,65 @@ const StudentPortal = () => {
                     />
                   </div>
                 )}
-                <CardHeader>
-                  <CardTitle>{enroll.course?.name ?? "Curso"}</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base leading-tight">{enroll.course?.name ?? "Curso"}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Status</span>
-                      <span className="font-medium">{enroll.status}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Tipo</span>
-                      <span className={`font-medium px-2 py-1 rounded-full text-xs ${
-                        enroll.course?.tipo === 'gravado' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {enroll.course?.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
-                      </span>
-                    </div>
-                    
-                    {/* Informações da Turma */}
-                    {enroll.turma && (
-                      <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            Turma: {enroll.turma.name || enroll.turma.code || `Turma ${enroll.turma.id.slice(0, 8)}`}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <span>
-                            Prazo: {format(new Date(enroll.turma.completion_deadline), "dd/MM/yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Status da Turma:</span>
-                          <Badge variant={
-                            enroll.turma.status === 'em_andamento' ? 'default' : 
-                            enroll.turma.status === 'encerrada' ? 'outline' : 
-                            enroll.turma.status === 'cancelada' ? 'destructive' : 'secondary'
-                          } className="text-xs">
-                            {enroll.turma.status === 'agendada' ? 'Agendada' :
-                             enroll.turma.status === 'em_andamento' ? 'Em Andamento' :
-                             enroll.turma.status === 'encerrada' ? 'Encerrada' :
-                             enroll.turma.status === 'cancelada' ? 'Cancelada' : enroll.turma.status}
-                          </Badge>
-                        </div>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Status</span>
+                    <span className="font-medium">{enroll.status}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Tipo</span>
+                    <Badge variant="secondary" className="text-xs h-5">
+                      {enroll.course?.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
+                    </Badge>
+                  </div>
+                  
+                  {/* Informações da Turma */}
+                  {enroll.turma && (
+                    <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-muted-foreground" />
+                        <span className="font-medium truncate">
+                          {enroll.turma.name || enroll.turma.code || `Turma ${enroll.turma.id.slice(0, 8)}`}
+                        </span>
                       </div>
-                    )}
-                    
-                    <Progress value={enroll.progress_percentage ?? 0} />
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Progresso</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-muted-foreground" />
+                          <span>{format(new Date(enroll.turma.completion_deadline), "dd/MM/yy", { locale: ptBR })}</span>
+                        </div>
+                        <Badge variant={
+                          enroll.turma.status === 'em_andamento' ? 'default' : 
+                          enroll.turma.status === 'encerrada' ? 'outline' : 
+                          enroll.turma.status === 'cancelada' ? 'destructive' : 'secondary'
+                        } className="text-xs h-4 px-1">
+                          {enroll.turma.status === 'agendada' ? 'Agendada' :
+                           enroll.turma.status === 'em_andamento' ? 'Em Andamento' :
+                           enroll.turma.status === 'encerrada' ? 'Encerrada' :
+                           enroll.turma.status === 'cancelada' ? 'Cancelada' : enroll.turma.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-1">
+                    <Progress value={enroll.progress_percentage ?? 0} className="h-2" />
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Progresso</span>
                       <span className="font-medium">{enroll.progress_percentage ?? 0}%</span>
                     </div>
-                    <div className="pt-2">
-                      <Button asChild variant="outline" className="w-full">
-                        {enroll.course?.tipo === 'gravado' ? (
-                          <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
-                        ) : (
-                          <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
-                        )}
-                      </Button>
-                    </div>
                   </div>
+                  
+                  <Button asChild variant="outline" className="w-full h-8 text-xs">
+                    {enroll.course?.tipo === 'gravado' ? (
+                      <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
+                    ) : (
+                      <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
             ))}
