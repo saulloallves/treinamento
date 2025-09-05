@@ -54,44 +54,25 @@ export const useCreateProfessor = () => {
       phone?: string;
       position?: string;
     }) => {
-      // First create the user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: professorData.email,
-        password: professorData.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: professorData.name,
-          user_type: 'Professor',
+      const { data, error } = await supabase.functions.invoke('create-professor', {
+        body: {
+          name: professorData.name,
+          email: professorData.email,
+          password: professorData.password,
           phone: professorData.phone,
           position: professorData.position,
         }
       });
 
-      if (authError) {
-        throw authError;
-      }
-
-      // Then create the user profile
-      const { data, error } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          name: professorData.name,
-          email: professorData.email,
-          phone: professorData.phone,
-          position: professorData.position,
-          user_type: 'Professor',
-          active: true,
-          approval_status: 'aprovado'
-        })
-        .select()
-        .single();
-
       if (error) {
-        throw error;
+        throw new Error(error.message);
       }
 
-      return data;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Falha ao criar professor');
+      }
+
+      return data.profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professors"] });

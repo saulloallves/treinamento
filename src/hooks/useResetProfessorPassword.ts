@@ -7,12 +7,16 @@ export const useResetProfessorPassword = () => {
   
   return useMutation({
     mutationFn: async ({ professorId, newPassword }: { professorId: string; newPassword: string }) => {
-      const { data, error } = await supabase.auth.admin.updateUserById(professorId, {
-        password: newPassword
+      const { data, error } = await supabase.functions.invoke('reset-professor-password', {
+        body: { professorId, newPassword }
       });
 
       if (error) {
         throw new Error(`Erro ao redefinir senha: ${error.message}`);
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Falha ao redefinir senha');
       }
 
       return data;
