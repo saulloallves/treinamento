@@ -273,7 +273,7 @@ const Sidebar = () => {
             type="button"
             onClick={() => toggleGroup(item.id)}
             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
-              hasActiveChild
+              activeGroup === item.id
                 ? 'bg-secondary text-primary'
                 : 'text-foreground hover:bg-secondary hover:text-primary'
             }`}
@@ -314,7 +314,7 @@ const Sidebar = () => {
             type="button"
             onClick={() => toggleGroup(item.id)}
             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
-              hasActiveChild
+              activeGroup === item.id
                 ? 'bg-secondary text-primary'
                 : 'text-foreground hover:bg-secondary hover:text-primary'
             }`}
