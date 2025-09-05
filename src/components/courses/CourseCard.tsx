@@ -11,7 +11,8 @@ import {
   PlayCircle,
   FileText,
   Award,
-  Clock
+  Clock,
+  Settings
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
 import { useCourseAccess } from '@/hooks/useCourseAccess';
@@ -23,6 +24,9 @@ interface CourseCardProps {
   onDelete: (courseId: string) => void;
   onViewStudents: (course: Course) => void;
   onViewDetails: (course: Course) => void;
+  onViewRecordedLessons?: (courseId: string, courseName: string) => void;
+  onViewRecordedCourses?: (courseId: string, courseName: string) => void;
+  onViewAsStudent?: (course: Course) => void;
 }
 
 // Gradientes padrão baseados nos temas
@@ -50,7 +54,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onEdit,
   onDelete,
   onViewStudents,
-  onViewDetails
+  onViewDetails,
+  onViewRecordedLessons,
+  onViewRecordedCourses,
+  onViewAsStudent
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
   const { positionNames } = useCourseAccess(course.id);
@@ -171,20 +178,57 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 mt-4 pt-3 border-t">
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
           <Button
             variant="outline"
             size="sm"
             onClick={() => onViewDetails(course)}
-            className="flex-1"
+            className="flex-1 min-w-0"
           >
             <Eye className="w-4 h-4 mr-1" />
             Detalhes
           </Button>
+          
+          {/* Course Type Specific Actions */}
+          {course.tipo === 'ao_vivo' && onViewRecordedLessons && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewRecordedLessons(course.id, course.name)}
+              title="Gerenciar Aulas"
+            >
+              <BookOpen className="w-4 h-4" />
+            </Button>
+          )}
+          
+          {course.tipo === 'gravado' && onViewRecordedCourses && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewRecordedCourses(course.id, course.name)}
+              title="Gerenciar Módulos"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          )}
+          
+          {/* View as Student */}
+          {onViewAsStudent && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewAsStudent(course)}
+              title="Visualizar como Aluno"
+            >
+              👁️
+            </Button>
+          )}
+          
           <Button
             variant="outline"
             size="sm"
             onClick={() => onViewStudents(course)}
+            title="Ver Alunos"
           >
             <Users className="w-4 h-4" />
           </Button>
@@ -192,6 +236,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onEdit(course)}
+            title="Editar Curso"
           >
             <Edit className="w-4 h-4" />
           </Button>
@@ -199,6 +244,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onDelete(course.id)}
+            title="Excluir Curso"
           >
             <Trash2 className="w-4 h-4" />
           </Button>

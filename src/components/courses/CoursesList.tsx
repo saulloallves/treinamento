@@ -102,6 +102,11 @@ const CoursesList = () => {
     setDetailDialogOpen(true);
   };
 
+  const handleViewAsStudent = (course: Course) => {
+    // Navigate to student view of the course
+    window.open(`/student/course/${course.id}`, '_blank');
+  };
+
   const getPublicTargetLabel = (target: string) => {
     switch (target) {
       case "franqueado": return "Franqueado";
@@ -133,6 +138,9 @@ const CoursesList = () => {
               onDelete={handleDeleteCourse}
               onViewStudents={(course) => handleViewStudents(course.id, course.name)}
               onViewDetails={handleViewCourseDetail}
+              onViewRecordedLessons={handleViewRecordedLessons}
+              onViewRecordedCourses={handleViewRecordedCourses}
+              onViewAsStudent={handleViewAsStudent}
             />
           ))}
         </div>
