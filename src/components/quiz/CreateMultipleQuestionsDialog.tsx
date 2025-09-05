@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
 import { useQuiz } from "@/hooks/useQuiz";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronRight } from "lucide-react";
 
 interface CreateMultipleQuestionsDialogProps {
   open: boolean;
@@ -31,6 +31,9 @@ interface CreateMultipleQuestionsDialogProps {
   preselectedCourseId?: string;
   preselectedLessonId?: string;
   preselectedTurmaId?: string;
+  turmaName?: string;
+  courseName?: string;
+  lessonTitle?: string;
 }
 
 interface QuestionForm {
@@ -50,7 +53,10 @@ const CreateMultipleQuestionsDialog = ({
   onOpenChange,
   preselectedCourseId,
   preselectedLessonId,
-  preselectedTurmaId
+  preselectedTurmaId,
+  turmaName,
+  courseName,
+  lessonTitle
 }: CreateMultipleQuestionsDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
@@ -74,6 +80,9 @@ const CreateMultipleQuestionsDialog = ({
 
   // Filtrar aulas do curso selecionado
   const availableLessons = allLessons.filter(lesson => lesson.course_id === selectedCourse);
+  
+  // Check if we have preselected values (context mode)
+  const isContextMode = preselectedCourseId && preselectedLessonId;
 
   const addQuestion = () => {
     const newQuestion: QuestionForm = {
@@ -165,8 +174,8 @@ const CreateMultipleQuestionsDialog = ({
       onOpenChange(false);
       
       // Reset form
-      setSelectedCourse("");
-      setSelectedLesson("");
+      setSelectedCourse(preselectedCourseId || "");
+      setSelectedLesson(preselectedLessonId || "");
       setQuizName("");
       setQuestions([{
         id: "1",
@@ -194,11 +203,28 @@ const CreateMultipleQuestionsDialog = ({
         <DialogHeader>
           <DialogTitle>Criar Quiz Completo</DialogTitle>
           <DialogDescription>
-            Selecione uma aula e adicione todas as perguntas do quiz.
+            {isContextMode 
+              ? "Adicione todas as perguntas do quiz para esta aula."
+              : "Selecione uma aula e adicione todas as perguntas do quiz."
+            }
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {isContextMode && (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center text-sm text-muted-foreground space-x-2">
+                  <span className="font-medium">{turmaName}</span>
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="font-medium">{courseName}</span>
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="font-medium">{lessonTitle}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Nome do Quiz */}
           <div className="space-y-2">
             <Label htmlFor="quiz_name">Nome do Quiz *</Label>
@@ -210,50 +236,52 @@ const CreateMultipleQuestionsDialog = ({
             />
           </div>
 
-          {/* Seleção de Curso e Aula */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="course_id">Curso *</Label>
-              <Select
-                value={selectedCourse}
-                onValueChange={(value) => {
-                  setSelectedCourse(value);
-                  setSelectedLesson("");
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um curso" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course: any) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Seleção de Curso e Aula - apenas quando não há pré-seleção */}
+          {!isContextMode && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="course_id">Curso *</Label>
+                <Select
+                  value={selectedCourse}
+                  onValueChange={(value) => {
+                    setSelectedCourse(value);
+                    setSelectedLesson("");
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um curso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course: any) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="lesson_id">Aula *</Label>
-              <Select
-                value={selectedLesson}
-                onValueChange={setSelectedLesson}
-                disabled={!selectedCourse}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma aula" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableLessons.map((lesson: any) => (
-                    <SelectItem key={lesson.id} value={lesson.id}>
-                      {lesson.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="lesson_id">Aula *</Label>
+                <Select
+                  value={selectedLesson}
+                  onValueChange={setSelectedLesson}
+                  disabled={!selectedCourse}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma aula" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableLessons.map((lesson: any) => (
+                      <SelectItem key={lesson.id} value={lesson.id}>
+                        {lesson.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Lista de Perguntas */}
           <div className="space-y-4">

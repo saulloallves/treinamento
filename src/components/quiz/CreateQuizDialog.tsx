@@ -18,10 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
 import { useQuiz } from "@/hooks/useQuiz";
+import { ChevronRight } from "lucide-react";
 
 interface CreateQuizDialogProps {
   open: boolean;
@@ -29,6 +31,9 @@ interface CreateQuizDialogProps {
   preselectedCourseId?: string;
   preselectedLessonId?: string;
   preselectedTurmaId?: string;
+  turmaName?: string;
+  courseName?: string;
+  lessonTitle?: string;
 }
 
 const CreateQuizDialog = ({ 
@@ -36,7 +41,10 @@ const CreateQuizDialog = ({
   onOpenChange, 
   preselectedCourseId,
   preselectedLessonId,
-  preselectedTurmaId 
+  preselectedTurmaId,
+  turmaName,
+  courseName,
+  lessonTitle
 }: CreateQuizDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
@@ -62,6 +70,9 @@ const CreateQuizDialog = ({
   
   // Get current lesson
   const currentLesson = filteredLessons.find(lesson => lesson.id === formData.lesson_id);
+  
+  // Check if we have preselected values (context mode)
+  const isContextMode = preselectedCourseId && preselectedLessonId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,49 +136,70 @@ const CreateQuizDialog = ({
         <DialogHeader>
           <DialogTitle>Nova Pergunta do Quiz</DialogTitle>
           <DialogDescription>
-            Crie uma nova pergunta para a aula de um curso.
+            {isContextMode 
+              ? "Adicione uma pergunta ao quiz desta aula."
+              : "Crie uma nova pergunta para a aula de um curso."
+            }
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="course_id">Curso *</Label>
-            <Select
-              value={formData.course_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, course_id: value, lesson_id: "" }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um curso" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((course: any) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {isContextMode && (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center text-sm text-muted-foreground space-x-2">
+                  <span className="font-medium">{turmaName}</span>
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="font-medium">{courseName}</span>
+                  <ChevronRight className="w-4 h-4" />
+                  <span className="font-medium">{lessonTitle}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="lesson_id">Aula *</Label>
-            <Select
-              value={formData.lesson_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, lesson_id: value }))}
-              disabled={!formData.course_id}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma aula" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredLessons.map((lesson: any) => (
-                  <SelectItem key={lesson.id} value={lesson.id}>
-                    {lesson.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isContextMode && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="course_id">Curso *</Label>
+                <Select
+                  value={formData.course_id}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, course_id: value, lesson_id: "" }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um curso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course: any) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lesson_id">Aula *</Label>
+                <Select
+                  value={formData.lesson_id}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, lesson_id: value }))}
+                  disabled={!formData.course_id}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma aula" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredLessons.map((lesson: any) => (
+                      <SelectItem key={lesson.id} value={lesson.id}>
+                        {lesson.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="question_type">Tipo de Pergunta *</Label>

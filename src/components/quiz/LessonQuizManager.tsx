@@ -231,6 +231,9 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
         preselectedCourseId={turma.course_id}
         preselectedLessonId={selectedLessonId || undefined}
         preselectedTurmaId={turma.id}
+        turmaName={turma.name || `Turma ${turma.code}`}
+        courseName={turma.course?.name}
+        lessonTitle={lessons?.find(lesson => lesson.id === selectedLessonId)?.title}
       />
 
       <CreateMultipleQuestionsDialog
@@ -239,6 +242,9 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
         preselectedCourseId={turma.course_id}
         preselectedLessonId={selectedLessonId || undefined}
         preselectedTurmaId={turma.id}
+        turmaName={turma.name || `Turma ${turma.code}`}
+        courseName={turma.course?.name}
+        lessonTitle={lessons?.find(lesson => lesson.id === selectedLessonId)?.title}
       />
 
       <EditQuizDialog
