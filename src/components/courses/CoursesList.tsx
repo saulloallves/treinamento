@@ -144,7 +144,7 @@ const CoursesList = () => {
               onViewDetails={handleViewCourseDetail}
               onViewRecordedLessons={handleViewRecordedLessons}
               onViewRecordedCourses={handleViewRecordedCourses}
-              onViewAsStudent={handleViewAsStudent}
+              
             />
           ))}
         </div>

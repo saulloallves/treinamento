@@ -26,7 +26,6 @@ interface CourseCardProps {
   onViewDetails: (course: Course) => void;
   onViewRecordedLessons?: (courseId: string, courseName: string) => void;
   onViewRecordedCourses?: (courseId: string, courseName: string) => void;
-  onViewAsStudent?: (course: Course) => void;
 }
 
 // Gradientes padrão baseados nos temas
@@ -56,8 +55,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onViewStudents,
   onViewDetails,
   onViewRecordedLessons,
-  onViewRecordedCourses,
-  onViewAsStudent
+  onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
   const { positionNames } = useCourseAccess(course.id);
@@ -203,16 +201,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 </Button>
               )}
               
-              {onViewAsStudent && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewAsStudent(course)}
-                  title="Visualizar como Aluno"
-                >
-                  👁️
-                </Button>
-              )}
             </>
           )}
           
