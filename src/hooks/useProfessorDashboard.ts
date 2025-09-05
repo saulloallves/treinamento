@@ -4,14 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 export interface ProfessorDashboardStats {
   averageStudentProgress: number;
-  engagementByClass: Array<{
-    turmaId: string;
-    turmaName: string;
-    enrolledStudents: number;
-    activeStudents: number;
-    engagementRate: number;
-  }>;
+  totalActiveStudents: number;
   activeCourses: number;
+  averageAttendanceRate: number;
   pendingTasks: {
     evaluationsToCorrect: number;
     pendingFeedback: number;
@@ -42,7 +37,7 @@ export const useProfessorDashboard = () => {
           )
         `)
         .eq('responsavel_user_id', user.id)
-        .eq('status', 'em_andamento');
+        .in('status', ['agendada', 'em_andamento']);
 
       if (turmasError) throw turmasError;
 
@@ -76,21 +71,23 @@ export const useProfessorDashboard = () => {
       const uniqueCourseIds = [...new Set(courses?.map(c => c.course_id) || [])];
       const activeCourses = uniqueCourseIds.length;
 
-      // Calculate engagement by class
-      const engagementByClass = turmas?.map(turma => {
-        const turmaEnrollments = enrollments.filter(e => e.turma_id === turma.id);
-        const enrolledStudents = turmaEnrollments.length;
-        const activeStudents = turmaEnrollments.filter(e => (e.progress_percentage || 0) > 0).length;
-        const engagementRate = enrolledStudents > 0 ? Math.round((activeStudents / enrolledStudents) * 100) : 0;
+      // Calculate total active students and attendance rate
+      const totalActiveStudents = enrollments.length;
+      let averageAttendanceRate = 0;
 
-        return {
-          turmaId: turma.id,
-          turmaName: turma.name || turma.code || `Turma ${turma.id.slice(0, 8)}`,
-          enrolledStudents,
-          activeStudents,
-          engagementRate
-        };
-      }) || [];
+      if (turmaIds.length > 0) {
+        // Get attendance data for calculating attendance rate
+        const { data: attendanceData } = await supabase
+          .from('attendance')
+          .select('turma_id, user_id')
+          .in('turma_id', turmaIds);
+
+        if (attendanceData && attendanceData.length > 0 && totalActiveStudents > 0) {
+          // Calculate unique students who attended at least once
+          const studentsWithAttendance = new Set(attendanceData.map(a => a.user_id)).size;
+          averageAttendanceRate = Math.round((studentsWithAttendance / totalActiveStudents) * 100);
+        }
+      }
 
       // Mock pending tasks for now (would need more complex queries for real data)
       const pendingTasks = {
@@ -101,8 +98,9 @@ export const useProfessorDashboard = () => {
 
       return {
         averageStudentProgress: averageProgress,
-        engagementByClass,
+        totalActiveStudents,
         activeCourses,
+        averageAttendanceRate,
         pendingTasks
       };
     },
