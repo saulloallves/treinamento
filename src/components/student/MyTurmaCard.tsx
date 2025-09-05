@@ -13,6 +13,7 @@ interface MyTurmaCardProps {
     completion_deadline: string;
     start_at?: string;
     end_at?: string;
+    responsavel_name?: string;
     responsavel_user?: {
       name: string;
       email: string;
@@ -37,21 +38,32 @@ const getStatusBadge = (status: string) => {
 };
 
 export const MyTurmaCard = ({ turma, courseName }: MyTurmaCardProps) => {
+  // Format professor name: prioritize responsavel_name, fallback to responsavel_user.name
+  const formatProfessorName = (name: string) => {
+    const nameParts = name.trim().split(' ');
+    if (nameParts.length <= 2) return name;
+    
+    const firstName = nameParts[0];
+    const lastName = nameParts[nameParts.length - 1];
+    return `${firstName} ${lastName}`;
+  };
+
+  const professorName = turma.responsavel_name 
+    ? formatProfessorName(turma.responsavel_name)
+    : turma.responsavel_user?.name 
+      ? formatProfessorName(turma.responsavel_user.name)
+      : 'Professor';
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Minha Turma - {courseName}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             {turma.name && (
               <h4 className="font-medium">{turma.name}</h4>
-            )}
-            {turma.code && (
-              <div className="text-sm text-muted-foreground">
-                Código: {turma.code}
-              </div>
             )}
           </div>
           {getStatusBadge(turma.status)}
@@ -60,7 +72,7 @@ export const MyTurmaCard = ({ turma, courseName }: MyTurmaCardProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-muted-foreground" />
-            <span>Professor: {turma.responsavel_user?.name}</span>
+            <span>Professor: {professorName}</span>
           </div>
           
           <div className="flex items-center gap-2">

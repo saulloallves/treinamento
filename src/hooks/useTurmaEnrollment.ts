@@ -23,6 +23,7 @@ export const useTurmaEnrollment = (courseId: string) => {
             completion_deadline,
             start_at,
             end_at,
+            responsavel_name,
             responsavel_user:users!responsavel_user_id(name, email)
           )
         `)
