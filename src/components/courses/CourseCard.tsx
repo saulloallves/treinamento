@@ -180,29 +180,18 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onViewDetails(course)}
+            onClick={() => {
+              if (course.tipo === 'gravado' && onViewRecordedCourses) {
+                onViewRecordedCourses(course.id, course.name);
+              } else {
+                onViewDetails(course);
+              }
+            }}
             className="flex-1 min-w-0"
           >
             <Eye className="w-4 h-4 mr-1" />
             Detalhes
           </Button>
-          
-          {/* Only show management buttons for recorded courses */}
-          {course.tipo === 'gravado' && (
-            <>
-              {onViewRecordedCourses && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewRecordedCourses(course.id, course.name)}
-                  title="Gerenciar Módulos"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              )}
-              
-            </>
-          )}
           
           <Button
             variant="outline"
