@@ -42,7 +42,7 @@ const Sidebar = () => {
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates'].includes(path),
       avaliacoes: ['/quiz'].includes(path),
       comunicacao: ['/whatsapp'].includes(path),
-      administracao: ['/users','/units','/settings'].includes(path),
+      administracao: ['/users','/professors','/units','/settings'].includes(path),
     };
   });
 
@@ -132,6 +132,7 @@ const Sidebar = () => {
       isGroup: true,
       items: [
         { name: 'Usuários', path: '/users', icon: Users },
+        { name: 'Professores', path: '/professors', icon: User },
         { name: 'Unidades', path: '/units', icon: Building2 },
         { name: 'Configurações', path: '/settings', icon: Settings },
       ]

@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface ProfessorRouteProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface ProfessorRouteProps {
 const ProfessorRoute = ({ children }: ProfessorRouteProps) => {
   const { user, loading } = useAuth();
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id);
+  const { data: isAdmin = false } = useIsAdmin(user?.id);
 
   if (loading || checkingProfessor) {
     return (
@@ -21,6 +23,11 @@ const ProfessorRoute = ({ children }: ProfessorRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Admins sempre têm acesso às rotas de professor
+  if (isAdmin) {
+    return <>{children}</>;
   }
 
   if (!isProfessor) {

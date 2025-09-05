@@ -707,6 +707,47 @@ export type Database = {
           },
         ]
       }
+      professor_permissions: {
+        Row: {
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          enabled_fields: Json | null
+          id: string
+          module_name: string
+          professor_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          enabled_fields?: Json | null
+          id?: string
+          module_name: string
+          professor_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          enabled_fields?: Json | null
+          id?: string
+          module_name?: string
+          professor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professor_permissions_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz: {
         Row: {
           correct_answer: string | null
@@ -1536,6 +1577,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_professor_enabled_fields: {
+        Args: { _module_name: string; _professor_id: string }
+        Returns: Json
+      }
       get_system_settings: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1552,6 +1597,14 @@ export type Database = {
           updated_at: string
           whatsapp_notifications: boolean
         }[]
+      }
+      has_professor_permission: {
+        Args: {
+          _module_name: string
+          _permission_type?: string
+          _professor_id: string
+        }
+        Returns: boolean
       }
       is_admin: {
         Args: { _user: string }
@@ -1602,6 +1655,18 @@ export type Database = {
       approval_status: "pendente" | "aprovado" | "rejeitado"
       class_status: "criada" | "iniciada" | "encerrada"
       student_class_status: "inscrito" | "concluido" | "cancelado"
+      system_module:
+        | "dashboard"
+        | "courses"
+        | "lessons"
+        | "turmas"
+        | "enrollments"
+        | "attendance"
+        | "progress"
+        | "quiz"
+        | "certificates"
+        | "communication"
+        | "settings"
       user_role_type: "Franqueado" | "Colaborador" | "Professor"
     }
     CompositeTypes: {
@@ -1733,6 +1798,19 @@ export const Constants = {
       approval_status: ["pendente", "aprovado", "rejeitado"],
       class_status: ["criada", "iniciada", "encerrada"],
       student_class_status: ["inscrito", "concluido", "cancelado"],
+      system_module: [
+        "dashboard",
+        "courses",
+        "lessons",
+        "turmas",
+        "enrollments",
+        "attendance",
+        "progress",
+        "quiz",
+        "certificates",
+        "communication",
+        "settings",
+      ],
       user_role_type: ["Franqueado", "Colaborador", "Professor"],
     },
   },
