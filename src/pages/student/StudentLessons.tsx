@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,7 +11,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Calendar, Clock, Users, BookOpen } from "lucide-react";
+import { Calendar, Clock, Users, BookOpen, ChevronDown, ChevronUp, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentPreview from "@/components/courses/StudentPreview";
 const StudentLessons = () => {
@@ -20,6 +21,7 @@ const StudentLessons = () => {
   const { user } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const queryClient = useQueryClient();
+  const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
 
   // Se courseId existe, buscar dados do curso para renderizar StudentPreview
   const { data: courseData, error: courseError, isLoading: courseLoading } = useQuery({
@@ -106,6 +108,14 @@ const StudentLessons = () => {
     document.title = "Aulas Agendadas | Área do Aluno";
   }, []);
 
+  // Função para alternar expansão do curso
+  const toggleCourseExpansion = (courseId: string) => {
+    setExpandedCourses(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
+  };
+
   // Agrupar aulas por curso
   const lessonsByCourse = useMemo(() => {
     const grouped = lessons.reduce((acc, lesson) => {
@@ -121,7 +131,7 @@ const StudentLessons = () => {
       return acc;
     }, {} as Record<string, { courseName: string; courseId: string; lessons: typeof lessons }>);
 
-    // Ordenar aulas dentro de cada curso por data
+    // Ordenar aulas dentro de cada curso por data (próxima aula primeiro)
     Object.values(grouped).forEach(courseGroup => {
       courseGroup.lessons.sort((a, b) => {
         const dateA = new Date(`${a.date.split('/').reverse().join('-')} ${a.time}`);
@@ -132,6 +142,11 @@ const StudentLessons = () => {
 
     return grouped;
   }, [lessons]);
+
+  // Obter próxima aula de cada curso
+  const getNextLesson = (courseGroup: { lessons: typeof lessons }) => {
+    return courseGroup.lessons.length > 0 ? courseGroup.lessons[0] : null;
+  };
 
   const handleRefresh = async () => {
     try {
@@ -178,65 +193,130 @@ const StudentLessons = () => {
           </Button>
         </div>
       ) : (
-        <div className="space-y-8">
-          {Object.entries(lessonsByCourse).map(([courseId, courseGroup]) => (
-            <section key={courseId} className="space-y-4">
-              <div className="flex items-center gap-3 pb-2 border-b">
-                <BookOpen className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-semibold text-foreground">
-                  {courseGroup.courseName}
-                </h3>
-                <Badge variant="outline" className="ml-auto">
-                  {courseGroup.lessons.length} {courseGroup.lessons.length === 1 ? 'aula' : 'aulas'}
-                </Badge>
-              </div>
-              
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {courseGroup.lessons.map((lesson) => (
-                  <Card key={lesson.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg leading-tight">{lesson.title}</CardTitle>
-                      <Badge variant="secondary" className="w-fit text-xs">
-                        {courseGroup.courseName}
-                      </Badge>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Data:</span>
-                          <span className="font-medium ml-auto">{lesson.date}</span>
+        <div className="space-y-6">
+          {Object.entries(lessonsByCourse).map(([courseId, courseGroup]) => {
+            const nextLesson = getNextLesson(courseGroup);
+            const isExpanded = expandedCourses[courseId];
+            
+            return (
+              <Collapsible
+                key={courseId}
+                open={isExpanded}
+                onOpenChange={() => toggleCourseExpansion(courseId)}
+                className="w-full"
+              >
+                <Card className="overflow-hidden">
+                  <CollapsibleTrigger className="w-full">
+                    <CardHeader className="hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <BookOpen className="h-8 w-8 text-primary" />
+                          </div>
+                          <div className="text-left">
+                            <CardTitle className="text-xl">{courseGroup.courseName}</CardTitle>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <Badge variant="secondary">
+                                {courseGroup.lessons.length} {courseGroup.lessons.length === 1 ? 'aula' : 'aulas'}
+                              </Badge>
+                              {nextLesson && (
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>Próxima: {nextLesson.date}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Horário:</span>
-                          <span className="font-medium ml-auto">{lesson.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Participantes:</span>
-                          <span className="font-medium ml-auto">{lesson.participants}</span>
+                        <div className="flex items-center gap-2">
+                          {nextLesson && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              <Play className="h-3 w-3 mr-1" />
+                              Próxima aula
+                            </Badge>
+                          )}
+                          {isExpanded ? (
+                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          )}
                         </div>
                       </div>
-                      
-                      <div className="pt-2">
-                        <Button 
-                          asChild 
-                          className="w-full" 
-                          disabled={!lesson.joinUrl}
-                          size="sm"
-                        >
-                          <a href={lesson.joinUrl || "#"} target="_blank" rel="noopener noreferrer">
-                            Acessar aula (Zoom)
-                          </a>
-                        </Button>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent>
+                    <CardContent className="pt-0">
+                      <div className="border-t pt-4">
+                        <h4 className="font-semibold mb-4 text-lg flex items-center gap-2">
+                          <Calendar className="h-5 w-5 text-primary" />
+                          Aulas Programadas
+                        </h4>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                          {courseGroup.lessons.map((lesson, index) => (
+                            <Card key={lesson.id} className={`
+                              transition-all hover:shadow-md 
+                              ${index === 0 ? 'ring-2 ring-primary/20 bg-primary/5' : ''}
+                            `}>
+                              <CardHeader className="pb-3">
+                                <div className="flex items-start justify-between">
+                                  <CardTitle className="text-base leading-tight">{lesson.title}</CardTitle>
+                                  {index === 0 && (
+                                    <Badge variant="default" className="text-xs bg-primary">
+                                      Próxima
+                                    </Badge>
+                                  )}
+                                </div>
+                              </CardHeader>
+                              <CardContent className="space-y-3">
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                                      <span className="text-muted-foreground">Data:</span>
+                                    </div>
+                                    <span className="font-medium">{lesson.date}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="h-4 w-4 text-muted-foreground" />
+                                      <span className="text-muted-foreground">Horário:</span>
+                                    </div>
+                                    <span className="font-medium">{lesson.time}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <Users className="h-4 w-4 text-muted-foreground" />
+                                      <span className="text-muted-foreground">Participantes:</span>
+                                    </div>
+                                    <span className="font-medium">{lesson.participants}</span>
+                                  </div>
+                                </div>
+                                
+                                <div className="pt-2">
+                                  <Button 
+                                    asChild 
+                                    className="w-full" 
+                                    disabled={!lesson.joinUrl}
+                                    size="sm"
+                                    variant={index === 0 ? "default" : "outline"}
+                                  >
+                                    <a href={lesson.joinUrl || "#"} target="_blank" rel="noopener noreferrer">
+                                      Acessar aula (Zoom)
+                                    </a>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </section>
-          ))}
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
+            );
+          })}
         </div>
       )}
     </BaseLayout>
