@@ -16,9 +16,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { Course, useUpdateCourse } from "@/hooks/useCourses";
 import { useJobPositions } from "@/hooks/useJobPositions";
 import { useCoursePositionAccess, useManageCourseAccess } from "@/hooks/useCourseAccess";
+import { Textarea } from "@/components/ui/textarea";
+import { CourseCoverUpload } from "@/components/ui/course-cover-upload";
 
 interface EditCourseDialogProps {
   course: Course | null;
@@ -165,6 +168,12 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
                   placeholder="Breve descrição do curso"
                 />
               </div>
+
+              <CourseCoverUpload
+                currentCoverUrl={formData?.cover_image_url}
+                onCoverChange={(url) => setFormData({ ...formData!, cover_image_url: url || "" })}
+                courseId={formData?.id}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">

@@ -17,8 +17,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCreateCourse, CourseInput } from "@/hooks/useCourses";
+import { useToast } from "@/hooks/use-toast";
 import { useJobPositions } from "@/hooks/useJobPositions";
 import { useManageCourseAccess } from "@/hooks/useCourseAccess";
+import { Textarea } from "@/components/ui/textarea";
+import { CourseCoverUpload } from "@/components/ui/course-cover-upload";
 
 interface CreateCourseDialogProps {
   open: boolean;
@@ -41,7 +44,8 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
     generates_certificate: false,
     tipo: "ao_vivo",
     instructor: "",
-    status: "Ativo"
+    status: "Ativo",
+    cover_image_url: ""
   });
 
   // Estado para controlar quais cargos têm acesso
@@ -81,7 +85,8 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
         generates_certificate: false,
         tipo: "ao_vivo",
         instructor: "",
-        status: "Ativo"
+        status: "Ativo",
+        cover_image_url: ""
       });
       setSelectedPositions([]);
       
@@ -174,6 +179,11 @@ const CreateCourseDialog = ({ open, onOpenChange }: CreateCourseDialogProps) => 
                   placeholder="Breve descrição do curso"
                 />
               </div>
+
+              <CourseCoverUpload
+                currentCoverUrl={formData.cover_image_url}
+                onCoverChange={(url) => setFormData({ ...formData, cover_image_url: url || "" })}
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">

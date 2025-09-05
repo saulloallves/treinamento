@@ -4,9 +4,10 @@ import { Plus, Search, Edit, Trash2, Users, BookOpen, Eye, Video, Settings } fro
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { CourseCard } from "@/components/courses/CourseCard";
 import { PaginationCustom } from "@/components/ui/pagination-custom";
-import EditCourseDialog from "./EditCourseDialog";
 import CreateCourseDialog from "./CreateCourseDialog";
+import EditCourseDialog from "./EditCourseDialog";
 import StudentEnrollmentsDialog from "./StudentEnrollmentsDialog";
 import RecordedLessonsDialog from "./RecordedLessonsDialog";
 import RecordedCoursesDialog from "./RecordedCoursesDialog";
@@ -122,124 +123,18 @@ const CoursesList = () => {
     const { courses: paginatedCourses, totalPages, totalItems } = getPaginatedCourses(coursesList);
     
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedCourses.map((course) => (
-            <div key={course.id} className="card-clean p-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-brand-black text-sm">
-                      {course.name}
-                    </h3>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {/* Exibir temas múltiplos */}
-                    {course.theme && course.theme.length > 0 ? (
-                      course.theme.map((t, index) => (
-                        <span key={index} className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                          {t}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                        Sem tema
-                      </span>
-                    )}
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      course.tipo === 'gravado' 
-                        ? 'bg-purple-100 text-purple-700' 
-                        : 'bg-orange-100 text-orange-700'
-                    }`}>
-                      {course.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
-                    </span>
-                    <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        course.status === "Ativo"
-                          ? "bg-green-100 text-green-700"
-                          : course.status === "Em revisão"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {course.status}
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-col gap-1 text-xs">
-                    {course.instructor && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-brand-gray-dark font-medium">👨‍🏫 {course.instructor}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-brand-blue" />
-                      <span className="text-brand-gray-dark truncate">
-                        {getPublicTargetLabel(course.public_target)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <BookOpen className="w-3 h-3 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{course.lessons_count} aulas</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <span className={course.has_quiz ? "text-green-600" : "text-red-600"}>
-                        {course.has_quiz ? "✓" : "✗"} Quiz
-                      </span>
-                      <span className={course.generates_certificate ? "text-green-600" : "text-red-600"}>
-                        {course.generates_certificate ? "✓" : "✗"} Cert
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-1 ml-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewCourseDetail(course)}
-                    title={course.tipo === 'ao_vivo' ? "Gerenciar Turmas e Aulas" : "Gerenciar Aulas"}
-                  >
-                    <Settings className="w-3 h-3" />
-                  </Button>
-                  {course.tipo === 'gravado' && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewRecordedCourses(course.id, course.name)}
-                      title="Gerenciar Módulos e Aulas"
-                    >
-                      <Video className="w-3 h-3" />
-                    </Button>
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewStudents(course.id, course.name)}
-                    title="Visualizar Alunos"
-                  >
-                    <Eye className="w-3 h-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditCourse(course)}
-                    disabled={deleteCourseMutation.isPending}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteCourse(course.id)}
-                    disabled={deleteCourseMutation.isPending}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <CourseCard
+              key={course.id}
+              course={course}
+              onEdit={handleEditCourse}
+              onDelete={handleDeleteCourse}
+              onViewStudents={(course) => handleViewStudents(course.id, course.name)}
+              onViewDetails={handleViewCourseDetail}
+              getPublicTargetLabel={getPublicTargetLabel}
+            />
           ))}
         </div>
         

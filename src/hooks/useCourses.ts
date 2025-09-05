@@ -16,6 +16,7 @@ export interface Course {
   status: string;
   tipo: 'ao_vivo' | 'gravado';
   instructor?: string;
+  cover_image_url?: string;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,7 @@ export interface CourseInput {
   tipo: 'ao_vivo' | 'gravado';
   instructor?: string;
   status?: string;
+  cover_image_url?: string;
 }
 
 export const useCourses = () => {
