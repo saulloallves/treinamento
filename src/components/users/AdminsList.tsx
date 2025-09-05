@@ -27,8 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { MoreVertical, Plus, Loader2 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { safeFormatDateTimeDetailed } from "@/lib/dateUtils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -126,9 +125,7 @@ const AdminsList = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(admin.created_at), "dd/MM/yyyy 'às' HH:mm", {
-                      locale: ptBR,
-                    })}
+                    {safeFormatDateTimeDetailed(admin.created_at)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

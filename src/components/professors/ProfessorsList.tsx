@@ -23,8 +23,7 @@ import { useProfessors, useUpdateProfessorStatus, useDeleteProfessor } from "@/h
 import CreateProfessorDialog from "./CreateProfessorDialog";
 import ProfessorPermissionsDialog from "./ProfessorPermissionsDialog";
 import ResetPasswordDialog from "./ResetPasswordDialog";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { safeFormatDate } from "@/lib/dateUtils";
 
 const ProfessorsList = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -121,7 +120,7 @@ const ProfessorsList = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(professor.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                    {safeFormatDate(professor.created_at)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
