@@ -106,6 +106,8 @@ const CreateQuizDialog = ({
         lesson_id: effectiveLessonId,
         turma_id: preselectedTurmaId || null,
         quiz_name: formData.quiz_name || `Quiz ${currentLesson?.title || 'Aula'}`,
+        // Para perguntas dissertativas, correct_answer deve ser null
+        correct_answer: formData.question_type === "essay" ? null : formData.correct_answer,
       };
       
       await createQuestion.mutateAsync(questionData);
