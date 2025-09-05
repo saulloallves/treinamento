@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import CreateAdminDialog from "./CreateAdminDialog";
 import CreateUserDialog from "./CreateUserDialog";
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,11 +108,10 @@ const UsersList = () => {
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-black">Usuários</h1>
+          <h1 className="text-2xl font-bold text-brand-black">Alunos</h1>
           <p className="text-brand-gray-dark">Gerencie colaboradores e franqueados</p>
         </div>
         <div className="flex gap-2">
-          <CreateAdminDialog />
           <CreateUserDialog />
         </div>
       </div>

@@ -23,6 +23,7 @@ import UnitsPage from "./pages/UnitsPage";
 import SettingsPage from "./pages/SettingsPage";
 import TurmasPage from "./pages/TurmasPage";
 import ProfessorsPage from "./pages/ProfessorsPage";
+import AdminsPage from "./pages/AdminsPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
@@ -112,6 +113,11 @@ const App = () => (
               <Route path="/professors" element={
                 <AdminRoute>
                   <ProfessorsPage />
+                </AdminRoute>
+              } />
+              <Route path="/admins" element={
+                <AdminRoute>
+                  <AdminsPage />
                 </AdminRoute>
               } />
               <Route path="/units" element={

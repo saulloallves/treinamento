@@ -7,8 +7,12 @@ import { Shield, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const CreateAdminDialog = () => {
-  const [open, setOpen] = useState(false);
+interface CreateAdminDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const CreateAdminDialog = ({ open, onOpenChange }: CreateAdminDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -69,7 +73,7 @@ const CreateAdminDialog = () => {
 
       // Reset form and close dialog
       setFormData({ name: "", email: "", password: "" });
-      setOpen(false);
+      onOpenChange(false);
 
     } catch (error: any) {
       console.error('Error creating admin:', error);
@@ -89,15 +93,9 @@ const CreateAdminDialog = () => {
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
-      setOpen(newOpen);
+      onOpenChange(newOpen);
       if (!newOpen) resetForm();
     }}>
-      <DialogTrigger asChild>
-        <Button className="btn-primary">
-          <Plus className="w-4 h-4" />
-          Novo Admin
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -148,7 +146,7 @@ const CreateAdminDialog = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
               className="flex-1"
               disabled={isLoading}
             >

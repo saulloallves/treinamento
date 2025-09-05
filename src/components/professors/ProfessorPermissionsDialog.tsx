@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   useProfessorPermissions, 
   useBulkUpdateProfessorPermissions,
@@ -20,6 +21,8 @@ import {
   MODULE_FIELDS 
 } from "@/hooks/useProfessorPermissions";
 import { useProfessors } from "@/hooks/useProfessors";
+import { useProfessorTurmaPermissions, useBulkUpdateProfessorTurmaPermissions } from "@/hooks/useProfessorTurmaPermissions";
+import ProfessorTurmaPermissions from "./ProfessorTurmaPermissions";
 
 interface ProfessorPermissionsDialogProps {
   professorId: string | null;
@@ -35,16 +38,27 @@ type ModulePermissions = {
   };
 };
 
+type TurmaPermission = {
+  turmaId: string;
+  turmaName: string;
+  canView: boolean;
+  canEdit: boolean;
+  canManageStudents: boolean;
+};
+
 const ProfessorPermissionsDialog = ({ 
   professorId, 
   open, 
   onOpenChange 
 }: ProfessorPermissionsDialogProps) => {
   const [permissions, setPermissions] = useState<ModulePermissions>({});
+  const [turmaPermissions, setTurmaPermissions] = useState<TurmaPermission[]>([]);
   
   const { data: professors = [] } = useProfessors();
   const { data: existingPermissions = [] } = useProfessorPermissions(professorId);
+  const { data: existingTurmaPermissions = [] } = useProfessorTurmaPermissions(professorId);
   const bulkUpdateMutation = useBulkUpdateProfessorPermissions();
+  const turmaUpdateMutation = useBulkUpdateProfessorTurmaPermissions();
 
   const professor = professors.find(p => p.id === professorId);
 
@@ -113,6 +127,39 @@ const ProfessorPermissionsDialog = ({
     }));
   };
 
+  const handleTurmaPermissionChange = (turmaId: string, permission: keyof TurmaPermission, value: boolean) => {
+    setTurmaPermissions(prev => {
+      const existing = prev.find(p => p.turmaId === turmaId);
+      
+      if (existing) {
+        return prev.map(p => 
+          p.turmaId === turmaId 
+            ? { ...p, [permission]: value }
+            : p
+        );
+      } else {
+        return [...prev, {
+          turmaId,
+          turmaName: '',
+          canView: permission === 'canView' ? value : false,
+          canEdit: permission === 'canEdit' ? value : false,
+          canManageStudents: permission === 'canManageStudents' ? value : false,
+        }];
+      }
+    });
+
+    // If disabling view, also disable edit and manage
+    if (permission === 'canView' && !value) {
+      setTurmaPermissions(prev => 
+        prev.map(p => 
+          p.turmaId === turmaId 
+            ? { ...p, canView: false, canEdit: false, canManageStudents: false }
+            : p
+        )
+      );
+    }
+  };
+
   const handleSave = async () => {
     if (!professorId) return;
 
@@ -128,6 +175,20 @@ const ProfessorPermissionsDialog = ({
         professorId,
         permissions: permissionsArray
       });
+      
+      // Save turma permissions
+      if (turmaPermissions.length > 0) {
+        await turmaUpdateMutation.mutateAsync({
+          professorId,
+          permissions: turmaPermissions.map(tp => ({
+            turmaId: tp.turmaId,
+            canView: tp.canView,
+            canEdit: tp.canEdit,
+            canManageStudents: tp.canManageStudents,
+          }))
+        });
+      }
+      
       onOpenChange(false);
     } catch (error) {
       // Error handling is done in the mutation
@@ -146,68 +207,83 @@ const ProfessorPermissionsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {SYSTEM_MODULES.map((module) => {
-            const modulePerms = permissions[module.value] || { canView: false, canEdit: false, enabledFields: {} };
-            const moduleFields = MODULE_FIELDS[module.value] || [];
+        <Tabs defaultValue="modules" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="modules">Módulos do Sistema</TabsTrigger>
+            <TabsTrigger value="turmas">Turmas Específicas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="modules" className="space-y-4">
+            {SYSTEM_MODULES.map((module) => {
+              const modulePerms = permissions[module.value] || { canView: false, canEdit: false, enabledFields: {} };
+              const moduleFields = MODULE_FIELDS[module.value] || [];
 
-            return (
-              <Card key={module.value}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    {module.label}
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id={`${module.value}-view`}
-                          checked={modulePerms.canView}
-                          onCheckedChange={(checked) => 
-                            handleModuleToggle(module.value, 'view', checked)
-                          }
-                        />
-                        <Label htmlFor={`${module.value}-view`}>Visualizar</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          id={`${module.value}-edit`}
-                          checked={modulePerms.canEdit}
-                          disabled={!modulePerms.canView}
-                          onCheckedChange={(checked) => 
-                            handleModuleToggle(module.value, 'edit', checked)
-                          }
-                        />
-                        <Label htmlFor={`${module.value}-edit`}>Editar</Label>
-                      </div>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                
-                {modulePerms.canView && moduleFields.length > 0 && (
-                  <CardContent>
-                    <Separator className="mb-4" />
-                    <div>
-                      <Label className="text-sm font-medium">Campos Habilitados:</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {moduleFields.map((field) => (
-                          <Badge
-                            key={field}
-                            variant={modulePerms.enabledFields[field] ? "default" : "outline"}
-                            className="cursor-pointer"
-                            onClick={() => 
-                              handleFieldToggle(module.value, field, !modulePerms.enabledFields[field])
+              return (
+                <Card key={module.value}>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      {module.label}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`${module.value}-view`}
+                            checked={modulePerms.canView}
+                            onCheckedChange={(checked) => 
+                              handleModuleToggle(module.value, 'view', checked)
                             }
-                          >
-                            {field.replace('_', ' ')}
-                          </Badge>
-                        ))}
+                          />
+                          <Label htmlFor={`${module.value}-view`}>Visualizar</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`${module.value}-edit`}
+                            checked={modulePerms.canEdit}
+                            disabled={!modulePerms.canView}
+                            onCheckedChange={(checked) => 
+                              handleModuleToggle(module.value, 'edit', checked)
+                            }
+                          />
+                          <Label htmlFor={`${module.value}-edit`}>Editar</Label>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            );
-          })}
-        </div>
+                    </CardTitle>
+                  </CardHeader>
+                  
+                  {modulePerms.canView && moduleFields.length > 0 && (
+                    <CardContent>
+                      <Separator className="mb-4" />
+                      <div>
+                        <Label className="text-sm font-medium">Campos Habilitados:</Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {moduleFields.map((field) => (
+                            <Badge
+                              key={field}
+                              variant={modulePerms.enabledFields[field] ? "default" : "outline"}
+                              className="cursor-pointer"
+                              onClick={() => 
+                                handleFieldToggle(module.value, field, !modulePerms.enabledFields[field])
+                              }
+                            >
+                              {field.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
+          </TabsContent>
+
+          <TabsContent value="turmas">
+            <ProfessorTurmaPermissions
+              professorId={professorId || ''}
+              permissions={turmaPermissions}
+              onPermissionChange={handleTurmaPermissionChange}
+            />
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <Button

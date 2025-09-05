@@ -751,6 +751,54 @@ export type Database = {
           },
         ]
       }
+      professor_turma_permissions: {
+        Row: {
+          can_edit: boolean | null
+          can_manage_students: boolean | null
+          can_view: boolean | null
+          created_at: string | null
+          id: string
+          professor_id: string
+          turma_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          can_edit?: boolean | null
+          can_manage_students?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          professor_id: string
+          turma_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          can_edit?: boolean | null
+          can_manage_students?: boolean | null
+          can_view?: boolean | null
+          created_at?: string | null
+          id?: string
+          professor_id?: string
+          turma_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professor_turma_permissions_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professor_turma_permissions_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz: {
         Row: {
           correct_answer: string | null
@@ -1580,6 +1628,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_professor_accessible_turmas: {
+        Args: { _professor_id: string }
+        Returns: {
+          can_edit: boolean
+          can_manage_students: boolean
+          can_view: boolean
+          turma_id: string
+          turma_name: string
+        }[]
+      }
       get_professor_enabled_fields: {
         Args: { _module_name: string; _professor_id: string }
         Returns: Json
@@ -1606,6 +1664,14 @@ export type Database = {
           _module_name: string
           _permission_type?: string
           _professor_id: string
+        }
+        Returns: boolean
+      }
+      has_professor_turma_access: {
+        Args: {
+          _permission_type?: string
+          _professor_id: string
+          _turma_id: string
         }
         Returns: boolean
       }
