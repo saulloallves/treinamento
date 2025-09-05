@@ -24,8 +24,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
-import { useState, useCallback, useMemo } from "react";
-import React from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
@@ -36,13 +35,16 @@ const Sidebar = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const userInteracting = useRef(false);
+  
+  // Initialize expanded groups based on current route
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const path = location.pathname;
     return {
-      treinamentos: ['/courses','/turmas','/lessons'].includes(path),
-      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates'].includes(path),
-      avaliacoes: ['/quiz'].includes(path),
-      comunicacao: ['/whatsapp'].includes(path),
+      treinamentos: ['/courses','/turmas','/lessons','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
+      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
+      avaliacoes: ['/quiz','/professor/avaliacoes'].includes(path),
+      comunicacao: ['/whatsapp','/professor/comunicacao'].includes(path),
       administracao: ['/users','/professors','/units','/settings'].includes(path),
     };
   });
@@ -198,47 +200,20 @@ const Sidebar = () => {
   ];
 
   const toggleGroup = useCallback((groupId: string) => {
+    userInteracting.current = true;
     setExpandedGroups(prev => ({
       ...prev,
       [groupId]: !prev[groupId]
     }));
+    // Reset interaction flag after a short delay
+    setTimeout(() => {
+      userInteracting.current = false;
+    }, 100);
   }, []);
 
   const isGroupActive = useCallback((group: any) => {
     return group.items?.some((item: any) => location.pathname === item.path);
   }, [location.pathname]);
-
-  // Auto-expand group that contains the current active page
-  const getCurrentActiveGroup = useMemo(() => {
-    const menuStructure = shouldShowProfessorMenu ? professorMenuStructure : adminMenuStructure;
-    for (const group of menuStructure) {
-      if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
-        return group.id;
-      }
-    }
-    return null;
-  }, [location.pathname, shouldShowProfessorMenu]);
-
-  // Update expanded state when route changes to show active group
-  React.useEffect(() => {
-    // Only auto-expand when the route changes (don't fight user toggles)
-    const menuStructure = shouldShowProfessorMenu ? professorMenuStructure : adminMenuStructure;
-    const activeGroup = (() => {
-      for (const group of menuStructure) {
-        if (group.items && group.items.some((item: any) => location.pathname === item.path)) {
-          return group.id;
-        }
-      }
-      return null;
-    })();
-
-    if (activeGroup && !expandedGroups[activeGroup]) {
-      setExpandedGroups(prev => ({
-        ...prev,
-        [activeGroup]: true
-      }));
-    }
-  }, [location.pathname, shouldShowProfessorMenu]);
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
