@@ -8,6 +8,7 @@ export interface MyEnrollmentCourse {
   lessons_count?: number | null;
   generates_certificate?: boolean | null;
   tipo?: string | null;
+  cover_image_url?: string | null;
 }
 
 export interface MyEnrollmentTurma {
@@ -61,7 +62,7 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
         if (courseIds.length > 0) {
           const { data: coursesData, error: coursesErr } = await supabase
             .from("courses")
-            .select("id, name, lessons_count, generates_certificate, tipo")
+            .select("id, name, lessons_count, generates_certificate, tipo, cover_image_url")
             .in("id", courseIds);
           if (coursesErr) throw coursesErr;
           (coursesData ?? []).forEach((c) => {

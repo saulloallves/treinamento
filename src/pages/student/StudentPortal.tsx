@@ -60,7 +60,16 @@ const StudentPortal = () => {
         ) : (enrollments && enrollments.length > 0 ? (
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {enrollments.map((enroll) => (
-              <Card key={enroll.id}>
+              <Card key={enroll.id} className="overflow-hidden">
+                {enroll.course?.cover_image_url && (
+                  <div className="aspect-video w-full overflow-hidden">
+                    <img 
+                      src={enroll.course.cover_image_url} 
+                      alt={enroll.course.name || "Capa do curso"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <CardHeader>
                   <CardTitle>{enroll.course?.name ?? "Curso"}</CardTitle>
                 </CardHeader>
