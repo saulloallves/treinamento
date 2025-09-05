@@ -60,125 +60,119 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Informações Gerais */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Informações da Turma
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Status:</span>
-                    {getStatusBadge(turma.status)}
-                  </div>
-                  {turma.code && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Código:</span>
-                      <span className="font-mono text-sm">{turma.code}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Capacidade:</span>
-                    <span className="text-sm">{turma.capacity || 'Ilimitada'}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Inscritos:</span>
-                    <span className="text-sm font-medium">{turma.enrollments_count || 0}</span>
-                  </div>
+          {/* Cards com informações */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Informações da Turma */}
+            <div className="bg-card p-4 rounded-lg border">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-card-foreground">
+                <Users className="w-4 h-4 text-primary" />
+                Informações da Turma
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm text-muted-foreground block">Status</span>
+                  {getStatusBadge(turma.status)}
                 </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Professor Responsável
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Nome:</span>
-                    <span className="text-sm">{turma.responsavel_user?.name || 'Não definido'}</span>
-                  </div>
-                  {turma.responsavel_user?.email && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Email:</span>
-                      <span className="text-sm">{turma.responsavel_user.email}</span>
-                    </div>
-                  )}
+                <div>
+                  <span className="text-sm text-muted-foreground block">Capacidade</span>
+                  <span className="text-sm font-medium">{turma.capacity || 'Ilimitada'}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground block">Inscritos</span>
+                  <span className="text-sm font-medium text-primary">{turma.enrollments_count || 0}</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Datas Importantes
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Prazo de Conclusão:</span>
-                    <span className="text-sm font-medium">
-                      {format(new Date(turma.completion_deadline), "dd/MM/yyyy", { locale: ptBR })}
+            {/* Professor Responsável */}
+            <div className="bg-card p-4 rounded-lg border">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-card-foreground">
+                <User className="w-4 h-4 text-primary" />
+                Professor Responsável
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm text-muted-foreground block">Nome</span>
+                  <span className="text-sm font-medium">{turma.responsavel_user?.name || 'Não definido'}</span>
+                </div>
+                {turma.responsavel_user?.email && (
+                  <div>
+                    <span className="text-sm text-muted-foreground block">Email</span>
+                    <span className="text-sm break-all">{turma.responsavel_user.email}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Datas Importantes */}
+            <div className="bg-card p-4 rounded-lg border">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-card-foreground">
+                <Calendar className="w-4 h-4 text-primary" />
+                Datas Importantes
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm text-muted-foreground block">Prazo de Conclusão</span>
+                  <span className="text-sm font-medium">
+                    {format(new Date(turma.completion_deadline), "dd/MM/yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+                {turma.start_at && (
+                  <div>
+                    <span className="text-sm text-muted-foreground block">Início</span>
+                    <span className="text-sm">
+                      {format(new Date(turma.start_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </span>
                   </div>
-                  {turma.start_at && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Início:</span>
-                      <span className="text-sm">
-                        {format(new Date(turma.start_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                      </span>
-                    </div>
-                  )}
-                  {turma.end_at && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Fim:</span>
-                      <span className="text-sm">
-                        {format(new Date(turma.end_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {(turma.enrollment_open_at || turma.enrollment_close_at) && (
-                <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Janela de Inscrições
-                  </h3>
-                  <div className="space-y-2">
-                    {turma.enrollment_open_at && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Abertura:</span>
-                        <span className="text-sm">
-                          {format(new Date(turma.enrollment_open_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                    )}
-                    {turma.enrollment_close_at && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Fechamento:</span>
-                        <span className="text-sm">
-                          {format(new Date(turma.enrollment_close_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                    )}
+                )}
+                {turma.end_at && (
+                  <div>
+                    <span className="text-sm text-muted-foreground block">Fim</span>
+                    <span className="text-sm">
+                      {format(new Date(turma.end_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    </span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Lista de Inscrições */}
-          <TurmaEnrollmentsList 
-            enrollments={turmaEnrollments} 
-            isLoading={isLoading} 
-          />
+          {/* Janela de Inscrições - Card separado se houver dados */}
+          {(turma.enrollment_open_at || turma.enrollment_close_at) && (
+            <div className="bg-card p-4 rounded-lg border">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-card-foreground">
+                <Clock className="w-4 h-4 text-primary" />
+                Janela de Inscrições
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {turma.enrollment_open_at && (
+                  <div>
+                    <span className="text-sm text-muted-foreground block">Abertura</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(turma.enrollment_open_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    </span>
+                  </div>
+                )}
+                {turma.enrollment_close_at && (
+                  <div>
+                    <span className="text-sm text-muted-foreground block">Fechamento</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(turma.enrollment_close_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+
+        <Separator />
+
+        {/* Lista de Inscrições */}
+        <TurmaEnrollmentsList 
+          enrollments={turmaEnrollments} 
+          isLoading={isLoading} 
+        />
       </DialogContent>
     </Dialog>
   );
