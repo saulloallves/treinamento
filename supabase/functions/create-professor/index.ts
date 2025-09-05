@@ -71,14 +71,40 @@ serve(async (req) => {
       });
     }
 
-    const payload = (await req.json()) as CreateProfessorPayload;
-    const { name, email, password, phone, position } = payload;
+    const rawPayload = (await req.json()) as CreateProfessorPayload;
+    const name = rawPayload.name?.trim();
+    const email = rawPayload.email?.trim().toLowerCase();
+    const password = rawPayload.password;
+    const phone = rawPayload.phone?.trim();
+    const position = rawPayload.position?.trim();
 
     if (!name || !email || !password) {
       return new Response(JSON.stringify({ success: false, error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Pre-check: existing profile with same email
+    const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
+      .from("users")
+      .select("id,user_type")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (profileLookupError) {
+      console.error("[create-professor] profile lookup error:", profileLookupError);
+      // continue – not fatal, but log
+    }
+
+    if (existingProfile) {
+      const msg = existingProfile.user_type === "Professor"
+        ? "Este e-mail já está cadastrado como Professor."
+        : `Este e-mail já está cadastrado como ${existingProfile.user_type}.`;
+      return new Response(
+        JSON.stringify({ success: false, error: msg }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     console.log("[create-professor] Creating auth user:", { email, position });
@@ -96,10 +122,21 @@ serve(async (req) => {
     });
 
     if (createUserError) {
+      const anyErr: any = createUserError as any;
+      const isEmailExists = anyErr?.status === 422 || anyErr?.code === "email_exists";
       console.error("[create-professor] createUserError:", createUserError);
+
+      // Return friendly message for UI without triggering supabase-js error branch
+      if (isEmailExists) {
+        return new Response(
+          JSON.stringify({ success: false, error: "E-mail já cadastrado." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: createUserError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, error: createUserError.message || "Falha ao criar usuário" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -125,7 +162,7 @@ serve(async (req) => {
       console.error("[create-professor] profileError:", profileError);
       return new Response(
         JSON.stringify({ success: false, error: profileError.message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -139,7 +176,7 @@ serve(async (req) => {
     console.error("[create-professor] Unexpected error:", err);
     return new Response(
       JSON.stringify({ success: false, error: err?.message ?? "Unexpected error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
