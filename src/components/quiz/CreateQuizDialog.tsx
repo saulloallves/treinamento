@@ -26,17 +26,27 @@ import { useQuiz } from "@/hooks/useQuiz";
 interface CreateQuizDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedCourseId?: string;
+  preselectedLessonId?: string;
+  preselectedTurmaId?: string;
 }
 
-const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
+const CreateQuizDialog = ({ 
+  open, 
+  onOpenChange, 
+  preselectedCourseId,
+  preselectedLessonId,
+  preselectedTurmaId 
+}: CreateQuizDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
   const { data: allLessons = [] } = useLessons();
   const { createQuestion } = useQuiz();
   
   const [formData, setFormData] = useState({
-    course_id: "",
-    lesson_id: "",
+    course_id: preselectedCourseId || "",
+    lesson_id: preselectedLessonId || "",
+    quiz_name: "",
     question: "",
     question_type: "multiple_choice",
     option_a: "",
@@ -48,7 +58,10 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
   });
 
   // Filtrar aulas do curso selecionado
-  const availableLessons = allLessons.filter(lesson => lesson.course_id === formData.course_id);
+  const filteredLessons = allLessons.filter(lesson => lesson.course_id === formData.course_id);
+  
+  // Get current lesson
+  const currentLesson = filteredLessons.find(lesson => lesson.id === formData.lesson_id);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,15 +85,22 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
     }
 
     try {
-      await createQuestion.mutateAsync(formData);
+      const questionData = {
+        ...formData,
+        turma_id: preselectedTurmaId || null,
+        quiz_name: formData.quiz_name || `Quiz ${currentLesson?.title || 'Aula'}`,
+      };
+      
+      await createQuestion.mutateAsync(questionData);
       toast({
         title: "Pergunta criada",
         description: "A pergunta foi criada com sucesso.",
       });
       onOpenChange(false);
       setFormData({
-        course_id: "",
-        lesson_id: "",
+        course_id: preselectedCourseId || "",
+        lesson_id: preselectedLessonId || "",
+        quiz_name: "",
         question: "",
         question_type: "multiple_choice",
         option_a: "",
@@ -140,7 +160,7 @@ const CreateQuizDialog = ({ open, onOpenChange }: CreateQuizDialogProps) => {
                 <SelectValue placeholder="Selecione uma aula" />
               </SelectTrigger>
               <SelectContent>
-                {availableLessons.map((lesson: any) => (
+                {filteredLessons.map((lesson: any) => (
                   <SelectItem key={lesson.id} value={lesson.id}>
                     {lesson.title}
                   </SelectItem>

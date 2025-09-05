@@ -722,6 +722,7 @@ export type Database = {
           question: string
           question_type: string
           quiz_name: string | null
+          turma_id: string | null
         }
         Insert: {
           correct_answer: string
@@ -737,6 +738,7 @@ export type Database = {
           question: string
           question_type?: string
           quiz_name?: string | null
+          turma_id?: string | null
         }
         Update: {
           correct_answer?: string
@@ -752,6 +754,7 @@ export type Database = {
           question?: string
           question_type?: string
           quiz_name?: string | null
+          turma_id?: string | null
         }
         Relationships: [
           {
@@ -766,6 +769,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
             referencedColumns: ["id"]
           },
         ]

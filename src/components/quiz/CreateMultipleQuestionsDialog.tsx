@@ -28,6 +28,9 @@ import { Plus, Trash2 } from "lucide-react";
 interface CreateMultipleQuestionsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preselectedCourseId?: string;
+  preselectedLessonId?: string;
+  preselectedTurmaId?: string;
 }
 
 interface QuestionForm {
@@ -42,14 +45,20 @@ interface QuestionForm {
   order_index: number;
 }
 
-const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQuestionsDialogProps) => {
+const CreateMultipleQuestionsDialog = ({ 
+  open, 
+  onOpenChange,
+  preselectedCourseId,
+  preselectedLessonId,
+  preselectedTurmaId
+}: CreateMultipleQuestionsDialogProps) => {
   const { toast } = useToast();
   const { data: courses = [] } = useCourses();
   const { data: allLessons = [] } = useLessons();
   const { createQuestion } = useQuiz();
   
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedLesson, setSelectedLesson] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState(preselectedCourseId || "");
+  const [selectedLesson, setSelectedLesson] = useState(preselectedLessonId || "");
   const [quizName, setQuizName] = useState("");
   const [questions, setQuestions] = useState<QuestionForm[]>([{
     id: "1",
@@ -133,7 +142,8 @@ const CreateMultipleQuestionsDialog = ({ open, onOpenChange }: CreateMultipleQue
         const questionData = {
           course_id: selectedCourse,
           lesson_id: selectedLesson,
-          quiz_name: quizName.trim(),
+        turma_id: preselectedTurmaId || null,
+        quiz_name: quizName.trim(),
           question: question.question,
           question_type: question.question_type,
           option_a: question.question_type === "multiple_choice" ? question.option_a : null,
