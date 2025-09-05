@@ -10,7 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useCreateCollaborator } from "@/hooks/useCollaborationApprovals";
 
-const CreateUserDialog = () => {
+interface CreateUserDialogProps {
+  allowedUserTypes?: ("Aluno" | "Colaborador" | "Professor")[];
+  buttonText?: string;
+  dialogTitle?: string;
+}
+
+const CreateUserDialog = ({ 
+  allowedUserTypes = ["Aluno", "Colaborador", "Professor"],
+  buttonText = "Novo Usuário",
+  dialogTitle = "Criar Novo Usuário"
+}: CreateUserDialogProps) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -18,7 +28,7 @@ const CreateUserDialog = () => {
     email: "",
     password: "",
     unitCode: "",
-    userType: "Aluno" as "Aluno" | "Colaborador" | "Professor",
+    userType: allowedUserTypes[0] as "Aluno" | "Colaborador" | "Professor",
     position: "",
     cpf: "",
     phone: "",
@@ -108,7 +118,7 @@ const CreateUserDialog = () => {
       }
 
       // Reset form and close dialog
-      setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "", cpf: "", phone: "" });
+      setFormData({ name: "", email: "", password: "", unitCode: "", userType: allowedUserTypes[0], position: "", cpf: "", phone: "" });
       setOpen(false);
 
     } catch (error: any) {
@@ -124,7 +134,7 @@ const CreateUserDialog = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", email: "", password: "", unitCode: "", userType: "Aluno", position: "", cpf: "", phone: "" });
+    setFormData({ name: "", email: "", password: "", unitCode: "", userType: allowedUserTypes[0], position: "", cpf: "", phone: "" });
   };
 
   return (
@@ -135,33 +145,39 @@ const CreateUserDialog = () => {
       <DialogTrigger asChild>
         <Button className="btn-primary">
           <Plus className="w-4 h-4" />
-          Novo Usuário
+          {buttonText}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5 text-primary" />
-            Criar Novo Usuário
+            {dialogTitle}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="user-type">Tipo de Usuário</Label>
-            <Select 
-              value={formData.userType} 
-              onValueChange={(value: "Aluno" | "Colaborador" | "Professor") => setFormData(prev => ({ ...prev, userType: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Aluno">Aluno</SelectItem>
-                <SelectItem value="Colaborador">Colaborador</SelectItem>
-                <SelectItem value="Professor">Professor</SelectItem>
-              </SelectContent>
-            </Select>
+            {allowedUserTypes.length > 1 ? (
+              <Select 
+                value={formData.userType} 
+                onValueChange={(value: "Aluno" | "Colaborador" | "Professor") => setFormData(prev => ({ ...prev, userType: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allowedUserTypes.includes("Aluno") && <SelectItem value="Aluno">Aluno</SelectItem>}
+                  {allowedUserTypes.includes("Colaborador") && <SelectItem value="Colaborador">Colaborador</SelectItem>}
+                  {allowedUserTypes.includes("Professor") && <SelectItem value="Professor">Professor</SelectItem>}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="p-2 bg-muted rounded-md text-sm font-medium">
+                {allowedUserTypes[0]}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               {formData.userType === "Colaborador" 
                 ? "Colaboradores precisam de aprovação do franqueado da unidade"

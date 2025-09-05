@@ -112,7 +112,11 @@ const UsersList = () => {
           <p className="text-brand-gray-dark">Gerencie colaboradores e franqueados</p>
         </div>
         <div className="flex gap-2">
-          <CreateUserDialog />
+          <CreateUserDialog 
+            allowedUserTypes={["Aluno"]} 
+            buttonText="Novo Aluno"
+            dialogTitle="Criar Novo Aluno"
+          />
         </div>
       </div>
 
