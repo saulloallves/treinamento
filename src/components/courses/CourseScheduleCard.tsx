@@ -19,7 +19,6 @@ interface CourseScheduleCardProps {
     time: string;
     title: string;
   };
-  coverImageUrl?: string;
   tipo?: 'ao_vivo' | 'gravado';
   theme?: string[];
   onClick: () => void;
@@ -50,7 +49,6 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
   courseName,
   lessonsCount,
   nextLesson,
-  coverImageUrl,
   tipo = 'ao_vivo',
   theme = [],
   onClick
@@ -73,15 +71,7 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
     >
       {/* Cover Area */}
       <div className="relative aspect-video">
-        {coverImageUrl ? (
-          <img 
-            src={coverImageUrl} 
-            alt={courseName}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className={`w-full h-full ${gradientClass}`} />
-        )}
+        <div className={`w-full h-full ${gradientClass}`} />
         
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
