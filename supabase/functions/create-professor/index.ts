@@ -85,78 +85,80 @@ serve(async (req) => {
       });
     }
 
-    // Pre-check: existing profile with same email
-    const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
-      .from("users")
-      .select("id,user_type")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (profileLookupError) {
-      console.error("[create-professor] profile lookup error:", profileLookupError);
-      // continue – not fatal, but log
-    }
-
-    if (existingProfile) {
-      const msg = existingProfile.user_type === "Professor"
-        ? "Este e-mail já está cadastrado como Professor."
-        : `Este e-mail já está cadastrado como ${existingProfile.user_type}.`;
-      return new Response(
-        JSON.stringify({ success: false, error: msg }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log("[create-professor] Creating auth user:", { email, position });
-
-    const { data: createdUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: name,
-        user_type: "Professor",
-        phone,
-        position,
-      },
-    });
-
-    if (createUserError) {
-      const anyErr: any = createUserError as any;
-      const isEmailExists = anyErr?.status === 422 || anyErr?.code === "email_exists";
-      console.error("[create-professor] createUserError:", createUserError);
-
-      // Return friendly message for UI without triggering supabase-js error branch
-      if (isEmailExists) {
+    // Check if user already exists in auth.users
+    const { data: existingAuthUser, error: authLookupError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    
+    let authUserId: string;
+    
+    if (existingAuthUser?.user) {
+      // User already exists in auth, just use existing ID and update profile
+      authUserId = existingAuthUser.user.id;
+      console.log("[create-professor] User already exists in auth, updating profile:", authUserId);
+      
+      // Check if already has Professor profile
+      const { data: existingProfile } = await supabaseAdmin
+        .from("users")
+        .select("user_type")
+        .eq("id", authUserId)
+        .eq("user_type", "Professor")
+        .maybeSingle();
+        
+      if (existingProfile) {
         return new Response(
-          JSON.stringify({ success: false, error: "E-mail já cadastrado." }),
+          JSON.stringify({ success: false, error: "Este usuário já é um Professor." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // Update password for existing user
+      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+        password
+      });
+      
+      if (passwordUpdateError) {
+        console.error("[create-professor] Password update error:", passwordUpdateError);
+        return new Response(
+          JSON.stringify({ success: false, error: "Erro ao atualizar senha do usuário." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Create new auth user
+      console.log("[create-professor] Creating new auth user:", { email, position });
+
+      const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        user_metadata: {
+          name,
+          position,
+          phone,
+        },
+        email_confirm: true,
+      });
+
+      if (createUserError) {
+        console.error("[create-professor] createUserError:", createUserError);
+        return new Response(
+          JSON.stringify({ success: false, error: createUserError.message || "Falha ao criar usuário" }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      return new Response(
-        JSON.stringify({ success: false, error: createUserError.message || "Falha ao criar usuário" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      authUserId = createUserData.user.id;
     }
 
-    const userId = createdUser.user.id;
+    console.log("[create-professor] Creating user profile:", authUserId);
 
-    // Insert profile in public.users
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("users")
-      .insert({
-        id: userId,
-        name,
-        email,
-        phone,
-        position,
-        user_type: "Professor",
-        active: true,
-        approval_status: "aprovado",
-      })
-      .select()
-      .single();
+    const { error: profileError } = await supabaseAdmin.from("users").insert({
+      id: authUserId,
+      name,
+      email,
+      phone,
+      position,
+      user_type: "Professor",
+      active: true,
+    });
 
     if (profileError) {
       console.error("[create-professor] profileError:", profileError);
