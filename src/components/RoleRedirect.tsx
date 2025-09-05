@@ -17,6 +17,21 @@ const RoleRedirect = () => {
     document.title = "Direcionando...";
   }, []);
 
+  // Debug logging to identify stuck loading states
+  useEffect(() => {
+    console.log('RoleRedirect Debug:', {
+      user: !!user,
+      userId: user?.id,
+      loading,
+      checking,
+      checkingProfessor,
+      loadingCurrentUser,
+      isAdmin,
+      isProfessor,
+      currentUser: !!currentUser
+    });
+  }, [user, loading, checking, checkingProfessor, loadingCurrentUser, isAdmin, isProfessor, currentUser]);
+
   // Show loading only while essential auth data is loading
   if (loading || checking || checkingProfessor || loadingCurrentUser) {
     return (
