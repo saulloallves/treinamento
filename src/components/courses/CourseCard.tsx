@@ -14,6 +14,8 @@ import {
   Clock
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
+import { useCourseAccess } from '@/hooks/useCourseAccess';
+import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 
 interface CourseCardProps {
   course: Course;
@@ -53,6 +55,16 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   getPublicTargetLabel
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
+  const { positionNames } = useCourseAccess(course.id);
+  const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
+  
+  // Get correct public target label
+  const getCorrectPublicTargetLabel = () => {
+    if (positionNames && positionNames.length > 0) {
+      return positionNames.slice(0, 2).join(', ') + (positionNames.length > 2 ? '...' : '');
+    }
+    return getPublicTargetLabel(course.public_target);
+  };
 
   return (
     <Card className="overflow-hidden h-full flex flex-col group hover:shadow-lg transition-shadow">
@@ -89,25 +101,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           </div>
         </div>
 
-        {/* Type Badge */}
-        <div className="absolute top-3 right-3">
-          <Badge 
-            variant={course.tipo === 'ao_vivo' ? 'destructive' : 'default'}
-            className="text-xs"
-          >
-            {course.tipo === 'ao_vivo' ? (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1" />
-                Ao Vivo
-              </>
-            ) : (
-              <>
-                <FileText className="w-3 h-3 mr-1" />
-                Gravado
-              </>
-            )}
-          </Badge>
-        </div>
       </div>
 
       {/* Content */}
@@ -117,10 +110,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <BookOpen className="w-4 h-4" />
-              <span>{course.lessons_count} aulas</span>
+              <span>{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
             <Badge variant="outline" className="text-xs">
-              {getPublicTargetLabel(course.public_target)}
+              {getCorrectPublicTargetLabel()}
             </Badge>
           </div>
 
@@ -135,6 +128,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
           {/* Features */}
           <div className="flex gap-2">
+            <Badge variant="outline" className="text-xs">
+              {course.tipo === 'ao_vivo' ? (
+                <>
+                  <PlayCircle className="w-3 h-3 mr-1" />
+                  Curso
+                </>
+              ) : (
+                <>
+                  <FileText className="w-3 h-3 mr-1" />
+                  Treinamento
+                </>
+              )}
+            </Badge>
             {course.has_quiz && (
               <Badge variant="outline" className="text-xs">
                 <FileText className="w-3 h-3 mr-1" />

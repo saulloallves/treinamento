@@ -104,25 +104,6 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
           </div>
         </div>
 
-        {/* Type Badge */}
-        <div className="absolute top-3 right-3">
-          <Badge 
-            variant={tipo === 'ao_vivo' ? 'destructive' : 'default'}
-            className="text-xs"
-          >
-            {tipo === 'ao_vivo' ? (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1" />
-                Ao Vivo
-              </>
-            ) : (
-              <>
-                <FileText className="w-3 h-3 mr-1" />
-                Gravado
-              </>
-            )}
-          </Badge>
-        </div>
       </div>
 
       {/* Content */}
@@ -132,6 +113,19 @@ const CourseScheduleCard: React.FC<CourseScheduleCardProps> = ({
             <BookOpen className="w-4 h-4" />
             <span>{lessonsCount} aulas</span>
           </div>
+          <Badge variant="outline" className="text-xs">
+            {tipo === 'ao_vivo' ? (
+              <>
+                <PlayCircle className="w-3 h-3 mr-1" />
+                Curso
+              </>
+            ) : (
+              <>
+                <FileText className="w-3 h-3 mr-1" />
+                Treinamento
+              </>
+            )}
+          </Badge>
         </div>
 
         {nextLesson && (
