@@ -56,6 +56,11 @@ const Sidebar = () => {
     [selectedProfile, isAdmin]
   );
   
+  const shouldShowProfessorMenu = useMemo(() => 
+    selectedProfile === 'Professor' && currentUser?.user_type === 'Professor',
+    [selectedProfile, currentUser?.user_type]
+  );
+  
   // Menu para alunos (inclui gestão de colaboradores para franqueados)
   const studentMenuItems = useMemo(() => {
     const baseItems = [
@@ -75,6 +80,57 @@ const Sidebar = () => {
 
     return baseItems;
   }, [currentUser?.role, currentUser?.unit_code]);
+
+  // Menu para professores
+  const professorMenuStructure = [
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      path: '/professor',
+      icon: LayoutDashboard,
+      isGroup: false
+    },
+    {
+      id: 'treinamentos',
+      name: 'Treinamentos',
+      icon: BookOpen,
+      isGroup: true,
+      items: [
+        { name: 'Cursos', path: '/professor/cursos', icon: GraduationCap },
+        { name: 'Turmas', path: '/professor/turmas', icon: Calendar },
+        { name: 'Aulas', path: '/professor/aulas', icon: BookOpen },
+      ]
+    },
+    {
+      id: 'gestaoAlunos',
+      name: 'Gestão de Alunos',
+      icon: Users,
+      isGroup: true,
+      items: [
+        { name: 'Inscrições', path: '/professor/inscricoes', icon: UserCheck },
+        { name: 'Presença', path: '/professor/presenca', icon: ClipboardList },
+        { name: 'Progresso', path: '/professor/progresso', icon: TrendingUp },
+      ]
+    },
+    {
+      id: 'avaliacoes',
+      name: 'Avaliações',
+      icon: FileQuestion,
+      isGroup: true,
+      items: [
+        { name: 'Quiz', path: '/professor/avaliacoes', icon: HelpCircle },
+      ]
+    },
+    {
+      id: 'comunicacao',
+      name: 'Comunicação',
+      icon: MessageSquare,
+      isGroup: true,
+      items: [
+        { name: 'WhatsApp', path: '/professor/comunicacao', icon: MessageSquare },
+      ]
+    }
+  ];
 
   const adminMenuStructure = [
     {

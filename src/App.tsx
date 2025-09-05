@@ -28,10 +28,12 @@ import StudentCourse from "./pages/student/StudentCourse";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
+import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import ProfileSelection from "./pages/ProfileSelection";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
+import ProfessorRoute from "@/components/ProfessorRoute";
 
 const queryClient = new QueryClient();
 
@@ -122,29 +124,49 @@ const App = () => (
                 </AdminRoute>
               } />
               <Route path="/professor" element={
-                <ProtectedRoute requiredRole="Professor">
-                  <StudentPortal />
-                </ProtectedRoute>
+                <ProfessorRoute>
+                  <ProfessorDashboard />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/cursos" element={
+                <ProfessorRoute>
+                  <CoursesPage />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/turmas" element={
+                <ProfessorRoute>
+                  <TurmasPage />
+                </ProfessorRoute>
               } />
               <Route path="/professor/aulas" element={
-                <ProtectedRoute requiredRole="Professor">
-                  <StudentLessons />
-                </ProtectedRoute>
+                <ProfessorRoute>
+                  <LessonsPage />
+                </ProfessorRoute>
               } />
-              <Route path="/professor/quiz" element={
-                <ProtectedRoute requiredRole="Professor">
-                  <StudentQuiz />
-                </ProtectedRoute>
+              <Route path="/professor/inscricoes" element={
+                <ProfessorRoute>
+                  <EnrollmentsPage />
+                </ProfessorRoute>
               } />
-              <Route path="/professor/curso/:courseId" element={
-                <ProtectedRoute requiredRole="Professor">
-                  <StudentCourse />
-                </ProtectedRoute>
+              <Route path="/professor/presenca" element={
+                <ProfessorRoute>
+                  <AttendancePage />
+                </ProfessorRoute>
               } />
-              <Route path="/professor/curso/:courseId/aulas-gravadas" element={
-                <ProtectedRoute requiredRole="Professor">
-                  <StudentLessons />
-                </ProtectedRoute>
+              <Route path="/professor/progresso" element={
+                <ProfessorRoute>
+                  <ProgressPage />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/avaliacoes" element={
+                <ProfessorRoute>
+                  <QuizPage />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/comunicacao" element={
+                <ProfessorRoute>
+                  <WhatsAppPage />
+                </ProfessorRoute>
               } />
               <Route path="/aluno" element={
                 <ProtectedRoute requiredRole="Aluno">
