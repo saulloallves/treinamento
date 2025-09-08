@@ -23,7 +23,7 @@ export const usePaginatedLessons = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('all');
 
   const { filteredLessons, courses } = useMemo(() => {
     // Get unique courses
@@ -39,7 +39,7 @@ export const usePaginatedLessons = () => {
       );
     }
 
-    if (selectedCourse) {
+    if (selectedCourse && selectedCourse !== 'all') {
       filtered = filtered.filter(lesson => lesson.course_name === selectedCourse);
     }
 

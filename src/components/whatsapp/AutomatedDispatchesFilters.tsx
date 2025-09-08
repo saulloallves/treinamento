@@ -26,11 +26,11 @@ export const AutomatedDispatchesFilters = ({
   itemsPerPage,
   onItemsPerPageChange,
 }: AutomatedDispatchesFiltersProps) => {
-  const hasActiveFilters = searchTerm || selectedCourse;
+  const hasActiveFilters = searchTerm || (selectedCourse && selectedCourse !== 'all');
 
   const clearFilters = () => {
     onSearchChange('');
-    onCourseChange('');
+    onCourseChange('all');
   };
 
   return (
@@ -58,7 +58,7 @@ export const AutomatedDispatchesFilters = ({
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os cursos</SelectItem>
+                <SelectItem value="all">Todos os cursos</SelectItem>
                 {courses.map((course) => (
                   <SelectItem key={course} value={course}>
                     {course}
@@ -106,11 +106,11 @@ export const AutomatedDispatchesFilters = ({
             </button>
           </Badge>
         )}
-        {selectedCourse && (
+        {selectedCourse && selectedCourse !== 'all' && (
           <Badge variant="secondary" className="gap-1">
             Curso: {selectedCourse}
             <button
-              onClick={() => onCourseChange('')}
+              onClick={() => onCourseChange('all')}
               className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
             >
               <X className="h-3 w-3" />
