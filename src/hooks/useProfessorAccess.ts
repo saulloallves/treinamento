@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 
+const DEFAULT_ENABLED_MODULES = new Set([
+  'courses', 'lessons', 'turmas', 'enrollments', 'attendance', 'quiz', 'certificates', 'communication'
+]);
+
 export interface ProfessorAccess {
   canView: (module: string) => boolean;
   canEdit: (module: string) => boolean;
@@ -36,13 +40,17 @@ export const useProfessorAccess = (): ProfessorAccess => {
   });
 
   const canView = (module: string): boolean => {
+    if (!isProfessor) return false;
     const permission = permissions.find(p => p.module_name === module);
-    return permission?.can_view || false;
+    if (permission) return !!permission.can_view;
+    return DEFAULT_ENABLED_MODULES.has(module);
   };
 
   const canEdit = (module: string): boolean => {
+    if (!isProfessor) return false;
     const permission = permissions.find(p => p.module_name === module);
-    return permission?.can_edit || false;
+    if (permission) return !!permission.can_edit;
+    return DEFAULT_ENABLED_MODULES.has(module);
   };
 
   const hasField = (module: string, field: string): boolean => {

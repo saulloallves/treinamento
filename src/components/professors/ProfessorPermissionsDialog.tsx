@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -114,8 +115,12 @@ const ProfessorPermissionsDialog = ({
 
     // Start with defaults for all modules so UI always has a defined object
     const defaults: ModulePermissions = {};
+    const defaultEnabledModules = new Set([
+      'courses', 'lessons', 'turmas', 'enrollments', 'attendance', 'quiz', 'certificates', 'communication'
+    ]);
     SYSTEM_MODULES.forEach((m) => {
-      defaults[m.value] = { canView: false, canEdit: false, enabledFields: {} };
+      const enabledByDefault = defaultEnabledModules.has(m.value);
+      defaults[m.value] = { canView: enabledByDefault, canEdit: enabledByDefault, enabledFields: {} };
     });
 
     if (existingPermissions.length > 0) {
@@ -139,25 +144,60 @@ const ProfessorPermissionsDialog = ({
     }
   }, [existingPermissions, professorId]);
 
-  // Load existing turma permissions
+  // Load existing turma permissions and merge with responsible turmas
   useEffect(() => {
-    console.log('Loading turma permissions for:', professorId);
-    console.log('Existing turma permissions:', existingTurmaPermissions);
-    
-    if (existingTurmaPermissions.length > 0) {
-      const turmaPerms: TurmaPermission[] = existingTurmaPermissions.map(perm => ({
+    const loadTurmaPermissions = async () => {
+      console.log('Loading turma permissions for:', professorId);
+      console.log('Existing turma permissions:', existingTurmaPermissions);
+
+      // Start from existing saved permissions
+      let turmaPerms: TurmaPermission[] = (existingTurmaPermissions || []).map(perm => ({
         turmaId: perm.turma_id,
         turmaName: '', // Will be filled by ProfessorTurmaPermissions component
-        canView: perm.can_view,
-        canEdit: perm.can_edit,
-        canManageStudents: perm.can_manage_students,
+        canView: !!perm.can_view,
+        canEdit: !!perm.can_edit,
+        canManageStudents: !!perm.can_manage_students,
       }));
-      
+
+      // Merge with turmas where the professor is responsible
+      try {
+        if (professorId) {
+          const { data: responsibleTurmas, error } = await supabase
+            .from('turmas')
+            .select('id,name')
+            .eq('responsavel_user_id', professorId);
+
+          if (error) {
+            console.error('Error fetching responsible turmas:', error);
+          } else if (responsibleTurmas) {
+            const existingIds = new Set(turmaPerms.map(tp => tp.turmaId));
+            responsibleTurmas.forEach((t: any) => {
+              if (!existingIds.has(t.id)) {
+                turmaPerms.push({
+                  turmaId: t.id,
+                  turmaName: t.name || '',
+                  canView: true,
+                  canEdit: true,
+                  canManageStudents: true,
+                });
+              } else {
+                turmaPerms = turmaPerms.map(tp =>
+                  tp.turmaId === t.id
+                    ? { ...tp, turmaName: tp.turmaName || t.name || '', canView: true, canEdit: true, canManageStudents: true }
+                    : tp
+                );
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Unexpected error loading responsible turmas:', e);
+      }
+
       setTurmaPermissions(turmaPerms);
-    } else {
-      // Initialize empty turma permissions
-      setTurmaPermissions([]);
-    }
+    };
+
+    loadTurmaPermissions();
   }, [existingTurmaPermissions, professorId]);
 
   const handleModuleToggle = (moduleName: string, type: 'view' | 'edit', value: boolean) => {
