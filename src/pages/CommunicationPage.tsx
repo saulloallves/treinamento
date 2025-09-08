@@ -2,7 +2,7 @@ import BaseLayout from "@/components/BaseLayout";
 import AutomatedDispatches from "@/components/whatsapp/AutomatedDispatches";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Clock, MessageSquare, Sparkles } from "lucide-react";
+import { Clock, MessageSquare, Sparkles } from "lucide-react";
 import { useLessonsWithSchedule } from "@/hooks/useLessonsWithSchedule";
 import { useAutomatedLessonDispatches } from "@/hooks/useAutomatedLessonDispatches";
 
