@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Clock, AlertCircle } from 'lucide-react';
+import { Clock, AlertCircle, MessageSquare, Zap, Info, Sparkles } from 'lucide-react';
 import { usePaginatedLessons } from '@/hooks/usePaginatedLessons';
 import { useAutomatedLessonDispatches, useCreateAutomatedDispatch, useUpdateAutomatedDispatch } from '@/hooks/useAutomatedLessonDispatches';
 import { AutomatedDispatchesFilters } from './AutomatedDispatchesFilters';
@@ -123,51 +123,112 @@ const AutomatedDispatches = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Disparos Automáticos
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Configure disparos automáticos para aulas ao vivo. O sistema enviará mensagens automaticamente 1 hora e 10 minutos antes do início.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Default Messages Configuration */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Mensagens Padrão</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="msg-1h">Mensagem para 1 hora antes</Label>
+    <div className="space-y-8">
+      {/* Seção de Mensagens Padrão */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
+            <MessageSquare className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Configurar Mensagens Padrão</h2>
+            <p className="text-sm text-muted-foreground">
+              Defina os templates que serão usados para todas as aulas
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Card Mensagem 1 hora */}
+          <Card className="relative overflow-hidden border-0 shadow-md">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3">
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <span className="text-lg">1 Hora Antes</span>
+                  <p className="text-sm font-normal text-muted-foreground">Lembrete inicial</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <Textarea
                 id="msg-1h"
                 value={messages['1_hour_before']}
                 onChange={(e) => setMessages(prev => ({ ...prev, '1_hour_before': e.target.value }))}
                 placeholder="Digite a mensagem que será enviada 1 hora antes da aula..."
-                className="mt-1"
-                rows={3}
+                className="min-h-[100px] border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                rows={4}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Use {'{titulo}'} para o nome da aula e {'{link}'} para o link do Zoom
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="msg-10m">Mensagem para 10 minutos antes</Label>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-blue-800">
+                    <p className="font-medium mb-1">Variáveis disponíveis:</p>
+                    <p><code className="bg-blue-100 px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-blue-100 px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card Mensagem 10 minutos */}
+          <Card className="relative overflow-hidden border-0 shadow-md">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500"></div>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3">
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-orange-100 rounded-lg">
+                  <Zap className="h-4 w-4 text-orange-600" />
+                </div>
+                <div>
+                  <span className="text-lg">10 Minutos Antes</span>
+                  <p className="text-sm font-normal text-muted-foreground">Lembrete urgente</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <Textarea
                 id="msg-10m"
                 value={messages['10_minutes_before']}
                 onChange={(e) => setMessages(prev => ({ ...prev, '10_minutes_before': e.target.value }))}
                 placeholder="Digite a mensagem que será enviada 10 minutos antes da aula..."
-                className="mt-1"
-                rows={3}
+                className="min-h-[100px] border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                rows={4}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Use {'{titulo}'} para o nome da aula e {'{link}'} para o link do Zoom
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-orange-800">
+                    <p className="font-medium mb-1">Variáveis disponíveis:</p>
+                    <p><code className="bg-orange-100 px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-orange-100 px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Seção de Aulas */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+          <CardTitle className="flex items-center gap-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-md">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <span className="text-xl">Gerenciar Aulas</span>
+              <p className="text-sm font-normal text-muted-foreground">
+                Configure disparos individuais para cada aula agendada
               </p>
             </div>
-          </div>
-        </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
 
         <Separator />
 
@@ -184,10 +245,17 @@ const AutomatedDispatches = () => {
         />
 
         {totalItems === 0 ? (
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {searchTerm || selectedCourse ? 'Nenhuma aula encontrada com os filtros aplicados.' : 'Nenhuma aula ao vivo agendada encontrada.'}
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6">
+              <AlertCircle className="h-10 w-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {searchTerm || selectedCourse ? 'Nenhuma aula encontrada' : 'Nenhuma aula agendada'}
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {searchTerm || selectedCourse 
+                ? 'Tente ajustar os filtros para encontrar as aulas desejadas.' 
+                : 'Quando houver aulas ao vivo agendadas, elas aparecerão aqui para configuração dos disparos.'}
             </p>
           </div>
         ) : (
@@ -238,8 +306,9 @@ const AutomatedDispatches = () => {
             )}
           </>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

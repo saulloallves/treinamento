@@ -28,43 +28,46 @@ export const BulkDispatchActions = ({
   }
 
   return (
-    <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={isAllSelected ? onDeselectAll : onSelectAll}
-            className="flex items-center gap-2"
-          >
-            {isAllSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-            {isAllSelected ? 'Desmarcar todas' : 'Selecionar todas'}
-          </Button>
-          {hasSelection && (
-            <Badge variant="outline">
-              {selectedLessons.length} {selectedLessons.length === 1 ? 'aula selecionada' : 'aulas selecionadas'}
-            </Badge>
-          )}
+    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-blue-100 rounded-xl">
+            {isAllSelected ? <CheckSquare className="h-5 w-5 text-blue-600" /> : <Square className="h-5 w-5 text-blue-600" />}
+          </div>
+          <div>
+            <Button
+              variant="ghost"
+              onClick={isAllSelected ? onDeselectAll : onSelectAll}
+              className="p-0 h-auto font-semibold text-blue-700 hover:text-blue-800 hover:bg-transparent"
+            >
+              {isAllSelected ? 'Desmarcar todas as aulas' : 'Selecionar todas as aulas'}
+            </Button>
+            <div className="flex items-center gap-2 mt-1">
+              {hasSelection && (
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                  {selectedLessons.length} {selectedLessons.length === 1 ? 'aula selecionada' : 'aulas selecionadas'}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
 
         {hasSelection && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
-              variant="outline"
               size="sm"
               onClick={onBulkToggle1h}
-              className="flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
             >
-              <ToggleRight className="h-4 w-4" />
+              <ToggleRight className="h-4 w-4 mr-2" />
               Alternar disparos 1h
             </Button>
             <Button
-              variant="outline"
               size="sm"
               onClick={onBulkToggle10m}
-              className="flex items-center gap-2"
+              className="bg-orange-600 hover:bg-orange-700 text-white shadow-md"
             >
-              <ToggleLeft className="h-4 w-4" />
+              <ToggleLeft className="h-4 w-4 mr-2" />
               Alternar disparos 10m
             </Button>
           </div>
