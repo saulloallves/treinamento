@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronRight
 } from "lucide-react";
+import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -138,7 +139,7 @@ const Sidebar = () => {
       isGroup: true,
       items: [
         { name: 'WhatsApp', path: '/professor/comunicacao', icon: MessageSquare },
-        { name: 'Disparos Automáticos', path: '/professor/disparos-automaticos', icon: Settings },
+        { name: 'Disparos Automáticos', path: '/professor/disparos-automaticos', icon: RobotIcon },
       ]
     }
   ];
@@ -190,7 +191,7 @@ const Sidebar = () => {
       isGroup: true,
       items: [
         { name: 'Disparos WhatsApp', path: '/whatsapp', icon: MessageSquare },
-        { name: 'Disparos Automáticos', path: '/communication', icon: Settings },
+        { name: 'Disparos Automáticos', path: '/communication', icon: RobotIcon },
       ]
     },
     {

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, MessageSquare, Sparkles } from "lucide-react";
 import { useLessonsWithSchedule } from "@/hooks/useLessonsWithSchedule";
 import { useAutomatedLessonDispatches } from "@/hooks/useAutomatedLessonDispatches";
+import { RobotIcon } from "@/components/ui/robot-icon";
 
 const CommunicationPage = () => {
   const { data: lessons = [] } = useLessonsWithSchedule();
@@ -20,7 +21,7 @@ const CommunicationPage = () => {
         <div className="relative overflow-hidden bg-card rounded-xl border shadow-clean">
           <div className="px-8 py-12 text-center space-y-6">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-clean">
-              <span className="text-3xl">🤖</span>
+              <RobotIcon className="w-8 h-8 text-white" size={32} />
             </div>
             
             <div className="space-y-2">
