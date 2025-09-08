@@ -62,7 +62,11 @@ const ProfessorPermissionsDialog = ({
 
   const professor = professors.find(p => p.id === professorId);
 
+  // Load existing module permissions
   useEffect(() => {
+    console.log('Loading professor permissions for:', professorId);
+    console.log('Existing permissions:', existingPermissions);
+    
     if (existingPermissions.length > 0) {
       const permissionsMap: ModulePermissions = {};
       
@@ -87,7 +91,28 @@ const ProfessorPermissionsDialog = ({
       });
       setPermissions(defaultPermissions);
     }
-  }, [existingPermissions]);
+  }, [existingPermissions, professorId]);
+
+  // Load existing turma permissions
+  useEffect(() => {
+    console.log('Loading turma permissions for:', professorId);
+    console.log('Existing turma permissions:', existingTurmaPermissions);
+    
+    if (existingTurmaPermissions.length > 0) {
+      const turmaPerms: TurmaPermission[] = existingTurmaPermissions.map(perm => ({
+        turmaId: perm.turma_id,
+        turmaName: '', // Will be filled by ProfessorTurmaPermissions component
+        canView: perm.can_view,
+        canEdit: perm.can_edit,
+        canManageStudents: perm.can_manage_students,
+      }));
+      
+      setTurmaPermissions(turmaPerms);
+    } else {
+      // Initialize empty turma permissions
+      setTurmaPermissions([]);
+    }
+  }, [existingTurmaPermissions, professorId]);
 
   const handleModuleToggle = (moduleName: string, type: 'view' | 'edit', value: boolean) => {
     setPermissions(prev => ({
