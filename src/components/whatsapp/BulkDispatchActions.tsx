@@ -31,7 +31,19 @@ export const BulkDispatchActions = ({
     <div className="bg-secondary/50 rounded-xl p-6 border shadow-clean">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-secondary rounded-xl">
+          <div 
+            className="inline-flex items-center justify-center w-10 h-10 bg-secondary rounded-xl cursor-pointer hover:bg-secondary/80 transition-colors"
+            onClick={isAllSelected ? onDeselectAll : onSelectAll}
+            role="button"
+            tabIndex={0}
+            aria-label={isAllSelected ? 'Desmarcar todas as aulas' : 'Selecionar todas as aulas'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                isAllSelected ? onDeselectAll() : onSelectAll();
+              }
+            }}
+          >
             {isAllSelected ? <CheckSquare className="h-5 w-5 text-primary" /> : <Square className="h-5 w-5 text-primary" />}
           </div>
           <div>

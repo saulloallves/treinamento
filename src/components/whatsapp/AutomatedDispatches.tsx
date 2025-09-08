@@ -104,7 +104,7 @@ const AutomatedDispatches = () => {
     for (const lessonId of selectedLessons) {
       await handleToggleDispatch(lessonId, type);
     }
-    setSelectedLessons([]);
+    // Keep selections after bulk action - don't clear selectedLessons
   };
 
   if (lessonsLoading) {
