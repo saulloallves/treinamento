@@ -115,6 +115,47 @@ export type Database = {
           },
         ]
       }
+      automated_lesson_dispatches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dispatch_type: string
+          id: string
+          is_active: boolean
+          lesson_id: string
+          message_template: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_type: string
+          id?: string
+          is_active?: boolean
+          lesson_id: string
+          message_template: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dispatch_type?: string
+          id?: string
+          is_active?: boolean
+          lesson_id?: string
+          message_template?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_lesson_dispatches_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           certificate_url: string | null

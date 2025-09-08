@@ -22,7 +22,12 @@ serve(async (req: Request) => {
     const now = new Date()
     console.log(`WhatsApp Scheduler running at: ${now.toISOString()}`)
 
-    // Find scheduled dispatches that are ready to be sent
+    let totalProcessed = 0
+    let totalErrors = 0
+
+    // 1. PROCESS EXISTING SCHEDULED DISPATCHES
+    console.log('Processing existing scheduled dispatches...')
+    
     const { data: pendingDispatches, error: fetchError } = await supabase
       .from('whatsapp_dispatches')
       .select('*')
@@ -33,48 +38,59 @@ serve(async (req: Request) => {
 
     if (fetchError) {
       console.error('Error fetching pending dispatches:', fetchError)
-      return new Response(JSON.stringify({ error: fetchError.message }), { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
-    }
+    } else {
+      console.log(`Found ${pendingDispatches?.length || 0} pending dispatches`)
 
-    if (!pendingDispatches || pendingDispatches.length === 0) {
-      return new Response(JSON.stringify({ 
-        message: 'No pending dispatches', 
-        processed: 0 
-      }), { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      })
-    }
+      for (const dispatch of pendingDispatches || []) {
+        try {
+          console.log(`Processing dispatch ${dispatch.id} scheduled for ${dispatch.scheduled_at}`)
 
-    console.log(`Found ${pendingDispatches.length} pending dispatches`)
+          const response = await supabase.functions.invoke('whatsapp-disparo', {
+            body: {
+              type: dispatch.type,
+              item_id: dispatch.item_id,
+              item_name: dispatch.item_name,
+              message: dispatch.message,
+              recipient_mode: 'all',
+              is_scheduled: false,
+              _scheduler_dispatch_id: dispatch.id
+            }
+          })
 
-    let processed = 0
-    let errors = 0
-
-    // Process each dispatch
-    for (const dispatch of pendingDispatches) {
-      try {
-        console.log(`Processing dispatch ${dispatch.id} scheduled for ${dispatch.scheduled_at}`)
-
-        // Call the main whatsapp-disparo function with the dispatch data
-        const response = await supabase.functions.invoke('whatsapp-disparo', {
-          body: {
-            type: dispatch.type,
-            item_id: dispatch.item_id,
-            item_name: dispatch.item_name,
-            message: dispatch.message,
-            recipient_mode: 'all', // For scheduled dispatches, assume all recipients
-            is_scheduled: false,   // Mark as immediate for processing
-            _scheduler_dispatch_id: dispatch.id  // Internal flag for scheduler processing
+          if (response.error) {
+            console.error(`Error processing dispatch ${dispatch.id}:`, response.error)
+            
+            await supabase
+              .from('whatsapp_dispatches')
+              .update({ 
+                processed: true, 
+                status: 'erro',
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', dispatch.id)
+            
+            totalErrors++
+          } else {
+            console.log(`Successfully processed dispatch ${dispatch.id}`)
+            
+            const result = response.data
+            await supabase
+              .from('whatsapp_dispatches')
+              .update({ 
+                processed: true,
+                status: result.failed === 0 ? 'enviado' : (result.delivered > 0 ? 'parcial' : 'erro'),
+                delivered_count: result.delivered || 0,
+                failed_count: result.failed || 0,
+                sent_date: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', dispatch.id)
+            
+            totalProcessed++
           }
-        })
-
-        if (response.error) {
-          console.error(`Error processing dispatch ${dispatch.id}:`, response.error)
+        } catch (error) {
+          console.error(`Exception processing dispatch ${dispatch.id}:`, error)
           
-          // Mark as error
           await supabase
             .from('whatsapp_dispatches')
             .update({ 
@@ -84,47 +100,172 @@ serve(async (req: Request) => {
             })
             .eq('id', dispatch.id)
           
-          errors++
-        } else {
-          console.log(`Successfully processed dispatch ${dispatch.id}`)
-          
-          // Update the original scheduled dispatch with results
-          const result = response.data
-          await supabase
-            .from('whatsapp_dispatches')
-            .update({ 
-              processed: true,
-              status: result.failed === 0 ? 'enviado' : (result.delivered > 0 ? 'parcial' : 'erro'),
-              delivered_count: result.delivered || 0,
-              failed_count: result.failed || 0,
-              sent_date: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', dispatch.id)
-          
-          processed++
+          totalErrors++
         }
-      } catch (error) {
-        console.error(`Exception processing dispatch ${dispatch.id}:`, error)
+      }
+    }
+
+    // 2. CREATE AUTOMATED DISPATCHES FOR UPCOMING LESSONS
+    console.log('Checking for upcoming lessons needing automated dispatches...')
+    
+    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
+    const tenMinutesFromNow = new Date(now.getTime() + 10 * 60 * 1000)
+
+    // Get lessons with zoom_start_time in the next hour
+    const { data: upcomingLessons, error: lessonsError } = await supabase
+      .from('lessons')
+      .select(`
+        id,
+        title,
+        course_id,
+        zoom_start_time,
+        zoom_join_url,
+        courses!inner(name)
+      `)
+      .not('zoom_start_time', 'is', null)
+      .eq('status', 'Ativo')
+      .gte('zoom_start_time', now.toISOString())
+      .lte('zoom_start_time', oneHourFromNow.toISOString())
+
+    if (lessonsError) {
+      console.error('Error fetching upcoming lessons:', lessonsError)
+    } else {
+      console.log(`Found ${upcomingLessons?.length || 0} upcoming lessons`)
+
+      for (const lesson of upcomingLessons || []) {
+        const lessonTime = new Date(lesson.zoom_start_time)
+        const timeUntilLesson = lessonTime.getTime() - now.getTime()
+        const minutesUntil = Math.floor(timeUntilLesson / (1000 * 60))
+
+        // Determine which dispatch types to check
+        let dispatchTypes: Array<'1_hour_before' | '10_minutes_before'> = []
         
-        // Mark as error
-        await supabase
-          .from('whatsapp_dispatches')
-          .update({ 
-            processed: true, 
-            status: 'erro',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', dispatch.id)
-        
-        errors++
+        if (minutesUntil <= 65 && minutesUntil > 55) {
+          dispatchTypes.push('1_hour_before')
+        }
+        if (minutesUntil <= 15 && minutesUntil > 5) {
+          dispatchTypes.push('10_minutes_before')
+        }
+
+        for (const dispatchType of dispatchTypes) {
+          try {
+            // Check if automated dispatch is configured and active
+            const { data: automatedConfig } = await supabase
+              .from('automated_lesson_dispatches')
+              .select('*')
+              .eq('lesson_id', lesson.id)
+              .eq('dispatch_type', dispatchType)
+              .eq('is_active', true)
+              .single()
+
+            if (!automatedConfig) {
+              console.log(`No active config for lesson ${lesson.title}, type ${dispatchType}`)
+              continue
+            }
+
+            // Check if dispatch was already created recently
+            const { data: existingDispatch } = await supabase
+              .from('whatsapp_dispatches')
+              .select('id')
+              .eq('type', 'aula')
+              .eq('item_id', lesson.id)
+              .gte('created_at', new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()) // Last 2 hours
+              .ilike('message', `%${dispatchType === '1_hour_before' ? '1 hora' : '10 minutos'}%`)
+              .single()
+
+            if (existingDispatch) {
+              console.log(`Dispatch already exists for lesson ${lesson.title}, type ${dispatchType}`)
+              continue
+            }
+
+            // Create the automated dispatch
+            const message = automatedConfig.message_template
+              .replace(/{titulo}/g, lesson.title)
+              .replace(/{link}/g, lesson.zoom_join_url || '')
+
+            console.log(`Creating ${dispatchType} dispatch for lesson: ${lesson.title}`)
+
+            // Insert dispatch and immediately process it
+            const { data: newDispatch, error: createError } = await supabase
+              .from('whatsapp_dispatches')
+              .insert({
+                type: 'aula',
+                item_id: lesson.id,
+                item_name: lesson.title,
+                message: message,
+                is_scheduled: false,
+                processed: false,
+                status: 'pendente',
+                sent_date: now.toISOString()
+              })
+              .select()
+              .single()
+
+            if (createError) {
+              console.error(`Error creating dispatch for lesson ${lesson.title}:`, createError)
+              totalErrors++
+              continue
+            }
+
+            // Immediately process the dispatch
+            try {
+              const response = await supabase.functions.invoke('whatsapp-disparo', {
+                body: {
+                  type: 'aula',
+                  item_id: lesson.id,
+                  item_name: lesson.title,
+                  message: message,
+                  recipient_mode: 'all',
+                  is_scheduled: false,
+                  _automated: true,
+                  _dispatch_id: newDispatch.id
+                }
+              })
+
+              if (response.error) {
+                console.error(`Error sending automated dispatch for ${lesson.title}:`, response.error)
+                await supabase
+                  .from('whatsapp_dispatches')
+                  .update({ processed: true, status: 'erro' })
+                  .eq('id', newDispatch.id)
+                totalErrors++
+              } else {
+                const result = response.data
+                await supabase
+                  .from('whatsapp_dispatches')
+                  .update({ 
+                    processed: true,
+                    status: result.failed === 0 ? 'enviado' : (result.delivered > 0 ? 'parcial' : 'erro'),
+                    delivered_count: result.delivered || 0,
+                    failed_count: result.failed || 0,
+                    recipients_count: (result.delivered || 0) + (result.failed || 0)
+                  })
+                  .eq('id', newDispatch.id)
+                
+                console.log(`Automated ${dispatchType} dispatch sent for ${lesson.title}: ${result.delivered} delivered, ${result.failed} failed`)
+                totalProcessed++
+              }
+            } catch (error) {
+              console.error(`Exception sending automated dispatch for ${lesson.title}:`, error)
+              await supabase
+                .from('whatsapp_dispatches')
+                .update({ processed: true, status: 'erro' })
+                .eq('id', newDispatch.id)
+              totalErrors++
+            }
+
+          } catch (error) {
+            console.error(`Error processing automated dispatch for lesson ${lesson.title}, type ${dispatchType}:`, error)
+            totalErrors++
+          }
+        }
       }
     }
 
     return new Response(JSON.stringify({ 
-      message: `Processed ${processed} dispatches, ${errors} errors`,
-      processed,
-      errors,
+      message: `Processed ${totalProcessed} dispatches, ${totalErrors} errors`,
+      processed: totalProcessed,
+      errors: totalErrors,
       timestamp: now.toISOString()
     }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
