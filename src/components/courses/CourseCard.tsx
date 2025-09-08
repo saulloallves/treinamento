@@ -176,47 +176,95 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (course.tipo === 'gravado' && onViewRecordedCourses) {
-                onViewRecordedCourses(course.id, course.name);
-              } else {
-                onViewDetails(course);
-              }
-            }}
-            className="flex-1 min-w-0"
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            Detalhes
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onViewStudents(course)}
-            title="Ver Alunos"
-          >
-            <Users className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(course)}
-            title="Editar Curso"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(course.id)}
-            title="Excluir Curso"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+        <div className="mt-4 pt-3 border-t">
+          {/* Mobile: Stack buttons vertically, Desktop: Horizontal layout */}
+          <div className="hidden md:flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (course.tipo === 'gravado' && onViewRecordedCourses) {
+                  onViewRecordedCourses(course.id, course.name);
+                } else {
+                  onViewDetails(course);
+                }
+              }}
+              className="flex-1 min-w-0"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Detalhes
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewStudents(course)}
+              title="Ver Alunos"
+            >
+              <Users className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(course)}
+              title="Editar Curso"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(course.id)}
+              title="Excluir Curso"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Mobile layout - larger buttons with better spacing */}
+          <div className="md:hidden space-y-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (course.tipo === 'gravado' && onViewRecordedCourses) {
+                  onViewRecordedCourses(course.id, course.name);
+                } else {
+                  onViewDetails(course);
+                }
+              }}
+              className="w-full h-11 text-sm"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Detalhes
+            </Button>
+            
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onViewStudents(course)}
+                className="h-11 text-xs"
+              >
+                <Users className="w-4 h-4 mr-1" />
+                Alunos
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onEdit(course)}
+                className="h-11 text-xs"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Editar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => onDelete(course.id)}
+                className="h-11 text-xs"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Excluir
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
