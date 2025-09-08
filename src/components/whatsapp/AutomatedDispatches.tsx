@@ -16,6 +16,7 @@ import { PaginationCustom } from '@/components/ui/pagination-custom';
 const AutomatedDispatches = () => {
   const {
     lessons,
+    filteredLessons,
     currentPage,
     totalPages,
     totalItems,
@@ -84,7 +85,7 @@ const AutomatedDispatches = () => {
 
   // Bulk actions
   const handleSelectAll = () => {
-    setSelectedLessons(lessons.map(lesson => lesson.id));
+    setSelectedLessons(filteredLessons.map(lesson => lesson.id));
   };
 
   const handleDeselectAll = () => {
@@ -265,7 +266,7 @@ const AutomatedDispatches = () => {
               onDeselectAll={handleDeselectAll}
               onBulkToggle2h={() => handleBulkToggle('2_hours_before')}
               onBulkToggle30m={() => handleBulkToggle('30_minutes_before')}
-              totalLessons={lessons.length}
+              totalLessons={filteredLessons.length}
             />
 
             {/* Lessons List */}
