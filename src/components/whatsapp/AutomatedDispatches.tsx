@@ -36,15 +36,15 @@ const AutomatedDispatches = () => {
 
   const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
   const [messages, setMessages] = useState({
-    '1_hour_before': 'Lembrete: Sua aula "{titulo}" começará em 1 hora! Acesse: {link}',
-    '10_minutes_before': 'ATENÇÃO! Sua aula "{titulo}" começará em 10 minutos! Acesse agora: {link}'
+    '2_hours_before': 'Lembrete: Sua aula "{titulo}" começará em breve! Acesse: {link}',
+    '30_minutes_before': 'ATENÇÃO! Sua aula "{titulo}" está começando! Acesse agora: {link}'
   });
 
-  const getDispatchForLesson = (lessonId: string, type: '1_hour_before' | '10_minutes_before') => {
+  const getDispatchForLesson = (lessonId: string, type: '2_hours_before' | '30_minutes_before') => {
     return dispatches.find(d => d.lesson_id === lessonId && d.dispatch_type === type);
   };
 
-  const handleToggleDispatch = async (lessonId: string, type: '1_hour_before' | '10_minutes_before') => {
+  const handleToggleDispatch = async (lessonId: string, type: '2_hours_before' | '30_minutes_before') => {
     const existingDispatch = getDispatchForLesson(lessonId, type);
     
     if (existingDispatch) {
@@ -64,7 +64,7 @@ const AutomatedDispatches = () => {
     }
   };
 
-  const handleUpdateMessage = async (lessonId: string, type: '1_hour_before' | '10_minutes_before', message: string) => {
+  const handleUpdateMessage = async (lessonId: string, type: '2_hours_before' | '30_minutes_before', message: string) => {
     const existingDispatch = getDispatchForLesson(lessonId, type);
     
     if (existingDispatch) {
@@ -99,7 +99,7 @@ const AutomatedDispatches = () => {
     );
   };
 
-  const handleBulkToggle = async (type: '1_hour_before' | '10_minutes_before') => {
+  const handleBulkToggle = async (type: '2_hours_before' | '30_minutes_before') => {
     for (const lessonId of selectedLessons) {
       await handleToggleDispatch(lessonId, type);
     }
@@ -127,11 +127,11 @@ const AutomatedDispatches = () => {
       {/* Seção de Mensagens Padrão */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
-            <MessageSquare className="h-5 w-5 text-white" />
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-xl shadow-clean">
+            <MessageSquare className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Configurar Mensagens Padrão</h2>
+            <h2 className="text-xl font-bold text-foreground">Configurar Mensagens Padrão</h2>
             <p className="text-sm text-muted-foreground">
               Defina os templates que serão usados para todas as aulas
             </p>
@@ -139,72 +139,70 @@ const AutomatedDispatches = () => {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Card Mensagem 1 hora */}
-          <Card className="relative overflow-hidden border-0 shadow-md">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+          {/* Card Mensagem 2 horas */}
+          <Card className="border shadow-clean">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
-                  <Clock className="h-4 w-4 text-blue-600" />
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg">
+                  <Clock className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <span className="text-lg">1 Hora Antes</span>
+                  <span className="text-lg">2 Horas Antes</span>
                   <p className="text-sm font-normal text-muted-foreground">Lembrete inicial</p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
-                id="msg-1h"
-                value={messages['1_hour_before']}
-                onChange={(e) => setMessages(prev => ({ ...prev, '1_hour_before': e.target.value }))}
-                placeholder="Digite a mensagem que será enviada 1 hora antes da aula..."
-                className="min-h-[100px] border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                rows={4}
+                id="msg-2h"
+                value={messages['2_hours_before']}
+                onChange={(e) => setMessages(prev => ({ ...prev, '2_hours_before': e.target.value }))}
+                placeholder="Digite a mensagem que será enviada 2 horas antes da aula..."
+                className="min-h-[80px]"
+                rows={3}
               />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-secondary/50 border rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-800">
+                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground">
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-blue-100 px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-blue-100 px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card Mensagem 10 minutos */}
-          <Card className="relative overflow-hidden border-0 shadow-md">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500"></div>
+          {/* Card Mensagem 30 minutos */}
+          <Card className="border shadow-clean">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-orange-100 rounded-lg">
-                  <Zap className="h-4 w-4 text-orange-600" />
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg">
+                  <Zap className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <span className="text-lg">10 Minutos Antes</span>
+                  <span className="text-lg">30 Minutos Antes</span>
                   <p className="text-sm font-normal text-muted-foreground">Lembrete urgente</p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
-                id="msg-10m"
-                value={messages['10_minutes_before']}
-                onChange={(e) => setMessages(prev => ({ ...prev, '10_minutes_before': e.target.value }))}
-                placeholder="Digite a mensagem que será enviada 10 minutos antes da aula..."
-                className="min-h-[100px] border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                rows={4}
+                id="msg-30m"
+                value={messages['30_minutes_before']}
+                onChange={(e) => setMessages(prev => ({ ...prev, '30_minutes_before': e.target.value }))}
+                placeholder="Digite a mensagem que será enviada 30 minutos antes da aula..."
+                className="min-h-[80px]"
+                rows={3}
               />
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <div className="bg-secondary/50 border rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-orange-800">
+                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground">
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-orange-100 px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-orange-100 px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
                   </div>
                 </div>
               </div>
@@ -214,11 +212,11 @@ const AutomatedDispatches = () => {
       </div>
 
       {/* Seção de Aulas */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+      <Card className="border shadow-clean">
+        <CardHeader className="bg-muted/30 border-b">
           <CardTitle className="flex items-center gap-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-md">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-xl shadow-clean">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
               <span className="text-xl">Gerenciar Aulas</span>
@@ -265,24 +263,24 @@ const AutomatedDispatches = () => {
               selectedLessons={selectedLessons}
               onSelectAll={handleSelectAll}
               onDeselectAll={handleDeselectAll}
-              onBulkToggle1h={() => handleBulkToggle('1_hour_before')}
-              onBulkToggle10m={() => handleBulkToggle('10_minutes_before')}
+              onBulkToggle2h={() => handleBulkToggle('2_hours_before')}
+              onBulkToggle30m={() => handleBulkToggle('30_minutes_before')}
               totalLessons={lessons.length}
             />
 
             {/* Lessons List */}
             <div className="space-y-4">
-              {lessons.map((lesson) => {
-                const dispatch1h = getDispatchForLesson(lesson.id, '1_hour_before');
-                const dispatch10m = getDispatchForLesson(lesson.id, '10_minutes_before');
+            {lessons.map((lesson) => {
+                const dispatch2h = getDispatchForLesson(lesson.id, '2_hours_before');
+                const dispatch30m = getDispatchForLesson(lesson.id, '30_minutes_before');
                 const isSelected = selectedLessons.includes(lesson.id);
 
                 return (
                   <LessonDispatchCard
                     key={lesson.id}
                     lesson={lesson}
-                    dispatch1h={dispatch1h}
-                    dispatch10m={dispatch10m}
+                    dispatch2h={dispatch2h}
+                    dispatch30m={dispatch30m}
                     onToggleDispatch={handleToggleDispatch}
                     onUpdateMessage={handleUpdateMessage}
                     isSelected={isSelected}

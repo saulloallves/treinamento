@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface AutomatedLessonDispatch {
   id: string;
   lesson_id: string;
-  dispatch_type: '1_hour_before' | '10_minutes_before';
+  dispatch_type: '2_hours_before' | '30_minutes_before';
   message_template: string;
   is_active: boolean;
   created_at: string;
@@ -15,7 +15,7 @@ export interface AutomatedLessonDispatch {
 
 export interface AutomatedDispatchInput {
   lesson_id: string;
-  dispatch_type: '1_hour_before' | '10_minutes_before';
+  dispatch_type: '2_hours_before' | '30_minutes_before';
   message_template: string;
   is_active?: boolean;
 }
