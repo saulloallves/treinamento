@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -62,34 +63,79 @@ const ProfessorPermissionsDialog = ({
 
   const professor = professors.find(p => p.id === professorId);
 
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (open && professorId) {
+      queryClient.invalidateQueries({ queryKey: ["professor-permissions", professorId] });
+      queryClient.invalidateQueries({ queryKey: ["professor-turma-permissions", professorId] });
+    }
+  }, [open, professorId, queryClient]);
+
+  // Helpers to normalize legacy/translated module names
+  const normalizeModuleName = (name: string): string => {
+    const base = name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    const map: Record<string, string> = {
+      // Portuguese -> English canonical keys
+      'dashboard': 'dashboard',
+      'painel': 'dashboard',
+      'cursos': 'courses',
+      'curso': 'courses',
+      'courses': 'courses',
+      'aulas': 'lessons',
+      'lessons': 'lessons',
+      'turmas': 'turmas',
+      'classes': 'turmas',
+      'inscricoes': 'enrollments',
+      'inscricoes_': 'enrollments',
+      'enrollments': 'enrollments',
+      'presenca': 'attendance',
+      'attendance': 'attendance',
+      'progresso': 'progress',
+      'progress': 'progress',
+      'quiz': 'quiz',
+      'certificados': 'certificates',
+      'certificado': 'certificates',
+      'certificates': 'certificates',
+      'comunicacao': 'communication',
+      'communication': 'communication',
+      'configuracoes': 'settings',
+      'settings': 'settings',
+    };
+    return map[base] || base;
+  };
+
   // Load existing module permissions
   useEffect(() => {
     console.log('Loading professor permissions for:', professorId);
     console.log('Existing permissions:', existingPermissions);
-    
+
+    // Start with defaults for all modules so UI always has a defined object
+    const defaults: ModulePermissions = {};
+    SYSTEM_MODULES.forEach((m) => {
+      defaults[m.value] = { canView: false, canEdit: false, enabledFields: {} };
+    });
+
     if (existingPermissions.length > 0) {
-      const permissionsMap: ModulePermissions = {};
-      
-      existingPermissions.forEach(perm => {
-        permissionsMap[perm.module_name] = {
-          canView: perm.can_view,
-          canEdit: perm.can_edit,
-          enabledFields: perm.enabled_fields || {}
+      const permissionsMap: ModulePermissions = { ...defaults };
+
+      existingPermissions.forEach((perm) => {
+        const key = normalizeModuleName(perm.module_name);
+        if (!permissionsMap[key]) {
+          permissionsMap[key] = { canView: false, canEdit: false, enabledFields: {} };
+        }
+        permissionsMap[key] = {
+          canView: !!perm.can_view,
+          canEdit: !!perm.can_edit,
+          enabledFields: perm.enabled_fields || {},
         };
       });
-      
+
       setPermissions(permissionsMap);
     } else {
-      // Initialize with default permissions (all false)
-      const defaultPermissions: ModulePermissions = {};
-      SYSTEM_MODULES.forEach(module => {
-        defaultPermissions[module.value] = {
-          canView: false,
-          canEdit: false,
-          enabledFields: {}
-        };
-      });
-      setPermissions(defaultPermissions);
+      setPermissions(defaults);
     }
   }, [existingPermissions, professorId]);
 
