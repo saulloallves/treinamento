@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Edit, Trash2, Building2, User } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Building2, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import CreateUserDialog from "./CreateUserDialog";
+import { StudentProfileDialog } from "./StudentProfileDialog";
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("todas");
@@ -16,6 +17,8 @@ const UsersList = () => {
   const [userType, setUserType] = useState("Aluno");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
 
   useEffect(() => {
     document.title = "Gerenciar Usuários | Admin";
@@ -214,6 +217,17 @@ const UsersList = () => {
                   <td className="p-4 text-brand-gray-dark text-sm">{user.lastAccess}</td>
                   <td className="p-4">
                     <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => { 
+                          setSelectedStudent(user); 
+                          setProfileOpen(true); 
+                        }}
+                        title="Ver ficha completa"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
                       <Button variant="outline" size="sm" onClick={() => { setEditingUser(user); setUnitCode(user.unitCode ?? ""); setUserType(user.type ?? "Aluno"); setEditOpen(true); }}>
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -322,6 +336,13 @@ const UsersList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Ficha do Aluno Dialog */}
+      <StudentProfileDialog
+        student={selectedStudent}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+      />
     </div>
   );
 };
