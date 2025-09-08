@@ -76,7 +76,6 @@ export const BulkDispatchActions = ({
             </Button>
             <Button
               size="sm"
-              variant="secondary"
               onClick={onBulkToggle30m}
               className="shadow-clean"
             >
