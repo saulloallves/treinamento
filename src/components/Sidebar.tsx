@@ -45,7 +45,7 @@ const Sidebar = () => {
       treinamentos: ['/courses','/turmas','/lessons','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
       avaliacoes: ['/quiz','/professor/avaliacoes'].includes(path),
-      comunicacao: ['/whatsapp','/professor/comunicacao'].includes(path),
+      comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
       administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
     };
   });
@@ -138,6 +138,7 @@ const Sidebar = () => {
       isGroup: true,
       items: [
         { name: 'WhatsApp', path: '/professor/comunicacao', icon: MessageSquare },
+        { name: 'Disparos Automáticos', path: '/professor/disparos-automaticos', icon: Settings },
       ]
     }
   ];
@@ -189,6 +190,7 @@ const Sidebar = () => {
       isGroup: true,
       items: [
         { name: 'Disparos WhatsApp', path: '/whatsapp', icon: MessageSquare },
+        { name: 'Disparos Automáticos', path: '/communication', icon: Settings },
       ]
     },
     {

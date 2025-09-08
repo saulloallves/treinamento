@@ -18,6 +18,7 @@ import AttendancePage from "./pages/AttendancePage";
 import ProgressPage from "./pages/ProgressPage";
 import CertificatesPage from "./pages/CertificatesPage";
 import WhatsAppPage from "./pages/WhatsAppPage";
+import CommunicationPage from "./pages/CommunicationPage";
 import UsersPage from "./pages/UsersPage";
 import UnitsPage from "./pages/UnitsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -105,6 +106,11 @@ const App = () => (
                   <WhatsAppPage />
                 </AdminRoute>
               } />
+              <Route path="/communication" element={
+                <AdminRoute>
+                  <CommunicationPage />
+                </AdminRoute>
+              } />
               <Route path="/users" element={
                 <AdminRoute>
                   <UsersPage />
@@ -173,6 +179,11 @@ const App = () => (
               <Route path="/professor/comunicacao" element={
                 <ProfessorRoute>
                   <WhatsAppPage />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/disparos-automaticos" element={
+                <ProfessorRoute>
+                  <CommunicationPage />
                 </ProfessorRoute>
               } />
               <Route path="/aluno" element={

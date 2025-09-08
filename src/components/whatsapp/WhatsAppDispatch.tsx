@@ -12,7 +12,7 @@ import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWha
 import { useCourses } from "@/hooks/useCourses";
 import { useLessons } from "@/hooks/useLessons";
 import { useEnrollments } from "@/hooks/useEnrollments";
-import AutomatedDispatches from "./AutomatedDispatches";
+
 
 const WhatsAppDispatch = () => {
   const [selectedType, setSelectedType] = useState<'curso' | 'aula'>('curso');
@@ -147,15 +147,8 @@ const WhatsAppDispatch = () => {
       <div className="text-center space-y-4">
         <h2 className="text-3xl font-bold">Disparos WhatsApp</h2>
         <p className="text-lg text-muted-foreground">
-          Configure disparos automáticos ou envie mensagens manuais para todos os inscritos
+          Envie mensagens manuais para todos os inscritos em cursos ou aulas
         </p>
-      </div>
-
-      {/* Automated Dispatches Section */}
-      <AutomatedDispatches />
-
-      <div className="border-t pt-6">
-        <h3 className="text-xl font-semibold mb-4">Envio Manual</h3>
       </div>
 
       {/* Novo Disparo */}
