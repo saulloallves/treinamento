@@ -79,7 +79,7 @@ export const BulkDispatchActions = ({
               onClick={onBulkToggle30m}
               className="shadow-clean"
             >
-              <ToggleLeft className="h-4 w-4 mr-2" />
+              <ToggleRight className="h-4 w-4 mr-2" />
               Alternar disparos 30m
             </Button>
           </div>
