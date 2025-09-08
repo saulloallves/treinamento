@@ -3,6 +3,14 @@ import { useState, useMemo } from "react";
 import { Search, Download, RefreshCw, Award, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -176,68 +184,85 @@ const CertificatesList = () => {
 
       {/* Lista de Certificados */}
       <div className="card-clean overflow-hidden">
-        <div className="w-full">
-          <table className="w-full table-fixed">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Aluno</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[20%]">Curso</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Turma</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Professor</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[15%]">Data da Solicitação</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[10%]">Status</th>
-                <th className="text-left p-4 font-medium text-brand-black w-[5%]">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id as any} className="border-b hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4 text-brand-white" />
-                      </div>
-                      <span className="font-medium text-brand-black truncate">{r.studentName}</span>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Aluno</TableHead>
+              <TableHead className="min-w-[180px]">Curso</TableHead>
+              <TableHead className="w-[140px]">Turma</TableHead>
+              <TableHead className="w-[140px]">Professor</TableHead>
+              <TableHead className="w-[120px]">Data da Emissão</TableHead>
+              <TableHead className="w-[80px]">Status</TableHead>
+              <TableHead className="w-[120px]">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((r) => (
+              <TableRow key={r.id as any}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-primary-foreground" />
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-brand-blue flex-shrink-0" />
-                      <span className="text-brand-gray-dark truncate">{r.courseName}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-brand-gray-dark truncate">{r.turmaName}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-brand-gray-dark truncate">{r.professorName}</span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-brand-blue" />
-                      <span className="text-brand-gray-dark">{new Date(r.generatedAt).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${String(r.status).toLowerCase() === 'emitido' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {r.status}
+                    <span className="font-medium truncate">{r.studentName}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-primary flex-shrink-0" />
+                    <span className="text-muted-foreground">{r.courseName}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-muted-foreground">{r.turmaName}</span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-muted-foreground">{r.professorName}</span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                    <span className="text-muted-foreground text-sm">
+                      {new Date(r.generatedAt).toLocaleDateString('pt-BR')}
                     </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" title="Baixar PDF" disabled={!r.url} onClick={() => { if (r.url) window.open(r.url, '_blank'); }}>
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" title="Atualizar" onClick={() => certsQuery.refetch()}>
-                        <RefreshCw className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                    String(r.status).toLowerCase() === 'emitido' 
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
+                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                  }`}>
+                    {r.status}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      title="Baixar PDF" 
+                      disabled={!r.url} 
+                      onClick={() => { if (r.url) window.open(r.url, '_blank'); }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      title="Atualizar" 
+                      onClick={() => certsQuery.refetch()}
+                      className="h-8 w-8 p-0"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Estatísticas (reais) */}
