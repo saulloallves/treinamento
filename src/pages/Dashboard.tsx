@@ -11,10 +11,13 @@ import {
   UserCheck
 } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
+import TouchCard from "@/components/mobile/TouchCard";
 import { PaginationCustom } from "@/components/ui/pagination-custom";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
 import { useUpcomingLessons } from "@/hooks/useUpcomingLessons";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
@@ -22,7 +25,8 @@ const Dashboard = () => {
   const [activityItemsPerPage, setActivityItemsPerPage] = useState(5);
   const [lessonsPage, setLessonsPage] = useState(1);
   const [lessonsItemsPerPage, setLessonsItemsPerPage] = useState(4);
-  const { data, isLoading } = useDashboardStats();
+  const isMobile = useIsMobile();
+  const { data, isLoading, refetch } = useDashboardStats();
 
   const formatNumber = (n: number | undefined) =>
     typeof n === "number" ? n.toLocaleString("pt-BR") : "0";
@@ -90,10 +94,21 @@ const Dashboard = () => {
 
   const { data: upcomingLessons, isLoading: isUpcomingLoading } = useUpcomingLessons();
 
-  return (
-    <div className="space-y-8">
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetch(),
+      // Add other refetch calls here if needed
+    ]);
+  };
+
+  const content = (
+    <div className={`space-y-6 ${isMobile ? 'space-y-4' : 'space-y-8'}`}>
       {/* Métricas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid gap-4 ${
+        isMobile 
+          ? 'grid-cols-2' 
+          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
+      }`}>
         {metrics.map((metric, index) => (
           <div 
             key={index} 
@@ -112,11 +127,13 @@ const Dashboard = () => {
       </div>
 
       {/* Seções */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-3 gap-8'}`}>
         {/* Atividade Recente */}
         <div className="xl:col-span-2">
-          <div className="card-clean p-6">
-            <h2 className="text-xl font-semibold text-brand-black mb-6">
+          <TouchCard className={isMobile ? 'p-4' : 'p-6'}>
+            <h2 className={`font-semibold text-brand-black mb-4 ${
+              isMobile ? 'text-lg mb-4' : 'text-xl mb-6'
+            }`}>
               Atividade Recente
             </h2>
             <div className="space-y-3">
@@ -127,26 +144,34 @@ const Dashboard = () => {
                 const paginatedActivities = activities.slice(startIndex, startIndex + activityItemsPerPage);
                 
                 return (
-                  <div className="space-y-3">
+                  <div className={`space-y-2 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
                     {paginatedActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                          activity.type === 'course' ? 'bg-blue-100' :
-                          activity.type === 'user' ? 'bg-green-100' :
-                          activity.type === 'certificate' ? 'bg-yellow-100' :
-                          'bg-purple-100'
-                        }`}>
-                          {activity.type === 'course' && <BookOpen className="w-3 h-3 text-blue-600" />}
-                          {activity.type === 'user' && <Users className="w-3 h-3 text-green-600" />}
-                          {activity.type === 'certificate' && <Award className="w-3 h-3 text-yellow-600" />}
-                          {activity.type === 'whatsapp' && <MessageSquare className="w-3 h-3 text-purple-600" />}
+                      <TouchCard 
+                        key={activity.id} 
+                        className={`${isMobile ? 'p-3' : 'p-3'} hover:bg-muted/30 transition-colors`}
+                        variant="outlined"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`rounded-full flex items-center justify-center ${
+                            isMobile ? 'w-8 h-8' : 'w-7 h-7'
+                          } ${
+                            activity.type === 'course' ? 'bg-blue-100' :
+                            activity.type === 'user' ? 'bg-green-100' :
+                            activity.type === 'certificate' ? 'bg-yellow-100' :
+                            'bg-purple-100'
+                          }`}>
+                            {activity.type === 'course' && <BookOpen className={`text-blue-600 ${isMobile ? 'w-4 h-4' : 'w-3 h-3'}`} />}
+                            {activity.type === 'user' && <Users className={`text-green-600 ${isMobile ? 'w-4 h-4' : 'w-3 h-3'}`} />}
+                            {activity.type === 'certificate' && <Award className={`text-yellow-600 ${isMobile ? 'w-4 h-4' : 'w-3 h-3'}`} />}
+                            {activity.type === 'whatsapp' && <MessageSquare className={`text-purple-600 ${isMobile ? 'w-4 h-4' : 'w-3 h-3'}`} />}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className={`font-medium text-brand-black ${isMobile ? 'text-sm' : 'text-sm'}`}>{activity.action}</h3>
+                            <p className={`text-brand-gray-dark ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.description}</p>
+                            <p className={`text-brand-gray-dark mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.time}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-sm font-medium text-brand-black">{activity.action}</h3>
-                          <p className="text-xs text-brand-gray-dark">{activity.description}</p>
-                          <p className="text-xs text-brand-gray-dark mt-1">{activity.time}</p>
-                        </div>
-                      </div>
+                      </TouchCard>
                     ))}
                     
                     {activities.length > activityItemsPerPage && (
@@ -169,13 +194,15 @@ const Dashboard = () => {
                 );
               })()}
             </div>
-          </div>
+          </TouchCard>
         </div>
 
         {/* Próximas Aulas */}
         <div>
-          <div className="card-clean p-6">
-            <h2 className="text-xl font-semibold text-brand-black mb-6">
+          <TouchCard className={isMobile ? 'p-4' : 'p-6'}>
+            <h2 className={`font-semibold text-brand-black mb-4 ${
+              isMobile ? 'text-lg mb-4' : 'text-xl mb-6'
+            }`}>
               Próximas Aulas Ao Vivo
             </h2>
             
@@ -201,28 +228,32 @@ const Dashboard = () => {
                 
                 return (
                   <div className="space-y-4">
-                    <div className="space-y-3">
+                    <div className={`space-y-2 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
                       {paginatedLessons.map((lesson) => (
-                        <div key={lesson.id} className="p-3 border border-gray-200 rounded-lg hover:shadow-clean-md transition-shadow">
-                          <h3 className="font-medium text-brand-black text-sm mb-1">
+                        <TouchCard 
+                          key={lesson.id} 
+                          className={`${isMobile ? 'p-3' : 'p-3'} hover:shadow-clean-md transition-shadow`}
+                          variant="outlined"
+                        >
+                          <h3 className={`font-medium text-brand-black mb-1 ${isMobile ? 'text-sm' : 'text-sm'}`}>
                             {lesson.title}
                           </h3>
-                          <p className="text-xs text-brand-gray-dark mb-2">
+                          <p className={`text-brand-gray-dark mb-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                             {lesson.course}
                           </p>
-                          <div className="flex items-center justify-between text-xs">
+                          <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-xs'}`}>
                             <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 text-brand-blue" />
+                              <Calendar className={`text-brand-blue ${isMobile ? 'w-3 h-3' : 'w-3 h-3'}`} />
                               <span className="text-brand-gray-dark">
                                 {lesson.date} às {lesson.time}
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Users className="w-3 h-3 text-brand-blue" />
+                              <Users className={`text-brand-blue ${isMobile ? 'w-3 h-3' : 'w-3 h-3'}`} />
                               <span className="text-brand-gray-dark">{lesson.participants}</span>
                             </div>
                           </div>
-                        </div>
+                        </TouchCard>
                       ))}
                     </div>
                     
@@ -248,10 +279,18 @@ const Dashboard = () => {
             ) : (
               <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
             )}
-          </div>
+          </TouchCard>
         </div>
       </div>
     </div>
+  );
+
+  return isMobile ? (
+    <PullToRefresh onRefresh={handleRefresh}>
+      {content}
+    </PullToRefresh>
+  ) : (
+    content
   );
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import TouchCard from '@/components/mobile/TouchCard';
 import { 
   BookOpen, 
   Users, 
@@ -17,6 +18,7 @@ import {
 import { Course } from '@/hooks/useCourses';
 import { useCourseAccess } from '@/hooks/useCourseAccess';
 import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CourseCardProps {
   course: Course;
@@ -60,6 +62,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   const gradientClass = getThemeGradient(course.theme, course.tipo);
   const { positionNames } = useCourseAccess(course.id);
   const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
+  const isMobile = useIsMobile();
   
   // Get correct public target label
   const getCorrectPublicTargetLabel = () => {
@@ -76,7 +79,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col group hover:shadow-lg transition-shadow">
+    <TouchCard 
+      className="overflow-hidden h-full flex flex-col group"
+      variant="elevated"
+    >
       {/* Cover Area */}
       <div className="relative aspect-video">
         {course.cover_image_url ? (
@@ -113,7 +119,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="p-4 flex-1 flex flex-col">
+      <CardContent className={`flex-1 flex flex-col ${isMobile ? 'p-3' : 'p-4'}`}>
         {/* Course Info */}
         <div className="space-y-3 flex-1">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -176,7 +182,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="mt-4 pt-3 border-t">
+        <div className={`pt-3 border-t ${isMobile ? 'mt-3' : 'mt-4'}`}>
           {/* Mobile: Stack buttons vertically, Desktop: Horizontal layout */}
           <div className="hidden md:flex flex-wrap gap-2">
             <Button
@@ -222,7 +228,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           </div>
 
           {/* Mobile layout - larger buttons with better spacing */}
-          <div className="md:hidden space-y-2">
+          <div className={`md:hidden ${isMobile ? 'space-y-2' : 'space-y-2'}`}>
             <Button
               variant="outline"
               onClick={() => {
@@ -232,41 +238,41 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                   onViewDetails(course);
                 }
               }}
-              className="w-full h-11 text-sm"
+              className={`w-full text-sm ${isMobile ? 'h-10' : 'h-11'}`}
             >
-              <Eye className="w-4 h-4 mr-2" />
+              <Eye className={`mr-2 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
               Detalhes
             </Button>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className={`grid grid-cols-3 ${isMobile ? 'gap-2' : 'gap-2'}`}>
               <Button
                 variant="outline"
                 onClick={() => onViewStudents(course)}
-                className="h-11 text-xs"
+                className={`text-xs ${isMobile ? 'h-10' : 'h-11'}`}
               >
-                <Users className="w-4 h-4 mr-1" />
+                <Users className={`mr-1 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                 Alunos
               </Button>
               <Button
                 variant="outline"
                 onClick={() => onEdit(course)}
-                className="h-11 text-xs"
+                className={`text-xs ${isMobile ? 'h-10' : 'h-11'}`}
               >
-                <Edit className="w-4 h-4 mr-1" />
+                <Edit className={`mr-1 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                 Editar
               </Button>
               <Button
                 variant="outline"
                 onClick={() => onDelete(course.id)}
-                className="h-11 text-xs"
+                className={`text-xs ${isMobile ? 'h-10' : 'h-11'}`}
               >
-                <Trash2 className="w-4 h-4 mr-1" />
+                <Trash2 className={`mr-1 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                 Excluir
               </Button>
             </div>
           </div>
         </div>
       </CardContent>
-    </Card>
+    </TouchCard>
   );
 };

@@ -3,6 +3,79 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* Mobile-specific utilities */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .mobile-card {
+    @apply bg-card border border-border rounded-lg shadow-sm active:scale-[0.98] transition-all duration-150;
+  }
+  
+  .mobile-list-item {
+    @apply bg-card border-b border-border last:border-b-0 active:bg-muted/30 transition-colors duration-150;
+  }
+  
+  /* Pull to refresh indicator */
+  .pull-indicator {
+    @apply absolute top-0 left-0 right-0 flex items-center justify-center py-4 z-10;
+  }
+  
+  /* Floating action button */
+  .fab {
+    @apply fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-out hover:shadow-xl active:scale-95;
+  }
+
+  /* Mobile grid system */
+  .mobile-grid-1 {
+    @apply grid grid-cols-1 gap-3;
+  }
+  
+  .mobile-grid-2 {
+    @apply grid grid-cols-2 gap-3;
+  }
+  
+  .mobile-spacing {
+    @apply space-y-4 px-4 py-4;
+  }
+
+  .mobile-section {
+    @apply space-y-3 mb-6;
+  }
+
+  /* Touch-friendly sizing */
+  .touch-button {
+    @apply min-h-[44px] px-4 rounded-lg font-medium transition-all duration-200 active:scale-95;
+  }
+
+  /* Mobile typography */
+  .mobile-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+  
+  .mobile-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .mobile-body {
+    @apply text-sm text-foreground;
+  }
+  
+  .mobile-caption {
+    @apply text-xs text-muted-foreground;
+  }
+}
+
 /* Sistema de design limpo e moderno */
 
 @layer base {
