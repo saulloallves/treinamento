@@ -15,18 +15,18 @@ const BaseLayout = ({ title, children }: BaseLayoutProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen flex bg-background w-full items-start">
+    <div className="min-h-screen min-h-[100dvh] flex bg-background w-full items-start">
       <Sidebar />
       
       <div className="flex-1 flex flex-col">
         {/* Header responsivo */}
-        <header className="bg-background border-b border-border px-4 md:px-8 py-4 md:py-6">
-          <div className={`max-w-7xl mx-auto flex justify-between items-center ${isMobile ? 'ml-16' : ''}`}>
+        <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6">
+          <div className={`w-full flex justify-between items-center ${isMobile ? 'ml-12' : 'max-w-7xl mx-auto'}`}>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
+              <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
                 {title}
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground truncate">
+              <p className="text-xs md:text-base text-muted-foreground truncate">
                 Bem-vindo, {user?.user_metadata?.full_name || user?.email}!
               </p>
             </div>
@@ -34,17 +34,17 @@ const BaseLayout = ({ title, children }: BaseLayoutProps) => {
               onClick={signOut}
               variant="outline"
               size={isMobile ? "sm" : "default"}
-              className="flex items-center gap-2 ml-4 shrink-0"
+              className="flex items-center gap-2 ml-3 shrink-0 h-8 md:h-10"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3 w-3 md:h-4 md:w-4" />
               {!isMobile && "Sair"}
             </Button>
           </div>
         </header>
 
         {/* Conteúdo principal responsivo */}
-        <main className="flex-1 p-4 md:p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-3 md:p-6 overflow-auto">
+          <div className={`w-full ${!isMobile ? 'max-w-7xl mx-auto' : ''}`}>
             {children}
           </div>
         </main>

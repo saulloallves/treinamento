@@ -133,7 +133,7 @@ const CoursesList = () => {
     
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {paginatedCourses.map((course) => (
             <CourseCard
               key={course.id}
@@ -165,16 +165,16 @@ const CoursesList = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-brand-black">Cursos</h1>
-          <p className="text-sm sm:text-base text-brand-gray-dark">Gerencie os cursos de treinamento</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-brand-black">Cursos</h1>
+          <p className="text-xs sm:text-base text-brand-gray-dark">Gerencie os cursos de treinamento</p>
         </div>
         <div className="flex gap-2">
           <Button 
-            className="btn-primary h-11 w-full sm:w-auto"
+            className="btn-primary h-10 md:h-11 w-full sm:w-auto text-sm md:text-base"
             onClick={() => setCreateDialogOpen(true)}
           >
             <Plus className="w-4 h-4" />
@@ -194,8 +194,8 @@ const CoursesList = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="card-clean p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="card-clean p-3 md:p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-brand-black mb-1">
                     Buscar curso
