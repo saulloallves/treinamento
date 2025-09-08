@@ -20,7 +20,7 @@ const CommunicationPage = () => {
         <div className="relative overflow-hidden bg-card rounded-xl border shadow-clean">
           <div className="px-8 py-12 text-center space-y-6">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-clean">
-              <Zap className="h-8 w-8 text-primary-foreground" />
+              <span className="text-3xl">🤖</span>
             </div>
             
             <div className="space-y-2">
