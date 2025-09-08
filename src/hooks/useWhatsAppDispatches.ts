@@ -26,6 +26,8 @@ export interface DispatchInput {
   message: string;
   recipient_mode?: 'all' | 'selected';
   recipient_ids?: string[]; // enrollment ids when mode is 'selected'
+  is_scheduled?: boolean;
+  scheduled_at?: string;
 }
 
 export const useWhatsAppDispatches = () => {
@@ -73,6 +75,16 @@ export const useCreateWhatsAppDispatch = () => {
     },
     onSuccess: (resp) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp_dispatches'] });
+      
+      if (resp?.scheduled) {
+        // Handle scheduled dispatch success
+        toast({
+          title: 'Disparo agendado com sucesso!',
+          description: `O disparo será enviado automaticamente em ${new Date(resp.scheduled_at).toLocaleString('pt-BR')}`,
+        });
+        return;
+      }
+      
       const delivered = resp?.delivered ?? 0;
       const failed = resp?.failed ?? 0;
       const firstErr = resp?.results?.find?.((r: any) => !r.ok)?.error;

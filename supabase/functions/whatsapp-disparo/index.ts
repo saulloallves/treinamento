@@ -38,6 +38,8 @@ serve(async (req: Request) => {
       message,
       recipient_mode,      // 'all' | 'selected'
       recipient_ids = [],  // enrollment ids when mode === 'selected'
+      is_scheduled = false,// whether dispatch is scheduled
+      scheduled_at,        // ISO datetime for scheduling
     } = await req.json()
 
     if (!type || !item_id || !message) {
@@ -129,13 +131,60 @@ serve(async (req: Request) => {
       }
     }))
 
-    // Persist dispatch summary
+    // Handle scheduled vs immediate dispatch
+    if (is_scheduled && scheduled_at) {
+      // For scheduled dispatches, create a pending entry
+      const { data: inserted, error: insErr } = await supabase
+        .from('whatsapp_dispatches')
+        .insert([{ 
+          type, 
+          item_id, 
+          item_name: resolvedItemName || '', 
+          recipients_count: recipients.length, 
+          message, 
+          delivered_count: 0, 
+          failed_count: 0, 
+          created_by: user.id, 
+          status: 'agendado', 
+          is_scheduled: true, 
+          scheduled_at, 
+          processed: false 
+        }])
+        .select()
+        .maybeSingle()
+
+      if (insErr) {
+        return new Response(JSON.stringify({ error: insErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      return new Response(JSON.stringify({ 
+        ok: true, 
+        dispatch: inserted, 
+        scheduled: true, 
+        scheduled_at,
+        recipients_count: recipients.length 
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Persist dispatch summary for immediate dispatch
     const recipients_count = recipients.length
     const status = failed === 0 ? 'enviado' : (delivered > 0 ? 'parcial' : 'erro')
 
     const { data: inserted, error: insErr } = await supabase
       .from('whatsapp_dispatches')
-      .insert([{ type, item_id, item_name: resolvedItemName || '', recipients_count, message, delivered_count: delivered, failed_count: failed, created_by: user.id, status }])
+      .insert([{ 
+        type, 
+        item_id, 
+        item_name: resolvedItemName || '', 
+        recipients_count, 
+        message, 
+        delivered_count: delivered, 
+        failed_count: failed, 
+        created_by: user.id, 
+        status, 
+        is_scheduled: false, 
+        processed: true 
+      }])
       .select()
       .maybeSingle()
 

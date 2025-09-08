@@ -23,6 +23,9 @@ const WhatsAppDispatch = () => {
   const [visibleCount, setVisibleCount] = useState(5);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
 
   const { data: dispatches = [], isLoading: loadingDispatches } = useWhatsAppDispatches();
   const { data: courses = [] } = useCourses();
@@ -69,6 +72,11 @@ const WhatsAppDispatch = () => {
       return;
     }
 
+    // Validate scheduled date/time if scheduling is enabled
+    if (isScheduled && (!scheduledDate || !scheduledTime)) {
+      return;
+    }
+
     let itemName = '';
 
     if (selectedType === 'curso') {
@@ -79,6 +87,12 @@ const WhatsAppDispatch = () => {
       itemName = lesson?.title || '';
     }
 
+    // Create scheduled_at datetime if scheduled
+    let scheduledAt = undefined;
+    if (isScheduled && scheduledDate && scheduledTime) {
+      scheduledAt = `${scheduledDate}T${scheduledTime}:00.000Z`;
+    }
+
     try {
       await createDispatchMutation.mutateAsync({
         type: selectedType,
@@ -87,6 +101,8 @@ const WhatsAppDispatch = () => {
         message: message.trim(),
         recipient_mode: recipientMode,
         recipient_ids: recipientMode === 'selected' ? selectedRecipients : undefined,
+        is_scheduled: isScheduled,
+        scheduled_at: scheduledAt,
       });
 
       // Reset form
@@ -95,6 +111,9 @@ const WhatsAppDispatch = () => {
       setSelectedRecipients([]);
       setRecipientMode('all');
       setRecipientSearch('');
+      setIsScheduled(false);
+      setScheduledDate('');
+      setScheduledTime('');
     } catch (error) {
       console.error('Error sending dispatch:', error);
     }
@@ -251,6 +270,56 @@ const WhatsAppDispatch = () => {
             </div>
           </div>
 
+          {/* Agendamento */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="scheduled"
+                checked={isScheduled}
+                onChange={(e) => setIsScheduled(e.target.checked)}
+                className="w-4 h-4 text-brand-blue bg-gray-100 border-gray-300 rounded focus:ring-brand-blue focus:ring-2"
+              />
+              <label htmlFor="scheduled" className="text-sm font-medium text-brand-black">
+                Agendar envio automático
+              </label>
+            </div>
+
+            {isScheduled && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+                <div>
+                  <label className="block text-sm font-medium text-brand-black mb-1">
+                    Data
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-brand-black mb-1">
+                    Horário
+                  </label>
+                  <input
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                  />
+                </div>
+                <div className="col-span-1 md:col-span-2">
+                  <div className="text-xs text-brand-gray-dark">
+                    <Calendar className="w-3 h-3 inline mr-1" />
+                    O disparo será enviado automaticamente na data e horário especificados.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {selectedItem && (
             <div className="bg-brand-gray-light p-3 rounded-md">
               <div className="flex items-center gap-2 text-sm text-brand-gray-dark">
@@ -264,11 +333,17 @@ const WhatsAppDispatch = () => {
 
           <Button
             onClick={handleSendDispatch}
-            disabled={!selectedItem || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0) || createDispatchMutation.isPending}
+            disabled={
+              !selectedItem || 
+              !message.trim() || 
+              (recipientMode === 'selected' && selectedRecipients.length === 0) || 
+              (isScheduled && (!scheduledDate || !scheduledTime)) || 
+              createDispatchMutation.isPending
+            }
             className="btn-primary w-full"
           >
             <Send className="w-4 h-4" />
-            {createDispatchMutation.isPending ? "Enviando..." : "Enviar Disparo"}
+            {createDispatchMutation.isPending ? "Processando..." : isScheduled ? "Agendar Disparo" : "Enviar Disparo"}
           </Button>
         </CardContent>
       </Card>

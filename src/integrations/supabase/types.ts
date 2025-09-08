@@ -1519,10 +1519,13 @@ export type Database = {
           delivered_count: number
           failed_count: number
           id: string
+          is_scheduled: boolean
           item_id: string | null
           item_name: string | null
           message: string
+          processed: boolean
           recipients_count: number
+          scheduled_at: string | null
           sent_date: string
           status: string
           type: string
@@ -1534,10 +1537,13 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
+          is_scheduled?: boolean
           item_id?: string | null
           item_name?: string | null
           message: string
+          processed?: boolean
           recipients_count?: number
+          scheduled_at?: string | null
           sent_date?: string
           status?: string
           type: string
@@ -1549,10 +1555,13 @@ export type Database = {
           delivered_count?: number
           failed_count?: number
           id?: string
+          is_scheduled?: boolean
           item_id?: string | null
           item_name?: string | null
           message?: string
+          processed?: boolean
           recipients_count?: number
+          scheduled_at?: string | null
           sent_date?: string
           status?: string
           type?: string
