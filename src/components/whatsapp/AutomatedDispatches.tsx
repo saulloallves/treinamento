@@ -83,6 +83,20 @@ const AutomatedDispatches = () => {
     }
   };
 
+  // Function to update all lessons with the new default message
+  const updateAllLessonsWithDefaultMessage = async (type: '2_hours_before' | '30_minutes_before', newMessage: string) => {
+    // Get all lessons that have dispatches of this type
+    const lessonsToUpdate = dispatches.filter(dispatch => dispatch.dispatch_type === type);
+    
+    // Update each dispatch with the new message
+    for (const dispatch of lessonsToUpdate) {
+      await updateDispatch.mutateAsync({
+        id: dispatch.id,
+        message_template: newMessage
+      });
+    }
+  };
+
   // Bulk actions
   const handleSelectAll = () => {
     setSelectedLessons(filteredLessons.map(lesson => lesson.id));
@@ -157,7 +171,11 @@ const AutomatedDispatches = () => {
               <Textarea
                 id="msg-2h"
                 value={messages['2_hours_before']}
-                onChange={(e) => setMessages(prev => ({ ...prev, '2_hours_before': e.target.value }))}
+                onChange={(e) => {
+                  const newMessage = e.target.value;
+                  setMessages(prev => ({ ...prev, '2_hours_before': newMessage }));
+                  updateAllLessonsWithDefaultMessage('2_hours_before', newMessage);
+                }}
                 placeholder="Digite a mensagem que será enviada 2 horas antes da aula..."
                 className="min-h-[80px]"
                 rows={3}
@@ -169,6 +187,7 @@ const AutomatedDispatches = () => {
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
                     <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
                     <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
@@ -192,7 +211,11 @@ const AutomatedDispatches = () => {
               <Textarea
                 id="msg-30m"
                 value={messages['30_minutes_before']}
-                onChange={(e) => setMessages(prev => ({ ...prev, '30_minutes_before': e.target.value }))}
+                onChange={(e) => {
+                  const newMessage = e.target.value;
+                  setMessages(prev => ({ ...prev, '30_minutes_before': newMessage }));
+                  updateAllLessonsWithDefaultMessage('30_minutes_before', newMessage);
+                }}
                 placeholder="Digite a mensagem que será enviada 30 minutos antes da aula..."
                 className="min-h-[80px]"
                 rows={3}
@@ -204,6 +227,7 @@ const AutomatedDispatches = () => {
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
                     <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
                     <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-secondary px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
