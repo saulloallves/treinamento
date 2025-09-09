@@ -27,6 +27,8 @@ import ProfessorsPage from "./pages/ProfessorsPage";
 import AdminsPage from "./pages/AdminsPage";
 import StudentPortal from "./pages/student/StudentPortal";
 import StudentCourse from "./pages/student/StudentCourse";
+import StudentCourses from "./pages/student/StudentCourses";
+import StudentProfile from "./pages/student/StudentProfile";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentCourseSchedule from "./pages/student/StudentCourseSchedule";
 import StudentQuiz from "./pages/student/StudentQuiz";
@@ -199,6 +201,16 @@ const App = () => (
               <Route path="/aluno/quiz" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentQuiz />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/cursos" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentCourses />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/perfil" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentProfile />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/colaboradores" element={
