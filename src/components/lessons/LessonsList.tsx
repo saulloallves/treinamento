@@ -174,51 +174,91 @@ const LessonsList = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid gap-2">
+              <div className="space-y-3">
                 {paginatedLessons.map((lesson) => (
-                  <div key={lesson.id} className="card-clean p-3 max-w-full overflow-hidden">
-                    <div className="space-y-3">
-                      {/* Header with title and badges */}
-                      <div className="flex flex-col gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-2 mb-2">
-                            <h3 className="text-sm font-semibold text-brand-black flex-1 line-clamp-2 break-words">
-                              {lesson.title}
-                            </h3>
+                  <div key={lesson.id} className="card-clean border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Content Section */}
+                        <div className="flex-1 min-w-0 space-y-2">
+                          {/* Title and badges row */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-semibold text-brand-black line-clamp-1 mb-1">
+                                {lesson.title}
+                              </h3>
+                              <p className="text-sm text-brand-gray-dark">
+                                <span className="font-medium">{lesson.courses?.name}</span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
+                                Aula #{lesson.order_index}
+                              </span>
+                              <span
+                                className={`px-2 py-1 text-xs rounded-md font-medium ${
+                                  lesson.status === "Ativo"
+                                    ? "bg-green-100 text-green-700"
+                                    : lesson.status === "Em revisão"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {lesson.status}
+                              </span>
+                            </div>
                           </div>
                           
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="px-1.5 py-0.5 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                              #{lesson.order_index}
-                            </span>
-                            <span
-                              className={`px-1.5 py-0.5 text-xs rounded-full ${
-                                lesson.status === "Ativo"
-                                  ? "bg-green-100 text-green-700"
-                                  : lesson.status === "Em revisão"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {lesson.status}
-                            </span>
+                          {/* Meta information row */}
+                          <div className="flex items-center gap-6 text-sm text-brand-gray-dark">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4 text-brand-blue" />
+                              <span>{lesson.duration_minutes} min</span>
+                            </div>
+                            
+                            {lesson.zoom_start_time && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4 text-brand-blue" />
+                                <span>
+                                  {format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
+                              (() => {
+                                const names = lesson.professor_names && lesson.professor_names.length > 0
+                                  ? lesson.professor_names
+                                  : (lesson.professor_name ? [lesson.professor_name] : []);
+                                return names.length > 0 ? (
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-4 h-4 text-brand-blue" />
+                                    <span>Prof. {names.join(', ')}</span>
+                                  </div>
+                                ) : null;
+                              })()
+                            )}
+                            
+                            {lesson.video_url && (
+                              <div className="flex items-center gap-1">
+                                <Video className="w-4 h-4 text-brand-blue" />
+                                <span>Vídeo disponível</span>
+                              </div>
+                            )}
                           </div>
-                          
-                          <p className="text-xs text-brand-gray-dark mb-2 line-clamp-1 break-words">
-                            <span className="font-medium">{lesson.courses?.name}</span>
-                          </p>
                         </div>
                         
-                        {/* Actions - Mobile optimized stack */}
-                        <div className="flex flex-wrap gap-2 w-full">
+                        {/* Actions Section */}
+                        <div className="flex items-center gap-2 shrink-0">
                           {(lesson.zoom_join_url || lesson.video_url) && (
                             <Button
-                              className="btn-primary text-xs h-8 flex-1 min-w-[80px]"
                               size="sm"
+                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
                               onClick={() =>
                                 window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
                               }
                             >
+                              <ExternalLink className="w-4 h-4 mr-1" />
                               Acessar
                             </Button>
                           )}
@@ -227,58 +267,20 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-8 w-8 p-0 shrink-0"
+                            className="h-9 px-3"
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-4 h-4" />
                           </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => handleDeleteLesson(lesson.id)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-8 w-8 p-0 shrink-0"
+                            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                      </div>
-                      
-                      {/* Meta information - Mobile optimized */}
-                      <div className="flex flex-wrap gap-3 text-xs text-brand-gray-dark">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-brand-blue flex-shrink-0" />
-                          <span>{lesson.duration_minutes}min</span>
-                        </div>
-                        
-                        {lesson.zoom_start_time && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-brand-blue flex-shrink-0" />
-                            <span className="truncate">
-                              {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
-                          (() => {
-                            const names = lesson.professor_names && lesson.professor_names.length > 0
-                              ? lesson.professor_names
-                              : (lesson.professor_name ? [lesson.professor_name] : []);
-                            return names.length > 0 ? (
-                              <div className="flex items-center gap-1 flex-1 min-w-0">
-                                <User className="w-3 h-3 text-brand-blue flex-shrink-0" />
-                                <span className="truncate">Prof. {names.join(', ')}</span>
-                              </div>
-                            ) : null;
-                          })()
-                        )}
-                        
-                        {lesson.video_url && (
-                          <div className="flex items-center gap-1">
-                            <Video className="w-3 h-3 text-brand-blue flex-shrink-0" />
-                            <span>Vídeo</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -318,58 +320,76 @@ const LessonsList = () => {
                   <AccordionContent>
                     <div className="space-y-3">
                       {courseLessons.map((lesson) => (
-                        <div key={lesson.id} className="border border-gray-200 rounded-lg p-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <h4 className="font-medium text-brand-black">{lesson.title}</h4>
-                                <span className="px-2 py-1 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                                  #{lesson.order_index}
-                                </span>
+                        <div key={lesson.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                          <div className="flex items-center justify-between gap-4">
+                            {/* Content Section */}
+                            <div className="flex-1 min-w-0 space-y-2">
+                              <div className="flex items-start gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-brand-black line-clamp-1">{lesson.title}</h4>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
+                                    Aula #{lesson.order_index}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-md font-medium ${
+                                      lesson.status === "Ativo"
+                                        ? "bg-green-100 text-green-700"
+                                        : lesson.status === "Em revisão"
+                                        ? "bg-yellow-100 text-yellow-700"
+                                        : "bg-gray-100 text-gray-700"
+                                    }`}
+                                  >
+                                    {lesson.status}
+                                  </span>
+                                </div>
                               </div>
                               
-                               <div className="flex items-center gap-4 text-sm text-brand-gray-dark">
-                                 <div className="flex items-center gap-1">
-                                   <Clock className="w-3 h-3" />
-                                   {lesson.duration_minutes} min
-                                 </div>
-                                 {lesson.zoom_start_time && (
-                                   <div className="flex items-center gap-1">
-                                     <Calendar className="w-3 h-3" />
-                                     {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
-                                   </div>
-                                 )}
-                                  {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
-                                    (() => {
-                                      const names = lesson.professor_names && lesson.professor_names.length > 0
-                                        ? lesson.professor_names
-                                        : (lesson.professor_name ? [lesson.professor_name] : []);
-                                      return names.length > 0 ? (
-                                        <div className="flex items-center gap-1">
-                                          <User className="w-3 h-3" />
-                                          Prof. {names.join(', ')}
-                                        </div>
-                                      ) : null;
-                                    })()
-                                  )}
-                                 {lesson.video_url && (
-                                   <div className="flex items-center gap-1">
-                                     <Video className="w-3 h-3" />
-                                     Link disponível
-                                   </div>
-                                 )}
-                               </div>
+                              <div className="flex items-center gap-6 text-sm text-brand-gray-dark">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4 text-brand-blue" />
+                                  <span>{lesson.duration_minutes} min</span>
+                                </div>
+                                {lesson.zoom_start_time && (
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4 text-brand-blue" />
+                                    <span>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                                  </div>
+                                )}
+                                {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
+                                  (() => {
+                                    const names = lesson.professor_names && lesson.professor_names.length > 0
+                                      ? lesson.professor_names
+                                      : (lesson.professor_name ? [lesson.professor_name] : []);
+                                    return names.length > 0 ? (
+                                      <div className="flex items-center gap-1">
+                                        <User className="w-4 h-4 text-brand-blue" />
+                                        <span>Prof. {names.join(', ')}</span>
+                                      </div>
+                                    ) : null;
+                                  })()
+                                )}
+                                {lesson.video_url && (
+                                  <div className="flex items-center gap-1">
+                                    <Video className="w-4 h-4 text-brand-blue" />
+                                    <span>Vídeo disponível</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             
-                            <div className="flex gap-1">
+                            {/* Actions Section */}
+                            <div className="flex items-center gap-2 shrink-0">
                               {(lesson.zoom_join_url || lesson.video_url) && (
                                 <Button
-                                  className="btn-primary"
                                   size="sm"
+                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
                                   onClick={() =>
                                     window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
                                   }
                                 >
+                                  <ExternalLink className="w-4 h-4 mr-1" />
                                   Acessar
                                 </Button>
                               )}
@@ -377,15 +397,17 @@ const LessonsList = () => {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
+                                className="h-9 px-3"
                               >
-                                <Edit className="w-3 h-3" />
+                                <Edit className="w-4 h-4" />
                               </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => handleDeleteLesson(lesson.id)}
+                                className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
                           </div>
