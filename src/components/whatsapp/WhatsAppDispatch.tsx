@@ -143,15 +143,6 @@ const WhatsAppDispatch = () => {
 
   return (
     <div className="w-full max-w-[100vw] sm:max-w-7xl no-x-scroll space-y-6 px-4 sm:px-6 lg:px-8 mx-auto">
-      {/* Header Mobile-first */}
-      <div className="text-center space-y-3 py-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          Disparos WhatsApp
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-          Envie mensagens manuais para todos os inscritos em cursos ou aulas
-        </p>
-      </div>
 
       {/* Novo Disparo - Mobile optimized */}
       <Card className="shadow-sm">
@@ -401,13 +392,13 @@ const WhatsAppDispatch = () => {
           <AccordionTrigger className="text-left px-4 sm:px-6 py-4 hover:no-underline">
             <div className="flex items-center gap-3 w-full min-w-0">
               <MessageSquare className="w-5 h-5 text-primary" />
-              <span className="font-semibold">Histórico de Disparos</span>
+              <span className="font-semibold truncate">Histórico de Disparos</span>
               <Badge variant="secondary" className="ml-auto">
                 {dispatches.length}
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-4 sm:px-6 pb-4 overflow-x-hidden max-w-full w-full no-x-scroll">
+          <AccordionContent className="px-4 sm:px-6 pb-4 overflow-x-clip overflow-x-hidden max-w-full w-full no-x-scroll">
             {loadingDispatches ? (
               <div className="text-center py-12">
                 <div className="text-muted-foreground">Carregando histórico...</div>
