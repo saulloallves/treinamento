@@ -40,7 +40,7 @@ const BottomNavigation = () => {
     { label: 'Cursos', href: '/courses', icon: BookOpen },
     { label: 'Usuários', href: '/users', icon: Users },
     { label: 'Unidades', href: '/units', icon: Building2 },
-    { label: 'Mais', href: '/settings', icon: Settings }
+    { label: 'Turmas', href: '/turmas', icon: Users }
   ];
 
   const professorItems: NavItem[] = [
