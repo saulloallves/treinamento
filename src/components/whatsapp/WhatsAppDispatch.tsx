@@ -396,7 +396,7 @@ const WhatsAppDispatch = () => {
       </Card>
 
       {/* Histórico de Disparos - Mobile optimized */}
-      <Accordion type="single" collapsible className="w-full" defaultValue="history">
+      <Accordion type="single" collapsible className="w-full max-w-full overflow-x-hidden" defaultValue="history">
         <AccordionItem value="history" className="border border-border rounded-lg">
           <AccordionTrigger className="text-left px-4 sm:px-6 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
@@ -407,7 +407,7 @@ const WhatsAppDispatch = () => {
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-4 sm:px-6 pb-4 overflow-x-hidden max-w-full no-x-scroll">
+          <AccordionContent className="px-4 sm:px-6 pb-4 overflow-x-hidden max-w-full w-full no-x-scroll">
             {loadingDispatches ? (
               <div className="text-center py-12">
                 <div className="text-muted-foreground">Carregando histórico...</div>
@@ -427,10 +427,10 @@ const WhatsAppDispatch = () => {
                     const paginatedDispatches = dispatches.slice(startIndex, endIndex);
                     
                     return paginatedDispatches.map((dispatch) => (
-                      <Card key={dispatch.id} className="shadow-sm">
+                      <Card key={dispatch.id} className="shadow-sm overflow-hidden">
                         <CardContent className="p-4">
                           {/* Header do dispatch */}
-                          <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex items-start justify-between gap-3 mb-3 min-w-0">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <h3 className="font-semibold text-foreground text-sm truncate">

@@ -64,7 +64,7 @@ export const PaginationCustom = ({
             value={itemsPerPage.toString()}
             onValueChange={(value) => onItemsPerPageChange(parseInt(value))}
           >
-            <SelectTrigger className="w-16 h-8">
+            <SelectTrigger className="w-14 sm:w-16 h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
