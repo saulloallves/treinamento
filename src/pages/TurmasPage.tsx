@@ -369,7 +369,7 @@ const TurmasPage = () => {
           open={enrollDialogOpen}
           onOpenChange={setEnrollDialogOpen}
           turmaId={selectedTurmaId}
-          courseId={selectedTurmaForDetails?.course_id || ""}
+          courseId={filteredTurmas.find(t => t.id === selectedTurmaId)?.course_id || ""}
         />
       </div>
     </BaseLayout>

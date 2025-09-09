@@ -9,6 +9,7 @@ import { useEnrollInTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface EnrollStudentDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   const enrollInTurma = useEnrollInTurma();
 
   // Close dropdown when clicking outside
@@ -47,8 +49,10 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
       setSelectedStudentId("");
       setSearchTerm("");
       setIsDropdownOpen(false);
+    } else {
+      console.log('EnrollStudentDialog opened with:', { turmaId, courseId });
     }
-  }, [open]);
+  }, [open, turmaId, courseId]);
 
   // Fetch students (users that are not admin/professor)
   const { data: students } = useQuery({
@@ -62,7 +66,17 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
         .order('name');
 
       if (error) throw error;
-      return data;
+      
+      // Remove duplicates based on email to avoid key conflicts
+      const uniqueStudents = data?.reduce((acc: any[], current: any) => {
+        const exists = acc.find(student => student.email === current.email);
+        if (!exists) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      return uniqueStudents || [];
     },
     enabled: open
   });
@@ -94,10 +108,49 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
 
   const selectedStudent = availableStudents.find(s => s.id === selectedStudentId);
 
+  // Add UUID validation function
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[4][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedStudentId || !turmaId) {
+    console.log('EnrollStudentDialog - handleSubmit called with:', {
+      selectedStudentId,
+      turmaId,
+      courseId
+    });
+    
+    // Validate UUIDs
+    if (!isValidUUID(selectedStudentId)) {
+      console.error('Invalid selectedStudentId UUID:', selectedStudentId);
+      toast({
+        title: "Erro de validação",
+        description: "ID do estudante inválido",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidUUID(turmaId)) {
+      console.error('Invalid turmaId UUID:', turmaId);
+      toast({
+        title: "Erro de validação", 
+        description: "ID da turma inválido",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!isValidUUID(courseId)) {
+      console.error('Invalid courseId UUID:', courseId);
+      toast({
+        title: "Erro de validação",
+        description: "ID do curso inválido", 
+        variant: "destructive",
+      });
       return;
     }
 
@@ -177,9 +230,9 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
                       </div>
                     ) : (
                       <div className="p-2">
-                        {filteredStudents.map((student) => (
+                        {filteredStudents.map((student, index) => (
                           <div
-                            key={student.id}
+                            key={`student-${student.id}-${index}`}
                             className={cn(
                               "relative flex cursor-pointer select-none items-center rounded-md px-3 py-3 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors",
                               selectedStudentId === student.id && "bg-accent text-accent-foreground"
