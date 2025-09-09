@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import StudentPreview from "@/components/courses/StudentPreview";
 import { useLessonsByTurma } from "@/hooks/useLessonsByTurma";
 import TurmaLessonsCard from "@/components/turmas/TurmaLessonsCard";
+import RecordedCoursesDialog from "@/components/courses/RecordedCoursesDialog";
+
 const StudentLessons = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { data: turmas = [], isLoading, refetch, isRefetching } = useLessonsByTurma();
@@ -20,6 +22,12 @@ const StudentLessons = () => {
   const { user } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const queryClient = useQueryClient();
+  
+  const [recordedCoursesDialogOpen, setRecordedCoursesDialogOpen] = useState(false);
+  const [selectedRecordedCourse, setSelectedRecordedCourse] = useState<{
+    courseId: string;
+    courseName: string;
+  } | null>(null);
 
   // Se courseId existe, buscar dados do curso para renderizar StudentPreview
   const { data: courseData, error: courseError, isLoading: courseLoading } = useQuery({
@@ -111,6 +119,11 @@ const StudentLessons = () => {
     navigate(`/aluno/turma/${turmaId}/aulas`);
   };
 
+  const handleViewRecordedLessons = (courseId: string, courseName: string) => {
+    setSelectedRecordedCourse({ courseId, courseName });
+    setRecordedCoursesDialogOpen(true);
+  };
+
   // Calcular total de próximas aulas
   const totalUpcomingLessons = turmas.reduce((total, turma) => total + turma.upcoming_lessons_count, 0);
 
@@ -125,6 +138,7 @@ const StudentLessons = () => {
       toast.error("Erro ao atualizar dados");
     }
   };
+
   return (
     <BaseLayout title="Aulas por Turma">
       <div className="mb-6 flex items-center justify-between">
@@ -172,10 +186,18 @@ const StudentLessons = () => {
               key={turma.id}
               turma={turma}
               onClick={() => navigateToTurmaLessons(turma.id)}
+              onViewRecordedLessons={handleViewRecordedLessons}
             />
           ))}
         </div>
       )}
+
+      <RecordedCoursesDialog
+        courseId={selectedRecordedCourse?.courseId || ""}
+        courseName={selectedRecordedCourse?.courseName || ""}
+        open={recordedCoursesDialogOpen}
+        onOpenChange={setRecordedCoursesDialogOpen}
+      />
     </BaseLayout>
   );
 };

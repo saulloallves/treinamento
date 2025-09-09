@@ -7,9 +7,10 @@ import { TurmaWithLessons } from "@/hooks/useLessonsByTurma";
 interface TurmaLessonsCardProps {
   turma: TurmaWithLessons;
   onClick: () => void;
+  onViewRecordedLessons?: (courseId: string, courseName: string) => void;
 }
 
-const TurmaLessonsCard = ({ turma, onClick }: TurmaLessonsCardProps) => {
+const TurmaLessonsCard = ({ turma, onClick, onViewRecordedLessons }: TurmaLessonsCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ativa':
@@ -101,7 +102,19 @@ const TurmaLessonsCard = ({ turma, onClick }: TurmaLessonsCardProps) => {
             </span>
           </div>
           
-          <Button variant="outline" size="sm" className="text-xs">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (turma.course_type === 'gravado' && onViewRecordedLessons) {
+                onViewRecordedLessons(turma.course_id, turma.course_name);
+              } else {
+                onClick();
+              }
+            }}
+          >
             Ver Aulas
           </Button>
         </div>

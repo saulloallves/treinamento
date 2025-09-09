@@ -23,6 +23,7 @@ export interface TurmaWithLessons {
   code: string;
   course_name: string;
   course_id: string;
+  course_type: 'ao_vivo' | 'gravado';
   status: string;
   completion_deadline: string;
   upcoming_lessons_count: number;
@@ -58,7 +59,8 @@ export const useLessonsByTurma = () => {
             completion_deadline,
             course:courses(
               id,
-              name
+              name,
+              tipo
             )
           )
         `)
@@ -116,6 +118,7 @@ export const useLessonsByTurma = () => {
           code: turma.code || '',
           course_name: turma.course?.name || 'Curso não informado',
           course_id: enrollment.course_id,
+          course_type: turma.course?.tipo || 'ao_vivo',
           status: turma.status || 'agendada',
           completion_deadline: turma.completion_deadline,
           upcoming_lessons_count: upcomingLessons.length,
