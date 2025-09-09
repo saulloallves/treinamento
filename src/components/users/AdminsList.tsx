@@ -101,9 +101,9 @@ const AdminsList = () => {
   return (
     <>
       <Card className="shadow-sm border-border/50">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 py-5">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-3 py-4 sm:px-4 sm:py-5">
           <div>
-            <CardTitle className="text-lg sm:text-xl text-foreground">Administradores do Sistema</CardTitle>
+            <CardTitle className="text-lg text-foreground">Administradores do Sistema</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">Gerencie os administradores da plataforma</p>
           </div>
           <Button 
@@ -115,7 +115,7 @@ const AdminsList = () => {
             <span className="font-medium">Criar Admin</span>
           </Button>
         </CardHeader>
-        <CardContent className="px-4 pb-5">
+        <CardContent className="px-3 sm:px-4 pb-4">
           {isMobile ? (
             <AdminsListMobile 
               admins={admins}
