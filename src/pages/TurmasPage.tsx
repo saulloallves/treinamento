@@ -14,6 +14,7 @@ import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
 import { EnrollStudentDialog } from "@/components/turmas/EnrollStudentDialog";
 import FilterDrawer from "@/components/mobile/FilterDrawer";
 import FloatingActionButton from "@/components/mobile/FloatingActionButton";
+import MobileCreateButton from "@/components/mobile/MobileCreateButton";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 

@@ -50,7 +50,7 @@ const TurmaQuizCard = ({ turma, onManageQuizzes }: TurmaQuizCardProps) => {
         <div className="mb-4">
           <div className="flex items-start justify-between gap-3 mb-3">
             <h3 className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
-              {turma.name || `Turma ${turma.code}`}
+              {turma.name || `Turma ${turma.code}` || "Turma"}
             </h3>
             <Badge className={`${getStatusColor(turma.status)} text-white shadow-sm shrink-0`}>
               {getStatusText(turma.status)}

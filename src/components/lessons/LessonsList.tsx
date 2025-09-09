@@ -79,15 +79,15 @@ const LessonsList = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 no-x-scroll">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-black">Aulas</h1>
-          <p className="text-brand-gray-dark">Gerencie as aulas dos cursos</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-black">Aulas</h1>
+          <p className="text-sm sm:text-base text-brand-gray-dark">Gerencie as aulas dos cursos</p>
         </div>
         <Button 
-          className="btn-primary"
+          className="btn-primary shrink-0 w-full sm:w-auto"
           onClick={() => setIsCreateDialogOpen(true)}
         >
           <Plus className="w-4 h-4" />
@@ -169,13 +169,13 @@ const LessonsList = () => {
             <div className="space-y-4">
               <div className="grid gap-2">
                 {paginatedLessons.map((lesson) => (
-                  <div key={lesson.id} className="card-clean p-3">
+                  <div key={lesson.id} className="card-clean p-3 max-w-full overflow-hidden">
                     <div className="space-y-3">
                       {/* Header with title and badges */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div className="flex flex-col gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2 mb-2">
-                            <h3 className="text-sm font-semibold text-brand-black flex-1 line-clamp-2">
+                            <h3 className="text-sm font-semibold text-brand-black flex-1 line-clamp-2 break-words">
                               {lesson.title}
                             </h3>
                           </div>
@@ -197,16 +197,16 @@ const LessonsList = () => {
                             </span>
                           </div>
                           
-                          <p className="text-xs text-brand-gray-dark mb-2 line-clamp-1">
+                          <p className="text-xs text-brand-gray-dark mb-2 line-clamp-1 break-words">
                             <span className="font-medium">{lesson.courses?.name}</span>
                           </p>
                         </div>
                         
-                        {/* Actions - Mobile optimized */}
-                        <div className="flex gap-1 flex-shrink-0">
+                        {/* Actions - Mobile optimized stack */}
+                        <div className="flex flex-wrap gap-2 w-full">
                           {(lesson.zoom_join_url || lesson.video_url) && (
                             <Button
-                              className="btn-primary text-xs h-8"
+                              className="btn-primary text-xs h-8 flex-1 min-w-[80px]"
                               size="sm"
                               onClick={() =>
                                 window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
@@ -220,7 +220,7 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-8 w-8 p-0"
+                            className="h-8 w-8 p-0 shrink-0"
                           >
                             <Edit className="w-3 h-3" />
                           </Button>
@@ -229,7 +229,7 @@ const LessonsList = () => {
                             size="sm"
                             onClick={() => handleDeleteLesson(lesson.id)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-8 w-8 p-0"
+                            className="h-8 w-8 p-0 shrink-0"
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>

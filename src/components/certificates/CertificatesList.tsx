@@ -230,7 +230,7 @@ const CertificatesList = () => {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
                     <span className="text-muted-foreground text-sm">
-                      {new Date(r.generatedAt).toLocaleDateString('pt-BR')}
+                      {r.generatedAt ? new Date(r.generatedAt).toLocaleDateString('pt-BR') : '—'}
                     </span>
                   </div>
                 </TableCell>

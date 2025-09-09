@@ -143,10 +143,10 @@ const WhatsAppDispatch = () => {
     : lessons.filter(l => l.status === 'Ativo');
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 no-x-scroll max-w-full">
       <div className="text-center space-y-2 sm:space-y-4">
-        <h2 className="text-2xl sm:text-3xl font-bold">Disparos WhatsApp</h2>
-        <p className="text-sm sm:text-lg text-muted-foreground">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Disparos WhatsApp</h2>
+        <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
           Envie mensagens manuais para todos os inscritos em cursos ou aulas
         </p>
       </div>
@@ -159,9 +159,9 @@ const WhatsAppDispatch = () => {
             Novo Disparo WhatsApp
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
+        <CardContent className="space-y-4 max-w-full">
+          <div className="grid grid-cols-1 gap-4 max-w-full">
+            <div className="w-full">
               <label className="block text-sm font-medium text-brand-black mb-1">
                 Tipo de Disparo
               </label>
@@ -171,21 +171,21 @@ const WhatsAppDispatch = () => {
                   setSelectedType(e.target.value as 'curso' | 'aula');
                   setSelectedItem('');
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                className="w-full max-w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
                 <option value="curso">Curso</option>
                 <option value="aula">Aula</option>
               </select>
             </div>
 
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium text-brand-black mb-1">
                 Selecionar {selectedType === 'curso' ? 'Curso' : 'Aula'}
               </label>
               <select
                 value={selectedItem}
                 onChange={(e) => setSelectedItem(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                className="w-full max-w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
               >
                 <option value="">Selecione...</option>
                 {availableItems.map((item) => (
@@ -262,21 +262,21 @@ const WhatsAppDispatch = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-brand-black mb-1">
-              Mensagem
-            </label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Digite a mensagem que será enviada via WhatsApp..."
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue resize-none"
-            />
-            <div className="text-sm text-brand-gray-dark mt-1">
-              {message.length}/500 caracteres
+            <div className="w-full max-w-full">
+              <label className="block text-sm font-medium text-brand-black mb-1">
+                Mensagem
+              </label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Digite a mensagem que será enviada via WhatsApp..."
+                rows={4}
+                className="w-full max-w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue resize-none break-words"
+              />
+              <div className="text-sm text-brand-gray-dark mt-1">
+                {message.length}/500 caracteres
+              </div>
             </div>
-          </div>
 
           {/* Agendamento */}
           <div className="space-y-4">

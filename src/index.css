@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global anti-scroll rules for mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 @layer utilities {
   /* Mobile-specific utilities */
   .safe-area-pb {
@@ -35,7 +41,7 @@
   .fab {
     @apply fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-out hover:shadow-xl active:scale-95;
   }
-
+  
   /* Mobile grid system */
   .mobile-grid-1 {
     @apply grid grid-cols-1 gap-3;
@@ -51,6 +57,15 @@
 
   .mobile-section {
     @apply space-y-3 mb-6;
+  }
+
+  /* Anti-horizontal scroll utility */
+  .no-x-scroll {
+    @apply overflow-x-hidden max-w-full;
+  }
+
+  .no-x-scroll * {
+    @apply max-w-full;
   }
 
   /* Touch-friendly sizing */

@@ -114,7 +114,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           <div>
             <h2 className="text-2xl font-bold">{selectedLesson.title}</h2>
             <p className="text-muted-foreground">
-              {turma.name || `Turma ${turma.code}`} - {turma.course?.name}
+              {turma.name || `Turma ${turma.code}` || "Turma"} - {turma.course?.name}
             </p>
           </div>
         </div>
@@ -229,7 +229,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           preselectedCourseId={turma.course_id}
           preselectedLessonId={selectedLessonId || undefined}
           preselectedTurmaId={turma.id}
-          turmaName={turma.name || `Turma ${turma.code}`}
+          turmaName={turma.name || `Turma ${turma.code}` || "Turma"}
           courseName={turma.course?.name}
           lessonTitle={lessons?.find(lesson => lesson.id === selectedLessonId)?.title}
         />
@@ -240,7 +240,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           preselectedCourseId={turma.course_id}
           preselectedLessonId={selectedLessonId || undefined}
           preselectedTurmaId={turma.id}
-          turmaName={turma.name || `Turma ${turma.code}`}
+          turmaName={turma.name || `Turma ${turma.code}` || "Turma"}
           courseName={turma.course?.name}
           lessonTitle={lessons?.find(lesson => lesson.id === selectedLessonId)?.title}
         />
@@ -256,7 +256,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           open={!!editingQuiz}
           onOpenChange={(open) => !open && setEditingQuiz(null)}
           turmaId={turma.id}
-          turmaName={turma.name || `Turma ${turma.code}`}
+          turmaName={turma.name || `Turma ${turma.code}` || "Turma"}
           courseName={turma.course?.name}
           lessonTitle={selectedLesson?.title}
         />
@@ -290,7 +290,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
         <div>
           <h2 className="text-2xl font-bold">Quizzes da Turma</h2>
           <p className="text-muted-foreground">
-            {turma.name || `Turma ${turma.code}`} - {turma.course?.name}
+            {turma.name || `Turma ${turma.code}` || "Turma"} - {turma.course?.name}
           </p>
         </div>
       </div>

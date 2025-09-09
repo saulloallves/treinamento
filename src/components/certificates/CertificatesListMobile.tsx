@@ -216,7 +216,18 @@ const CertificatesListMobile = () => {
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Calendar className="w-3 h-3 flex-shrink-0" />
-                  <span>{new Date(r.generatedAt).toLocaleDateString('pt-BR')}</span>
+                  <span>
+                    {r.generatedAt && r.generatedAt !== '—' 
+                      ? (() => {
+                          try {
+                            return new Date(r.generatedAt).toLocaleDateString('pt-BR');
+                          } catch {
+                            return '—';
+                          }
+                        })()
+                      : '—'
+                    }
+                  </span>
                 </div>
                 <div className="flex gap-1">
                   <Button 

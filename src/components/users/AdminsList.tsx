@@ -31,11 +31,14 @@ import { safeFormatDateTimeDetailed } from "@/lib/dateUtils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 import CreateAdminDialog from "./CreateAdminDialog";
+import AdminsListMobile from "./AdminsListMobile";
 
 const AdminsList = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteAdminId, setDeleteAdminId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   
   const queryClient = useQueryClient();
 
@@ -81,6 +84,10 @@ const AdminsList = () => {
     }
   };
 
+  const handleDeleteAdmin = (adminId: string) => {
+    setDeleteAdminId(adminId);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -102,52 +109,59 @@ const AdminsList = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {admins.map((admin) => (
-                <TableRow key={admin.id}>
-                  <TableCell className="font-medium">{admin.name}</TableCell>
-                  <TableCell>{admin.email}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={admin.status === 'approved' ? 'default' : 'secondary'}
-                    >
-                      {admin.status === 'approved' ? 'Ativo' : admin.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {safeFormatDateTimeDetailed(admin.created_at)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => setDeleteAdminId(admin.id)}
-                          className="text-destructive"
-                        >
-                          Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isMobile ? (
+            <AdminsListMobile 
+              admins={admins}
+              onDeleteAdmin={handleDeleteAdmin}
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Criado em</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {admins.map((admin) => (
+                  <TableRow key={admin.id}>
+                    <TableCell className="font-medium">{admin.name}</TableCell>
+                    <TableCell>{admin.email}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={admin.status === 'approved' ? 'default' : 'secondary'}
+                      >
+                        {admin.status === 'approved' ? 'Ativo' : admin.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {safeFormatDateTimeDetailed(admin.created_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setDeleteAdminId(admin.id)}
+                            className="text-destructive"
+                          >
+                            Remover
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
 
           {admins.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center">

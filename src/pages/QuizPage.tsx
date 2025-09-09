@@ -56,7 +56,7 @@ const QuizPage = () => {
                 </div>
                 <div className="flex-1">
                   <h1 className="text-xl font-semibold text-foreground">
-                    {selectedTurma.name || `Turma ${selectedTurma.code}`}
+                    {selectedTurma.name || `Turma ${selectedTurma.code}` || "Turma"}
                   </h1>
                   <div className="flex items-center gap-4 mt-1">
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
