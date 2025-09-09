@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { safeFormatDate } from "@/lib/dateUtils";
 
 const CertificatesListMobile = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -214,21 +215,10 @@ const CertificatesListMobile = () => {
               </div>
               
               <div className="flex items-center justify-between pt-2 border-t">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3 flex-shrink-0" />
-                  <span>
-                    {r.generatedAt && r.generatedAt !== '—' 
-                      ? (() => {
-                          try {
-                            return new Date(r.generatedAt).toLocaleDateString('pt-BR');
-                          } catch {
-                            return '—';
-                          }
-                        })()
-                      : '—'
-                    }
-                  </span>
-                </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="w-3 h-3 flex-shrink-0" />
+                <span>{safeFormatDate(r.generatedAt)}</span>
+              </div>
                 <div className="flex gap-1">
                   <Button 
                     variant="outline" 
