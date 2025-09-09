@@ -44,14 +44,14 @@ export const useLessonsByTurma = () => {
         return [];
       }
 
-      // 2) Busca as inscrições do usuário para obter as turmas
+      // 2) Busca as inscrições do usuário para obter as turmas (apenas turmas ativas)
       const { data: enrollments, error: enrollmentsError } = await supabase
         .from('enrollments')
         .select(`
           id,
           course_id,
           turma_id,
-          turma:turmas(
+          turma:turmas!inner(
             id,
             name,
             code,
@@ -65,7 +65,8 @@ export const useLessonsByTurma = () => {
           )
         `)
         .eq('user_id', userResp.user.id)
-        .not('turma_id', 'is', null);
+        .not('turma_id', 'is', null)
+        .in('turma.status', ['agendada', 'em_andamento', 'inscricoes_abertas']);
 
       if (enrollmentsError) {
         console.error('Erro ao buscar inscrições:', enrollmentsError);
@@ -144,21 +145,23 @@ export const useTurmaLessons = (turmaId: string | undefined) => {
         return [];
       }
 
-      // 2) Verifica se o usuário está inscrito na turma
+      // 2) Verifica se o usuário está inscrito na turma e se ela está ativa
       const { data: enrollment, error: enrollmentError } = await supabase
         .from('enrollments')
         .select(`
           id,
           course_id,
-          turma:turmas(
+          turma:turmas!inner(
             id,
             name,
             code,
+            status,
             course:courses(name)
           )
         `)
         .eq('user_id', userResp.user.id)
         .eq('turma_id', turmaId)
+        .in('turma.status', ['agendada', 'em_andamento', 'inscricoes_abertas'])
         .single();
 
       if (enrollmentError || !enrollment) {

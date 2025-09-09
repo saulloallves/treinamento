@@ -128,7 +128,17 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           })
         );
 
-        return enrichedEnrollments;
+        // Filtrar apenas inscrições de turmas ativas (não encerradas ou canceladas)
+        const activeEnrollments = enrichedEnrollments.filter(enrollment => {
+          // Se não tem turma, permite (cursos sem turma específica)
+          if (!enrollment.turma) return true;
+          
+          // Filtra turmas encerradas ou canceladas
+          const turmaStatus = enrollment.turma.status?.toLowerCase();
+          return turmaStatus !== 'encerrada' && turmaStatus !== 'cancelada';
+        });
+
+        return activeEnrollments;
       } catch (err: any) {
         toast({
           title: "Erro ao carregar inscrições",

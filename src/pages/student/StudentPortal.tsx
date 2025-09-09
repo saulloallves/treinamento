@@ -122,13 +122,26 @@ const StudentPortal = () => {
                     </div>
                   </div>
                   
-                  <Button asChild variant="outline" className="w-full h-8 text-xs">
-                    {enroll.course?.tipo === 'gravado' ? (
-                      <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
-                    ) : (
-                      <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
-                    )}
-                  </Button>
+                  {/* Controle de acesso baseado no status da turma */}
+                  {enroll.turma?.status === 'encerrada' ? (
+                    <div className="text-center py-2">
+                      <p className="text-xs text-muted-foreground mb-1">Turma encerrada</p>
+                      <p className="text-xs text-muted-foreground">Acesso não disponível</p>
+                    </div>
+                  ) : enroll.turma?.status === 'cancelada' ? (
+                    <div className="text-center py-2">
+                      <p className="text-xs text-muted-foreground mb-1">Turma cancelada</p>
+                      <p className="text-xs text-muted-foreground">Acesso não disponível</p>
+                    </div>
+                  ) : (
+                    <Button asChild variant="outline" className="w-full h-8 text-xs">
+                      {enroll.course?.tipo === 'gravado' ? (
+                        <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
+                      ) : (
+                        <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
+                      )}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
