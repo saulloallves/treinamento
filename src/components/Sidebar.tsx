@@ -15,8 +15,6 @@ import {
   ClipboardList,
   User,
   FileQuestion,
-  Menu,
-  X,
   ChevronDown,
   ChevronRight
 } from "lucide-react";
@@ -27,17 +25,33 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import {
+  Sidebar as SidebarRoot,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarFooter,
+  useSidebar
+} from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Sidebar = () => {
   const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const userInteracting = useRef(false);
+  const { open, setOpen } = useSidebar();
   
   // Initialize expanded groups based on current route
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
@@ -240,27 +254,27 @@ const Sidebar = () => {
     const isActive = location.pathname === item.path;
     
     return (
-      <Link
-        key={item.path}
-        to={item.path}
-        onClick={() => {
-          if (isMobile) setIsOpen(false);
-          // Reset active group when navigating to a new page
-          setActiveGroup(null);
-        }}
-        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
-          isActive 
-            ? "bg-primary text-white" 
-            : "text-foreground hover:bg-secondary hover:text-primary"
-        } ${isSubItem ? 'ml-6' : ''}`}
-      >
-        <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className="text-sm">{item.name || item.label}</span>
-      </Link>
+      <SidebarMenuItem key={item.path}>
+        <SidebarMenuButton 
+          asChild 
+          isActive={isActive}
+          className={isSubItem ? 'ml-6 font-normal' : 'font-medium'}
+        >
+          <Link
+            to={item.path}
+            onClick={() => {
+              if (isMobile && open) setOpen(false);
+              // Reset active group when navigating to a new page
+              setActiveGroup(null);
+            }}
+          >
+            <Icon className="w-5 h-5" />
+            <span>{item.name || item.label}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     );
-  }, [location.pathname, isMobile]);
+  }, [location.pathname, isMobile, open, setOpen]);
 
   const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
@@ -269,39 +283,53 @@ const Sidebar = () => {
       }
 
       const isExpanded = expandedGroups[item.id];
-      const hasActiveChild = isGroupActive(item);
       
       return (
-        <div key={item.id} className="space-y-1">
-          <button
-            type="button"
-            onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
-              activeGroup === item.id
-                ? 'bg-secondary text-primary'
-                : 'text-foreground hover:bg-secondary hover:text-primary'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+        <Collapsible
+          key={item.id}
+          open={isExpanded}
+          onOpenChange={() => toggleGroup(item.id)}
+        >
+          <SidebarMenuItem>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton
+                className={`w-full font-medium ${
+                  activeGroup === item.id ? 'bg-secondary text-primary' : ''
+                }`}
+              >
                 <item.icon className="w-5 h-5" />
-              </div>
-              {item.name}
-            </div>
-            <div className="will-change-transform">
-              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
-            </div>
-          </button>
-          
-          {item.items && (
-            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
-              {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
-            </div>
-          )}
-        </div>
+                <span>{item.name}</span>
+                <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-150 data-[state=open]:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {item.items?.map((subItem: any) => (
+                  <SidebarMenuSubItem key={subItem.path}>
+                    <SidebarMenuSubButton 
+                      asChild 
+                      isActive={location.pathname === subItem.path}
+                    >
+                      <Link
+                        to={subItem.path}
+                        onClick={() => {
+                          if (isMobile && open) setOpen(false);
+                          setActiveGroup(null);
+                        }}
+                      >
+                        <subItem.icon className="w-4 h-4" />
+                        <span>{subItem.name}</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </SidebarMenuItem>
+        </Collapsible>
       );
     });
-  }, [expandedGroups, isGroupActive, toggleGroup, renderMenuItem]);
+  }, [expandedGroups, activeGroup, toggleGroup, renderMenuItem, location.pathname, isMobile, open, setOpen]);
 
   const renderProfessorMenu = useCallback(() => {
     return professorMenuStructure.map((item) => {
@@ -310,39 +338,53 @@ const Sidebar = () => {
       }
 
       const isExpanded = expandedGroups[item.id];
-      const hasActiveChild = isGroupActive(item);
       
       return (
-        <div key={item.id} className="space-y-1">
-          <button
-            type="button"
-            onClick={() => toggleGroup(item.id)}
-            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
-              activeGroup === item.id
-                ? 'bg-secondary text-primary'
-                : 'text-foreground hover:bg-secondary hover:text-primary'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+        <Collapsible
+          key={item.id}
+          open={isExpanded}
+          onOpenChange={() => toggleGroup(item.id)}
+        >
+          <SidebarMenuItem>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton
+                className={`w-full font-medium ${
+                  activeGroup === item.id ? 'bg-secondary text-primary' : ''
+                }`}
+              >
                 <item.icon className="w-5 h-5" />
-              </div>
-              {item.name}
-            </div>
-            <div className="will-change-transform">
-              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
-            </div>
-          </button>
-          
-          {item.items && (
-            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
-              {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
-            </div>
-          )}
-        </div>
+                <span>{item.name}</span>
+                <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-150 data-[state=open]:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {item.items?.map((subItem: any) => (
+                  <SidebarMenuSubItem key={subItem.path}>
+                    <SidebarMenuSubButton 
+                      asChild 
+                      isActive={location.pathname === subItem.path}
+                    >
+                      <Link
+                        to={subItem.path}
+                        onClick={() => {
+                          if (isMobile && open) setOpen(false);
+                          setActiveGroup(null);
+                        }}
+                      >
+                        <subItem.icon className="w-4 h-4" />
+                        <span>{subItem.name}</span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </SidebarMenuItem>
+        </Collapsible>
       );
     });
-  }, [expandedGroups, isGroupActive, toggleGroup, renderMenuItem]);
+  }, [expandedGroups, activeGroup, toggleGroup, renderMenuItem, location.pathname, isMobile, open, setOpen]);
 
   const renderStudentMenu = useCallback(() => {
     return studentMenuItems.map((item, index) => {
@@ -350,105 +392,33 @@ const Sidebar = () => {
       const isActive = location.pathname === item.path;
       
       return (
-        <Link
-          key={index}
-          to={item.path}
-          onClick={() => {
-            if (isMobile) setIsOpen(false);
-            // Reset active group when navigating to a new page
-            setActiveGroup(null);
-          }}
-          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
-            isActive 
-              ? "bg-primary text-white" 
-              : "text-foreground hover:bg-secondary hover:text-primary"
-          }`}
-        >
-          <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-            <Icon className="w-5 h-5" />
-          </div>
-          <span className="text-sm">{item.label}</span>
-        </Link>
+        <SidebarMenuItem key={index}>
+          <SidebarMenuButton asChild isActive={isActive} className="font-medium">
+            <Link
+              to={item.path}
+              onClick={() => {
+                if (isMobile && open) setOpen(false);
+                setActiveGroup(null);
+              }}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       );
     });
-  }, [studentMenuItems, location.pathname, isMobile]);
-
-  if (isMobile) {
-    return (
-      <>
-        {/* Mobile Toggle Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed top-4 left-4 z-50 md:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
-
-        {/* Mobile Overlay */}
-        {isOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={() => setIsOpen(false)}
-          />
-        )}
-
-        {/* Mobile Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
-          <div className="h-full flex flex-col border-r border-gray-200 shadow-lg">
-            {/* Header da sidebar */}
-            <div className="p-6 border-b border-gray-200 mt-16">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">
-                    Cresci e Perdi
-                  </h1>
-                  <p className="text-xs text-muted-foreground">
-                    Sistema de Treinamentos
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Menu de navegação */}
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
-              {shouldShowAdminMenu ? renderAdminMenu() : shouldShowProfessorMenu ? renderProfessorMenu() : renderStudentMenu()}
-            </nav>
-
-            {/* Footer da sidebar */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center gap-3 p-3 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
-                    {user?.email?.[0]?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
-            </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email ?? ''}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  }, [studentMenuItems, location.pathname, isMobile, open, setOpen]);
 
   return (
-    <div className="w-64 bg-white sticky top-0 self-start flex-shrink-0 h-[100dvh] flex flex-col border-r border-gray-200 shadow-sm">
+    <SidebarRoot 
+      className={`${!isMobile ? 'w-64' : ''}`}
+      side="left"
+      variant="sidebar"
+      collapsible={isMobile ? "offcanvas" : "none"}
+    >
       {/* Header da sidebar */}
-      <div className="p-6 border-b border-gray-200">
+      <SidebarHeader className="p-6 border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
             <GraduationCap className="w-6 h-6 text-white" />
@@ -462,32 +432,38 @@ const Sidebar = () => {
             </p>
           </div>
         </div>
-      </div>
+      </SidebarHeader>
 
       {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
-        {shouldShowAdminMenu ? renderAdminMenu() : shouldShowProfessorMenu ? renderProfessorMenu() : renderStudentMenu()}
-      </nav>
+      <SidebarContent className="p-4">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {shouldShowAdminMenu ? renderAdminMenu() : shouldShowProfessorMenu ? renderProfessorMenu() : renderStudentMenu()}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
       {/* Footer da sidebar */}
-      <div className="p-4 border-t border-gray-200">
+      <SidebarFooter className="p-4 border-t">
         <div className="flex items-center gap-3 p-3 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <span className="text-sm font-medium text-white">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
               {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               {user?.email ?? ''}
             </p>
           </div>
         </div>
-      </div>
-    </div>
+      </SidebarFooter>
+    </SidebarRoot>
   );
 };
 
