@@ -100,15 +100,22 @@ const AdminsList = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Administradores do Sistema</CardTitle>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Criar Administrador
+      <Card className="shadow-sm border-border/50">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 py-5">
+          <div>
+            <CardTitle className="text-lg sm:text-xl text-foreground">Administradores do Sistema</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Gerencie os administradores da plataforma</p>
+          </div>
+          <Button 
+            onClick={() => setShowCreateDialog(true)} 
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
+            size="default"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="font-medium">Criar Admin</span>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-5">
           {isMobile ? (
             <AdminsListMobile 
               admins={admins}
@@ -163,7 +170,7 @@ const AdminsList = () => {
             </Table>
           )}
 
-          {admins.length === 0 && (
+          {admins.length === 0 && !isMobile && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <p className="text-muted-foreground mb-4">
                 Nenhum administrador encontrado
