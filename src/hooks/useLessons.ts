@@ -78,8 +78,7 @@ export const useLessons = (futureOnly: boolean = false) => {
       if (futureOnly) {
         const nowIso = new Date().toISOString();
         query = query
-          .not('zoom_start_time', 'is', null)
-          .gt('zoom_start_time', nowIso)
+          .gte('zoom_start_time', nowIso)
           .order('zoom_start_time', { ascending: true });
       } else {
         query = query.order('created_at', { ascending: false });

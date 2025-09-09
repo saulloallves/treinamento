@@ -25,7 +25,7 @@ const LessonsList = () => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const isMobile = useIsMobile();
 
-  const { data: lessons = [], isLoading } = useLessons();
+  const { data: lessons = [], isLoading } = useLessons(true); // Only show upcoming lessons
   const { data: courses = [] } = useCourses();
   const deleteLessonMutation = useDeleteLesson();
 
