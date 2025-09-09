@@ -12,6 +12,8 @@ import { useLessons, useDeleteLesson, Lesson } from "@/hooks/useLessons";
 import { useCourses } from "@/hooks/useCourses";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useIsMobile } from "@/hooks/use-mobile";
+import LessonsListMobile from "./LessonsListMobile";
 
 const LessonsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +23,7 @@ const LessonsList = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const isMobile = useIsMobile();
 
   const { data: lessons = [], isLoading } = useLessons();
   const { data: courses = [] } = useCourses();
@@ -69,6 +72,10 @@ const LessonsList = () => {
     acc[courseId].lessons.push(lesson);
     return acc;
   }, {} as Record<string, { course: any; lessons: Lesson[] }>);
+
+  if (isMobile) {
+    return <LessonsListMobile />;
+  }
 
   if (isLoading) {
     return (
