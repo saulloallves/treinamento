@@ -244,27 +244,7 @@ const CertificatesList = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      title="Baixar PDF" 
-                      disabled={!r.url} 
-                      onClick={() => { if (r.url) window.open(r.url, '_blank'); }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      title="Atualizar" 
-                      onClick={() => certsQuery.refetch()}
-                      className="h-8 w-8 p-0"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  {/* Ações removidas conforme solicitação do usuário */}
                 </TableCell>
               </TableRow>
             ))}

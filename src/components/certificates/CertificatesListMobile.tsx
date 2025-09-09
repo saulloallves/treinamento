@@ -258,25 +258,7 @@ const CertificatesListMobile = () => {
                     <Calendar className="w-3 h-3 flex-shrink-0" />
                     <span>{formatBRDateSafe(r.generatedAt)}</span>
                   </div>
-                  <div className="flex gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      disabled={!r.url} 
-                      onClick={() => { if (r.url) window.open(r.url, '_blank'); }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => certsQuery.refetch()}
-                      className="h-8 w-8 p-0"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  {/* Botões de ação removidos conforme solicitação do usuário */}
                 </div>
               </CardContent>
             </Card>
