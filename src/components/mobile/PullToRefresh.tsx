@@ -22,18 +22,14 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const startY = useRef(0);
   const currentY = useRef(0);
 
-  if (!isMobile) {
-    return <div className={className}>{children}</div>;
-  }
-
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (window.scrollY > 0) return;
+    if (!isMobile || window.scrollY > 0) return;
     startY.current = e.touches[0].clientY;
     setIsPulling(true);
-  }, []);
+  }, [isMobile]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isPulling || window.scrollY > 0) return;
+    if (!isMobile || !isPulling || window.scrollY > 0) return;
     
     currentY.current = e.touches[0].clientY;
     const distance = Math.max(0, (currentY.current - startY.current) * 0.5);
@@ -42,10 +38,10 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
       e.preventDefault();
       setPullDistance(distance);
     }
-  }, [isPulling]);
+  }, [isMobile, isPulling]);
 
   const handleTouchEnd = useCallback(async () => {
-    if (!isPulling) return;
+    if (!isMobile || !isPulling) return;
     
     setIsPulling(false);
     
@@ -61,7 +57,11 @@ const PullToRefresh: React.FC<PullToRefreshProps> = ({
     }
     
     setPullDistance(0);
-  }, [isPulling, pullDistance, threshold, onRefresh, isRefreshing]);
+  }, [isMobile, isPulling, pullDistance, threshold, onRefresh, isRefreshing]);
+
+  if (!isMobile) {
+    return <div className={className}>{children}</div>;
+  }
 
   const shouldShowIndicator = pullDistance > 20 || isRefreshing;
   const indicatorOpacity = Math.min(pullDistance / threshold, 1);
