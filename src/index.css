@@ -3,10 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global anti-scroll rules for mobile */
+/* Global anti-scroll rules */
 html, body, #root {
   overflow-x: hidden;
   max-width: 100vw;
+}
+
+/* Desktop-specific stability */
+@media (min-width: 768px) {
+  html { scrollbar-gutter: stable both-edges; }
+  html, body, #root { overflow-x: hidden; overflow-y: auto; }
 }
 
 @layer utilities {
@@ -64,7 +70,7 @@ html, body, #root {
     @apply overflow-x-hidden max-w-full min-w-0;
   }
 
-  .no-x-scroll * {
+  .no-x-scroll > * {
     @apply max-w-full min-w-0;
   }
 

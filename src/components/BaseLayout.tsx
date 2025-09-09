@@ -17,10 +17,10 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex bg-background w-full items-start">
+    <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         {/* Header responsivo */}
         <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
           <div className={`w-full flex justify-between items-center ${isMobile ? 'pl-12' : 'max-w-7xl mx-auto'}`}>
@@ -45,8 +45,8 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         </header>
 
         {/* Conteúdo principal responsivo */}
-        <main className={`flex-1 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-20' : ''}`}>
-          <div className={`w-full ${!isMobile ? 'max-w-7xl mx-auto' : ''}`}>
+        <main className={`flex-1 min-h-0 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-20' : ''}`}>
+          <div className={`w-full min-w-0 ${!isMobile ? 'max-w-7xl mx-auto' : ''}`}>
             {children}
           </div>
         </main>
