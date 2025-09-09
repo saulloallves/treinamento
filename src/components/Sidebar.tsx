@@ -446,7 +446,7 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="w-64 bg-white sticky top-0 self-start flex-shrink-0 h-[100dvh] flex flex-col border-r border-gray-200 shadow-sm">
+    <div className="w-64 bg-white fixed top-0 left-0 z-40 flex-shrink-0 h-[100dvh] flex flex-col border-r border-gray-200 shadow-sm">
       {/* Header da sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
