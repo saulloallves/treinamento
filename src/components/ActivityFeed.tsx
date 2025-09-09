@@ -1,17 +1,20 @@
 
 import { Award, UserCheck, BookOpen, Users, Activity, Clock } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ActivityFeed = () => {
+  const isMobile = useIsMobile();
+  
   const activities = [
     {
       id: 1,
       type: "certificate",
       user: "Maria Silva",
-      action: "recebeu certificado do curso",
+      action: "recebeu certificado",
       course: "Atendimento ao Cliente",
-      time: "há 2 horas",
+      time: "há 2h",
       icon: Award,
-      color: "text-green-500"
+      color: "text-success"
     },
     {
       id: 2,
@@ -19,9 +22,9 @@ const ActivityFeed = () => {
       user: "João Santos",
       action: "concluiu o curso",
       course: "Gestão Financeira",
-      time: "há 4 horas",
+      time: "há 4h",
       icon: UserCheck,
-      color: "text-brand-blue"
+      color: "text-primary"
     },
     {
       id: 3,
@@ -29,9 +32,9 @@ const ActivityFeed = () => {
       user: "Ana Costa",
       action: "se inscreveu no curso",
       course: "Vendas e Relacionamento",
-      time: "há 1 dia",
+      time: "há 1d",
       icon: BookOpen,
-      color: "text-purple-500"
+      color: "text-secondary"
     },
     {
       id: 4,
@@ -39,62 +42,71 @@ const ActivityFeed = () => {
       user: "15 colaboradores",
       action: "iniciaram o curso",
       course: "Segurança no Trabalho",
-      time: "há 2 dias",
+      time: "há 2d",
       icon: Users,
-      color: "text-orange-500"
+      color: "text-accent"
     },
     {
       id: 5,
       type: "certificate",
       user: "Pedro Lima",
-      action: "recebeu certificado do curso", 
+      action: "recebeu certificado", 
       course: "Liderança e Gestão",
-      time: "há 3 dias",
+      time: "há 3d",
       icon: Award,
-      color: "text-green-500"
+      color: "text-success"
     }
   ];
 
   return (
-    <div className="card-clean p-6">
+    <div className={`card-clean ${isMobile ? 'p-4' : 'p-6'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+      <div className={`flex items-center justify-between ${isMobile ? 'mb-4 pb-3' : 'mb-6 pb-4'} border-b border-border`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-brand-blue-light flex items-center justify-center">
-            <Activity className="w-5 h-5 text-brand-blue" />
+          <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-primary/10 flex items-center justify-center`}>
+            <Activity className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-primary`} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-brand-black">Atividades Recentes</h2>
-            <p className="text-brand-gray-dark text-sm">Últimas movimentações do sistema</p>
+            <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-foreground`}>
+              {isMobile ? 'Atividades' : 'Atividades Recentes'}
+            </h2>
+            {!isMobile && (
+              <p className="text-muted-foreground text-sm">Últimas movimentações do sistema</p>
+            )}
           </div>
         </div>
-        <button className="text-sm text-brand-blue hover:text-blue-600 font-medium px-3 py-1 rounded-md hover:bg-brand-blue-light transition-colors duration-200">
-          Ver histórico
-        </button>
+        {!isMobile && (
+          <button className="text-sm text-primary hover:text-primary/80 font-medium px-3 py-1 rounded-md hover:bg-primary/10 transition-colors duration-200">
+            Ver histórico
+          </button>
+        )}
       </div>
 
       {/* Lista de atividades */}
-      <div className="space-y-4">
+      <div className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
         {activities.map((activity, index) => {
           const Icon = activity.icon;
           return (
             <div 
               key={activity.id} 
-              className="flex items-start gap-4 p-3 rounded-md hover:bg-gray-50 transition-colors duration-200"
+              className={`flex items-start gap-3 ${isMobile ? 'p-2' : 'p-3'} rounded-md hover:bg-muted/50 transition-colors duration-200 active:scale-[0.98]`}
             >
               {/* Ícone da atividade */}
-              <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 ${activity.color}`}>
-                <Icon className="w-4 h-4" />
+              <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-background flex items-center justify-center flex-shrink-0 ${activity.color} shadow-sm`}>
+                <Icon className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               </div>
               
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-brand-black mb-1 leading-relaxed">
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-1 leading-relaxed`}>
                   <span className="font-medium">{activity.user}</span>
-                  {" "}{activity.action}{" "}
-                  <span className="font-medium text-brand-blue">{activity.course}</span>
+                  {" "}{activity.action}
+                  {isMobile ? '' : ' do curso'}{" "}
+                  <span className="font-medium text-primary truncate block sm:inline">
+                    {activity.course}
+                  </span>
                 </p>
                 
-                <div className="flex items-center gap-1 text-xs text-brand-gray-dark">
+                <div className={`flex items-center gap-1 ${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
                   <Clock className="w-3 h-3" />
                   <span>{activity.time}</span>
                 </div>
@@ -105,9 +117,9 @@ const ActivityFeed = () => {
       </div>
 
       {/* Botão para ver mais */}
-      <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-        <button className="text-brand-blue hover:text-blue-600 font-medium text-sm px-4 py-2 rounded-md hover:bg-brand-blue-light transition-colors duration-200">
-          Carregar mais atividades
+      <div className={`${isMobile ? 'mt-4 pt-3' : 'mt-6 pt-4'} border-t border-border text-center`}>
+        <button className="text-primary hover:text-primary/80 font-medium text-sm px-4 py-2 rounded-md hover:bg-primary/10 transition-colors duration-200 active:scale-95">
+          {isMobile ? 'Ver mais' : 'Carregar mais atividades'}
         </button>
       </div>
     </div>

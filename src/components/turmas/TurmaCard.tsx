@@ -5,6 +5,8 @@ import { Play, Square, UserPlus, Users, Calendar, GraduationCap, Clock, ChevronR
 import { useStartTurma, useConcludeTurma, useForceCloseEnrollments } from "@/hooks/useTurmas";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useIsMobile } from "@/hooks/use-mobile";
+import TouchCard from "@/components/mobile/TouchCard";
 
 interface TurmaCardProps {
   turma: any;
@@ -33,6 +35,7 @@ const getStatusBadge = (status: string) => {
 };
 
 export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEditTurma }: TurmaCardProps) => {
+  const isMobile = useIsMobile();
   const startTurma = useStartTurma();
   const concludeTurma = useConcludeTurma();
   const forceCloseEnrollments = useForceCloseEnrollments();
@@ -77,6 +80,124 @@ export const TurmaCard = ({ turma, course, onViewDetails, onEnrollStudent, onEdi
     || (!isPlaceholder(turma.responsavel_name) ? turma.responsavel_name : undefined);
   const professorName: string = explicitProfessor || 'Professor não definido';
   const professorEmail: string | undefined = turma.responsavel_user?.email;
+
+  if (isMobile) {
+    return (
+      <TouchCard 
+        onClick={handleCardClick}
+        className="hover:shadow-md transition-all duration-200"
+        variant="elevated"
+      >
+        <div className="p-4 space-y-3">
+          {/* Header compacto */}
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <GraduationCap className="w-3 h-3 text-primary flex-shrink-0" />
+                <span className="text-xs font-medium text-muted-foreground truncate">
+                  {course?.name}
+                </span>
+              </div>
+              <h3 className="text-sm font-semibold text-foreground mb-2 line-clamp-2">
+                {turma.name || `Turma ${turma.code || turma.id.slice(0, 8)}`}
+              </h3>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleEditTurma}
+              className="h-6 w-6 p-0 flex-shrink-0"
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+          </div>
+
+          {/* Status e inscritos */}
+          <div className="flex items-center justify-between">
+            {getStatusBadge(turma.status)}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Users className="w-3 h-3" />
+              <span>{turma.enrollments_count || 0}</span>
+            </div>
+          </div>
+
+          {/* Professor compacto */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-medium text-primary">
+                {professorName?.charAt(0) || 'P'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-foreground truncate">
+                {professorName}
+              </p>
+            </div>
+          </div>
+
+          {/* Data essencial */}
+          <div className="flex items-center gap-2 text-xs">
+            <Calendar className="w-3 h-3 text-muted-foreground" />
+            <span className="text-muted-foreground">Prazo:</span>
+            <span className="font-medium">
+              {format(new Date(turma.completion_deadline), "dd/MM", { locale: ptBR })}
+            </span>
+          </div>
+
+          {/* Actions compactas */}
+          <div className="flex gap-1.5 pt-1">
+            {turma.status === 'inscricoes_abertas' && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleForceClose}
+                  disabled={forceCloseEnrollments.isPending}
+                  className="text-xs px-2 h-7 flex-1"
+                >
+                  Fechar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleEnrollStudent}
+                  className="text-xs px-2 h-7 flex-1"
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Inscrever
+                </Button>
+              </>
+            )}
+            
+            {(turma.status === 'inscricoes_encerradas' || turma.status === 'agendada') && (
+              <Button
+                size="sm"
+                onClick={handleStartTurma}
+                disabled={startTurma.isPending}
+                className="text-xs px-2 h-7 flex-1"
+              >
+                <Play className="h-3 w-3 mr-1" />
+                Iniciar
+              </Button>
+            )}
+            
+            {turma.status === 'em_andamento' && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleConcludeTurma}
+                disabled={concludeTurma.isPending}
+                className="text-xs px-2 h-7 flex-1"
+              >
+                <Square className="h-3 w-3 mr-1" />
+                Encerrar
+              </Button>
+            )}
+          </div>
+        </div>
+      </TouchCard>
+    );
+  }
 
   return (
     <Card className="card-clean cursor-pointer hover:shadow-clean-md transition-all duration-200" onClick={handleCardClick}>
