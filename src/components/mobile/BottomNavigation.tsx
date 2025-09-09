@@ -55,10 +55,10 @@ const BottomNavigation = () => {
 
   // Menu para aluno franqueado (Franqueado)
   const franchiseeStudentItems: NavItem[] = [
+    { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
     { label: 'Quiz', href: '/aluno/quiz', icon: ClipboardCheck },
     { label: 'Cursos', href: '/aluno/cursos', icon: BookOpen },
     { label: 'Colaboradores', href: '/aluno/colaboradores', icon: UserCheck },
-    { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
     { label: 'Perfil', href: '/aluno/perfil', icon: Users }
   ];
 
