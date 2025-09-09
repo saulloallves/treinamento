@@ -142,7 +142,7 @@ const WhatsAppDispatch = () => {
     : lessons.filter(l => l.status === 'Ativo');
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="no-x-scroll space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header Mobile-first */}
       <div className="text-center space-y-3 py-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -407,7 +407,7 @@ const WhatsAppDispatch = () => {
               </Badge>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="px-4 sm:px-6 pb-4">
+          <AccordionContent className="px-4 sm:px-6 pb-4 overflow-x-hidden max-w-full no-x-scroll">
             {loadingDispatches ? (
               <div className="text-center py-12">
                 <div className="text-muted-foreground">Carregando histórico...</div>

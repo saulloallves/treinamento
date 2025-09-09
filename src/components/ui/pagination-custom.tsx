@@ -53,13 +53,13 @@ export const PaginationCustom = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between gap-4 px-2 py-3">
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <span className="whitespace-nowrap">
+    <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3 w-full max-w-full overflow-x-hidden px-2 py-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground max-w-full">
+        <span className="sm:whitespace-nowrap">
           Mostrando {startItem} a {endItem} de {totalItems} {itemName}
         </span>
         <div className="flex items-center gap-2">
-          <span className="whitespace-nowrap">Mostrar:</span>
+          <span className="hidden sm:inline">Mostrar:</span>
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => onItemsPerPageChange(parseInt(value))}
@@ -77,7 +77,7 @@ export const PaginationCustom = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-center gap-1 w-full sm:w-auto">
         <Button
           variant="outline"
           size="sm"
