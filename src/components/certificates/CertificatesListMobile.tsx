@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Download, RefreshCw, Award, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { safeFormatDate } from "@/lib/dateUtils";
+
+
+const formatBRDateSafe = (date: string | Date | null | undefined): string => {
+  try {
+    if (!date) return "—";
+    const dt = typeof date === "string" ? new Date(date) : date;
+    return isNaN(dt.getTime()) ? "—" : dt.toLocaleDateString("pt-BR");
+  } catch {
+    return "—";
+  }
+};
 
 const CertificatesListMobile = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("todos");
+  const [selectedCourseId, setSelectedCourseId] = useState("all");
   const isMobile = useIsMobile();
 
   const certsQuery = useQuery({
@@ -92,37 +102,51 @@ const CertificatesListMobile = () => {
   }, [enrollmentsForCertsQuery.data]);
 
   const rows = useMemo(() => {
-    const all = (certsQuery.data ?? []) as any[];
-    const enriched = all.map((c) => {
-      const enr = enrollmentsMap.get(c.enrollment_id);
-      const course = coursesMap.get(c.course_id ?? enr?.course_id);
-      const turma = enr?.turmas;
-      return {
-        id: c.id,
-        studentName: enr?.student_name ?? "—",
-        courseName: course?.name ?? "—",
-        turmaName: turma?.name || turma?.code || "Turma não definida",
-        professorName: turma?.responsavel_name || "Professor não definido",
-        generatedAt: c.generated_at,
-        status: c.status,
-        url: c.certificate_url as string | null,
-      };
-    });
-    const q = searchTerm.trim().toLowerCase();
-    return enriched.filter((r) => {
-      const matchesSearch = !q || r.studentName.toLowerCase().includes(q);
-      const matchesCourse = selectedCourse === "todos" || r.courseName === selectedCourse;
-      return matchesSearch && matchesCourse;
-    });
-  }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
+    try {
+      const all = (certsQuery.data ?? []) as any[];
+      const enriched = all.map((c) => {
+        const enr = enrollmentsMap.get(c.enrollment_id);
+        const course = coursesMap.get(c.course_id ?? enr?.course_id);
+        const turma = enr?.turmas;
+        return {
+          id: c.id,
+          studentName: enr?.student_name ?? "—",
+          courseName: course?.name ?? "—",
+          courseId: course?.id ?? c.course_id ?? enr?.course_id ?? null,
+          turmaName: turma?.name || turma?.code || "Turma não definida",
+          professorName: turma?.responsavel_name || "Professor não definido",
+          generatedAt: c.generated_at ?? null,
+          status: String(c.status ?? "—"),
+          url: typeof c.certificate_url === "string" ? c.certificate_url : null,
+        };
+      });
+      const q = searchTerm.trim().toLowerCase();
+      const filtered = enriched.filter((r) => {
+        const matchesSearch = !q || (r.studentName || "").toLowerCase().includes(q);
+        const matchesCourse = selectedCourseId === "all" || r.courseId === selectedCourseId;
+        return matchesSearch && matchesCourse;
+      });
+      return filtered;
+    } catch (err) {
+      console.error("certificates-mobile rows error", err, {
+        certs: certsQuery.data,
+        enrollments: enrollmentsForCertsQuery.data,
+        courses: coursesQuery.data,
+      });
+      return [];
+    }
+  }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourseId, enrollmentsForCertsQuery.data, coursesQuery.data]);
 
   const stats = useMemo(() => {
     const total = (certsQuery.data ?? []).length;
     const now = new Date();
-    const month = (certsQuery.data ?? []).filter((c: any) => {
+    const month = (certsQuery.data ?? []).reduce((acc: number, c: any) => {
       const d = new Date(c.generated_at);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
+      if (!isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
     const enr = (enrollmentsStatsQuery.data ?? []) as any[];
     const totalEnr = enr.length || 0;
     const completed = enr.filter((e) => (e.progress_percentage ?? 0) >= 100).length;
@@ -131,8 +155,16 @@ const CertificatesListMobile = () => {
     return { total, month, rate, activeCourses };
   }, [certsQuery.data, enrollmentsStatsQuery.data, coursesQuery.data]);
 
+  useEffect(() => {
+    if (!isMobile) return;
+    console.debug("certs", certsQuery.data);
+    console.debug("enrollmentsForCerts", enrollmentsForCertsQuery.data);
+    console.debug("courses", coursesQuery.data);
+    console.debug("rows", rows);
+  }, [isMobile, certsQuery.data, enrollmentsForCertsQuery.data, coursesQuery.data, rows]);
+
   return (
-    <div className="space-y-4 sm:space-y-6 no-x-scroll max-w-full">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
@@ -162,13 +194,13 @@ const CertificatesListMobile = () => {
             Curso
           </label>
           <select
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
+            value={selectedCourseId}
+            onChange={(e) => setSelectedCourseId(e.target.value)}
             className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
           >
-            <option value="todos">Todos os cursos</option>
+            <option value="all">Todos os cursos</option>
             {(coursesQuery.data ?? []).map((course: any) => (
-              <option key={course.id} value={course.name}>
+              <option key={course.id} value={course.id}>
                 {course.name}
               </option>
             ))}
@@ -178,70 +210,78 @@ const CertificatesListMobile = () => {
 
       {/* Lista de Certificados - Mobile Cards */}
       <div className="space-y-3">
-        {rows.map((r) => (
-          <Card key={r.id as any} className="p-4">
-            <CardContent className="p-0 space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium truncate block">{r.studentName}</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Award className="w-3 h-3 text-primary flex-shrink-0" />
-                      <span className="text-xs text-muted-foreground truncate">{r.courseName}</span>
-                    </div>
-                  </div>
-                </div>
-                <Badge className={`text-xs ${
-                  String(r.status).toLowerCase() === 'emitido' 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-blue-100 text-blue-700'
-                }`}>
-                  {r.status}
-                </Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                <div>
-                  <span className="font-medium block">Turma:</span>
-                  <span className="truncate block">{r.turmaName}</span>
-                </div>
-                <div>
-                  <span className="font-medium block">Professor:</span>
-                  <span className="truncate block">{r.professorName}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between pt-2 border-t">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span>{safeFormatDate(r.generatedAt)}</span>
-              </div>
-                <div className="flex gap-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    disabled={!r.url} 
-                    onClick={() => { if (r.url) window.open(r.url, '_blank'); }}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Download className="w-3 h-3" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => certsQuery.refetch()}
-                    className="h-8 w-8 p-0"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+        {rows.length === 0 ? (
+          <Card className="p-4">
+            <CardContent className="p-0">
+              <p className="text-sm text-muted-foreground">Nenhum certificado encontrado.</p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          rows.map((r) => (
+            <Card key={r.id as any} className="p-4">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium truncate block">{r.studentName}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Award className="w-3 h-3 text-primary flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">{r.courseName}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={`text-xs ${
+                    String(r.status).toLowerCase() === 'emitido' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {r.status}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                  <div>
+                    <span className="font-medium block">Turma:</span>
+                    <span className="truncate block">{r.turmaName}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium block">Professor:</span>
+                    <span className="truncate block">{r.professorName}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                    <span>{formatBRDateSafe(r.generatedAt)}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={!r.url} 
+                      onClick={() => { if (r.url) window.open(r.url, '_blank'); }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Download className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => certsQuery.refetch()}
+                      className="h-8 w-8 p-0"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Estatísticas Mobile */}
