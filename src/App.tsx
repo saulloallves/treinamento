@@ -31,6 +31,7 @@ import StudentCourses from "./pages/student/StudentCourses";
 import StudentProfile from "./pages/student/StudentProfile";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentCourseSchedule from "./pages/student/StudentCourseSchedule";
+import TurmaLessons from "./pages/student/TurmaLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
@@ -196,6 +197,11 @@ const App = () => (
               <Route path="/aluno/aulas" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentLessons />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/turma/:turmaId/aulas" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <TurmaLessons />
                 </ProtectedRoute>
               } />
               <Route path="/aluno/quiz" element={
