@@ -28,6 +28,23 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   }
 
   if (!user) {
+    // If there's a stored Supabase session token, wait for rehydration instead of redirecting immediately
+    const hasToken = (() => {
+      try {
+        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
+      } catch {
+        return false;
+      }
+    })();
+
+    if (hasToken) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        </div>
+      );
+    }
+
     return <Navigate to="/auth" replace />;
   }
 

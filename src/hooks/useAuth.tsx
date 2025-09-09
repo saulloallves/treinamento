@@ -86,6 +86,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Extra resilience: try to rehydrate session on tab focus/visibility (helps after network blips)
+  useEffect(() => {
+    const hasToken = () => {
+      try {
+        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
+      } catch {
+        return false;
+      }
+    };
+
+    const rehydrate = () => {
+      if (!hasToken()) return;
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }).catch(() => {});
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        rehydrate();
+      }
+    };
+
+    const onFocus = () => {
+      rehydrate();
+    };
+
+    window.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
+
   // Ensure a row exists in public.users for this auth user
   const ensureProfile = async (authUser: User) => {
     try {
