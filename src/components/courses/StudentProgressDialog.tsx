@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Enrollment } from "@/hooks/useEnrollments";
 import { Lesson } from "@/hooks/useLessons";
@@ -33,6 +34,7 @@ const StudentProgressDialog = ({ student, courseLessons, open, onOpenChange }: S
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Load existing progress when dialog opens
   useEffect(() => {
@@ -129,6 +131,27 @@ const StudentProgressDialog = ({ student, courseLessons, open, onOpenChange }: S
       if (insertError) {
         throw insertError;
       }
+
+      // Calculate new progress percentage and update enrollments table
+      const completedCount = Object.values(lessonProgress).filter(p => p.status === 'completed').length;
+      const newProgressPercentage = courseLessons.length > 0 ? Math.round((completedCount / courseLessons.length) * 100) : 0;
+
+      const { error: updateError } = await supabase
+        .from('enrollments')
+        .update({ 
+          progress_percentage: newProgressPercentage,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', student.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Invalidate all related queries to refresh the UI
+      await queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      await queryClient.invalidateQueries({ queryKey: ['progress'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
 
       toast({
         title: "Progresso salvo com sucesso!",
