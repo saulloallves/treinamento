@@ -31,7 +31,11 @@ import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-const Sidebar = () => {
+interface SidebarProps {
+  showInMobile?: boolean;
+}
+
+const Sidebar = ({ showInMobile = true }: SidebarProps) => {
   const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -372,6 +376,10 @@ const Sidebar = () => {
       );
     });
   }, [studentMenuItems, location.pathname, isMobile]);
+
+  if (isMobile && !showInMobile) {
+    return null;
+  }
 
   if (isMobile) {
     return (
