@@ -215,9 +215,34 @@ export const useUpdateLesson = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...lessonData }: Lesson) => {
+      // Sanitize payload: only send real table columns
+      const allowedKeys: Array<keyof Lesson> = [
+        'course_id',
+        'title',
+        'description',
+        'video_url',
+        'content',
+        'duration_minutes',
+        'order_index',
+        'status',
+        'zoom_meeting_id',
+        'zoom_start_url',
+        'zoom_join_url',
+        'zoom_start_time',
+        'attendance_keyword',
+      ];
+
+      const payload: Record<string, any> = {};
+      for (const key of allowedKeys) {
+        if (key in lessonData) {
+          payload[key as string] = (lessonData as any)[key as string];
+        }
+      }
+      payload.updated_at = new Date().toISOString();
+
       const { data, error } = await supabase
         .from('lessons')
-        .update(lessonData)
+        .update(payload)
         .eq('id', id)
         .select()
         .maybeSingle();
