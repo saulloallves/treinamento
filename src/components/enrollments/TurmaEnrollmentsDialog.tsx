@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Users, GraduationCap, Trash2, ExternalLink } from "lucide-react";
+import { Search, Users, GraduationCap, Trash2 } from "lucide-react";
 import LinkEnrollmentButton from "./LinkEnrollmentButton";
 import { useDeleteEnrollment } from "@/hooks/useEnrollments";
 
@@ -167,15 +167,8 @@ export const TurmaEnrollmentsDialog = ({
                             enrollmentId={enrollment.id} 
                             studentEmail={enrollment.student_email} 
                           />
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        )}
+                        ) : null}
+
                         <Button
                           size="sm"
                           variant="ghost"
