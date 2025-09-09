@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Clock, AlertCircle, MessageSquare, Zap, Info, Sparkles } from 'lucide-react';
-import { usePaginatedLessons } from '@/hooks/usePaginatedLessons';
+import { usePaginatedLessonsForDispatches } from '@/hooks/usePaginatedLessonsForDispatches';
 import { useAutomatedLessonDispatches, useCreateAutomatedDispatch, useUpdateAutomatedDispatch } from '@/hooks/useAutomatedLessonDispatches';
 import { AutomatedDispatchesFilters } from './AutomatedDispatchesFilters';
 import { BulkDispatchActions } from './BulkDispatchActions';
@@ -29,7 +29,7 @@ const AutomatedDispatches = () => {
     setSelectedCourse,
     courses,
     isLoading: lessonsLoading
-  } = usePaginatedLessons();
+  } = usePaginatedLessonsForDispatches();
   
   const { data: dispatches = [] } = useAutomatedLessonDispatches();
   const createDispatch = useCreateAutomatedDispatch();

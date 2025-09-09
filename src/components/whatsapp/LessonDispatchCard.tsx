@@ -7,11 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Clock, Calendar, BookOpen, MessageSquare, Zap } from 'lucide-react';
-import { LessonWithSchedule } from '@/hooks/useLessonsWithSchedule';
+import { LessonForDispatch } from '@/hooks/useLessonsForDispatches';
 import { AutomatedLessonDispatch } from '@/hooks/useAutomatedLessonDispatches';
 
 interface LessonDispatchCardProps {
-  lesson: LessonWithSchedule;
+  lesson: LessonForDispatch;
   dispatch2h?: AutomatedLessonDispatch;
   dispatch30m?: AutomatedLessonDispatch;
   onToggleDispatch: (lessonId: string, type: '2_hours_before' | '30_minutes_before') => void;
@@ -78,7 +78,7 @@ export const LessonDispatchCard = ({
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    <span>{formatDateTime(lesson.zoom_start_time)}</span>
+                    <span>{lesson.zoom_start_time ? formatDateTime(lesson.zoom_start_time) : 'Não agendada'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
