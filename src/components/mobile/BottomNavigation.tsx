@@ -89,17 +89,16 @@ const BottomNavigation = () => {
   } else if (selectedProfile === 'Professor') {
     navigationItems = professorItems;
   } else if (selectedProfile === 'Aluno') {
-    // Para alunos, determinar o tipo baseado no user_type e role
+    // Para alunos franqueados ou colaboradores, não exibir menu inferior
     const isFranchisee = currentUser?.role === 'Franqueado';
     const isCollaborator = currentUser?.user_type === 'Colaborador';
-    
-    if (isFranchisee) {
-      navigationItems = franchiseeStudentItems;
-    } else if (isCollaborator) {
-      navigationItems = collaboratorStudentItems;
-    } else {
-      navigationItems = regularStudentItems;
+
+    if (isFranchisee || isCollaborator) {
+      return null;
     }
+
+    // Aluno regular mantém o menu padrão
+    navigationItems = regularStudentItems;
   }
 
   if (navigationItems.length === 0) return null;
