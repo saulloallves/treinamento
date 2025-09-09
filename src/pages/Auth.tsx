@@ -192,7 +192,7 @@ const Auth = () => {
             <Tabs defaultValue="login-student" className="w-full">
               <TabsList
                 aria-label="Seleção de tipo de acesso"
-                className="grid grid-cols-2 md:grid-cols-4 w-full gap-2 mb-6 p-2 rounded-2xl bg-muted/60 ring-1 ring-border"
+                className="grid grid-cols-2 md:grid-cols-4 w-full gap-2 mb-6 p-2 rounded-2xl bg-muted/60 ring-1 ring-border h-auto content-start"
               >
                 <TabsTrigger
                   value="login-student"
