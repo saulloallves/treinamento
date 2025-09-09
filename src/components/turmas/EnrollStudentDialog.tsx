@@ -125,72 +125,76 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Inscrever Aluno na Turma</DialogTitle>
+      <DialogContent className="sm:max-w-lg w-full mx-4">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl">Inscrever Aluno na Turma</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="student">Selecionar Aluno</Label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <Label htmlFor="student" className="text-base font-medium">Selecionar Aluno</Label>
             <div className="relative" ref={dropdownRef}>
               <div 
                 className={cn(
-                  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-pointer",
+                  "flex h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base cursor-pointer",
                   "ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                  "hover:border-ring transition-colors",
                   isDropdownOpen && "ring-2 ring-ring ring-offset-2"
                 )}
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 {selectedStudent ? (
-                  <span>{selectedStudent.name} ({selectedStudent.email})</span>
+                  <div className="flex flex-col justify-center min-h-0">
+                    <span className="font-medium text-sm leading-tight">{selectedStudent.name}</span>
+                    <span className="text-xs text-muted-foreground leading-tight">{selectedStudent.email}</span>
+                  </div>
                 ) : (
-                  <span className="text-muted-foreground">Selecione um aluno</span>
+                  <span className="text-muted-foreground flex items-center">Selecione um aluno</span>
                 )}
               </div>
               
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-80 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md">
-                  <div className="p-2">
+                <div className="absolute top-full left-0 right-0 z-50 mt-2 max-h-96 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-lg">
+                  <div className="p-3 border-b">
                     <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Pesquisar aluno..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8"
+                        className="pl-10 h-10"
                         autoFocus
                       />
                     </div>
                   </div>
                   
-                  <ScrollArea className="max-h-60">
+                  <ScrollArea className="max-h-72">
                     {filteredStudents.length === 0 ? (
-                      <div className="p-2 text-sm text-muted-foreground text-center">
+                      <div className="p-4 text-sm text-muted-foreground text-center">
                         {availableStudents.length === 0 
                           ? "Todos os alunos já estão inscritos nesta turma"
                           : "Nenhum aluno encontrado"
                         }
                       </div>
                     ) : (
-                      <div className="p-1">
+                      <div className="p-2">
                         {filteredStudents.map((student) => (
                           <div
                             key={student.id}
                             className={cn(
-                              "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+                              "relative flex cursor-pointer select-none items-center rounded-md px-3 py-3 text-sm outline-none hover:bg-accent hover:text-accent-foreground transition-colors",
                               selectedStudentId === student.id && "bg-accent text-accent-foreground"
                             )}
                             onClick={() => handleStudentSelect(student.id)}
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
+                                "mr-3 h-4 w-4 flex-shrink-0",
                                 selectedStudentId === student.id ? "opacity-100" : "opacity-0"
                               )}
                             />
-                            <div className="flex flex-col">
-                              <span className="font-medium">{student.name}</span>
-                              <span className="text-xs text-muted-foreground">{student.email}</span>
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="font-medium truncate">{student.name}</span>
+                              <span className="text-xs text-muted-foreground truncate">{student.email}</span>
                             </div>
                           </div>
                         ))}
@@ -202,13 +206,19 @@ export const EnrollStudentDialog = ({ open, onOpenChange, turmaId, courseId }: E
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="px-6 py-2 h-10"
+            >
               Cancelar
             </Button>
             <Button 
               type="submit" 
               disabled={enrollInTurma.isPending || !selectedStudentId || availableStudents.length === 0}
+              className="px-6 py-2 h-10"
             >
               {enrollInTurma.isPending ? "Inscrevendo..." : "Inscrever"}
             </Button>
