@@ -10,12 +10,14 @@ import {
   Building2,
   MessageSquare,
   ClipboardCheck,
-  Award
+  Award,
+  UserCheck
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { getSelectedProfile } from '@/lib/profile';
 
 interface NavItem {
   label: string;
@@ -51,26 +53,53 @@ const BottomNavigation = () => {
     { label: 'Mais', href: '/settings', icon: Settings }
   ];
 
-  const studentItems: NavItem[] = [
-    { label: 'Portal', href: '/student/portal', icon: Home },
-    { label: 'Cursos', href: '/student/courses', icon: BookOpen },
-    { label: 'Aulas', href: '/student/lessons', icon: GraduationCap },
-    { label: 'Certificados', href: '/certificates', icon: Award },
-    { label: 'Perfil', href: '/student/profile', icon: Users }
+  // Menu para aluno franqueado (Franqueado)
+  const franchiseeStudentItems: NavItem[] = [
+    { label: 'Dashboard', href: '/dashboard', icon: Home },
+    { label: 'Cursos', href: '/courses', icon: BookOpen },
+    { label: 'Colaboradores', href: '/aluno/colaboradores', icon: UserCheck },
+    { label: 'Unidades', href: '/units', icon: Building2 },
+    { label: 'Turmas', href: '/turmas', icon: Users }
   ];
 
-  // Determine which navigation to show based on user role and selected profile
+  // Menu para aluno colaborador
+  const collaboratorStudentItems: NavItem[] = [
+    { label: 'Portal', href: '/aluno', icon: Home },
+    { label: 'Cursos', href: '/aluno/cursos', icon: BookOpen },
+    { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
+    { label: 'Certificados', href: '/certificates', icon: Award },
+    { label: 'Perfil', href: '/aluno/perfil', icon: Users }
+  ];
+
+  // Menu para aluno regular
+  const regularStudentItems: NavItem[] = [
+    { label: 'Portal', href: '/aluno', icon: Home },
+    { label: 'Cursos', href: '/aluno/cursos', icon: BookOpen },
+    { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
+    { label: 'Certificados', href: '/certificates', icon: Award },
+    { label: 'Perfil', href: '/aluno/perfil', icon: Users }
+  ];
+
+  // Determine which navigation to show based on selected profile
+  const selectedProfile = getSelectedProfile();
   let navigationItems: NavItem[] = [];
 
-  if (!isAdmin && !isProfessor) {
-    // Student navigation
-    navigationItems = studentItems;
-  } else if (isProfessor && !isAdmin) {
-    // Professor navigation
-    navigationItems = professorItems;
-  } else if (isAdmin) {
-    // Admin navigation
+  if (selectedProfile === 'Admin') {
     navigationItems = adminItems;
+  } else if (selectedProfile === 'Professor') {
+    navigationItems = professorItems;
+  } else if (selectedProfile === 'Aluno') {
+    // Para alunos, determinar o tipo baseado no user_type e role
+    const isFranchisee = currentUser?.role === 'Franqueado';
+    const isCollaborator = currentUser?.user_type === 'Colaborador';
+    
+    if (isFranchisee) {
+      navigationItems = franchiseeStudentItems;
+    } else if (isCollaborator) {
+      navigationItems = collaboratorStudentItems;
+    } else {
+      navigationItems = regularStudentItems;
+    }
   }
 
   if (navigationItems.length === 0) return null;
@@ -82,8 +111,11 @@ const BottomNavigation = () => {
     if (href === '/professor/dashboard') {
       return location.pathname === href;
     }
-    if (href === '/student/portal') {
-      return location.pathname === href;
+    if (href === '/aluno') {
+      return location.pathname === href || location.pathname === '/aluno/portal';
+    }
+    if (href === '/aluno/colaboradores') {
+      return location.pathname === href || location.pathname.startsWith('/aluno/colaboradores');
     }
     return location.pathname.startsWith(href);
   };
