@@ -419,7 +419,7 @@ const WhatsAppDispatch = () => {
               </div>
             ) : (
               <>
-                <div className="space-y-4">
+                <div className="space-y-4 w-full max-w-full overflow-x-hidden">
                   {(() => {
                     const totalPages = Math.ceil(dispatches.length / itemsPerPage);
                     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -512,7 +512,7 @@ const WhatsAppDispatch = () => {
                 </div>
                 
                 {dispatches.length > itemsPerPage && (
-                  <div className="mt-6 pt-4 border-t border-border">
+                  <div className="mt-6 pt-4 border-t border-border w-full max-w-full overflow-x-hidden">
                     <PaginationCustom
                       currentPage={currentPage}
                       totalPages={Math.ceil(dispatches.length / itemsPerPage)}
