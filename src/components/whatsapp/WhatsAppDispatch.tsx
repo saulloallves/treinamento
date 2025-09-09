@@ -393,7 +393,7 @@ const WhatsAppDispatch = () => {
             <div className="flex items-center gap-3 w-full min-w-0">
               <MessageSquare className="w-5 h-5 text-primary" />
               <span className="font-semibold truncate">Histórico de Disparos</span>
-              <Badge variant="secondary" className="ml-auto">
+              <Badge variant="secondary" className="shrink-0">
                 {dispatches.length}
               </Badge>
             </div>
@@ -434,7 +434,7 @@ const WhatsAppDispatch = () => {
                                   {dispatch.status}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">
+                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap break-words sm:line-clamp-3">
                                 {dispatch.message}
                               </p>
                             </div>
@@ -447,7 +447,7 @@ const WhatsAppDispatch = () => {
                           </div>
                           
                           {/* Estatísticas em grid */}
-                          <div className="grid grid-cols-3 gap-4 mb-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-3">
                             <div className="text-center">
                               <div className="flex items-center justify-center gap-1 mb-1">
                                 <Users className="w-3 h-3 text-primary" />
