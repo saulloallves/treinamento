@@ -46,8 +46,8 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         </header>
 
         {/* Conteúdo principal responsivo */}
-        <main className={`flex-1 min-h-0 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-20' : ''}`}>
-          <div className="w-full min-w-0">
+        <main className={`flex-1 min-h-0 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-24' : 'pb-6'}`}>
+          <div className="w-full min-w-0 space-y-4">
             {children}
           </div>
         </main>
