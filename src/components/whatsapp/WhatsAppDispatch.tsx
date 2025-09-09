@@ -142,7 +142,7 @@ const WhatsAppDispatch = () => {
     : lessons.filter(l => l.status === 'Ativo');
 
   return (
-    <div className="no-x-scroll space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="w-full max-w-[100vw] sm:max-w-7xl no-x-scroll space-y-6 px-4 sm:px-6 lg:px-8 mx-auto">
       {/* Header Mobile-first */}
       <div className="text-center space-y-3 py-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
@@ -399,7 +399,7 @@ const WhatsAppDispatch = () => {
       <Accordion type="single" collapsible className="w-full max-w-full overflow-x-hidden" defaultValue="history">
         <AccordionItem value="history" className="border border-border rounded-lg">
           <AccordionTrigger className="text-left px-4 sm:px-6 py-4 hover:no-underline">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full min-w-0">
               <MessageSquare className="w-5 h-5 text-primary" />
               <span className="font-semibold">Histórico de Disparos</span>
               <Badge variant="secondary" className="ml-auto">
@@ -428,7 +428,7 @@ const WhatsAppDispatch = () => {
                     
                     return paginatedDispatches.map((dispatch) => (
                       <Card key={dispatch.id} className="shadow-sm overflow-hidden">
-                        <CardContent className="p-4">
+                        <CardContent className="p-4 overflow-hidden">
                           {/* Header do dispatch */}
                           <div className="flex items-start justify-between gap-3 mb-3 min-w-0">
                             <div className="flex-1 min-w-0">
@@ -443,7 +443,7 @@ const WhatsAppDispatch = () => {
                                   {dispatch.status}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">
                                 {dispatch.message}
                               </p>
                             </div>
