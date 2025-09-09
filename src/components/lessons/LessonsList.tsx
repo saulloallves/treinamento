@@ -170,99 +170,108 @@ const LessonsList = () => {
               <div className="grid gap-2">
                 {paginatedLessons.map((lesson) => (
                   <div key={lesson.id} className="card-clean p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-sm font-semibold text-brand-black">
-                            {lesson.title}
-                          </h3>
-                          <span className="px-1.5 py-0.5 text-xs rounded-full bg-brand-blue-light text-brand-blue">
-                            #{lesson.order_index}
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.5 text-xs rounded-full ${
-                              lesson.status === "Ativo"
-                                ? "bg-green-100 text-green-700"
-                                : lesson.status === "Em revisão"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
-                            {lesson.status}
-                        </span>
+                    <div className="space-y-3">
+                      {/* Header with title and badges */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 mb-2">
+                            <h3 className="text-sm font-semibold text-brand-black flex-1 line-clamp-2">
+                              {lesson.title}
+                            </h3>
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="px-1.5 py-0.5 text-xs rounded-full bg-brand-blue-light text-brand-blue">
+                              #{lesson.order_index}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 text-xs rounded-full ${
+                                lesson.status === "Ativo"
+                                  ? "bg-green-100 text-green-700"
+                                  : lesson.status === "Em revisão"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {lesson.status}
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs text-brand-gray-dark mb-2 line-clamp-1">
+                            <span className="font-medium">{lesson.courses?.name}</span>
+                          </p>
                         </div>
                         
-                        <p className="text-xs text-brand-gray-dark mb-2">
-                          <span className="font-medium">{lesson.courses?.name}</span>
-                        </p>
-                        
-                         <div className="flex items-center gap-4 text-xs text-brand-gray-dark">
-                           <div className="flex items-center gap-1">
-                             <Clock className="w-3 h-3 text-brand-blue" />
-                             <span>{lesson.duration_minutes} min</span>
-                           </div>
-                           
-                           {lesson.zoom_start_time && (
-                             <div className="flex items-center gap-1">
-                               <Calendar className="w-3 h-3 text-brand-blue" />
-                               <span>
-                                 {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
-                               </span>
-                             </div>
-                           )}
-                           
-                           {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
-                             
-                             (() => {
-                               const names = lesson.professor_names && lesson.professor_names.length > 0
-                                 ? lesson.professor_names
-                                 : (lesson.professor_name ? [lesson.professor_name] : []);
-                               return names.length > 0 ? (
-                                 <div className="flex items-center gap-1">
-                                   <User className="w-3 h-3 text-brand-blue" />
-                                   <span>Prof. {names.join(', ')}</span>
-                                 </div>
-                               ) : null;
-                             })()
-                           )}
-                           
-                           {lesson.video_url && (
-                             <div className="flex items-center gap-1">
-                               <Video className="w-3 h-3 text-brand-blue" />
-                               <span>Vídeo</span>
-                             </div>
-                           )}
-                         </div>
+                        {/* Actions - Mobile optimized */}
+                        <div className="flex gap-1 flex-shrink-0">
+                          {(lesson.zoom_join_url || lesson.video_url) && (
+                            <Button
+                              className="btn-primary text-xs h-8"
+                              size="sm"
+                              onClick={() =>
+                                window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                              }
+                            >
+                              Acessar
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEditLesson(lesson)}
+                            disabled={deleteLessonMutation.isPending}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteLesson(lesson.id)}
+                            disabled={deleteLessonMutation.isPending}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                       
-                      <div className="flex gap-1">
-                        {(lesson.zoom_join_url || lesson.video_url) && (
-                          <Button
-                            className="btn-primary"
-                            size="sm"
-                            onClick={() =>
-                              window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
-                            }
-                          >
-                            Acessar
-                          </Button>
+                      {/* Meta information - Mobile optimized */}
+                      <div className="flex flex-wrap gap-3 text-xs text-brand-gray-dark">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-brand-blue flex-shrink-0" />
+                          <span>{lesson.duration_minutes}min</span>
+                        </div>
+                        
+                        {lesson.zoom_start_time && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-brand-blue flex-shrink-0" />
+                            <span className="truncate">
+                              {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
                         )}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEditLesson(lesson)}
-                          disabled={deleteLessonMutation.isPending}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteLesson(lesson.id)}
-                          disabled={deleteLessonMutation.isPending}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                        
+                        {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
+                          (() => {
+                            const names = lesson.professor_names && lesson.professor_names.length > 0
+                              ? lesson.professor_names
+                              : (lesson.professor_name ? [lesson.professor_name] : []);
+                            return names.length > 0 ? (
+                              <div className="flex items-center gap-1 flex-1 min-w-0">
+                                <User className="w-3 h-3 text-brand-blue flex-shrink-0" />
+                                <span className="truncate">Prof. {names.join(', ')}</span>
+                              </div>
+                            ) : null;
+                          })()
+                        )}
+                        
+                        {lesson.video_url && (
+                          <div className="flex items-center gap-1">
+                            <Video className="w-3 h-3 text-brand-blue flex-shrink-0" />
+                            <span>Vídeo</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

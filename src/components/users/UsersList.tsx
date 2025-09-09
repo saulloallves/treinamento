@@ -160,8 +160,101 @@ const UsersList = () => {
         </div>
       </div>
 
-      {/* Lista de Usuários */}
-      <div className="card-clean overflow-hidden">
+      {/* Lista de Usuários - Mobile Cards */}
+      <div className="space-y-3 sm:hidden">
+        {filteredUsers.map((user) => (
+          <div key={user.id} className="card-clean p-3">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="w-8 h-8 rounded-full bg-brand-blue flex items-center justify-center">
+                  <User className="w-4 h-4 text-brand-white" />
+                </div>
+                <div>
+                  <div className="font-medium text-brand-black">{user.name}</div>
+                  <div className="text-xs text-muted-foreground">{user.type}</div>
+                </div>
+              </div>
+              <div
+                className={`px-2 py-1 text-xs rounded-full ${
+                  user.status === "Ativo"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {user.status}
+              </div>
+            </div>
+            
+            <div className="text-xs text-muted-foreground mb-3">
+              <div className="flex items-center gap-1 mb-1">
+                <Building2 className="w-3 h-3" />
+                <span>{user.unitName}</span>
+              </div>
+              <div>Cargo: {user.role}</div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => { 
+                  setSelectedStudent(user); 
+                  setProfileOpen(true); 
+                }}
+                className="flex-1 text-xs"
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                Ver Ficha
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => { 
+                  setEditingUser(user); 
+                  setUnitCode(user.unitCode ?? ""); 
+                  setUserType(user.type ?? "Aluno"); 
+                  setEditOpen(true); 
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="w-3 h-3" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                disabled={deleting === user.id}
+                onClick={async () => {
+                  if (confirm(`Tem certeza que deseja excluir o usuário ${user.name}?`)) {
+                    try {
+                      setDeleting(user.id);
+                      const { error } = await supabase
+                        .from('users')
+                        .delete()
+                        .eq('id', user.id);
+                      
+                      if (error) throw error;
+                      
+                      toast.success("Usuário excluído com sucesso!");
+                      await usersQuery.refetch();
+                    } catch (e) {
+                      console.error('Erro ao excluir usuário:', e);
+                      toast.error("Erro ao excluir usuário");
+                    } finally {
+                      setDeleting(null);
+                    }
+                  }
+                }}
+                className="h-8 w-8 p-0"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="card-clean overflow-hidden hidden sm:block">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">

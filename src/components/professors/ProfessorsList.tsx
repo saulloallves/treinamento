@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Settings, UserX, UserCheck, Trash2, Edit, Key } from "lucide-react";
+import { Plus, Settings, UserX, UserCheck, Trash2, Edit, Key, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Table, 
   TableBody, 
@@ -33,6 +34,7 @@ const ProfessorsList = () => {
   const [professorToDelete, setProfessorToDelete] = useState<string | null>(null);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [selectedProfessor, setSelectedProfessor] = useState<{ id: string; name: string } | null>(null);
+  const isMobile = useIsMobile();
 
   const { data: professors = [], isLoading } = useProfessors();
   const updateStatusMutation = useUpdateProfessorStatus();
@@ -93,7 +95,71 @@ const ProfessorsList = () => {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
+          {/* Mobile Cards */}
+          {isMobile ? (
+            <div className="space-y-3">
+              {professors.map((professor) => (
+                <div key={professor.id} className="border rounded-lg p-3">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{professor.name}</div>
+                        <div className="text-xs text-muted-foreground">{professor.email}</div>
+                      </div>
+                    </div>
+                    <Badge variant={professor.active ? "default" : "secondary"}>
+                      {professor.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground mb-3">
+                    <div>Telefone: {professor.phone || '-'}</div>
+                    <div>Criado em: {safeFormatDate(professor.created_at)}</div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenPermissions(professor.id)}
+                      className="flex-1 text-xs"
+                    >
+                      <Edit className="w-3 h-3 mr-1" />
+                      Permissões
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleResetPasswordClick(professor.id, professor.name)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Key className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleToggleStatus(professor.id, professor.active)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {professor.active ? <UserX className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(professor.id)}
+                      className="h-8 w-8 p-0 text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
@@ -173,6 +239,7 @@ const ProfessorsList = () => {
               ))}
             </TableBody>
           </Table>
+          )}
           
           {professors.length === 0 && (
             <div className="text-center py-6">

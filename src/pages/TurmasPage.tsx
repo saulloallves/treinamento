@@ -335,12 +335,11 @@ const TurmasPage = () => {
         )}
 
         {/* Mobile FAB */}
-        {isMobile && (
-          <FloatingActionButton 
-            onClick={() => setCreateDialogOpen(true)}
-            label="Nova Turma"
-          />
-        )}
+        <FloatingActionButton 
+          onClick={() => setCreateDialogOpen(true)}
+          label="Nova Turma"
+          className="z-50"
+        />
 
         {/* Dialogs */}
         <CreateTurmaDialog

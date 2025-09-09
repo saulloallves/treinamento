@@ -131,8 +131,8 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
         </div>
       </div>
 
-      {/* Grid otimizada - Responsiva e com melhor espaçamento */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Grid otimizada - Mobile first com 2 colunas */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
         {filteredTurmas.map((turma) => (
           <TurmaQuizCard
             key={turma.id}

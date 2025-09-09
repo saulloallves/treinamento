@@ -193,6 +193,49 @@
     @apply text-brand-gray-dark;
   }
 
+  /* Mobile-first responsive utilities */
+  .mobile-compact {
+    @apply p-3 text-sm;
+  }
+  
+  .mobile-grid-2 {
+    @apply grid-cols-2 gap-2;
+  }
+  
+  .mobile-text-xs {
+    @apply text-xs leading-tight;
+  }
+  
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-feedback {
+    @apply transition-all duration-200 hover:scale-105 active:scale-95;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
   .text-link {
     @apply text-brand-blue hover:text-blue-600 transition-colors duration-200;
   }

@@ -20,7 +20,7 @@ const QuizPage = () => {
 
   return (
     <BaseLayout title="Quiz">
-      <div className="p-6 space-y-8">
+      <div className="p-3 sm:p-6 space-y-6 sm:space-y-8">
         {!selectedTurma ? (
           <>
             {/* Header melhorado */}

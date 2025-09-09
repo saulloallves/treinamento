@@ -143,24 +143,24 @@ const WhatsAppDispatch = () => {
     : lessons.filter(l => l.status === 'Ativo');
 
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold">Disparos WhatsApp</h2>
-        <p className="text-lg text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="text-center space-y-2 sm:space-y-4">
+        <h2 className="text-2xl sm:text-3xl font-bold">Disparos WhatsApp</h2>
+        <p className="text-sm sm:text-lg text-muted-foreground">
           Envie mensagens manuais para todos os inscritos em cursos ou aulas
         </p>
       </div>
 
       {/* Novo Disparo */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Send className="w-5 h-5 text-brand-blue" />
             Novo Disparo WhatsApp
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-brand-black mb-1">
                 Tipo de Disparo
@@ -294,7 +294,7 @@ const WhatsAppDispatch = () => {
             </div>
 
             {isScheduled && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 sm:p-4 border border-gray-200 rounded-md bg-gray-50">
                 <div>
                   <label className="block text-sm font-medium text-brand-black mb-1">
                     Data
@@ -318,7 +318,7 @@ const WhatsAppDispatch = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
                   />
                 </div>
-                <div className="col-span-1 md:col-span-2">
+                <div className="col-span-1 sm:col-span-2">
                   <div className="text-xs text-brand-gray-dark">
                     <Calendar className="w-3 h-3 inline mr-1" />
                     O disparo será enviado automaticamente na data e horário especificados.

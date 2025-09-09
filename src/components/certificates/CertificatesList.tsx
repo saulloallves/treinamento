@@ -13,10 +13,17 @@ import {
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import CertificatesListMobile from "./CertificatesListMobile";
 
 const CertificatesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return <CertificatesListMobile />;
+  }
 
   const certsQuery = useQuery({
     queryKey: ["certificates", "all"],
