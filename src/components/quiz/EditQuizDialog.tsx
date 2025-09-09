@@ -53,7 +53,8 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
   const availableLessons = allLessons.filter(lesson => lesson.course_id === formData.course_id);
 
   useEffect(() => {
-    if (question) {
+    if (question && open) {
+      console.log('EditQuizDialog - Loading question data:', question);
       setFormData({
         course_id: question.course_id || "",
         lesson_id: question.lesson_id || "",
@@ -68,27 +69,68 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
         order_index: question.order_index || 0,
       });
     }
-  }, [question]);
+  }, [question, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.course_id || !formData.lesson_id || !formData.question) {
+    console.log('EditQuizDialog - Form submission attempt with data:', formData);
+    
+    // Validações mais robustas
+    if (!formData.course_id?.trim()) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios (curso, aula, pergunta).",
+        description: "Selecione um curso.",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.question_type === "multiple_choice" && (!formData.option_a || !formData.option_b || !formData.correct_answer)) {
+    if (!formData.lesson_id?.trim()) {
       toast({
-        title: "Erro",
-        description: "Para perguntas de múltipla escolha, preencha pelo menos as opções A e B e selecione a resposta correta.",
+        title: "Erro", 
+        description: "Selecione uma aula.",
         variant: "destructive",
       });
       return;
+    }
+
+    if (!formData.question?.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite a pergunta.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.question_type === "multiple_choice") {
+      if (!formData.option_a?.trim()) {
+        toast({
+          title: "Erro",
+          description: "Digite a opção A.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!formData.option_b?.trim()) {
+        toast({
+          title: "Erro", 
+          description: "Digite a opção B.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!formData.correct_answer?.trim()) {
+        toast({
+          title: "Erro",
+          description: "Selecione a resposta correta.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -102,6 +144,7 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
       });
       onOpenChange(false);
     } catch (error) {
+      console.error('Error updating question:', error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar pergunta.",
@@ -136,8 +179,11 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
           <div className="space-y-2">
             <Label htmlFor="course_id">Curso *</Label>
             <Select
-              value={formData.course_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, course_id: value, lesson_id: "" }))}
+              value={formData.course_id || undefined}
+              onValueChange={(value) => {
+                console.log('Course selected:', value);
+                setFormData(prev => ({ ...prev, course_id: value, lesson_id: "" }));
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um curso" />
@@ -155,8 +201,11 @@ const EditQuizDialog = ({ question, open, onOpenChange }: EditQuizDialogProps) =
           <div className="space-y-2">
             <Label htmlFor="lesson_id">Aula *</Label>
             <Select
-              value={formData.lesson_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, lesson_id: value }))}
+              value={formData.lesson_id || undefined}
+              onValueChange={(value) => {
+                console.log('Lesson selected:', value);
+                setFormData(prev => ({ ...prev, lesson_id: value }));
+              }}
               disabled={!formData.course_id}
             >
               <SelectTrigger>
