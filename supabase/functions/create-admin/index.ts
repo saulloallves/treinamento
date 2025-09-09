@@ -112,34 +112,56 @@ serve(async (req) => {
       if (updateErr) console.warn("[create-admin] updateUserById warning:", updateErr);
     }
 
-    // Upsert into public.users
-    const { error: upsertUserErr } = await supabaseAdmin
+    // Insert or update in public.users
+    const { data: existingUserRecord, error: existingUserErr } = await supabaseAdmin
       .from("users")
-      .upsert({
-        id: authUserId!,
-        name,
-        email,
-        user_type: "Admin",
-        active: true,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "id" });
-    if (upsertUserErr) {
-      console.error("[create-admin] upsert users error:", upsertUserErr);
-      return new Response(
-        JSON.stringify({ success: false, error: upsertUserErr.message || "Falha ao gravar perfil" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      .select("id")
+      .eq("id", authUserId!)
+      .maybeSingle();
+
+    if (existingUserRecord?.id) {
+      const { error: updateUserErr } = await supabaseAdmin
+        .from("users")
+        .update({
+          name,
+          email,
+          user_type: "Admin",
+          active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", authUserId!);
+      if (updateUserErr) {
+        console.error("[create-admin] update users error:", updateUserErr);
+        return new Response(
+          JSON.stringify({ success: false, error: updateUserErr.message || "Falha ao atualizar perfil" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      const { error: insertUserErr } = await supabaseAdmin
+        .from("users")
+        .insert({
+          id: authUserId!,
+          name,
+          email,
+          user_type: "Admin",
+          active: true,
+        });
+      if (insertUserErr) {
+        console.error("[create-admin] insert users error:", insertUserErr);
+        return new Response(
+          JSON.stringify({ success: false, error: insertUserErr.message || "Falha ao criar perfil" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
-    // Insert or update admin_users manually (no ON CONFLICT available)
+    // Insert or update admin_users manually
     const { data: existingAdmin, error: existingAdminErr } = await supabaseAdmin
       .from("admin_users")
       .select("id")
       .eq("user_id", authUserId!)
       .maybeSingle();
-    if (existingAdminErr) {
-      console.error("[create-admin] fetch admin_users error:", existingAdminErr);
-    }
 
     if (existingAdmin?.id) {
       const { error: updateAdminErr } = await supabaseAdmin
@@ -170,7 +192,6 @@ serve(async (req) => {
           role: "admin",
           status: "approved",
           active: true,
-          updated_at: new Date().toISOString(),
         });
       if (insertAdminErr) {
         console.error("[create-admin] insert admin_users error:", insertAdminErr);
@@ -180,6 +201,8 @@ serve(async (req) => {
         );
       }
     }
+
+    console.log("[create-admin] Success:", { userId: authUserId });
 
     return new Response(
       JSON.stringify({ success: true, user_id: authUserId }),
