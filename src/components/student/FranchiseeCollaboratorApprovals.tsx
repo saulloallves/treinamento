@@ -96,34 +96,40 @@ const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: 
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {approvals.map((approval) => (
           <div
             key={approval.id}
-            className="border rounded-lg p-4 space-y-3"
+            className="bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200/50 dark:border-amber-800/30 rounded-xl p-4 space-y-3"
           >
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <h4 className="font-medium">{approval.collaborator_name}</h4>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-semibold text-foreground">{approval.collaborator_name}</h4>
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {approval.collaborator_role}
+                  </Badge>
+                </div>
+                
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span className="font-medium">Email:</span>
                   {approval.collaborator_email}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                
+                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md w-fit">
                   <Clock className="h-3 w-3" />
                   Solicitado em {format(new Date(approval.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                 </div>
               </div>
-              <Badge variant="outline" className="text-xs">
-                {approval.collaborator_role}
-              </Badge>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2 border-t border-amber-200/30 dark:border-amber-800/30">
               <Button
                 size="sm"
                 onClick={() => handleApprove(approval.id, true)}
                 disabled={approveCollaborator.isPending}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 <Check className="h-3 w-3" />
                 Aprovar
@@ -133,7 +139,7 @@ const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: 
                 variant="outline"
                 onClick={() => handleApprove(approval.id, false)}
                 disabled={approveCollaborator.isPending}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 border-destructive/30 text-destructive hover:bg-destructive/10"
               >
                 <X className="h-3 w-3" />
                 Rejeitar

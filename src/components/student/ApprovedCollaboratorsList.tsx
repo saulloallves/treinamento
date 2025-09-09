@@ -163,35 +163,51 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
             Nenhum colaborador aprovado encontrado.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {collaborators.map((collaborator) => (
               <div
                 key={collaborator.id}
-                className="border rounded-lg p-4 space-y-3"
+                className="bg-card border border-border rounded-xl p-4 hover:shadow-sm transition-shadow"
               >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{collaborator.name}</h4>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-semibold text-foreground">{collaborator.name}</h4>
                       <Badge 
-                        variant={collaborator.active ? "outline" : "secondary"} 
+                        variant={collaborator.active ? "default" : "secondary"} 
                         className={collaborator.active 
-                          ? "text-xs bg-green-50 text-green-700 border-green-200" 
-                          : "text-xs bg-red-50 text-red-700 border-red-200"
+                          ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" 
+                          : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
                         }
                       >
-                        {collaborator.active ? "✓ Ativo" : "⏸ Pausado"}
+                        {collaborator.active ? (
+                          <>
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1" />
+                            Ativo
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full mr-1" />
+                            Pausado
+                          </>
+                        )}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {collaborator.email}
-                    </p>
-                    {collaborator.position && (
-                      <p className="text-sm text-muted-foreground">
-                        Cargo: {collaborator.position}
+                    
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <span className="font-medium">Email:</span>
+                        {collaborator.email}
                       </p>
-                    )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {collaborator.position && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <span className="font-medium">Cargo:</span>
+                          {collaborator.position}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md w-fit">
                       <Calendar className="h-3 w-3" />
                       {collaborator.approved_at 
                         ? `Aprovado em ${format(new Date(collaborator.approved_at), "dd/MM/yyyy", { locale: ptBR })}`
@@ -199,14 +215,15 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                       }
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 ml-4">
+                  
+                  <div className="flex flex-col gap-2 min-w-0">
                     {collaborator.active ? (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => pauseCollaboratorMutation.mutate(collaborator.id)}
                         disabled={pauseCollaboratorMutation.isPending}
-                        className="text-xs"
+                        className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20"
                       >
                         <Pause className="h-3 w-3 mr-1" />
                         Pausar
@@ -217,7 +234,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                         variant="outline"
                         onClick={() => activateCollaboratorMutation.mutate(collaborator.id)}
                         disabled={activateCollaboratorMutation.isPending}
-                        className="text-xs"
+                        className="text-xs border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
                       >
                         <Play className="h-3 w-3 mr-1" />
                         Ativar
@@ -228,8 +245,8 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                       <AlertDialogTrigger asChild>
                         <Button
                           size="sm"
-                          variant="destructive"
-                          className="text-xs"
+                          variant="outline"
+                          className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
                           Remover
