@@ -88,7 +88,7 @@ const CreateManualEnrollmentDialog = ({ open, onOpenChange }: CreateManualEnroll
               <select
                 value={turmaId}
                 onChange={(e) => setTurmaId(e.target.value)}
-                className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                className="h-10 w-full px-3 rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 relative z-50"
                 disabled={turmasLoading}
                 required
               >

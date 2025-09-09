@@ -318,7 +318,7 @@ export const useTurmasForEnrollment = (courseId: string) => {
           responsavel_user:users!responsavel_user_id(id, name, email)
         `)
         .eq('course_id', courseId)
-        .eq('status', 'inscricoes_abertas') // Only show open enrollments
+        .in('status', ['agendada', 'inscricoes_abertas', 'em_andamento']) // Include turmas that can accept enrollments
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
