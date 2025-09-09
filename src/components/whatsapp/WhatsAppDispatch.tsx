@@ -142,7 +142,7 @@ const WhatsAppDispatch = () => {
     : lessons.filter(l => l.status === 'Ativo');
 
   return (
-    <div className="w-full max-w-[100vw] sm:max-w-7xl no-x-scroll space-y-6 px-4 sm:px-6 lg:px-8 mx-auto">
+    <div className="w-full max-w-full sm:max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8 mx-auto">
 
       {/* Novo Disparo - Mobile optimized */}
       <Card className="shadow-sm">
