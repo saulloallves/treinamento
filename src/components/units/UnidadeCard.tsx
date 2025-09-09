@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, CheckCircle, XCircle } from "lucide-react";
 import { Unidade } from "@/hooks/useUnidades";
+import { useIsMobile } from "@/hooks/use-mobile";
+import UnidadeCardMobile from "./UnidadeCardMobile";
 
 interface UnidadeCardProps {
   unidade: Unidade;
@@ -9,6 +11,12 @@ interface UnidadeCardProps {
 }
 
 const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return <UnidadeCardMobile unidade={unidade} onViewDetails={onViewDetails} />;
+  }
+
   const getFaseBadgeVariant = (fase: string) => {
     switch (fase?.toUpperCase()) {
       case "OPERAÇÃO":
