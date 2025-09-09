@@ -131,24 +131,54 @@ serve(async (req) => {
       );
     }
 
-    // Upsert into admin_users as approved
-    const { error: upsertAdminErr } = await supabaseAdmin
+    // Insert or update admin_users manually (no ON CONFLICT available)
+    const { data: existingAdmin, error: existingAdminErr } = await supabaseAdmin
       .from("admin_users")
-      .upsert({
-        user_id: authUserId!,
-        name,
-        email,
-        role: "admin",
-        status: "approved",
-        active: true,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-    if (upsertAdminErr) {
-      console.error("[create-admin] upsert admin_users error:", upsertAdminErr);
-      return new Response(
-        JSON.stringify({ success: false, error: upsertAdminErr.message || "Falha ao gravar permissões" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      .select("id")
+      .eq("user_id", authUserId!)
+      .maybeSingle();
+    if (existingAdminErr) {
+      console.error("[create-admin] fetch admin_users error:", existingAdminErr);
+    }
+
+    if (existingAdmin?.id) {
+      const { error: updateAdminErr } = await supabaseAdmin
+        .from("admin_users")
+        .update({
+          name,
+          email,
+          role: "admin",
+          status: "approved",
+          active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingAdmin.id);
+      if (updateAdminErr) {
+        console.error("[create-admin] update admin_users error:", updateAdminErr);
+        return new Response(
+          JSON.stringify({ success: false, error: updateAdminErr.message || "Falha ao atualizar admin" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      const { error: insertAdminErr } = await supabaseAdmin
+        .from("admin_users")
+        .insert({
+          user_id: authUserId!,
+          name,
+          email,
+          role: "admin",
+          status: "approved",
+          active: true,
+          updated_at: new Date().toISOString(),
+        });
+      if (insertAdminErr) {
+        console.error("[create-admin] insert admin_users error:", insertAdminErr);
+        return new Response(
+          JSON.stringify({ success: false, error: insertAdminErr.message || "Falha ao gravar permissões" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     return new Response(
