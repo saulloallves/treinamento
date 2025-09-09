@@ -192,35 +192,35 @@ const Auth = () => {
             <Tabs defaultValue="login-student" className="w-full">
               <TabsList
                 aria-label="Seleção de tipo de acesso"
-                className="flex md:grid md:grid-cols-4 w-full overflow-x-auto gap-2 mb-6 p-1 rounded-full bg-muted"
+                className="grid grid-cols-2 md:grid-cols-4 w-full gap-1 mb-6 p-1 rounded-xl bg-muted h-auto"
               >
                 <TabsTrigger
                   value="login-student"
-                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  className="rounded-lg flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm min-h-[60px] md:min-h-[50px]"
                 >
                   <LogIn className="h-4 w-4" />
-                  Login Aluno
+                  <span className="text-center leading-tight">Login<br className="md:hidden" /> Aluno</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="register-student"
-                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  className="rounded-lg flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm min-h-[60px] md:min-h-[50px]"
                 >
                   <Building className="h-4 w-4" />
-                  Cadastro Aluno
+                  <span className="text-center leading-tight">Cadastro<br className="md:hidden" /> Aluno</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="login-professor"
-                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  className="rounded-lg flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm min-h-[60px] md:min-h-[50px]"
                 >
                   <BookOpen className="h-4 w-4" />
-                  Login Professor
+                  <span className="text-center leading-tight">Login<br className="md:hidden" /> Professor</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="login-admin"
-                  className="rounded-full flex items-center justify-center gap-1 md:gap-2 shrink-0 whitespace-nowrap px-3 py-2 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                  className="rounded-lg flex flex-col items-center justify-center gap-1 px-2 py-3 text-xs md:text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm min-h-[60px] md:min-h-[50px]"
                 >
                   <Shield className="h-4 w-4" />
-                  Login Admin
+                  <span className="text-center leading-tight">Login<br className="md:hidden" /> Admin</span>
                 </TabsTrigger>
               </TabsList>
 
