@@ -21,10 +21,10 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
       {/* Não mostrar sidebar no mobile quando tiver bottom navigation */}
       {!(isMobile && showBottomNav) && <Sidebar showInMobile={!showBottomNav} />}
       
-      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile || (isMobile && showBottomNav) ? '' : 'ml-64'}`}>
+      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
         {/* Header responsivo */}
         <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
-          <div className={`w-full flex justify-between items-center ${isMobile && !showBottomNav ? 'pl-12' : !isMobile ? 'max-w-7xl mx-auto' : ''}`}>
+          <div className={`w-full flex justify-between items-center ${isMobile && !showBottomNav ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
               <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
                 {title}
@@ -47,7 +47,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
 
         {/* Conteúdo principal responsivo */}
         <main className={`flex-1 min-h-0 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-20' : ''}`}>
-          <div className={`w-full min-w-0 ${!isMobile ? 'max-w-7xl mx-auto' : ''}`}>
+          <div className="w-full min-w-0">
             {children}
           </div>
         </main>
