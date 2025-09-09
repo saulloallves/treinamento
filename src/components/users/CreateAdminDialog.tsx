@@ -26,61 +26,35 @@ const CreateAdminDialog = ({ open, onOpenChange }: CreateAdminDialogProps) => {
     setIsLoading(true);
 
     try {
-      // 1. Criar usuário no auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        user_metadata: {
-          full_name: formData.name,
-          user_type: 'Admin'
+      // Chamar Edge Function segura (usa service role) para criar admin
+      const { data, error } = await supabase.functions.invoke('create-admin', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
         },
-        email_confirm: true // Auto-confirma o email
       });
 
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Erro ao criar usuário");
+      if (error) throw error;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Não foi possível criar o administrador');
       }
 
-      // 2. Criar registro na tabela users
-      const { error: userError } = await supabase.from('users').insert([{
-        id: authData.user.id,
-        name: formData.name,
-        email: formData.email,
-        user_type: 'Admin',
-        active: true,
-      }]);
-
-      if (userError) throw userError;
-
-      // 3. Criar registro na tabela admin_users com status approved
-      const { error: adminError } = await supabase.from('admin_users').insert([{
-        user_id: authData.user.id,
-        name: formData.name,
-        email: formData.email,
-        role: 'admin',
-        status: 'approved', // Aprovado automaticamente quando criado internamente
-        active: true,
-      }]);
-
-      if (adminError) throw adminError;
-
       toast({
-        title: "Admin criado com sucesso!",
+        title: 'Admin criado com sucesso!',
         description: `${formData.name} foi adicionado como administrador.`,
       });
 
       // Reset form and close dialog
-      setFormData({ name: "", email: "", password: "" });
+      setFormData({ name: '', email: '', password: '' });
       onOpenChange(false);
 
     } catch (error: any) {
       console.error('Error creating admin:', error);
       toast({
-        title: "Erro ao criar admin",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
+        title: 'Erro ao criar admin',
+        description: error?.message || 'Ocorreu um erro inesperado.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
