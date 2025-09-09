@@ -197,6 +197,7 @@ const StudentLessons = () => {
         courseName={selectedRecordedCourse?.courseName || ""}
         open={recordedCoursesDialogOpen}
         onOpenChange={setRecordedCoursesDialogOpen}
+        viewOnly={true}
       />
     </BaseLayout>
   );

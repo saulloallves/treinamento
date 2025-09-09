@@ -33,6 +33,7 @@ interface RecordedCoursesDialogProps {
   courseName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  viewOnly?: boolean;
 }
 
 interface ModuleFormData {
@@ -48,7 +49,7 @@ interface LessonFormData {
   order_index: number;
 }
 
-const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: RecordedCoursesDialogProps) => {
+const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewOnly = false }: RecordedCoursesDialogProps) => {
   const [activeView, setActiveView] = useState<'overview' | 'add-module' | 'edit-module' | 'add-lesson' | 'edit-lesson'>('overview');
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<RecordedLesson | null>(null);
@@ -274,18 +275,22 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Linha do Tempo das Aulas</h3>
         <div className="flex gap-2">
-          <Button 
-            onClick={() => setPreviewMode(true)} 
-            variant="outline"
-            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-          >
-            <Play className="w-4 h-4" />
-            👁️ Visualizar como Aluno
-          </Button>
-          <Button onClick={handleAddModule} className="btn-primary">
-            <Plus className="w-4 h-4" />
-            Adicionar Módulo
-          </Button>
+          {!viewOnly && (
+            <Button 
+              onClick={() => setPreviewMode(true)} 
+              variant="outline"
+              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+            >
+              <Play className="w-4 h-4" />
+              👁️ Visualizar como Aluno
+            </Button>
+          )}
+          {!viewOnly && (
+            <Button onClick={handleAddModule} className="btn-primary">
+              <Plus className="w-4 h-4" />
+              Adicionar Módulo
+            </Button>
+          )}
         </div>
       </div>
 
@@ -324,29 +329,33 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                   <span className="text-sm text-gray-500">
                     {lessonsByModule[module.id]?.length || 0} aulas
                   </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAddLesson(module)}
-                    className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Adicionar Aula
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditModule(module)}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteModule(module)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                  {!viewOnly && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddLesson(module)}
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Adicionar Aula
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditModule(module)}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteModule(module)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -386,23 +395,27 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange }: Rec
                               Assistir
                             </Button>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditLesson(lesson)}
-                            className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
-                          >
-                            <Edit className="w-4 h-4" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteLesson(lesson)}
-                            className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {!viewOnly && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditLesson(lesson)}
+                                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Editar
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteLesson(lesson)}
+                                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
