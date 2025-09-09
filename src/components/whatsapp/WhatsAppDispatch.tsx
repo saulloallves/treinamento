@@ -387,7 +387,7 @@ const WhatsAppDispatch = () => {
       </Card>
 
       {/* Histórico de Disparos - Mobile optimized */}
-      <Accordion type="single" collapsible className="w-full max-w-full overflow-x-hidden" defaultValue="history">
+      <Accordion type="single" collapsible className="w-full max-w-full min-w-0 overflow-x-hidden" defaultValue="history">
         <AccordionItem value="history" className="border border-border rounded-lg">
           <AccordionTrigger className="text-left px-4 sm:px-6 py-4 hover:no-underline">
             <div className="flex items-center gap-3 w-full min-w-0">
@@ -410,7 +410,7 @@ const WhatsAppDispatch = () => {
               </div>
             ) : (
               <>
-                <div className="space-y-4 w-full max-w-full overflow-x-hidden">
+                <div className="space-y-4 w-full max-w-full min-w-0 overflow-x-hidden">
                   {(() => {
                     const totalPages = Math.ceil(dispatches.length / itemsPerPage);
                     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -419,12 +419,12 @@ const WhatsAppDispatch = () => {
                     
                     return paginatedDispatches.map((dispatch) => (
                       <Card key={dispatch.id} className="shadow-sm overflow-hidden">
-                        <CardContent className="p-4 overflow-hidden">
+                        <CardContent className="p-4 overflow-hidden min-w-0">
                           {/* Header do dispatch */}
                           <div className="flex items-start justify-between gap-3 mb-3 min-w-0">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h3 className="font-semibold text-foreground text-sm truncate">
+                                <h3 className="font-semibold text-foreground text-sm break-anywhere sm:truncate">
                                   {dispatch.item_name}
                                 </h3>
                                 <Badge variant="outline" className="text-xs shrink-0">
@@ -434,7 +434,7 @@ const WhatsAppDispatch = () => {
                                   {dispatch.status}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap break-words sm:line-clamp-3">
+                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap break-words break-anywhere sm:line-clamp-3">
                                 {dispatch.message}
                               </p>
                             </div>
@@ -503,7 +503,7 @@ const WhatsAppDispatch = () => {
                 </div>
                 
                 {dispatches.length > itemsPerPage && (
-                  <div className="mt-6 pt-4 border-t border-border w-full max-w-full overflow-x-hidden">
+                  <div className="mt-6 pt-4 border-t border-border w-full max-w-full min-w-0 overflow-x-hidden">
                     <PaginationCustom
                       currentPage={currentPage}
                       totalPages={Math.ceil(dispatches.length / itemsPerPage)}

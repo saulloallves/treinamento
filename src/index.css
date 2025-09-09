@@ -61,11 +61,17 @@ html, body, #root {
 
   /* Anti-horizontal scroll utility */
   .no-x-scroll {
-    @apply overflow-x-hidden max-w-full;
+    @apply overflow-x-hidden max-w-full min-w-0;
   }
 
   .no-x-scroll * {
-    @apply max-w-full;
+    @apply max-w-full min-w-0;
+  }
+
+  /* Force robust word-wrapping anywhere (URLs, long tokens) */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   /* Touch-friendly sizing */
