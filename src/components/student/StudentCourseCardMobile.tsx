@@ -33,106 +33,65 @@ export const StudentCourseCardMobile: React.FC<StudentCourseCardMobileProps> = (
   if (!course) return null;
 
   return (
-    <Card className="overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
-      {/* Course Image/Cover */}
-      <div className="relative h-32">
-        {course.cover_image_url ? (
-          <img 
-            src={course.cover_image_url} 
-            alt={course.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className={`w-full h-full ${gradientClass}`} />
-        )}
-        
-        {/* Course Type Badge */}
-        <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/90 text-gray-800 border-0 font-medium">
-            {course.tipo === 'gravado' ? (
-              <>
-                <FileText className="w-3 h-3 mr-1" />
-                Treinamento
-              </>
-            ) : (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1" />
-                Curso
-              </>
-            )}
-          </Badge>
-        </div>
-
-        {/* Status indicator */}
-        <div className="absolute top-3 right-3">
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-        </div>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        {/* Course Title */}
-        <h3 className="font-semibold text-base leading-tight">
-          {course.name}
-        </h3>
-        
-        {/* Course Info */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <BookOpen className="w-4 h-4" />
-            <span>{course.lessons_count || 0}</span>
+    <Card className="hover:shadow-md transition-shadow cursor-pointer h-fit">
+      <CardContent className="p-3 space-y-2">
+        {/* Header com nome e status */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm leading-tight line-clamp-2">
+              {course.name}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Status: {enrollment.status}
+            </p>
           </div>
-          <span>Franqueado Geral</span>
-        </div>
-
-        {/* Instructor - Static for now */}
-        <div className="text-sm">
-          <span className="text-muted-foreground">Instrutor: </span>
-          <span className="font-medium">Instrutor Principal</span>
-        </div>
-
-        {/* Default Categories */}
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="text-xs">
-            Negócios
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            Gestão
-          </Badge>
-        </div>
-
-        {/* Features */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <FileText className="w-4 h-4" />
-            <span>Quiz</span>
+          
+          {/* Course Type Badge */}
+          <div className="flex shrink-0">
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 h-auto">
+              {course.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
+            </Badge>
           </div>
-          {course.generates_certificate && (
-            <div className="flex items-center gap-1">
-              <Badge className="w-4 h-4" />
-              <span>Certificado</span>
-            </div>
-          )}
         </div>
-
-        {/* Turma Info */}
+        
+        {/* Turma Info - Compact */}
         {enrollment.turma && (
-          <div className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              <span>{enrollment.turma.name || enrollment.turma.code || `Turma ${enrollment.turma.id.slice(0, 8)}`}</span>
+              <Users className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                {enrollment.turma.name || enrollment.turma.code || `Turma ${enrollment.turma.id.slice(0, 8)}`}
+              </span>
             </div>
-            <div className="flex items-center gap-1 mt-1">
-              <Calendar className="w-3 h-3" />
-              <span>{format(new Date(enrollment.turma.completion_deadline), "dd/MM/yyyy", { locale: ptBR })}</span>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3 shrink-0" />
+              <span>
+                {format(new Date(enrollment.turma.completion_deadline), "dd/MM/yy", { locale: ptBR })}
+              </span>
             </div>
           </div>
         )}
-
-        {/* Details Button */}
-        <Button variant="outline" className="w-full">
-          <Link to={course.tipo === 'gravado' ? `/aluno/curso/${course.id}/aulas-gravadas` : `/aluno/curso/${course.id}`} className="flex items-center gap-2">
-            <span>Detalhes</span>
-          </Link>
+        
+        {/* Progress */}
+        {enrollment.progress_percentage !== undefined && (
+          <div className="text-xs text-muted-foreground">
+            Progresso: {enrollment.progress_percentage}%
+          </div>
+        )}
+        
+        {/* Action Button - Compact */}
+        <Button asChild size="sm" className="w-full h-7 text-xs">
+          {course.tipo === 'gravado' ? (
+            <Link to={`/aluno/curso/${course.id}/aulas-gravadas`}>
+              <FileText className="w-3 h-3 mr-1" />
+              Ver Aulas
+            </Link>
+          ) : (
+            <Link to={`/aluno/curso/${course.id}`}>
+              <PlayCircle className="w-3 h-3 mr-1" />
+              Ver curso
+            </Link>
+          )}
         </Button>
       </CardContent>
     </Card>
