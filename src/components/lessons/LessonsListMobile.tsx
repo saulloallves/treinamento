@@ -20,8 +20,9 @@ const LessonsListMobile = () => {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [lessonsFilter, setLessonsFilter] = useState<'upcoming' | 'archived'>('upcoming');
 
-  const { data: lessons = [], isLoading } = useLessons();
+  const { data: lessons = [], isLoading } = useLessons(lessonsFilter);
   const { data: courses = [] } = useCourses();
   const deleteLessonMutation = useDeleteLesson();
 
@@ -113,23 +114,45 @@ const LessonsListMobile = () => {
       </Accordion>
 
       {/* Tabs Mobile */}
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="all" className="text-xs">
-            Todas ({filteredLessons.length})
+      <Tabs defaultValue="upcoming-all" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger 
+            value="upcoming-all" 
+            className="text-xs"
+            onClick={() => setLessonsFilter('upcoming')}
+          >
+            Próximas ({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})
           </TabsTrigger>
-          <TabsTrigger value="by-course" className="text-xs">
-            Por Curso ({Object.keys(lessonsByCourse).length})
+          <TabsTrigger 
+            value="upcoming-by-course" 
+            className="text-xs"
+            onClick={() => setLessonsFilter('upcoming')}
+          >
+            Próx. por Curso
+          </TabsTrigger>
+          <TabsTrigger 
+            value="archived-all" 
+            className="text-xs"
+            onClick={() => setLessonsFilter('archived')}
+          >
+            Arquivadas ({lessonsFilter === 'archived' ? filteredLessons.length : 0})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="archived-by-course" 
+            className="text-xs"
+            onClick={() => setLessonsFilter('archived')}
+          >
+            Arq. por Curso
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="all" className="mt-4">
+        <TabsContent value="upcoming-all" className="mt-4">
           {filteredLessons.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 {lessons.length === 0 
-                  ? "Nenhuma aula encontrada. Crie a primeira aula!" 
-                  : "Nenhuma aula corresponde aos filtros aplicados."
+                  ? "Nenhuma aula próxima encontrada."
+                  : "Nenhuma aula próxima corresponde aos filtros aplicados."
                 }
               </p>
             </div>
@@ -241,10 +264,10 @@ const LessonsListMobile = () => {
           )}
         </TabsContent>
         
-        <TabsContent value="by-course" className="mt-4">
+        <TabsContent value="upcoming-by-course" className="mt-4">
           {Object.keys(lessonsByCourse).length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Nenhuma aula encontrada para os filtros aplicados.</p>
+              <p className="text-muted-foreground">Nenhuma aula próxima encontrada para os filtros aplicados.</p>
             </div>
           ) : (
             <Accordion type="multiple" className="w-full">
@@ -289,6 +312,206 @@ const LessonsListMobile = () => {
                               <div className="flex gap-1 shrink-0">
                                 {(lesson.zoom_join_url || lesson.video_url) && (
                                   <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                    }
+                                  >
+                                    Acessar
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleEditLesson(lesson)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleDeleteLesson(lesson.id)}
+                                  className="w-8 h-8 p-0"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="archived-all" className="mt-4">
+          {filteredLessons.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                {lessons.length === 0 
+                  ? "Nenhuma aula arquivada encontrada."
+                  : "Nenhuma aula arquivada corresponde aos filtros aplicados."
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredLessons.map((lesson) => (
+                <Card key={lesson.id} className="hover:shadow-md transition-shadow opacity-75">
+                  <CardContent className="p-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+                          {lesson.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {lesson.courses?.name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                            #{lesson.order_index}
+                          </Badge>
+                          <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                            Arquivada
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 shrink-0 text-gray-400" />
+                        <span>{lesson.duration_minutes}min</span>
+                      </div>
+                      
+                      {lesson.zoom_start_time && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 shrink-0 text-gray-400" />
+                          <span className="truncate">
+                            {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {lesson.courses?.tipo === 'ao_vivo' && (lesson.professor_names?.length || lesson.professor_name) && (
+                        (() => {
+                          const names = lesson.professor_names && lesson.professor_names.length > 0
+                            ? lesson.professor_names
+                            : (lesson.professor_name ? [lesson.professor_name] : []);
+                          return names.length > 0 ? (
+                            <div className="flex items-center gap-1 col-span-2">
+                              <User className="w-3 h-3 shrink-0 text-gray-400" />
+                              <span className="truncate">Prof. {names.join(', ')}</span>
+                            </div>
+                          ) : null;
+                        })()
+                      )}
+                      
+                      {lesson.video_url && (
+                        <div className="flex items-center gap-1">
+                          <Video className="w-3 h-3 shrink-0 text-gray-400" />
+                          <span>Vídeo</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-3 border-t">
+                      {(lesson.zoom_join_url || lesson.video_url) && (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          size="sm"
+                          onClick={() =>
+                            window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                          }
+                        >
+                          Acessar
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditLesson(lesson)}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteLesson(lesson.id)}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="archived-by-course" className="mt-4">
+          {Object.keys(lessonsByCourse).length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhuma aula arquivada encontrada para os filtros aplicados.</p>
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full">
+              {Object.entries(lessonsByCourse).map(([courseId, { course, lessons: courseLessons }]) => (
+                <AccordionItem key={courseId} value={courseId} className="border rounded-lg mb-2">
+                  <AccordionTrigger className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{course?.name || 'Curso não encontrado'}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {courseLessons.length} arquivadas
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-3">
+                      {courseLessons.map((lesson) => (
+                        <Card key={lesson.id} className="border-l-4 border-l-gray-300 opacity-75">
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm mb-1 line-clamp-2">{lesson.title}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                                    #{lesson.order_index}
+                                  </Badge>
+                                  <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
+                                    Arquivada
+                                  </Badge>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3 text-gray-400" />
+                                    {lesson.duration_minutes} min
+                                  </div>
+                                  {lesson.zoom_start_time && (
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-3 h-3 text-gray-400" />
+                                      {format(new Date(lesson.zoom_start_time), "dd/MM HH:mm", { locale: ptBR })}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-1 shrink-0">
+                                {(lesson.zoom_join_url || lesson.video_url) && (
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() =>
                                       window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")

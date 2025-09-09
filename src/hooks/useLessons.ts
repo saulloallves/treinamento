@@ -50,11 +50,11 @@ export interface LessonInput {
   attendance_keyword?: string;
 }
 
-export const useLessons = (futureOnly: boolean = false) => {
+export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') => {
   const { toast } = useToast();
   
   return useQuery({
-    queryKey: ['lessons', futureOnly],
+    queryKey: ['lessons', filterType],
     queryFn: async () => {
       let query = supabase
         .from('lessons')
@@ -74,13 +74,20 @@ export const useLessons = (futureOnly: boolean = false) => {
           )
         `);
 
-      // Se futureOnly for true, filtrar apenas aulas futuras
-      if (futureOnly) {
-        const nowIso = new Date().toISOString();
+      // Filtrar baseado no tipo solicitado
+      const nowIso = new Date().toISOString();
+      
+      if (filterType === 'upcoming') {
         query = query
           .gte('zoom_start_time', nowIso)
           .order('zoom_start_time', { ascending: true });
+      } else if (filterType === 'archived') {
+        query = query
+          .not('zoom_start_time', 'is', null)
+          .lt('zoom_start_time', nowIso)
+          .order('zoom_start_time', { ascending: false });
       } else {
+        // 'all' - mostrar todas ordenadas por data de criação
         query = query.order('created_at', { ascending: false });
       }
 
