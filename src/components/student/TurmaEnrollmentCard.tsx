@@ -86,7 +86,7 @@ export const TurmaEnrollmentCard = ({ courseId, courseName }: TurmaEnrollmentCar
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>{turma.responsavel_user?.name}</span>
+                    <span>{turma.responsavel_user?.name || 'Professor'}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">

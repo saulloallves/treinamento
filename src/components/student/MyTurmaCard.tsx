@@ -48,7 +48,14 @@ export const MyTurmaCard = ({ turma, courseName }: MyTurmaCardProps) => {
     return `${firstName} ${lastName}`;
   };
 
-  const professorName = turma.responsavel_name 
+  // Check if the name is a placeholder value that should be ignored
+  const isPlaceholder = (name?: string) => {
+    if (!name) return false;
+    const n = name.trim().toLowerCase();
+    return n === 'professor não definido' || n === 'professor nao definido' || n === 'professor definido';
+  };
+
+  const professorName = (!isPlaceholder(turma.responsavel_name) && turma.responsavel_name)
     ? formatProfessorName(turma.responsavel_name)
     : turma.responsavel_user?.name 
       ? formatProfessorName(turma.responsavel_user.name)
