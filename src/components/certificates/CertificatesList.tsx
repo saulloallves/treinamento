@@ -41,7 +41,7 @@ const CertificatesList = () => {
           turma_id
         `)
         .order("generated_at", { ascending: false });
-      if (error) throw error;
+      if (error) { console.error('certificates query error', error); return []; }
       return data ?? [];
     },
   });
@@ -53,7 +53,7 @@ const CertificatesList = () => {
         .from("courses")
         .select("id,name,status")
         .order("name", { ascending: true });
-      if (error) throw error;
+      if (error) { console.error('courses query error', error); return []; }
       return data ?? [];
     },
   });
@@ -64,7 +64,7 @@ const CertificatesList = () => {
       const { data, error } = await supabase
         .from("enrollments")
         .select("id,progress_percentage");
-      if (error) throw error;
+      if (error) { console.error('enrollments stats query error', error); return []; }
       return data ?? [];
     },
   });
@@ -85,7 +85,7 @@ const CertificatesList = () => {
           turmas(id, name, code, responsavel_name)
         `)
         .in("id", ids);
-      if (error) throw error;
+      if (error) { console.error('enrollments for certs query error', error); return []; }
       return data ?? [];
     },
   });
