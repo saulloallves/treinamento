@@ -122,7 +122,7 @@ const TurmasPage = () => {
         { value: 'todos', label: 'Todos' },
         { value: 'agendada', label: 'Agendada' },
         { value: 'em_andamento', label: 'Em Andamento' },
-        { value: 'encerrada', label: 'Encerrada' },
+        { value: 'encerrada', label: '🏁 Turmas Encerradas' },
         { value: 'cancelada', label: 'Cancelada' }
       ]
     },
@@ -220,7 +220,46 @@ const TurmasPage = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="space-y-4">
+                  {/* Quick filters */}
+                  <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md">
+                    <Button
+                      size="sm"
+                      variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
+                      onClick={() => setStatusFilter('encerrada')}
+                      className="text-xs"
+                    >
+                      🏁 Turmas Encerradas
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={statusFilter === 'em_andamento' ? 'default' : 'outline'}
+                      onClick={() => setStatusFilter('em_andamento')}
+                      className="text-xs"
+                    >
+                      Em Andamento
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={statusFilter === 'agendada' ? 'default' : 'outline'}
+                      onClick={() => setStatusFilter('agendada')}
+                      className="text-xs"
+                    >
+                      Agendadas
+                    </Button>
+                    {(statusFilter !== 'todos') && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setStatusFilter('todos')}
+                        className="text-xs"
+                      >
+                        Limpar filtro
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Buscar turma
@@ -267,7 +306,7 @@ const TurmasPage = () => {
                         <SelectItem value="todos">Todos</SelectItem>
                         <SelectItem value="agendada">Agendada</SelectItem>
                         <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="encerrada">Encerrada</SelectItem>
+                        <SelectItem value="encerrada">🏁 Turmas Encerradas</SelectItem>
                         <SelectItem value="cancelada">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
@@ -291,8 +330,9 @@ const TurmasPage = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-              </AccordionContent>
+                   </div>
+                 </div>
+               </AccordionContent>
             </AccordionItem>
           </Accordion>
         )}
