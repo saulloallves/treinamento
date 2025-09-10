@@ -48,20 +48,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check if collaborator is pending or rejected
-  if (currentUser?.role === 'Colaborador' && currentUser?.approval_status === 'pendente') {
-    toast.error("Cadastro em análise", {
-      description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
-    });
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (currentUser?.role === 'Colaborador' && currentUser?.approval_status === 'rejeitado') {
-    toast.error("Acesso negado", {
-      description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
-    });
-    return <Navigate to="/auth" replace />;
-  }
+  // Approval status checking is now handled in useAuth.signIn
+  // This prevents the "trembling" effect from multiple components checking the same thing
 
   // Auto-detect and set profile if needed
   const detectedProfile = getAutoDetectedProfile(isAdmin, isProfessor);

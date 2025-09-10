@@ -26,15 +26,8 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check if collaborator is pending or rejected - block completely
-  if (currentUser?.role === 'Colaborador' && currentUser?.approval_status !== 'aprovado') {
-    const message = currentUser?.approval_status === 'pendente' 
-      ? "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema."
-      : "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.";
-    
-    toast.error("Acesso negado", { description: message });
-    return <Navigate to="/auth" replace />;
-  }
+  // Approval status checking is now handled in useAuth.signIn
+  // This prevents the "trembling" effect from multiple components checking the same thing
 
   // Only check if user is admin - don't redirect based on profile selection
   if (!isAdmin) {
