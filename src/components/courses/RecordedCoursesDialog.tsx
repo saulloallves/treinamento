@@ -271,24 +271,24 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
   );
 
   const renderOverview = () => (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Linha do Tempo das Aulas</h3>
-        <div className="flex gap-2">
+    <div className="space-y-4 max-h-[calc(100svh-140px)] sm:max-h-[60vh] overflow-y-auto px-4 sm:px-6">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-base sm:text-lg font-semibold">Linha do Tempo das Aulas</h3>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {!viewOnly && (
             <Button 
               onClick={() => setPreviewMode(true)} 
               variant="outline"
-              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+              className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
             >
               <Play className="w-4 h-4" />
-              👁️ Visualizar como Aluno
+              <span className="ml-1">Visualizar como Aluno</span>
             </Button>
           )}
           {!viewOnly && (
-            <Button onClick={handleAddModule} className="btn-primary">
+            <Button onClick={handleAddModule} className="w-full sm:w-auto btn-primary">
               <Plus className="w-4 h-4" />
-              Adicionar Módulo
+              <span className="ml-1">Adicionar Módulo</span>
             </Button>
           )}
         </div>
@@ -304,7 +304,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
         <div className="space-y-3">
           {modules.map((module) => (
             <div key={module.id} className="border rounded-lg">
-              <div className="flex items-center justify-between p-3 bg-gray-50">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50">
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -318,14 +318,14 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                   </Button>
                   <Folder className="w-5 h-5 text-blue-500" />
                   <div>
-                    <h4 className="font-medium">{module.name}</h4>
+                    <h4 className="text-base sm:text-lg font-medium break-anywhere">{module.name}</h4>
                     {module.description && (
                       <p className="text-sm text-gray-600">{module.description}</p>
                     )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                   <span className="text-sm text-gray-500">
                     {lessonsByModule[module.id]?.length || 0} aulas
                   </span>
@@ -335,15 +335,17 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                         variant="outline"
                         size="sm"
                         onClick={() => handleAddLesson(module)}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        className="w-auto sm:w-auto bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                       >
                         <Plus className="w-4 h-4" />
-                        Adicionar Aula
+                        <span className="ml-1 hidden sm:inline">Adicionar Aula</span>
+                        <span className="ml-1 sm:hidden">Adicionar</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditModule(module)}
+                        className="hidden sm:inline-flex"
                       >
                         <Edit className="w-3 h-3" />
                       </Button>
@@ -351,6 +353,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteModule(module)}
+                        className="hidden sm:inline-flex"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -363,7 +366,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                 <div className="p-3 space-y-3">
                   {lessonsByModule[module.id]?.map((lesson, index) => (
                     <div key={lesson.id} className="bg-gradient-to-r from-white to-gray-50 border-l-4 border-blue-400 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           <div className="bg-blue-100 rounded-full p-2">
                             <FileVideo className="w-5 h-5 text-blue-600" />
@@ -380,7 +383,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                           {lesson.video_url && (
                             <Button
                               variant="outline"
@@ -389,10 +392,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                                 setPreviewLessonId(lesson.id);
                                 setPreviewMode(true);
                               }}
-                              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                              className="w-auto sm:w-auto bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                             >
                               <Play className="w-4 h-4" />
-                              Assistir
+                              <span className="ml-1">Assistir</span>
                             </Button>
                           )}
                           {!viewOnly && (
@@ -401,7 +404,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditLesson(lesson)}
-                                className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
+                                className="hidden sm:inline-flex bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-yellow-200"
                               >
                                 <Edit className="w-4 h-4" />
                                 Editar
@@ -410,7 +413,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleDeleteLesson(lesson)}
-                                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                                className="hidden sm:inline-flex bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -657,18 +660,18 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
         }
       >
         {!previewMode && (
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+          <DialogHeader className="sticky top-0 bg-background z-10 px-4 py-3 border-b sm:px-6">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Video className="w-5 h-5" />
               Curso Gravado: {courseName}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               Gerencie os módulos e aulas gravadas deste curso
             </DialogDescription>
           </DialogHeader>
         )}
 
-        <div className={previewMode ? "h-full" : "py-4"}>
+        <div className={previewMode ? "h-full" : "py-4 px-4 sm:px-6"}>
           {previewMode ? renderStudentPreview() : (
             <>
               {activeView === 'overview' && renderOverview()}
