@@ -46,11 +46,11 @@ const BottomNavigation = () => {
   ];
 
   const professorItems: NavItem[] = [
-    { label: 'Dashboard', href: '/professor/dashboard', icon: Home },
-    { label: 'Turmas', href: '/turmas', icon: Users },
-    { label: 'Aulas', href: '/lessons', icon: GraduationCap },
-    { label: 'Quiz', href: '/quiz', icon: ClipboardCheck },
-    { label: 'Mais', href: '/settings', icon: Settings }
+    { label: 'Dashboard', href: '/professor', icon: Home },
+    { label: 'Turmas', href: '/professor/turmas', icon: Users },
+    { label: 'Aulas', href: '/professor/aulas', icon: GraduationCap },
+    { label: 'Quiz', href: '/professor/avaliacoes', icon: ClipboardCheck },
+    { label: 'Alunos', href: '/professor/inscricoes', icon: Users }
   ];
 
   // Menu para aluno franqueado (Franqueado)
@@ -109,8 +109,8 @@ const BottomNavigation = () => {
     if (href === '/dashboard') {
       return location.pathname === href || location.pathname === '/' || location.pathname === '/index';
     }
-    if (href === '/professor/dashboard') {
-      return location.pathname === href;
+    if (href === '/professor') {
+      return location.pathname === href || location.pathname === '/professor/dashboard';
     }
     if (href === '/aluno') {
       return location.pathname === href || location.pathname === '/aluno/portal';
