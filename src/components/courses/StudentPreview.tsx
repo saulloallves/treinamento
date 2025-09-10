@@ -43,6 +43,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   const videoRef = useRef<HTMLVideoElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 640;
+  
   const { data: modules = [] } = useModules(courseId);
   const { data: lessons = [] } = useRecordedLessons(courseId);
   
@@ -349,7 +351,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             } aspect-[16/9] sm:aspect-[16/9] md:aspect-[16/9] lg:aspect-[16/9] min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none lg:self-start`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
-              aspectRatio: theaterMode ? undefined : (videoAspect ?? 16/9)
+              aspectRatio: theaterMode ? undefined : (isDesktop ? 16/9 : (videoAspect ?? 16/9))
             }}
           >
             {currentLesson?.video_url ? (
