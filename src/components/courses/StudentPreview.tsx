@@ -346,7 +346,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
               theaterMode 
                 ? 'flex-1' 
                 : 'w-full lg:flex-[2]'
-            } aspect-[16/9] sm:aspect-auto min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none`}
+            } aspect-[16/9] sm:aspect-[16/9] md:aspect-[16/9] lg:aspect-[16/9] min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none lg:self-start`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
               aspectRatio: theaterMode ? undefined : (videoAspect ?? 16/9)
