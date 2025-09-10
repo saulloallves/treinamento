@@ -80,11 +80,22 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   });
   
   if (requiredRole) {
+    // Admins têm acesso a todas as áreas
+    if (isAdmin) {
+      return <>{children}</>;
+    }
+    
     if (requiredRole === 'Admin' && detectedProfile !== 'Admin') {
       console.log('Redirecting to /aluno because required Admin but detected:', detectedProfile);
       return <Navigate to="/aluno" replace />;
     }
     if (requiredRole === 'Aluno' && detectedProfile !== 'Aluno') {
+      // Se é professor, vai para área do professor
+      if (detectedProfile === 'Professor') {
+        console.log('Redirecting to /professor because required Aluno but detected: Professor');
+        return <Navigate to="/professor" replace />;
+      }
+      // Se é admin, vai para dashboard
       console.log('Redirecting to /dashboard because required Aluno but detected:', detectedProfile);
       return <Navigate to="/dashboard" replace />;
     }
