@@ -1169,241 +1169,6 @@ export type Database = {
         }
         Relationships: []
       }
-      test_question_options: {
-        Row: {
-          created_at: string
-          id: string
-          option_order: number
-          option_text: string
-          question_id: string
-          score_value: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          option_order?: number
-          option_text: string
-          question_id: string
-          score_value: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          option_order?: number
-          option_text?: string
-          question_id?: string
-          score_value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "test_question_options_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "test_questions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      test_questions: {
-        Row: {
-          created_at: string
-          id: string
-          image_urls: string[] | null
-          question_order: number
-          question_text: string
-          test_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          image_urls?: string[] | null
-          question_order?: number
-          question_text: string
-          test_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          image_urls?: string[] | null
-          question_order?: number
-          question_text?: string
-          test_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "test_questions_test_id_fkey"
-            columns: ["test_id"]
-            isOneToOne: false
-            referencedRelation: "tests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      test_responses: {
-        Row: {
-          answered_at: string
-          id: string
-          question_id: string
-          score_obtained: number
-          selected_option_id: string | null
-          test_id: string
-          user_id: string
-        }
-        Insert: {
-          answered_at?: string
-          id?: string
-          question_id: string
-          score_obtained?: number
-          selected_option_id?: string | null
-          test_id: string
-          user_id: string
-        }
-        Update: {
-          answered_at?: string
-          id?: string
-          question_id?: string
-          score_obtained?: number
-          selected_option_id?: string | null
-          test_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "test_responses_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "test_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "test_responses_selected_option_id_fkey"
-            columns: ["selected_option_id"]
-            isOneToOne: false
-            referencedRelation: "test_question_options"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "test_responses_test_id_fkey"
-            columns: ["test_id"]
-            isOneToOne: false
-            referencedRelation: "tests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      test_submissions: {
-        Row: {
-          attempt_number: number
-          id: string
-          max_possible_score: number
-          passed: boolean
-          percentage: number
-          started_at: string
-          status: Database["public"]["Enums"]["submission_status"]
-          submitted_at: string | null
-          test_id: string
-          time_taken_minutes: number | null
-          total_score: number
-          user_id: string
-        }
-        Insert: {
-          attempt_number?: number
-          id?: string
-          max_possible_score?: number
-          passed?: boolean
-          percentage?: number
-          started_at?: string
-          status?: Database["public"]["Enums"]["submission_status"]
-          submitted_at?: string | null
-          test_id: string
-          time_taken_minutes?: number | null
-          total_score?: number
-          user_id: string
-        }
-        Update: {
-          attempt_number?: number
-          id?: string
-          max_possible_score?: number
-          passed?: boolean
-          percentage?: number
-          started_at?: string
-          status?: Database["public"]["Enums"]["submission_status"]
-          submitted_at?: string | null
-          test_id?: string
-          time_taken_minutes?: number | null
-          total_score?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "test_submissions_test_id_fkey"
-            columns: ["test_id"]
-            isOneToOne: false
-            referencedRelation: "tests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tests: {
-        Row: {
-          course_id: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          id: string
-          max_attempts: number | null
-          name: string
-          passing_percentage: number
-          status: Database["public"]["Enums"]["test_status"]
-          time_limit_minutes: number | null
-          turma_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          max_attempts?: number | null
-          name: string
-          passing_percentage?: number
-          status?: Database["public"]["Enums"]["test_status"]
-          time_limit_minutes?: number | null
-          turma_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          course_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          max_attempts?: number | null
-          name?: string
-          passing_percentage?: number
-          status?: Database["public"]["Enums"]["test_status"]
-          time_limit_minutes?: number | null
-          turma_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "tests_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tests_turma_id_fkey"
-            columns: ["turma_id"]
-            isOneToOne: false
-            referencedRelation: "turmas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       transformation_kanban: {
         Row: {
           course_id: string
@@ -2009,7 +1774,6 @@ export type Database = {
       approval_status: "pendente" | "aprovado" | "rejeitado"
       class_status: "criada" | "iniciada" | "encerrada"
       student_class_status: "inscrito" | "concluido" | "cancelado"
-      submission_status: "in_progress" | "completed" | "expired"
       system_module:
         | "dashboard"
         | "courses"
@@ -2022,7 +1786,6 @@ export type Database = {
         | "certificates"
         | "communication"
         | "settings"
-      test_status: "draft" | "active" | "archived"
       user_role_type: "Franqueado" | "Colaborador" | "Professor"
     }
     CompositeTypes: {
@@ -2154,7 +1917,6 @@ export const Constants = {
       approval_status: ["pendente", "aprovado", "rejeitado"],
       class_status: ["criada", "iniciada", "encerrada"],
       student_class_status: ["inscrito", "concluido", "cancelado"],
-      submission_status: ["in_progress", "completed", "expired"],
       system_module: [
         "dashboard",
         "courses",
@@ -2168,7 +1930,6 @@ export const Constants = {
         "communication",
         "settings",
       ],
-      test_status: ["draft", "active", "archived"],
       user_role_type: ["Franqueado", "Colaborador", "Professor"],
     },
   },
