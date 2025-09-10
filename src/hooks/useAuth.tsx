@@ -9,6 +9,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  // During sign-in we run extra checks; use this to avoid premature redirects
+  authProcessing: boolean;
+  // Last blocking reason (e.g., pending approval). Null when not blocked
+  lastAuthBlocked: string | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (
     email: string, 
@@ -30,6 +34,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  // Controls auth flow to avoid premature redirects/flicker
+  const [authProcessing, setAuthProcessing] = useState(false);
+  const [lastAuthBlocked, setLastAuthBlocked] = useState<string | null>(null);
+  const [suppressAuthEvents, setSuppressAuthEvents] = useState(false);
 
   useEffect(() => {
     console.log('Auth - Setting up listeners');
@@ -229,6 +237,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    setAuthProcessing(true);
+    setLastAuthBlocked(null);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -320,6 +330,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
           });
           
+          setLastAuthBlocked('Account suspended');
+          setAuthProcessing(false);
           return { error: { message: "Account suspended" } };
         }
         
@@ -331,6 +343,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
           });
           
+          setLastAuthBlocked('Cadastro em análise');
+          setAuthProcessing(false);
           return { error: { message: "Cadastro em análise" } };
         } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
           // Fazer logout imediatamente
@@ -340,6 +354,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
           });
           
+          setLastAuthBlocked('Access denied');
+          setAuthProcessing(false);
           return { error: { message: "Access denied" } };
         }
       } catch (userCheckError) {
@@ -353,6 +369,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
           });
           
+          setLastAuthBlocked('Incomplete registration');
+          setAuthProcessing(false);
           return { error: { message: "Incomplete registration" } };
         }
       }
@@ -375,6 +393,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           toast.error("Acesso Pendente de Aprovação", {
             description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
           });
+          setLastAuthBlocked('Admin pending approval');
+          setAuthProcessing(false);
           return { error: { message: "Admin pending approval" } };
         }
       } catch (e) {
@@ -385,8 +405,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.success("Login realizado com sucesso!", {
         description: "Bem-vindo de volta!",
       });
+      setLastAuthBlocked(null);
     }
 
+    setAuthProcessing(false);
     return { error };
   };
 
@@ -466,14 +488,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = {
-    user,
-    session,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-  };
+const value = {
+  user,
+  session,
+  loading,
+  authProcessing,
+  lastAuthBlocked,
+  signIn,
+  signUp,
+  signOut,
+};
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
