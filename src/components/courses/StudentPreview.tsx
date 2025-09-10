@@ -260,7 +260,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   };
 
   return (
-    <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-full sm:h-auto min-h-0 bg-gray-50 sm:bg-transparent flex flex-col overflow-hidden">
       {/* Consolidated Header Area */}
       <div className="flex-shrink-0">
         {/* Header - Mobile Responsive */}
@@ -339,8 +339,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
       </div>
 
       {/* Main Content Area - Mobile Responsive */}
-      <div className="flex-1 p-2 sm:px-1 sm:py-1 min-h-0">
-         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-3 sm:gap-1 h-full`}>
+      <div className="flex-1 sm:flex-none p-2 sm:p-0 min-h-0">
+         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-3 sm:gap-1 h-full sm:h-auto`}>
            
            {/* Video Player - Mobile First */}
           <div 

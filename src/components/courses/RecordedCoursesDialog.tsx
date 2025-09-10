@@ -645,10 +645,10 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
           previewMode
             ? [
                 // Mobile: fullscreen, no horizontal scroll, pinned to viewport
-                "p-0 w-[100vw] h-[100svh] max-w-[100vw] max-h-[100svh] overflow-x-hidden rounded-none",
+                "p-0 sm:p-0 w-[100vw] h-[100svh] max-w-[100vw] max-h-[100svh] overflow-x-hidden rounded-none",
                 "left-0 top-0 translate-x-0 translate-y-0",
-                // Desktop+: revert to centered dialog
-                "sm:w-[96vw] sm:max-w-[1600px] sm:h-[90vh] sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
+                // Desktop+: centered, height fits content up to viewport
+                "sm:w-[96vw] sm:max-w-[1600px] sm:h-auto sm:max-h-[90vh] sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
               ].join(" ")
             : [
                 // Mobile: wide, tall, pinned to viewport to avoid sideways drag
@@ -671,7 +671,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
           </DialogHeader>
         )}
 
-        <div className={previewMode ? "h-full" : "py-4 px-4 sm:px-6"}>
+        <div className={previewMode ? "h-full sm:h-auto" : "py-4 px-4 sm:px-6"}>
           {previewMode ? renderStudentPreview() : (
             <>
               {activeView === 'overview' && renderOverview()}
