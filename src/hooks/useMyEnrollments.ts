@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+
 export interface MyEnrollmentCourse {
   id: string;
   name: string;
@@ -35,16 +35,16 @@ export interface MyEnrollment {
 
 export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
   const { toast } = useToast();
-  const { user, loading } = useAuth();
+
   return useQuery<MyEnrollment[]>({
     queryKey: ["my-enrollments"],
-    enabled: !loading && !!user, // só roda quando autenticado
-    retry: 1,
     queryFn: async () => {
       try {
-        // Se não estiver autenticado, retorna lista vazia silenciosamente
-        if (!user) return [];
-        const userId = user.id;
+        const { data: userResp, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userResp.user) {
+          throw new Error("É necessário estar autenticado para listar suas inscrições.");
+        }
+        const userId = userResp.user.id;
 
         const { data: enrollments, error } = await supabase
           .from("enrollments")

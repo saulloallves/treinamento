@@ -1,3 +1,4 @@
+
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getSelectedProfile } from "@/lib/profile";
-import { useLocation } from "react-router-dom";
 
 interface BaseLayoutProps {
   title: string;
@@ -20,14 +20,10 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const isMobile = useIsMobile();
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
-  const location = useLocation();
   
-  // Determinar se deve mostrar sidebar baseado no perfil selecionado e rota atual
+  // Determinar se deve mostrar sidebar baseado no perfil selecionado
   const selectedProfile = getSelectedProfile();
-  const isStudentArea = location.pathname.startsWith('/aluno');
-  const shouldShowSidebar = !isStudentArea && (
-    selectedProfile ? (selectedProfile === 'Admin' || selectedProfile === 'Professor') : (isAdmin || isProfessor)
-  );
+  const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
@@ -36,7 +32,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         <Sidebar showInMobile={shouldShowSidebar || !showBottomNav} />
       )}
       
-      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile && shouldShowSidebar ? 'ml-64' : ''}`}>
+      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
         {/* Header responsivo */}
         <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
           <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>

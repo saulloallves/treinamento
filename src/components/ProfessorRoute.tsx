@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { getSelectedProfile } from '@/lib/profile';
 
 interface ProfessorRouteProps {
   children: ReactNode;
@@ -24,15 +23,6 @@ const ProfessorRoute = ({ children }: ProfessorRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
-  }
-
-  // Respeitar escolha do perfil
-  const selected = getSelectedProfile();
-  if (selected === 'Aluno') {
-    return <Navigate to="/aluno" replace />;
-  }
-  if (selected === 'Admin') {
-    return <Navigate to="/dashboard" replace />;
   }
 
   // Admins sempre têm acesso às rotas de professor
