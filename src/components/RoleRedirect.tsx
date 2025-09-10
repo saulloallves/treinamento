@@ -8,7 +8,7 @@ import { getAutoDetectedProfile, setSelectedProfile } from "@/lib/profile";
 import { toast } from 'sonner';
 
 const RoleRedirect = () => {
-  const { user, loading, authProcessing } = useAuth();
+  const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checking } = useIsAdmin(user?.id || undefined);
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
@@ -33,7 +33,7 @@ const RoleRedirect = () => {
   }, [user, loading, checking, checkingProfessor, loadingCurrentUser, isAdmin, isProfessor, currentUser]);
 
   // Show loading only while essential auth data is loading
-  if (loading || checking || checkingProfessor || loadingCurrentUser || authProcessing) {
+  if (loading || checking || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>

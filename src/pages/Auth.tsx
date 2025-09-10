@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 
 
 const Auth = () => {
-  const { user, signIn, signUp, loading, authProcessing } = useAuth();
+  const { user, signIn, signUp, loading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,12 +28,12 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Redireciona após autenticar: apenas quando checagens terminarem
+  // Redireciona após autenticar: sempre envia para '/', os guards decidem o destino final
   useEffect(() => {
-    if (user && !authProcessing) {
+    if (user) {
       navigate('/', { replace: true });
     }
-  }, [user, authProcessing, navigate]);
+  }, [user, navigate]);
 
   // SEO: título e descrição da página
   useEffect(() => {

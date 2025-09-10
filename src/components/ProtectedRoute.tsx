@@ -14,12 +14,12 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { user, loading, authProcessing } = useAuth();
+  const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
 
-  if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser || authProcessing) {
+  if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
