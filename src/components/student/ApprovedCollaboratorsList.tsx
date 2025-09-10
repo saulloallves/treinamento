@@ -167,18 +167,20 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
             {collaborators.map((collaborator) => (
               <div
                 key={collaborator.id}
-                className="bg-card border border-border rounded-xl p-4 hover:shadow-sm transition-shadow"
+                className="bg-card border border-border rounded-xl p-3 sm:p-4 hover:shadow-sm transition-shadow"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-semibold text-foreground">{collaborator.name}</h4>
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="flex items-start flex-wrap gap-2">
+                      <h4 className="font-semibold text-foreground text-sm sm:text-base break-words flex-1 min-w-0">
+                        {collaborator.name}
+                      </h4>
                       <Badge 
                         variant={collaborator.active ? "default" : "secondary"} 
-                        className={collaborator.active 
+                        className={`text-xs shrink-0 ${collaborator.active 
                           ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" 
                           : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
-                        }
+                        }`}
                       >
                         {collaborator.active ? (
                           <>
@@ -195,35 +197,36 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                     </div>
                     
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <span className="font-medium">Email:</span>
-                        {collaborator.email}
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        <span className="font-medium">Email:</span>{" "}
+                        <span className="break-all">{collaborator.email}</span>
                       </p>
                       {collaborator.position && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <span className="font-medium">Cargo:</span>
-                          {collaborator.position}
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          <span className="font-medium">Cargo:</span> {collaborator.position}
                         </p>
                       )}
                     </div>
                     
                     <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md w-fit">
-                      <Calendar className="h-3 w-3" />
-                      {collaborator.approved_at 
-                        ? `Aprovado em ${format(new Date(collaborator.approved_at), "dd/MM/yyyy", { locale: ptBR })}`
-                        : `Cadastrado em ${format(new Date(collaborator.created_at), "dd/MM/yyyy", { locale: ptBR })}`
-                      }
+                      <Calendar className="h-3 w-3 shrink-0" />
+                      <span className="text-xs">
+                        {collaborator.approved_at 
+                          ? `Aprovado em ${format(new Date(collaborator.approved_at), "dd/MM/yyyy", { locale: ptBR })}`
+                          : `Cadastrado em ${format(new Date(collaborator.created_at), "dd/MM/yyyy", { locale: ptBR })}`
+                        }
+                      </span>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-2 min-w-0">
+                  <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
                     {collaborator.active ? (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => pauseCollaboratorMutation.mutate(collaborator.id)}
                         disabled={pauseCollaboratorMutation.isPending}
-                        className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                        className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20 flex-1 sm:flex-none"
                       >
                         <Pause className="h-3 w-3 mr-1" />
                         Pausar
@@ -234,7 +237,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                         variant="outline"
                         onClick={() => activateCollaboratorMutation.mutate(collaborator.id)}
                         disabled={activateCollaboratorMutation.isPending}
-                        className="text-xs border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"
+                        className="text-xs border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 flex-1 sm:flex-none"
                       >
                         <Play className="h-3 w-3 mr-1" />
                         Ativar
@@ -246,26 +249,26 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10"
+                          className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10 flex-1 sm:flex-none"
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
                           Remover
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="mx-4 max-w-md">
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
-                          <AlertDialogDescription>
+                          <AlertDialogDescription className="break-words">
                             Tem certeza que deseja remover <strong>{collaborator.name}</strong>?
                             Esta ação irá excluir completamente o cadastro do colaborador e não pode ser desfeita.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
+                          <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => removeCollaboratorMutation.mutate(collaborator.id)}
                             disabled={removeCollaboratorMutation.isPending}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                           >
                             Remover
                           </AlertDialogAction>
