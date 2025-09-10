@@ -355,7 +355,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                     key={currentLesson.id}
                     controls
                     className="w-full h-full"
-                    style={{ objectFit: 'cover' }}
+                    style={{ objectFit: 'fill' }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onPlay={() => {
