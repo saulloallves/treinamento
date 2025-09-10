@@ -438,10 +438,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             className={`bg-white rounded-lg shadow-lg flex flex-col ${
               theaterMode 
                 ? 'flex-1 max-h-80' 
-                : 'flex-1 lg:w-96 lg:flex-shrink-0'
+                : 'flex-1 lg:w-96 lg:flex-shrink-0 lg:h-[600px] lg:max-h-[600px]'
             }`}
             style={{ 
-              minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '350px' : '300px'
+              minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '350px' : undefined,
+              height: theaterMode ? undefined : window.innerWidth >= 1024 ? '600px' : window.innerWidth < 768 ? '350px' : '500px'
             }}
           >
             {/* Header - Fixed */}
@@ -456,7 +457,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             </div>
             
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100% - 80px)' }}>
               <div className="p-2">
                 <Accordion 
                   type="multiple" 
