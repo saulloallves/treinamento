@@ -100,7 +100,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       variant="elevated"
     >
       {/* Cover Area */}
-      <div className="relative aspect-video">
+      <div className="relative aspect-[4/3]">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -115,8 +115,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
         {/* Course Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-white font-bold text-lg leading-tight mb-2">
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="text-white font-bold text-base leading-tight mb-1">
             {course.name}
           </h3>
           <div className="flex flex-wrap gap-1">
@@ -135,9 +135,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-4">
+      <CardContent className="flex-1 flex flex-col p-3">
         {/* Course Info */}
-        <div className="space-y-3 flex-1">
+        <div className="space-y-2 flex-1">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <BookOpen className="w-4 h-4" />
@@ -198,7 +198,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="pt-3 border-t mt-4">
+        <div className="pt-2 border-t mt-3">
           {/* Desktop: Horizontal layout */}
           <div className="flex flex-wrap gap-2">
             <Button
