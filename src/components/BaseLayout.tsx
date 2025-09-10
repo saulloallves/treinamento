@@ -23,7 +23,9 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   
   // Determinar se deve mostrar sidebar baseado no perfil selecionado
   const selectedProfile = getSelectedProfile();
-  const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
+  const shouldShowSidebar = selectedProfile
+    ? selectedProfile === 'Admin' || selectedProfile === 'Professor'
+    : (isAdmin || isProfessor);
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">

@@ -89,19 +89,18 @@ const RoleRedirect = () => {
     return <Navigate to="/aluno" replace />;
   }
 
-  // Se tem múltiplos perfis (admin + aluno/professor), verificar preferência stored
   if (isAdmin && (hasStudentProfile || isProfessor)) {
     const storedProfile = getSelectedProfile();
-    
-    // Se tem preferência armazenada e é válida para este usuário, usar ela
-    if (storedProfile === 'Admin' && isAdmin) {
+    // Default para Aluno se a pessoa entrou pela aba Login Aluno
+    const preferred = storedProfile || 'Aluno';
+
+    if (preferred === 'Admin' && isAdmin) {
       return <Navigate to="/dashboard" replace />;
-    } else if (storedProfile === 'Aluno' && hasStudentProfile) {
+    } else if (preferred === 'Aluno' && hasStudentProfile) {
       return <Navigate to="/aluno" replace />;
-    } else if (storedProfile === 'Professor' && isProfessor) {
+    } else if (preferred === 'Professor' && isProfessor) {
       return <Navigate to="/professor" replace />;
     } else {
-      // Se não tem preferência válida, ir para seleção de perfil
       return <Navigate to="/perfil" replace />;
     }
   }

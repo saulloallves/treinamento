@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { toast } from 'sonner';
+import { getSelectedProfile } from '@/lib/profile';
 
 interface AdminRouteProps {
   children: ReactNode;
@@ -26,6 +27,12 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Respeitar perfil selecionado: se o usuário escolheu "Aluno", nunca permitir entrar no admin
+  const selected = getSelectedProfile();
+  if (selected === 'Aluno') {
+    return <Navigate to="/aluno" replace />;
+  }
+
   // Check if collaborator is pending or rejected - block completely
   if (currentUser?.role === 'Colaborador' && currentUser?.approval_status !== 'aprovado') {
     const message = currentUser?.approval_status === 'pendente' 
@@ -42,7 +49,6 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return <Navigate to="/aluno" replace />;
   }
 
-  // Admin has access to all areas - no profile restriction
   return <>{children}</>;
 };
 
