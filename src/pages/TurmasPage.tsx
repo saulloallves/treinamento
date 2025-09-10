@@ -46,10 +46,22 @@ const TurmasPage = () => {
        turma.code?.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCourse = selectedCourse === "todos" || turma.course_id === selectedCourse;
-    const matchesStatus = statusFilter === "todos" || turma.status === statusFilter;
     const matchesProfessor = professorFilter === "todos" || 
       turma.responsavel_user_id === professorFilter ||
       turma.responsavel_user?.name?.toLowerCase().includes(professorFilter.toLowerCase());
+    
+    // Status filter logic
+    let matchesStatus;
+    if (statusFilter === "todos") {
+      // Default view: show only active turmas (exclude 'encerrada')
+      matchesStatus = turma.status !== 'encerrada';
+    } else if (statusFilter === "encerrada") {
+      // Archive view: show only archived turmas
+      matchesStatus = turma.status === 'encerrada';
+    } else {
+      // Specific status filter
+      matchesStatus = turma.status === statusFilter;
+    }
     
     return matchesSearch && matchesCourse && matchesStatus && matchesProfessor;
   });
@@ -122,7 +134,7 @@ const TurmasPage = () => {
         { value: 'todos', label: 'Todos' },
         { value: 'agendada', label: 'Agendada' },
         { value: 'em_andamento', label: 'Em Andamento' },
-        { value: 'encerrada', label: '🏁 Turmas Encerradas' },
+        { value: 'encerrada', label: '📁 Turmas Arquivadas' },
         { value: 'cancelada', label: 'Cancelada' }
       ]
     },
@@ -229,7 +241,7 @@ const TurmasPage = () => {
                       onClick={() => setStatusFilter('encerrada')}
                       className="text-xs"
                     >
-                      🏁 Turmas Encerradas
+                      📁 Turmas Arquivadas
                     </Button>
                     <Button
                       size="sm"
@@ -306,7 +318,7 @@ const TurmasPage = () => {
                         <SelectItem value="todos">Todos</SelectItem>
                         <SelectItem value="agendada">Agendada</SelectItem>
                         <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="encerrada">🏁 Turmas Encerradas</SelectItem>
+                        <SelectItem value="encerrada">📁 Turmas Arquivadas</SelectItem>
                         <SelectItem value="cancelada">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
