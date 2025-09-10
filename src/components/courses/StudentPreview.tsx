@@ -339,12 +339,12 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
               theaterMode 
                 ? 'flex-1' 
-                : 'w-full lg:flex-1'
+                : 'w-full lg:flex-1 aspect-video lg:aspect-auto'
             }`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
-              minHeight: theaterMode ? '40vh' : undefined,
-              aspectRatio: theaterMode ? undefined : '16/9'
+              minHeight: theaterMode ? '250px' : '200px',
+              maxHeight: theaterMode ? 'none' : '300px'
             }}
           >
             {currentLesson?.video_url ? (
