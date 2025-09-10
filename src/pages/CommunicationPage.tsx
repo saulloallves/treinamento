@@ -9,9 +9,17 @@ import { RobotIcon } from "@/components/ui/robot-icon";
 
 const CommunicationPage = () => {
   const { data: lessons = [] } = useLessonsWithSchedule();
-  const { data: dispatches = [] } = useAutomatedLessonDispatches();
+  const { data: allDispatches = [] } = useAutomatedLessonDispatches();
   
-  const activeDispatches = dispatches.filter(d => d.is_active).length;
+  // Calculate active dispatches for scheduled lessons only
+  const activeDispatches = allDispatches.filter(dispatch => {
+    // Check if the dispatch is active
+    if (!dispatch.is_active) return false;
+    
+    // Check if there's a corresponding scheduled lesson
+    return lessons.some(lesson => lesson.id === dispatch.lesson_id);
+  }).length;
+  
   const totalLessons = lessons.length;
 
   return (
