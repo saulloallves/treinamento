@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import Sidebar from "@/components/Sidebar";
 import BottomNavigation from "@/components/mobile/BottomNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsProfessor } from "@/hooks/useIsProfessor";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { getSelectedProfile } from "@/lib/profile";
 
 interface BaseLayoutProps {
   title: string;
@@ -15,16 +18,24 @@ interface BaseLayoutProps {
 const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) => {
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const { data: isProfessor } = useIsProfessor(user?.id);
+  const { data: isAdmin } = useIsAdmin(user?.id);
+  
+  // Determinar se deve mostrar sidebar baseado no perfil selecionado
+  const selectedProfile = getSelectedProfile();
+  const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
-      {/* Não mostrar sidebar no mobile quando tiver bottom navigation */}
-      {!(isMobile && showBottomNav) && <Sidebar showInMobile={!showBottomNav} />}
+      {/* Mostrar sidebar para admins/professores mesmo no mobile */}
+      {(shouldShowSidebar || !(isMobile && showBottomNav)) && (
+        <Sidebar showInMobile={shouldShowSidebar || !showBottomNav} />
+      )}
       
       <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
         {/* Header responsivo */}
         <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
-          <div className={`w-full flex justify-between items-center ${isMobile && !showBottomNav ? 'pl-12' : ''}`}>
+          <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
               <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
                 {title}
