@@ -303,13 +303,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error ensuring profile:', profileError);
       }
 
-      // Verificar se é colaborador com status pendente
+      // Verificar status do usuário (aprovação, ativo, etc.)
       try {
         const { data: userData } = await supabase
           .from('users')
-          .select('approval_status, role')
+          .select('approval_status, role, active')
           .eq('id', data.user.id)
           .single();
+        
+        // Verificar se o usuário foi pausado (inactive)
+        if (userData && userData.active === false) {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast.error("Acesso suspenso", {
+            description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
+          });
+          
+          return { error: { message: "Account suspended" } };
+        }
         
         if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
           // Fazer logout imediatamente

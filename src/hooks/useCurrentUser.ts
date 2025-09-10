@@ -24,8 +24,9 @@ export const useCurrentUser = () => {
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, user_type, role, unit_code, approval_status, phone, position')
+        .select('id, name, email, user_type, role, unit_code, approval_status, phone, position, active')
         .eq('id', user.id)
+        .eq('active', true) // Apenas usuários ativos
         .maybeSingle();
 
       if (error) {
