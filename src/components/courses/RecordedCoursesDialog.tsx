@@ -648,7 +648,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
                 "p-0 w-[100vw] h-[100svh] max-w-[100vw] max-h-[100svh] overflow-x-hidden rounded-none",
                 "left-0 top-0 translate-x-0 translate-y-0",
                 // Desktop+: revert to centered dialog
-                "sm:max-w-4xl sm:h-[85vh] sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
+                "sm:w-[90vw] sm:max-w-6xl sm:h-[85vh] sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
               ].join(" ")
             : [
                 // Mobile: wide, tall, pinned to viewport to avoid sideways drag
