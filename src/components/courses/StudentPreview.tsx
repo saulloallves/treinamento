@@ -347,7 +347,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
               theaterMode 
                 ? 'flex-1' 
-                : 'w-full lg:flex-[3]'
+                : 'w-full lg:flex-[4] xl:flex-[5]'
             } aspect-[16/9] sm:aspect-[16/9] md:aspect-[16/9] lg:aspect-[16/9] min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none lg:self-start`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
