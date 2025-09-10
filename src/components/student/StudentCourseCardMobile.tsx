@@ -110,7 +110,7 @@ export const StudentCourseCardMobile: React.FC<StudentCourseCardMobileProps> = (
             ) : (
               <Link to={`/aluno/curso/${course.id}`}>
                 <PlayCircle className="w-3 h-3 mr-1" />
-                Ver curso
+                Marcar presença
               </Link>
             )}
           </Button>

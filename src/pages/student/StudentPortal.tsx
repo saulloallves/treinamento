@@ -138,7 +138,7 @@ const StudentPortal = () => {
                       {enroll.course?.tipo === 'gravado' ? (
                         <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
                       ) : (
-                        <Link to={`/aluno/curso/${enroll.course_id}`}>Ver curso</Link>
+                        <Link to={`/aluno/curso/${enroll.course_id}`}>Marcar presença</Link>
                       )}
                     </Button>
                   )}
