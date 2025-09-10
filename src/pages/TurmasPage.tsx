@@ -68,15 +68,16 @@ const TurmasPage = () => {
 
   // Get unique professors for filter
   const professors = Array.from(
-    new Set(
+    new Map(
       (allTurmas || [])
         .filter(turma => turma.responsavel_user?.name)
-        .map(turma => ({
-          id: turma.responsavel_user_id,
-          name: turma.responsavel_user?.name
-        }))
-    )
-  );
+        .map(turma => {
+          const id = turma.responsavel_user_id;
+          const name = turma.responsavel_user?.name;
+          return [id, { id, name }];
+        })
+    ).values()
+  ).filter(professor => professor.name);
 
   const handleCreateTurma = (courseId?: string) => {
     setSelectedCourseForCreate(courseId || "");
