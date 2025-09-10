@@ -337,8 +337,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
       </div>
 
       {/* Main Content Area - Mobile Responsive */}
-      <div className="flex-1 p-1 sm:px-1 sm:py-1 min-h-0">
-         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-1 sm:gap-1 h-full`}>
+      <div className="flex-1 p-2 sm:px-1 sm:py-1 min-h-0">
+         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-3 sm:gap-1 h-full`}>
            
            {/* Video Player - Mobile First */}
           <div 
@@ -349,9 +349,9 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             }`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
-              minHeight: theaterMode ? '250px' : '300px',
-              aspectRatio: theaterMode ? undefined : (videoAspect ?? 16/9),
-              maxHeight: theaterMode ? 'none' : undefined
+              minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '200px' : '300px',
+              aspectRatio: theaterMode ? undefined : window.innerWidth < 768 ? 16/9 : (videoAspect ?? 16/9),
+              maxHeight: theaterMode ? 'none' : window.innerWidth < 768 ? '250px' : undefined
             }}
           >
             {currentLesson?.video_url ? (
@@ -441,16 +441,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                 : 'flex-1 lg:w-96 lg:flex-shrink-0'
             }`}
             style={{ 
-              minHeight: theaterMode ? '200px' : '300px'
+              minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '350px' : '300px'
             }}
           >
             {/* Header - Fixed */}
-            <div className="p-3 sm:p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg flex-shrink-0">
-              <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
-                <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <div className="p-4 sm:p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg flex-shrink-0">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-base sm:text-base">
+                <Volume2 className="w-5 h-5 sm:w-5 sm:h-5 text-blue-500" />
                 Aulas do Curso
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 {watchedLessons.size} de {lessons.length} assistidas
               </p>
             </div>
@@ -470,11 +470,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                       value={module.id}
                       className="border rounded-lg overflow-hidden"
                     >
-                      <AccordionTrigger className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
-                        <div className="flex items-start gap-2 w-full">
-                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
-                          <span className="flex-1 text-left leading-tight text-xs sm:text-sm break-words">{module.name}</span>
-                          <span className="text-xs bg-blue-200 px-1 sm:px-2 py-0.5 rounded-full flex-shrink-0">
+                      <AccordionTrigger className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
+                        <div className="flex items-start gap-3 w-full">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                          <span className="flex-1 text-left leading-relaxed text-sm sm:text-sm break-words hyphens-auto">{module.name}</span>
+                          <span className="text-xs bg-blue-200 px-2 sm:px-2 py-1 rounded-full flex-shrink-0">
                             {lessonsByModule[module.id]?.length || 0}
                           </span>
                         </div>
@@ -496,7 +496,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 }
                               }}
                               disabled={!isUnlocked || progressLoading}
-                              className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 border-b last:border-b-0 transition-all duration-200 ${
+                              className={`w-full text-left px-4 sm:px-4 py-3 sm:py-3 border-b last:border-b-0 transition-all duration-200 ${
                                 !isUnlocked || progressLoading
                                   ? 'opacity-50 cursor-not-allowed bg-gray-50' 
                                   : isCurrent 
@@ -520,7 +520,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                  <p className={`font-medium text-xs sm:text-sm leading-relaxed transition-colors break-words ${
+                                  <p className={`font-medium text-sm sm:text-sm leading-relaxed transition-colors break-words hyphens-auto ${
                                     !isUnlocked || progressLoading
                                       ? 'text-gray-400' 
                                       : isCurrent 
@@ -529,21 +529,21 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                   }`}>
                                     Aula {index + 1}: {lesson.title}
                                   </p>
-                                  <p className={`text-xs ${!isUnlocked || progressLoading ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <p className={`text-sm ${!isUnlocked || progressLoading ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
                                     {lesson.duration_minutes} minutos
                                     {!isUnlocked && index > 0 && !progressLoading && (
-                                      <span className="ml-1 sm:ml-2 text-xs bg-gray-200 px-1 sm:px-2 py-0.5 rounded-full">
+                                      <span className="ml-2 sm:ml-2 text-xs bg-gray-200 px-2 sm:px-2 py-1 rounded-full">
                                         Complete a aula anterior
                                       </span>
                                     )}
                                     {progressLoading && (
-                                      <span className="ml-1 sm:ml-2 text-xs text-blue-500">
+                                      <span className="ml-2 sm:ml-2 text-xs text-blue-500">
                                         Carregando...
                                       </span>
                                     )}
                                   </p>
                                   {lesson.description && (
-                                    <p className={`text-xs mt-1 leading-relaxed break-words ${
+                                    <p className={`text-sm mt-2 leading-relaxed break-words hyphens-auto ${
                                       !isUnlocked || progressLoading ? 'text-gray-300' : 'text-gray-400'
                                     }`}>
                                       {lesson.description}
