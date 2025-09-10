@@ -329,7 +329,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
               </Button>
             </div>
             
-            <div className="text-xs sm:text-sm opacity-75 truncate">
+            <div className="text-xs sm:text-sm opacity-75 whitespace-normal break-anywhere line-clamp-2 sm:line-clamp-1">
               {currentLesson.title} • {currentLesson.duration_minutes} min
             </div>
           </div>
@@ -471,7 +471,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                       <AccordionTrigger className="px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
                         <div className="flex items-start gap-3 w-full">
                           <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                          <span className="flex-1 text-left leading-relaxed text-sm sm:text-sm break-words hyphens-auto">{module.name}</span>
+                          <span className="flex-1 text-left leading-relaxed text-sm sm:text-sm break-words hyphens-auto break-anywhere whitespace-normal">{module.name}</span>
                           <span className="text-xs bg-blue-200 px-2 sm:px-2 py-1 rounded-full flex-shrink-0">
                             {lessonsByModule[module.id]?.length || 0}
                           </span>
@@ -518,7 +518,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                  <p className={`font-medium text-sm sm:text-sm leading-relaxed transition-colors break-words hyphens-auto ${
+                                  <p className={`font-medium text-sm sm:text-sm leading-relaxed transition-colors break-words hyphens-auto break-anywhere whitespace-normal ${
                                     !isUnlocked || progressLoading
                                       ? 'text-gray-400' 
                                       : isCurrent 
@@ -541,7 +541,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                     )}
                                   </p>
                                   {lesson.description && (
-                                    <p className={`text-sm mt-2 leading-relaxed break-words hyphens-auto ${
+                                    <p className={`text-sm mt-2 leading-relaxed break-words hyphens-auto break-anywhere whitespace-normal ${
                                       !isUnlocked || progressLoading ? 'text-gray-300' : 'text-gray-400'
                                     }`}>
                                       {lesson.description}
