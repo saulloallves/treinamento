@@ -113,38 +113,49 @@ const LessonsListMobile = () => {
         </AccordionItem>
       </Accordion>
 
-      {/* Tabs Mobile */}
+      {/* Tabs Mobile - Stack em duas linhas */}
       <Tabs defaultValue="upcoming-all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger 
-            value="upcoming-all" 
-            className="text-xs"
-            onClick={() => setLessonsFilter('upcoming')}
-          >
-            Próximas ({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="upcoming-by-course" 
-            className="text-xs"
-            onClick={() => setLessonsFilter('upcoming')}
-          >
-            Próx. por Curso
-          </TabsTrigger>
-          <TabsTrigger 
-            value="archived-all" 
-            className="text-xs"
-            onClick={() => setLessonsFilter('archived')}
-          >
-            Arquivadas ({lessonsFilter === 'archived' ? filteredLessons.length : 0})
-          </TabsTrigger>
-          <TabsTrigger 
-            value="archived-by-course" 
-            className="text-xs"
-            onClick={() => setLessonsFilter('archived')}
-          >
-            Arq. por Curso
-          </TabsTrigger>
-        </TabsList>
+        <div className="space-y-2">
+          {/* Primeira linha */}
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger 
+              value="upcoming-all" 
+              className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
+              onClick={() => setLessonsFilter('upcoming')}
+            >
+              <span className="font-medium">Próximas</span>
+              <span className="text-xs opacity-70">({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="upcoming-by-course" 
+              className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
+              onClick={() => setLessonsFilter('upcoming')}
+            >
+              <span className="font-medium">Por Curso</span>
+              <span className="text-xs opacity-70">Próximas</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Segunda linha */}
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger 
+              value="archived-all" 
+              className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
+              onClick={() => setLessonsFilter('archived')}
+            >
+              <span className="font-medium">Arquivadas</span>
+              <span className="text-xs opacity-70">({lessonsFilter === 'archived' ? filteredLessons.length : 0})</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="archived-by-course" 
+              className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
+              onClick={() => setLessonsFilter('archived')}
+            >
+              <span className="font-medium">Por Curso</span>
+              <span className="text-xs opacity-70">Arquivadas</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="upcoming-all" className="mt-4">
           {filteredLessons.length === 0 ? (
