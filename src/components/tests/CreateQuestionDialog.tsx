@@ -75,7 +75,14 @@ const CreateQuestionDialog = ({ testId, open, onOpenChange }: CreateQuestionDial
     try {
       await createQuestion.mutateAsync({
         test_id: testId,
-        ...data,
+        question_text: data.question_text,
+        question_order: data.question_order,
+        image_urls: data.image_urls,
+        options: data.options.map(option => ({
+          option_text: option.option_text,
+          score_value: option.score_value,
+          option_order: option.option_order,
+        })),
       });
       form.reset();
       onOpenChange(false);

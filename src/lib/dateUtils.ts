@@ -44,3 +44,9 @@ export const safeFormatDateTimeDetailed = (
 ): string => {
   return safeFormatDate(date, "dd/MM/yyyy 'às' HH:mm");
 };
+
+// Additional formatDate export for compatibility
+export const formatDate = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString('pt-BR');
+};

@@ -120,10 +120,10 @@ const TestResultsView = ({ testId }: TestResultsViewProps) => {
                 >
                   <div className="flex-1">
                     <h4 className="font-medium">
-                      {submission.users?.name || 'Usuário não encontrado'}
+                      {(submission as any).users?.name || 'Usuário não encontrado'}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {submission.users?.email}
+                      {(submission as any).users?.email || 'Email não disponível'}
                     </p>
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">

@@ -105,7 +105,15 @@ const EditQuestionDialog = ({ testId, questionId, open, onOpenChange }: EditQues
       await updateQuestion.mutateAsync({
         id: questionId,
         test_id: testId,
-        ...data,
+        question_text: data.question_text,
+        question_order: data.question_order,
+        image_urls: data.image_urls,
+        options: data.options.map(option => ({
+          id: option.id,
+          option_text: option.option_text,
+          score_value: option.score_value,
+          option_order: option.option_order,
+        })),
       });
       onOpenChange(false);
     } catch (error) {

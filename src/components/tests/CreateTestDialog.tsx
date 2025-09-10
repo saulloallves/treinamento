@@ -71,9 +71,14 @@ const CreateTestDialog = ({ open, onOpenChange }: CreateTestDialogProps) => {
   const onSubmit = async (data: FormData) => {
     try {
       await createTest.mutateAsync({
-        ...data,
+        name: data.name,
+        description: data.description,
         course_id: selectedTurma?.course_id || "",
-        status: 'draft',
+        turma_id: data.turma_id,
+        passing_percentage: data.passing_percentage,
+        max_attempts: data.max_attempts,
+        time_limit_minutes: data.time_limit_minutes,
+        status: 'draft' as const,
       });
       form.reset();
       setSelectedTurmaId("");
