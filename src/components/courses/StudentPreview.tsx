@@ -38,6 +38,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [theaterMode, setTheaterMode] = useState<boolean>(false);
   const [openModules, setOpenModules] = useState<string[]>([]);
+  const [videoAspect, setVideoAspect] = useState<number | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -178,13 +179,18 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   const handleVideoLoadStart = () => {
     setVideoLoading(true);
     setVideoError(false);
+    setVideoAspect(null);
   };
 
   const handleVideoCanPlay = () => {
     setVideoLoading(false);
-    // Apply playback rate
     if (videoRef.current) {
+      // Ajusta taxa de reprodução
       videoRef.current.playbackRate = playbackRate;
+      // Define o aspect ratio real do vídeo para evitar barras pretas sem cortar
+      const vw = videoRef.current.videoWidth || 16;
+      const vh = videoRef.current.videoHeight || 9;
+      if (vw && vh) setVideoAspect(vw / vh);
     }
   };
 
@@ -335,17 +341,18 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
          <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-1 sm:gap-1 h-full`}>
            
            {/* Video Player - Mobile First */}
-           <div 
-             className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
-               theaterMode 
-                 ? 'flex-1' 
-                 : 'w-full lg:flex-[2] aspect-video lg:aspect-auto'
-             }`}
-             style={{ 
-               height: theaterMode ? 'auto' : undefined,
-               minHeight: theaterMode ? '250px' : '300px',
-               maxHeight: theaterMode ? 'none' : undefined
-             }}
+          <div 
+            className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
+              theaterMode 
+                ? 'flex-1' 
+                : 'w-full lg:flex-[2]'
+            }`}
+            style={{ 
+              height: theaterMode ? 'auto' : undefined,
+              minHeight: theaterMode ? '250px' : '300px',
+              aspectRatio: theaterMode ? undefined : (videoAspect ?? 16/9),
+              maxHeight: theaterMode ? 'none' : undefined
+            }}
           >
             {currentLesson?.video_url ? (
               <>
@@ -355,7 +362,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                     key={currentLesson.id}
                     controls
                     className="w-full h-full"
-                    style={{ objectFit: 'fill' }}
+                    style={{ objectFit: 'contain' }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onPlay={() => {
