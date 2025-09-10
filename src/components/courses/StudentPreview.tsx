@@ -346,12 +346,10 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
               theaterMode 
                 ? 'flex-1' 
                 : 'w-full lg:flex-[2]'
-            }`}
+            } aspect-[16/9] sm:aspect-auto min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
-              minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '200px' : '300px',
-              aspectRatio: theaterMode ? undefined : window.innerWidth < 768 ? 16/9 : (videoAspect ?? 16/9),
-              maxHeight: theaterMode ? 'none' : window.innerWidth < 768 ? '250px' : undefined
+              aspectRatio: theaterMode ? undefined : (videoAspect ?? 16/9)
             }}
           >
             {currentLesson?.video_url ? (

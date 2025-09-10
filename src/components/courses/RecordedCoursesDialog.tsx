@@ -637,7 +637,11 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={previewMode ? "max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh] p-0" : "max-w-4xl max-h-[80vh]"}>
+      <DialogContent className={
+        previewMode
+          ? "p-0 w-screen h-screen max-w-none rounded-none sm:max-w-4xl sm:h-[85vh] sm:rounded-lg"
+          : "w-screen h-[90vh] max-w-none rounded-none sm:max-w-4xl sm:h-auto sm:rounded-lg"
+      }>
         {!previewMode && (
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
