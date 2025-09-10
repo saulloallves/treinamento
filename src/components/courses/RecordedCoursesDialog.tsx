@@ -660,7 +660,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
         }
       >
         {!previewMode && (
-          <DialogHeader className="sticky top-0 bg-background z-10 px-4 py-3 border-b sm:px-6">
+          <DialogHeader className="sticky top-0 bg-background z-10 px-4 py-3 border-b sm:static sm:top-auto sm:border-none sm:px-0 sm:py-0">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Video className="w-5 h-5" />
               Curso Gravado: {courseName}
