@@ -671,7 +671,7 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
           </DialogHeader>
         )}
 
-        <div className={previewMode ? "h-full flex flex-col" : "py-4 px-4 sm:px-6"}>
+        <div className={previewMode ? "h-full" : "py-4 px-4 sm:px-6"}>
           {previewMode ? renderStudentPreview() : (
             <>
               {activeView === 'overview' && renderOverview()}

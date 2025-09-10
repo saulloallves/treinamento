@@ -260,7 +260,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
   };
 
   return (
-    <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden sm:h-full">
+    <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Consolidated Header Area */}
       <div className="flex-shrink-0">
         {/* Header - Mobile Responsive */}
@@ -339,16 +339,16 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
       </div>
 
       {/* Main Content Area - Mobile Responsive */}
-      <div className="flex-1 p-2 sm:px-1 sm:py-1 min-h-0 sm:h-full">
+      <div className="flex-1 p-2 sm:px-1 sm:py-1 min-h-0">
          <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-3 sm:gap-1 h-full`}>
            
            {/* Video Player - Mobile First */}
-           <div 
+          <div 
             className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
               theaterMode 
                 ? 'flex-1' 
-                : 'w-full lg:flex-[4] xl:flex-[5] lg:h-full'
-            } aspect-[16/9] sm:aspect-[16/9] md:aspect-[16/9] lg:aspect-auto min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none lg:self-start`}
+                : 'w-full lg:flex-[4] xl:flex-[5]'
+            } aspect-[16/9] sm:aspect-[16/9] md:aspect-[16/9] lg:aspect-[16/9] min-h-[200px] sm:min-h-[300px] max-h-[260px] sm:max-h-none lg:self-start`}
             style={{ 
               height: theaterMode ? 'auto' : undefined,
               aspectRatio: theaterMode ? undefined : (isDesktop ? 16/9 : (videoAspect ?? 16/9))
@@ -438,7 +438,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
             className={`bg-white rounded-lg shadow-lg flex flex-col ${
               theaterMode 
                 ? 'flex-1 max-h-80' 
-                : 'flex-1 lg:w-96 lg:flex-shrink-0 lg:h-full'
+                : 'flex-1 lg:w-96 lg:flex-shrink-0'
             }`}
             style={{ 
               minHeight: theaterMode ? '200px' : window.innerWidth < 768 ? '350px' : '300px'
