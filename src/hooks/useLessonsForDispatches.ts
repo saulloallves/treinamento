@@ -32,7 +32,9 @@ export const useLessonsForDispatches = () => {
           courses!inner(name)
         `)
         .eq('status', 'Ativo')
-        .order('created_at', { ascending: false });
+        .not('zoom_start_time', 'is', null)
+        .gte('zoom_start_time', new Date().toISOString())
+        .order('zoom_start_time', { ascending: true });
 
       if (error) {
         console.error('Error fetching lessons for dispatches:', error);
