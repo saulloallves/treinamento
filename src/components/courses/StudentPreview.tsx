@@ -255,23 +255,23 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
     <div className="h-full min-h-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Consolidated Header Area */}
       <div className="flex-shrink-0">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-white shadow-sm">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={onBack}>
+        {/* Header - Mobile Responsive */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b bg-white shadow-sm gap-3 sm:gap-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button variant="outline" size="sm" onClick={onBack} className="flex-shrink-0">
               <ArrowLeft className="w-4 h-4" />
-              Voltar
+              <span className="hidden sm:inline ml-1">Voltar</span>
             </Button>
-            <div>
-              <h2 className="font-semibold text-lg text-gray-900">{courseName}</h2>
-              <p className="text-sm text-gray-600">
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold text-base sm:text-lg text-gray-900 truncate">{courseName}</h2>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
                 Progresso: {watchedLessons.size}/{lessons.length} aulas ({progressPercentage}%)
               </p>
             </div>
           </div>
           
-          <div className="bg-blue-100 px-3 py-1 rounded-full animate-fade-in">
-            <span className="text-blue-700 text-sm font-medium">👁️ Visualização do Aluno</span>
+          <div className="bg-blue-100 px-2 sm:px-3 py-1 rounded-full animate-fade-in flex-shrink-0 self-start sm:self-auto">
+            <span className="text-blue-700 text-xs sm:text-sm font-medium">👁️ Visualização</span>
           </div>
         </div>
 
@@ -283,12 +283,12 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
           />
         </div>
 
-        {/* Video Controls Bar */}
+        {/* Video Controls Bar - Mobile Responsive */}
         {currentLesson?.video_url && !videoError && (
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-900 text-white">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-900 text-white gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto">
               <Select value={playbackRate.toString()} onValueChange={handlePlaybackRateChange}>
-                <SelectTrigger className="w-20 bg-gray-800 border-gray-700">
+                <SelectTrigger className="w-16 sm:w-20 bg-gray-800 border-gray-700 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -306,40 +306,45 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                 variant="ghost" 
                 size="sm" 
                 onClick={handlePictureInPicture}
-                className="text-white hover:bg-gray-800"
+                className="text-white hover:bg-gray-800 text-xs px-2"
               >
-                <Settings className="w-4 h-4 mr-1" />
-                PiP
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">PiP</span>
               </Button>
               
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={toggleTheaterMode}
-                className={`text-white hover:bg-gray-800 ${theaterMode ? 'bg-gray-800' : ''}`}
+                className={`text-white hover:bg-gray-800 text-xs px-2 ${theaterMode ? 'bg-gray-800' : ''}`}
               >
-                <Maximize className="w-4 h-4 mr-1" />
-                Cinema
+                <Maximize className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Cinema</span>
               </Button>
             </div>
             
-            <div className="text-sm opacity-75">
+            <div className="text-xs sm:text-sm opacity-75 truncate">
               {currentLesson.title} • {currentLesson.duration_minutes} min
             </div>
           </div>
         )}
       </div>
 
-      {/* Main Content Area - Maximized Layout */}
-      <div className="px-1 py-1" style={{ height: 'calc(100vh - 160px)' }}>
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex h-full'} gap-1`}>
+      {/* Main Content Area - Mobile Responsive */}
+      <div className="flex-1 p-1 sm:px-1 sm:py-1 min-h-0">
+        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-1 sm:gap-1 h-full`}>
           
-          {/* Video Player - FIXED SIZE */}
+          {/* Video Player - Mobile First */}
           <div 
-            className={`${theaterMode ? '' : 'flex-1'} bg-black rounded-lg shadow-lg overflow-hidden`}
+            className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
+              theaterMode 
+                ? 'flex-1' 
+                : 'w-full lg:flex-1 aspect-video lg:aspect-auto'
+            }`}
             style={{ 
-              height: theaterMode ? '70%' : '100%',
-              minHeight: theaterMode ? '400px' : '300px'
+              height: theaterMode ? 'auto' : undefined,
+              minHeight: theaterMode ? '250px' : '200px',
+              maxHeight: theaterMode ? 'none' : '300px'
             }}
           >
             {currentLesson?.video_url ? (
@@ -368,10 +373,10 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                     Seu navegador não suporta o elemento de vídeo.
                   </video>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-white">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 max-w-md mx-auto border border-white/20 text-center">
-                      <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg mb-2">Vídeo não pode ser reproduzido</p>
+                  <div className="h-full flex items-center justify-center text-white p-4">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-6 max-w-sm mx-auto border border-white/20 text-center">
+                      <Play className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-base sm:text-lg mb-2">Vídeo não pode ser reproduzido</p>
                       <p className="text-sm opacity-75 mb-4">
                         Este formato não é suportado pelo navegador.
                       </p>
@@ -381,11 +386,11 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                       <div className="space-y-3">
                         <Button 
                           variant="outline"
-                          className="text-white border-white/40 hover:bg-white hover:text-black w-full"
+                          className="text-white border-white/40 hover:bg-white hover:text-black w-full text-sm"
                           onClick={() => window.open(currentLesson.video_url, '_blank')}
                         >
                           <Download className="w-4 h-4 mr-2" />
-                          Baixar vídeo ({getVideoFileName(currentLesson.video_url)})
+                          Baixar vídeo
                         </Button>
                         <Button 
                           variant="ghost"
@@ -405,36 +410,37 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                 {videoLoading && !videoError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <div className="text-white text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-2 border-white border-t-transparent mx-auto mb-2"></div>
                       <p className="text-sm">Carregando vídeo...</p>
                     </div>
                   </div>
                 )}
               </>
             ) : (
-              <div className="h-full flex items-center justify-center text-white">
+              <div className="h-full flex items-center justify-center text-white p-4">
                 <div className="text-center">
-                  <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg">Selecione uma aula para começar</p>
+                  <Play className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-base sm:text-lg">Selecione uma aula para começar</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Sidebar - Increased width for better space usage */}
+          {/* Sidebar - Mobile Responsive */}
           <div 
-            className={`bg-white rounded-lg shadow-lg flex flex-col ${theaterMode ? 'h-72' : ''}`}
+            className={`bg-white rounded-lg shadow-lg flex flex-col ${
+              theaterMode 
+                ? 'flex-1 max-h-80' 
+                : 'flex-1 lg:w-96 lg:flex-shrink-0'
+            }`}
             style={{ 
-              width: theaterMode ? '100%' : '450px',
-              height: theaterMode ? '30%' : '100%',
-              minHeight: '300px',
-              flexShrink: 0
+              minHeight: theaterMode ? '200px' : '300px'
             }}
           >
             {/* Header - Fixed */}
-            <div className="p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg flex-shrink-0">
-              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                <Volume2 className="w-5 h-5 text-blue-500" />
+            <div className="p-3 sm:p-4 border-b bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg flex-shrink-0">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
+                <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                 Aulas do Curso
               </h3>
               <p className="text-xs text-gray-500 mt-1">
@@ -442,13 +448,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
               </p>
             </div>
             
-            {/* Scrollable Content Area - THIS IS THE FIX */}
-            <div 
-              className="flex-1 overflow-y-auto" 
-              style={{ 
-                maxHeight: theaterMode ? 'calc(30vh - 100px)' : 'calc(100vh - 280px)'
-              }}
-            >
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto">
               <div className="p-2">
                 <Accordion 
                   type="multiple" 
@@ -465,8 +466,8 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                       <AccordionTrigger className="px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-150 text-sm font-medium text-blue-900 hover:no-underline">
                         <div className="flex items-start gap-2 w-full">
                           <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 flex-shrink-0"></div>
-                          <span className="flex-1 text-left leading-tight">{module.name}</span>
-                          <span className="text-xs bg-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
+                          <span className="flex-1 text-left leading-tight text-xs sm:text-sm break-words">{module.name}</span>
+                          <span className="text-xs bg-blue-200 px-1 sm:px-2 py-0.5 rounded-full flex-shrink-0">
                             {lessonsByModule[module.id]?.length || 0}
                           </span>
                         </div>
@@ -488,7 +489,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 }
                               }}
                               disabled={!isUnlocked || progressLoading}
-                              className={`w-full text-left px-4 py-3 border-b last:border-b-0 transition-all duration-200 ${
+                              className={`w-full text-left px-3 sm:px-4 py-2 sm:py-3 border-b last:border-b-0 transition-all duration-200 ${
                                 !isUnlocked || progressLoading
                                   ? 'opacity-50 cursor-not-allowed bg-gray-50' 
                                   : isCurrent 
@@ -496,23 +497,23 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                     : 'hover:bg-gray-50 hover:shadow-sm'
                               }`}
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3">
                                 <div className="flex-shrink-0">
                                   {progressLoading ? (
-                                    <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+                                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
                                   ) : !isUnlocked ? (
-                                    <Lock className="w-5 h-5 text-gray-400" />
+                                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                                   ) : isWatched ? (
-                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                                   ) : (
-                                    <Circle className={`w-5 h-5 transition-colors ${
+                                    <Circle className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
                                       isCurrent ? 'text-blue-500' : 'text-gray-400'
                                     }`} />
                                   )}
                                 </div>
                                 
-                                <div className="flex-1">
-                                  <p className={`font-medium text-sm leading-relaxed transition-colors ${
+                                <div className="flex-1 min-w-0">
+                                  <p className={`font-medium text-xs sm:text-sm leading-relaxed transition-colors break-words ${
                                     !isUnlocked || progressLoading
                                       ? 'text-gray-400' 
                                       : isCurrent 
@@ -524,18 +525,18 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                   <p className={`text-xs ${!isUnlocked || progressLoading ? 'text-gray-400' : 'text-gray-500'}`}>
                                     {lesson.duration_minutes} minutos
                                     {!isUnlocked && index > 0 && !progressLoading && (
-                                      <span className="ml-2 text-xs bg-gray-200 px-2 py-0.5 rounded-full">
+                                      <span className="ml-1 sm:ml-2 text-xs bg-gray-200 px-1 sm:px-2 py-0.5 rounded-full">
                                         Complete a aula anterior
                                       </span>
                                     )}
                                     {progressLoading && (
-                                      <span className="ml-2 text-xs text-blue-500">
-                                        Carregando progresso...
+                                      <span className="ml-1 sm:ml-2 text-xs text-blue-500">
+                                        Carregando...
                                       </span>
                                     )}
                                   </p>
                                   {lesson.description && (
-                                    <p className={`text-xs mt-1 leading-relaxed ${
+                                    <p className={`text-xs mt-1 leading-relaxed break-words ${
                                       !isUnlocked || progressLoading ? 'text-gray-300' : 'text-gray-400'
                                     }`}>
                                       {lesson.description}
@@ -544,7 +545,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                 </div>
                                 
                                 {(isCurrent && isUnlocked && !progressLoading) || (isUnlocked && !isWatched) ? (
-                                  <div className="flex-shrink-0 flex items-center gap-2">
+                                  <div className="flex-shrink-0 flex items-center gap-1 sm:gap-2">
                                     {isCurrent && isUnlocked && !progressLoading && (
                                       <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                                     )}
@@ -552,7 +553,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                                       <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="px-2 py-1 text-xs hover:bg-green-100 hover:text-green-700"
+                                        className="px-1 sm:px-2 py-1 text-xs hover:bg-green-100 hover:text-green-700"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           markLessonCompletedManually(lesson.id);
@@ -570,7 +571,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                         })}
                         
                         {(!lessonsByModule[module.id] || lessonsByModule[module.id].length === 0) && (
-                          <div className="p-4 text-center text-gray-500 text-sm">
+                          <div className="p-3 sm:p-4 text-center text-gray-500 text-sm">
                             Nenhuma aula neste módulo
                           </div>
                         )}
@@ -580,10 +581,10 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                 </Accordion>
                 
                 {lessons.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    <Volume2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p>Nenhuma aula encontrada</p>
-                    <p className="text-sm">Adicione aulas para visualizar o curso</p>
+                  <div className="p-6 sm:p-8 text-center text-gray-500">
+                    <Volume2 className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-sm sm:text-base">Nenhuma aula encontrada</p>
+                    <p className="text-xs sm:text-sm">Adicione aulas para visualizar o curso</p>
                   </div>
                 )}
               </div>
