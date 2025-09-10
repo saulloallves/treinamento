@@ -637,11 +637,25 @@ const RecordedCoursesDialog = ({ courseId, courseName, open, onOpenChange, viewO
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={
-        previewMode
-          ? "p-0 w-screen h-screen max-w-none rounded-none sm:max-w-4xl sm:h-[85vh] sm:rounded-lg"
-          : "w-screen h-[90vh] max-w-none rounded-none sm:max-w-4xl sm:h-auto sm:rounded-lg"
-      }>
+      <DialogContent
+        className={
+          previewMode
+            ? [
+                // Mobile: fullscreen, no horizontal scroll, pinned to viewport
+                "p-0 w-[100vw] h-[100svh] max-w-[100vw] max-h-[100svh] overflow-x-hidden rounded-none",
+                "left-0 top-0 translate-x-0 translate-y-0",
+                // Desktop+: revert to centered dialog
+                "sm:max-w-4xl sm:h-[85vh] sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
+              ].join(" ")
+            : [
+                // Mobile: wide, tall, pinned to viewport to avoid sideways drag
+                "w-[100vw] h-[90vh] max-w-[100vw] overflow-x-hidden rounded-none",
+                "left-0 top-0 translate-x-0 translate-y-0",
+                // Desktop+: standard centered dialog
+                "sm:max-w-4xl sm:h-auto sm:rounded-lg sm:left-1/2 sm:top-1/2 sm:translate-x-[-50%] sm:translate-y-[-50%]",
+              ].join(" ")
+        }
+      >
         {!previewMode && (
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
