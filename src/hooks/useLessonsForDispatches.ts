@@ -25,6 +25,8 @@ export const useLessonsForDispatches = () => {
   return useQuery({
     queryKey: ['lessons-for-dispatches'],
     queryFn: async () => {
+      const now = new Date();
+      
       const { data: lessons, error } = await supabase
         .from('lessons')
         .select(`
@@ -33,7 +35,6 @@ export const useLessonsForDispatches = () => {
         `)
         .eq('status', 'Ativo')
         .not('zoom_start_time', 'is', null)
-        .gte('zoom_start_time', new Date().toISOString())
         .order('zoom_start_time', { ascending: true });
 
       if (error) {
@@ -46,7 +47,16 @@ export const useLessonsForDispatches = () => {
         throw error;
       }
 
-      return lessons.map(lesson => ({
+      // Filter lessons that haven't finished yet (current time <= start time + duration)
+      const activeLessons = lessons?.filter(lesson => {
+        const lessonStart = new Date(lesson.zoom_start_time);
+        const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes if not specified
+        const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000); // Add duration in milliseconds
+        
+        return now <= lessonEnd; // Show until the lesson ends
+      }) || [];
+
+      return activeLessons.map(lesson => ({
         ...lesson,
         course_name: lesson.courses.name
       })) as LessonForDispatch[];

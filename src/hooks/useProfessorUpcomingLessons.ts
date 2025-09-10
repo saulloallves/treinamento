@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, addDays, startOfDay, endOfDay } from "date-fns";
+import { format, addDays, startOfDay, endOfDay, addMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export interface UpcomingLesson {
@@ -41,7 +41,8 @@ export const useProfessorUpcomingLessons = () => {
           status,
           lessons (
             id,
-            title
+            title,
+            duration_minutes
           ),
           turmas (
             id,
@@ -54,7 +55,6 @@ export const useProfessorUpcomingLessons = () => {
             )
           )
         `)
-        .gte('scheduled_at', startOfDay(now).toISOString())
         .lte('scheduled_at', endOfDay(nextWeek).toISOString())
         .eq('status', 'agendada')
         .order('scheduled_at', { ascending: true });
@@ -65,10 +65,17 @@ export const useProfessorUpcomingLessons = () => {
 
       // Process lesson sessions if available
       if (sessions && sessions.length > 0) {
-        // Filter only sessions from turmas where the user is responsible
-        const professorSessions = sessions.filter(session => 
-          session.turmas?.responsavel_user_id === user.id
-        );
+        // Filter only sessions from turmas where the user is responsible and not finished yet
+        const professorSessions = sessions.filter(session => {
+          if (session.turmas?.responsavel_user_id !== user.id) return false;
+          
+          // Check if the lesson has finished (current time > start time + duration)
+          const sessionStart = new Date(session.scheduled_at);
+          const sessionDuration = session.lessons?.duration_minutes || 60; // Default 60 minutes if not specified
+          const sessionEnd = addMinutes(sessionStart, sessionDuration);
+          
+          return now <= sessionEnd; // Show until the lesson ends
+        });
 
         for (const session of professorSessions) {
           if (!session.turmas || !session.lessons) continue;
@@ -105,6 +112,7 @@ export const useProfessorUpcomingLessons = () => {
           .select(`
             id,
             title,
+            duration_minutes,
             zoom_start_time,
             zoom_join_url,
             zoom_start_url,
@@ -116,7 +124,6 @@ export const useProfessorUpcomingLessons = () => {
             )
           `)
           .not('zoom_start_time', 'is', null)
-          .gte('zoom_start_time', startOfDay(now).toISOString())
           .lte('zoom_start_time', endOfDay(nextWeek).toISOString())
           .eq('status', 'Ativo')
           .order('zoom_start_time', { ascending: true });
@@ -136,6 +143,13 @@ export const useProfessorUpcomingLessons = () => {
           for (const lesson of lessons) {
             // Check if this lesson belongs to a course the professor teaches
             if (!professorCourseIds.includes(lesson.course_id)) continue;
+
+            // Check if the lesson has finished (current time > start time + duration)
+            const lessonStart = new Date(lesson.zoom_start_time);
+            const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes if not specified
+            const lessonEnd = addMinutes(lessonStart, lessonDuration);
+            
+            if (now > lessonEnd) continue; // Skip lessons that have finished
 
             // Find the turma for this course
             const turma = professorTurmas?.find(t => t.course_id === lesson.course_id);
