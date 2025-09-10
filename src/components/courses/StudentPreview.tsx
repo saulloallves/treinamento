@@ -332,20 +332,20 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
 
       {/* Main Content Area - Mobile Responsive */}
       <div className="flex-1 p-1 sm:px-1 sm:py-1 min-h-0">
-        <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-1 sm:gap-1 h-full`}>
-          
-          {/* Video Player - Mobile First */}
-          <div 
-            className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
-              theaterMode 
-                ? 'flex-1' 
-                : 'w-full lg:flex-1 aspect-video lg:aspect-auto'
-            }`}
-            style={{ 
-              height: theaterMode ? 'auto' : undefined,
-              minHeight: theaterMode ? '250px' : '200px',
-              maxHeight: theaterMode ? 'none' : '300px'
-            }}
+         <div className={`${theaterMode ? 'flex flex-col h-full' : 'flex flex-col lg:flex-row h-full'} gap-1 sm:gap-1 h-full`}>
+           
+           {/* Video Player - Mobile First */}
+           <div 
+             className={`bg-black rounded-lg shadow-lg overflow-hidden relative ${
+               theaterMode 
+                 ? 'flex-1' 
+                 : 'w-full lg:flex-[2] aspect-video lg:aspect-auto'
+             }`}
+             style={{ 
+               height: theaterMode ? 'auto' : undefined,
+               minHeight: theaterMode ? '250px' : '300px',
+               maxHeight: theaterMode ? 'none' : undefined
+             }}
           >
             {currentLesson?.video_url ? (
               <>
@@ -355,7 +355,7 @@ const StudentPreview = ({ courseId, courseName, onBack, initialLessonId, enableP
                     key={currentLesson.id}
                     controls
                     className="w-full h-full"
-                    style={{ objectFit: 'contain' }}
+                    style={{ objectFit: 'cover' }}
                     onLoadStart={handleVideoLoadStart}
                     onCanPlay={handleVideoCanPlay}
                     onPlay={() => {
