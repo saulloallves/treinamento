@@ -108,10 +108,9 @@ serve(async (req: Request) => {
     // 2. CREATE AUTOMATED DISPATCHES FOR UPCOMING LESSONS
     console.log('Checking for upcoming lessons needing automated dispatches...')
     
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
-    const tenMinutesFromNow = new Date(now.getTime() + 10 * 60 * 1000)
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000)
 
-    // Get lessons with zoom_start_time in the next hour
+    // Get lessons with zoom_start_time in the next 2 hours and 30 minutes
     const { data: upcomingLessons, error: lessonsError } = await supabase
       .from('lessons')
       .select(`
@@ -125,7 +124,7 @@ serve(async (req: Request) => {
       .not('zoom_start_time', 'is', null)
       .eq('status', 'Ativo')
       .gte('zoom_start_time', now.toISOString())
-      .lte('zoom_start_time', oneHourFromNow.toISOString())
+      .lte('zoom_start_time', twoHoursFromNow.toISOString())
 
     if (lessonsError) {
       console.error('Error fetching upcoming lessons:', lessonsError)
@@ -138,13 +137,13 @@ serve(async (req: Request) => {
         const minutesUntil = Math.floor(timeUntilLesson / (1000 * 60))
 
         // Determine which dispatch types to check
-        let dispatchTypes: Array<'1_hour_before' | '10_minutes_before'> = []
+        let dispatchTypes: Array<'2_hours_before' | '30_minutes_before'> = []
         
-        if (minutesUntil <= 65 && minutesUntil > 55) {
-          dispatchTypes.push('1_hour_before')
+        if (minutesUntil <= 130 && minutesUntil > 110) {
+          dispatchTypes.push('2_hours_before')
         }
-        if (minutesUntil <= 15 && minutesUntil > 5) {
-          dispatchTypes.push('10_minutes_before')
+        if (minutesUntil <= 35 && minutesUntil > 25) {
+          dispatchTypes.push('30_minutes_before')
         }
 
         for (const dispatchType of dispatchTypes) {
@@ -169,8 +168,8 @@ serve(async (req: Request) => {
               .select('id')
               .eq('type', 'aula')
               .eq('item_id', lesson.id)
-              .gte('created_at', new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()) // Last 2 hours
-              .ilike('message', `%${dispatchType === '1_hour_before' ? '1 hora' : '10 minutos'}%`)
+              .gte('created_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString()) // Last 3 hours
+              .ilike('message', `%${dispatchType === '2_hours_before' ? '2 horas' : '30 minutos'}%`)
               .single()
 
             if (existingDispatch) {
@@ -182,6 +181,7 @@ serve(async (req: Request) => {
             const message = automatedConfig.message_template
               .replace(/{titulo}/g, lesson.title)
               .replace(/{link}/g, lesson.zoom_join_url || '')
+              .replace(/{horario}/g, new Date(lesson.zoom_start_time).toLocaleString('pt-BR'))
 
             console.log(`Creating ${dispatchType} dispatch for lesson: ${lesson.title}`)
 
@@ -196,7 +196,8 @@ serve(async (req: Request) => {
                 is_scheduled: false,
                 processed: false,
                 status: 'pendente',
-                sent_date: now.toISOString()
+                sent_date: now.toISOString(),
+                recipients_count: 0
               })
               .select()
               .single()
