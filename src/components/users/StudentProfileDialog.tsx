@@ -123,12 +123,12 @@ export const StudentProfileDialog = ({ student, open, onOpenChange }: StudentPro
         </DialogHeader>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="personal">Dados Pessoais</TabsTrigger>
-            <TabsTrigger value="courses">Cursos ({totalCourses})</TabsTrigger>
-            <TabsTrigger value="attendance">Presenças ({totalAttendances})</TabsTrigger>
-            <TabsTrigger value="certificates">Certificados ({totalCertificates})</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            <TabsTrigger value="personal" className="text-xs sm:text-sm">Dados Pessoais</TabsTrigger>
+            <TabsTrigger value="courses" className="text-xs sm:text-sm">Cursos ({totalCourses})</TabsTrigger>
+            <TabsTrigger value="attendance" className="text-xs sm:text-sm">Presenças ({totalAttendances})</TabsTrigger>
+            <TabsTrigger value="certificates" className="text-xs sm:text-sm">Certificados ({totalCertificates})</TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
