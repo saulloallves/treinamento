@@ -1209,24 +1209,30 @@ export type Database = {
           created_at: string
           id: string
           image_urls: string[] | null
+          max_score: number | null
           question_order: number
           question_text: string
+          question_type: string
           test_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          max_score?: number | null
           question_order?: number
           question_text: string
+          question_type?: string
           test_id: string
         }
         Update: {
           created_at?: string
           id?: string
           image_urls?: string[] | null
+          max_score?: number | null
           question_order?: number
           question_text?: string
+          question_type?: string
           test_id?: string
         }
         Relationships: [

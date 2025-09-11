@@ -6,6 +6,8 @@ export interface TestQuestion {
   test_id: string;
   question_text: string;
   question_order: number;
+  question_type: 'multiple_choice' | 'essay';
+  max_score?: number;
   image_urls?: string[];
   created_at: string;
   options?: TestQuestionOption[];
@@ -24,6 +26,8 @@ export interface CreateQuestionData {
   test_id: string;
   question_text: string;
   question_order: number;
+  question_type: 'multiple_choice' | 'essay';
+  max_score?: number;
   image_urls?: string[];
   options: Omit<TestQuestionOption, 'id' | 'question_id' | 'created_at'>[];
 }
@@ -64,6 +68,8 @@ export const useTestQuestions = (testId?: string | null) => {
           test_id: questionData.test_id,
           question_text: questionData.question_text,
           question_order: questionData.question_order,
+          question_type: questionData.question_type,
+          max_score: questionData.max_score,
           image_urls: questionData.image_urls || []
         })
         .select()

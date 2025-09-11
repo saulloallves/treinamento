@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useTests } from "@/hooks/useTests";
 import { useTestQuestions } from "@/hooks/useTestQuestions";
@@ -57,6 +58,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
         test_id: testId,
         question_text: "Nova pergunta",
         question_order: (questions?.length || 0) + 1,
+        question_type: 'multiple_choice',
         image_urls: [],
         options: [
           { option_text: "Resposta errada", score_value: 0, option_order: 1 },
@@ -246,6 +248,28 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                   
                   <CardContent className="space-y-3">
                     <div className="space-y-2">
+                      <Label>Tipo de Pergunta</Label>
+                      <Select 
+                        value={question.question_type} 
+                        onValueChange={(value: 'multiple_choice' | 'essay') => {
+                          updateQuestion({
+                            id: question.id,
+                            question_type: value,
+                            max_score: value === 'essay' ? 10 : undefined
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
+                          <SelectItem value="essay">Dissertativa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label>Texto da Pergunta</Label>
                       <Textarea
                         value={question.question_text}
@@ -276,63 +300,90 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                       </div>
                     )}
 
-                    <div className="space-y-3">
-                      <Label>Alternativas (Sistema de Pontuação)</Label>
+                    {question.question_type === 'multiple_choice' ? (
                       <div className="space-y-3">
-                        {question.options?.map((option, optionIndex) => (
-                          <div key={option.id || optionIndex} className="border rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <Label className="text-sm font-medium">
-                                Alternativa {String.fromCharCode(65 + optionIndex)} - 
-                                <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                                  option.score_value === 0 ? 'bg-red-100 text-red-800' :
-                                  option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-green-100 text-green-800'
-                                }`}>
-                                  {option.score_value === 0 ? 'Errada (0 pts)' :
-                                   option.score_value === 1 ? 'Mediana (1 pt)' :
-                                   'Correta (2 pts)'}
-                                </span>
-                              </Label>
+                        <Label>Alternativas (Sistema de Pontuação)</Label>
+                        <div className="space-y-3">
+                          {question.options?.map((option, optionIndex) => (
+                            <div key={option.id || optionIndex} className="border rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <Label className="text-sm font-medium">
+                                  Alternativa {String.fromCharCode(65 + optionIndex)} - 
+                                  <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                    option.score_value === 0 ? 'bg-red-100 text-red-800' :
+                                    option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-green-100 text-green-800'
+                                  }`}>
+                                    {option.score_value === 0 ? 'Errada (0 pts)' :
+                                     option.score_value === 1 ? 'Mediana (1 pt)' :
+                                     'Correta (2 pts)'}
+                                  </span>
+                                </Label>
+                              </div>
+                              <Input
+                                value={option.option_text}
+                                onChange={(e) => {
+                                  const updatedOptions = question.options?.map(opt => 
+                                    opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
+                                  ) || [];
+                                  updateQuestion({
+                                    id: question.id,
+                                    options: updatedOptions
+                                  });
+                                }}
+                                placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
+                              />
                             </div>
+                          )) || (
+                            <div className="space-y-2">
+                              <div className="border rounded-lg p-3">
+                                <Label className="text-sm font-medium mb-2 block">
+                                  Alternativa A - <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Errada (0 pts)</span>
+                                </Label>
+                                <Input placeholder="Digite a alternativa errada..." />
+                              </div>
+                              <div className="border rounded-lg p-3">
+                                <Label className="text-sm font-medium mb-2 block">
+                                  Alternativa B - <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Mediana (1 pt)</span>
+                                </Label>
+                                <Input placeholder="Digite a alternativa mediana..." />
+                              </div>
+                              <div className="border rounded-lg p-3">
+                                <Label className="text-sm font-medium mb-2 block">
+                                  Alternativa C - <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Correta (2 pts)</span>
+                                </Label>
+                                <Input placeholder="Digite a alternativa correta..." />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Label>Configuração da Pergunta Dissertativa</Label>
+                        <div className="border rounded-lg p-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Pontuação Máxima</Label>
                             <Input
-                              value={option.option_text}
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={question.max_score || 10}
                               onChange={(e) => {
-                                const updatedOptions = question.options?.map(opt => 
-                                  opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
-                                ) || [];
                                 updateQuestion({
                                   id: question.id,
-                                  options: updatedOptions
+                                  max_score: parseInt(e.target.value) || 10
                                 });
                               }}
-                              placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
+                              placeholder="Ex: 10"
                             />
+                            <p className="text-xs text-muted-foreground">
+                              Esta pergunta será avaliada manualmente e pode receber até {question.max_score || 10} pontos.
+                            </p>
                           </div>
-                        )) || (
-                          <div className="space-y-2">
-                            <div className="border rounded-lg p-3">
-                              <Label className="text-sm font-medium mb-2 block">
-                                Alternativa A - <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Errada (0 pts)</span>
-                              </Label>
-                              <Input placeholder="Digite a alternativa errada..." />
-                            </div>
-                            <div className="border rounded-lg p-3">
-                              <Label className="text-sm font-medium mb-2 block">
-                                Alternativa B - <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Mediana (1 pt)</span>
-                              </Label>
-                              <Input placeholder="Digite a alternativa mediana..." />
-                            </div>
-                            <div className="border rounded-lg p-3">
-                              <Label className="text-sm font-medium mb-2 block">
-                                Alternativa C - <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Correta (2 pts)</span>
-                              </Label>
-                              <Input placeholder="Digite a alternativa correta..." />
-                            </div>
-                          </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <Separator />
                     
