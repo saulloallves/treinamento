@@ -6,8 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useTests } from "@/hooks/useTests";
+import { useUnidades } from "@/hooks/useUnidades";
+import { useTestReports } from "@/hooks/useTestReports";
 
 export const TestsReports = () => {
+  const { data: tests = [] } = useTests();
+  const { data: unidades = [] } = useUnidades();
+  const { data: testReports = [] } = useTestReports();
+
   const [filters, setFilters] = useState({
     testId: "all",
     unitCode: "all",
@@ -28,32 +35,7 @@ export const TestsReports = () => {
     { value: "questions", label: "Análise de Questões", description: "Performance por questão" }
   ];
 
-  const predefinedReports = [
-    {
-      title: "Relatório Mensal - Janeiro 2024",
-      description: "Desempenho geral de todos os testes em Janeiro",
-      tests: 8,
-      students: 125,
-      passRate: 78.5,
-      generatedAt: "2024-01-31"
-    },
-    {
-      title: "Performance por Unidade - Q4 2023",
-      description: "Comparativo entre todas as lojas no último trimestre",
-      tests: 15,
-      students: 234,
-      passRate: 82.1,
-      generatedAt: "2024-01-05"
-    },
-    {
-      title: "Evolução de Alunos - Programa Vendas",
-      description: "Acompanhamento da evolução nos testes de vendas",
-      tests: 6,
-      students: 89,
-      passRate: 85.3,
-      generatedAt: "2024-01-20"
-    }
-  ];
+  // Usar dados reais de relatórios
 
   return (
     <div className="space-y-6">
@@ -98,9 +80,11 @@ export const TestsReports = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os testes</SelectItem>
-                  <SelectItem value="test1">Avaliação de Vendas</SelectItem>
-                  <SelectItem value="test2">Teste de Atendimento</SelectItem>
-                  <SelectItem value="test3">Avaliação Técnica</SelectItem>
+                  {tests.map((test) => (
+                    <SelectItem key={test.id} value={test.id}>
+                      {test.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -115,9 +99,11 @@ export const TestsReports = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as unidades</SelectItem>
-                  <SelectItem value="centro">Loja Centro</SelectItem>
-                  <SelectItem value="norte">Loja Norte</SelectItem>
-                  <SelectItem value="sul">Loja Sul</SelectItem>
+                  {unidades.map((unidade) => (
+                    <SelectItem key={unidade.id || unidade.codigo_grupo} value={unidade.codigo_grupo?.toString() || unidade.id}>
+                      {unidade.grupo || `Unidade ${unidade.codigo_grupo}`}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -175,7 +161,13 @@ export const TestsReports = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {predefinedReports.map((report, index) => (
+            {testReports.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Nenhum relatório disponível ainda.</p>
+                <p className="text-sm">Os relatórios aparecerão aqui conforme os testes forem realizados.</p>
+              </div>
+            ) : (
+              testReports.map((report, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
@@ -204,11 +196,12 @@ export const TestsReports = () => {
                     {report.students} alunos
                   </div>
                   <Badge variant="outline">
-                    {report.passRate}% aprovação
+                    {report.passRate.toFixed(1)}% aprovação
                   </Badge>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
