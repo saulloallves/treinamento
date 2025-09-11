@@ -130,13 +130,15 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTe
               </SelectTrigger>
               <SelectContent>
                 {loadingTurmas ? (
-                  <SelectItem value="" disabled>Carregando turmas...</SelectItem>
-                ) : (
-                  turmas?.map((turma) => (
+                  <SelectItem value="loading" disabled>Carregando turmas...</SelectItem>
+                ) : turmas && turmas.length > 0 ? (
+                  turmas.map((turma) => (
                     <SelectItem key={turma.id} value={turma.id}>
                       {turma.name} - {turma.code}
                     </SelectItem>
                   ))
+                ) : (
+                  <SelectItem value="no-turmas" disabled>Nenhuma turma encontrada</SelectItem>
                 )}
               </SelectContent>
             </Select>
