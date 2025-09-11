@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTests } from "@/hooks/useTests";
 import { ManageTestDialog } from "./ManageTestDialog";
 import { TestResultsDialog } from "./TestResultsDialog";
-import { CreateTestDialog } from "./CreateTestDialog";
+import { SimpleCreateTestDialog } from "./SimpleCreateTestDialog";
 
 interface TestsListProps {
   refreshTrigger: number;
@@ -72,7 +72,10 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
           <p className="text-muted-foreground text-center mb-4">
             Comece criando seu primeiro teste avaliativo
           </p>
-          <Button onClick={() => setCreateDialogOpen(true)}>Criar Primeiro Teste</Button>
+          <Button onClick={() => {
+            console.log("Button clicked, setting dialog to true");
+            setCreateDialogOpen(true);
+          }}>Criar Primeiro Teste</Button>
         </CardContent>
       </Card>
     );
@@ -180,7 +183,7 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
         onOpenChange={setResultsDialogOpen}
       />
 
-      <CreateTestDialog
+      <SimpleCreateTestDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onTestCreated={() => {
