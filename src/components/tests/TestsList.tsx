@@ -72,7 +72,10 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
           <p className="text-muted-foreground text-center mb-4">
             Comece criando seu primeiro teste avaliativo
           </p>
-          <Button onClick={() => setCreateDialogOpen(true)}>Criar Primeiro Teste</Button>
+          <Button onClick={() => {
+            console.log("Criar Primeiro Teste button clicked");
+            setCreateDialogOpen(true);
+          }}>Criar Primeiro Teste</Button>
         </CardContent>
       </Card>
     );

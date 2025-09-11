@@ -22,6 +22,8 @@ interface CreateTestDialogProps {
 }
 
 export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTestDialogProps) => {
+  console.log("CreateTestDialog rendered with open:", open);
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
