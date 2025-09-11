@@ -70,12 +70,8 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Nenhum teste encontrado</h3>
           <p className="text-muted-foreground text-center mb-4">
-            Comece criando seu primeiro teste avaliativo
+            Use o botão "Criar Novo Teste" no canto superior direito para começar
           </p>
-          <Button onClick={() => {
-            console.log("Button clicked, setting dialog to true");
-            setCreateDialogOpen(true);
-          }}>Criar Primeiro Teste</Button>
         </CardContent>
       </Card>
     );
@@ -183,14 +179,6 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
         onOpenChange={setResultsDialogOpen}
       />
 
-      <SimpleCreateTestDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onTestCreated={() => {
-          setCreateDialogOpen(false);
-          onCreateTest?.();
-        }}
-      />
     </>
   );
 };
