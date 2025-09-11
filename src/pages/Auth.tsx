@@ -30,10 +30,12 @@ const Auth = () => {
 
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
-    if (user && !authProcessing) {
+    console.log('Auth.tsx - Checking redirect:', { user: !!user, authProcessing, loading });
+    if (user && !authProcessing && !loading) {
+      console.log('Auth.tsx - Redirecting to /');
       navigate('/', { replace: true });
     }
-  }, [user, authProcessing, navigate]);
+  }, [user, authProcessing, loading, navigate]);
 
   // SEO: título e descrição da página
   useEffect(() => {

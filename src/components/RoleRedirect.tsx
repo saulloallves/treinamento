@@ -28,12 +28,14 @@ const RoleRedirect = () => {
       loadingCurrentUser,
       isAdmin,
       isProfessor,
-      currentUser: !!currentUser
+      currentUser: !!currentUser,
+      authProcessing
     });
-  }, [user, loading, checking, checkingProfessor, loadingCurrentUser, isAdmin, isProfessor, currentUser]);
+  }, [user, loading, checking, checkingProfessor, loadingCurrentUser, isAdmin, isProfessor, currentUser, authProcessing]);
 
   // Show loading only while essential auth data is loading
   if (loading || checking || checkingProfessor || loadingCurrentUser || authProcessing) {
+    console.log('RoleRedirect - Still loading:', { loading, checking, checkingProfessor, loadingCurrentUser, authProcessing });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -66,6 +68,7 @@ const RoleRedirect = () => {
 
   // Se o usuário tem múltiplos perfis (admin + aluno/professor), verificar preferência
   if (isAdmin && (hasStudentProfile || isProfessor)) {
+    console.log('RoleRedirect - Admin with multiple profiles, redirecting to:', detectedProfile);
     if (detectedProfile === 'Admin') {
       return <Navigate to="/dashboard" replace />;
     } else if (detectedProfile === 'Aluno') {
@@ -79,6 +82,7 @@ const RoleRedirect = () => {
 
   // Se só é admin, vai para dashboard
   if (isAdmin && !hasStudentProfile && !isProfessor) {
+    console.log('RoleRedirect - Admin only, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
