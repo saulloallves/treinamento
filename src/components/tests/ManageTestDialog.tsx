@@ -249,7 +249,12 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                       <Label>Texto da Pergunta</Label>
                       <Textarea
                         value={question.question_text}
-                        onChange={(e) => {/* Handle update */}}
+                        onChange={(e) => {
+                          updateQuestion({
+                            id: question.id,
+                            question_text: e.target.value
+                          });
+                        }}
                         rows={2}
                       />
                     </div>
@@ -271,26 +276,108 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                       </div>
                     )}
 
-                    <div className="space-y-2">
-                      <Label>Alternativas</Label>
-                      <div className="space-y-2">
-                        {/* Render options here */}
-                        <div className="text-sm text-muted-foreground">
-                          {question.options?.length || 3} alternativas configuradas
-                        </div>
+                    <div className="space-y-3">
+                      <Label>Alternativas (Sistema de Pontuação)</Label>
+                      <div className="space-y-3">
+                        {question.options?.map((option, optionIndex) => (
+                          <div key={option.id || optionIndex} className="border rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="text-sm font-medium">
+                                Alternativa {String.fromCharCode(65 + optionIndex)} - 
+                                <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                  option.score_value === 0 ? 'bg-red-100 text-red-800' :
+                                  option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {option.score_value === 0 ? 'Errada (0 pts)' :
+                                   option.score_value === 1 ? 'Mediana (1 pt)' :
+                                   'Correta (2 pts)'}
+                                </span>
+                              </Label>
+                            </div>
+                            <Input
+                              value={option.option_text}
+                              onChange={(e) => {
+                                const updatedOptions = question.options?.map(opt => 
+                                  opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
+                                ) || [];
+                                updateQuestion({
+                                  id: question.id,
+                                  options: updatedOptions
+                                });
+                              }}
+                              placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
+                            />
+                          </div>
+                        )) || (
+                          <div className="space-y-2">
+                            <div className="border rounded-lg p-3">
+                              <Label className="text-sm font-medium mb-2 block">
+                                Alternativa A - <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Errada (0 pts)</span>
+                              </Label>
+                              <Input placeholder="Digite a alternativa errada..." />
+                            </div>
+                            <div className="border rounded-lg p-3">
+                              <Label className="text-sm font-medium mb-2 block">
+                                Alternativa B - <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Mediana (1 pt)</span>
+                              </Label>
+                              <Input placeholder="Digite a alternativa mediana..." />
+                            </div>
+                            <div className="border rounded-lg p-3">
+                              <Label className="text-sm font-medium mb-2 block">
+                                Alternativa C - <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Correta (2 pts)</span>
+                              </Label>
+                              <Input placeholder="Digite a alternativa correta..." />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <Separator />
                     
                     <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          // Create a file input element
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.multiple = true;
+                          input.onchange = (e) => {
+                            const files = (e.target as HTMLInputElement).files;
+                            if (files) {
+                              // Here you would upload the files and get URLs
+                              // For now, we'll just show a message
+                              toast.success(`${files.length} imagem(ns) selecionada(s) - funcionalidade de upload será implementada`);
+                            }
+                          };
+                          input.click();
+                        }}
+                      >
                         <Image className="h-4 w-4 mr-1" />
                         Adicionar Imagem
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          if (!question.options || question.options.length === 0) {
+                            updateQuestion({
+                              id: question.id,
+                              options: [
+                                { option_text: "Resposta errada", score_value: 0, option_order: 1 },
+                                { option_text: "Resposta mediana", score_value: 1, option_order: 2 },
+                                { option_text: "Resposta correta", score_value: 2, option_order: 3 }
+                              ]
+                            });
+                          }
+                        }}
+                      >
                         <Edit className="h-4 w-4 mr-1" />
-                        Editar
+                        {question.options?.length ? 'Salvar Alterações' : 'Configurar Alternativas'}
                       </Button>
                     </div>
                   </CardContent>
