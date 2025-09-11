@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Edit, Plus, Image, Trash2, Save } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
   const [editedTest, setEditedTest] = useState<any>(null);
+  const [questionTexts, setQuestionTexts] = useState<Record<string, string>>({});
+  const debounceRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
   const { data: tests, updateTest } = useTests();
   const { data: questions, createQuestion, updateQuestion, deleteQuestion } = useTestQuestions(testId);
@@ -37,6 +39,26 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
       setActiveTab("info");
     }
   }, [test, open]);
+
+  useEffect(() => {
+    if (questions && open) {
+      const initialTexts: Record<string, string> = {};
+      questions.forEach(q => {
+        initialTexts[q.id] = q.question_text;
+      });
+      setQuestionTexts(initialTexts);
+    }
+  }, [questions, open]);
+
+  const debouncedUpdateQuestion = useCallback((questionId: string, updates: any) => {
+    if (debounceRefs.current[questionId]) {
+      clearTimeout(debounceRefs.current[questionId]);
+    }
+    
+    debounceRefs.current[questionId] = setTimeout(() => {
+      updateQuestion({ id: questionId, ...updates });
+    }, 500);
+  }, [updateQuestion]);
 
   const handleSaveTest = async () => {
     if (!testId || !editedTest) return;
@@ -272,12 +294,14 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                     <div className="space-y-2">
                       <Label>Texto da Pergunta</Label>
                       <Textarea
-                        value={question.question_text}
+                        value={questionTexts[question.id] || question.question_text}
                         onChange={(e) => {
-                          updateQuestion({
-                            id: question.id,
-                            question_text: e.target.value
-                          });
+                          const newValue = e.target.value;
+                          setQuestionTexts(prev => ({
+                            ...prev,
+                            [question.id]: newValue
+                          }));
+                          debouncedUpdateQuestion(question.id, { question_text: newValue });
                         }}
                         rows={2}
                       />
