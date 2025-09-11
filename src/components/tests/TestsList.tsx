@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Eye, Play, Users, FileText, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,10 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("TestsList createDialogOpen state changed to:", createDialogOpen);
+  }, [createDialogOpen]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -73,8 +77,9 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
             Comece criando seu primeiro teste avaliativo
           </p>
           <Button onClick={() => {
-            console.log("Criar Primeiro Teste button clicked");
+            console.log("Criar Primeiro Teste button clicked, current createDialogOpen:", createDialogOpen);
             setCreateDialogOpen(true);
+            console.log("setCreateDialogOpen(true) called");
           }}>Criar Primeiro Teste</Button>
         </CardContent>
       </Card>
@@ -185,8 +190,12 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
 
       <CreateTestDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          console.log("CreateTestDialog onOpenChange called with:", open);
+          setCreateDialogOpen(open);
+        }}
         onTestCreated={() => {
+          console.log("onTestCreated called");
           setCreateDialogOpen(false);
           onCreateTest?.();
         }}
