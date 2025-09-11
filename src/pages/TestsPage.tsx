@@ -7,7 +7,6 @@ import { CreateTestDialog } from "@/components/tests/CreateTestDialog";
 import { TestsList } from "@/components/tests/TestsList";
 import { TestsDashboard } from "@/components/tests/TestsDashboard";
 import { TestsReports } from "@/components/tests/TestsReports";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const TestsPage = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -35,54 +34,6 @@ const TestsPage = () => {
           </Button>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Testes Ativos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">
-                +2 novos esta semana
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Submissões Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">145</div>
-              <p className="text-xs text-muted-foreground">
-                +12% em relação a ontem
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">78%</div>
-              <p className="text-xs text-muted-foreground">
-                +5% este mês
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Evolução Positiva</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">85%</div>
-              <p className="text-xs text-muted-foreground">
-                dos retestes
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Main Content */}
         <Tabs defaultValue="tests" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
@@ -93,7 +44,10 @@ const TestsPage = () => {
           </TabsList>
 
           <TabsContent value="tests">
-            <TestsList refreshTrigger={refreshTrigger} />
+            <TestsList 
+              refreshTrigger={refreshTrigger} 
+              onCreateTest={handleTestCreated}
+            />
           </TabsContent>
 
           <TabsContent value="dashboard">
@@ -105,19 +59,7 @@ const TestsPage = () => {
           </TabsContent>
 
           <TabsContent value="evolution">
-            <Card>
-              <CardHeader>
-                <CardTitle>Acompanhamento de Evolução</CardTitle>
-                <CardDescription>
-                  Compare o desempenho dos alunos em múltiplos testes da mesma turma
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Funcionalidade de evolução será implementada aqui
-                </p>
-              </CardContent>
-            </Card>
+            <TestsDashboard />
           </TabsContent>
         </Tabs>
 

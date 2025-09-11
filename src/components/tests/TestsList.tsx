@@ -7,16 +7,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTests } from "@/hooks/useTests";
 import { ManageTestDialog } from "./ManageTestDialog";
 import { TestResultsDialog } from "./TestResultsDialog";
+import { CreateTestDialog } from "./CreateTestDialog";
 
 interface TestsListProps {
   refreshTrigger: number;
+  onCreateTest?: () => void;
 }
 
-export const TestsList = ({ refreshTrigger }: TestsListProps) => {
+export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
   const { data: tests, isLoading } = useTests();
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -69,7 +72,7 @@ export const TestsList = ({ refreshTrigger }: TestsListProps) => {
           <p className="text-muted-foreground text-center mb-4">
             Comece criando seu primeiro teste avaliativo
           </p>
-          <Button>Criar Primeiro Teste</Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>Criar Primeiro Teste</Button>
         </CardContent>
       </Card>
     );
@@ -120,7 +123,9 @@ export const TestsList = ({ refreshTrigger }: TestsListProps) => {
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Turma:</span>
-                  <span className="font-medium">Nome da Turma</span>
+                  <span className="font-medium">
+                    {(test as any).turmas?.name || 'Turma não encontrada'}
+                  </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -173,6 +178,15 @@ export const TestsList = ({ refreshTrigger }: TestsListProps) => {
         testId={selectedTestId}
         open={resultsDialogOpen}
         onOpenChange={setResultsDialogOpen}
+      />
+
+      <CreateTestDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onTestCreated={() => {
+          setCreateDialogOpen(false);
+          onCreateTest?.();
+        }}
       />
     </>
   );

@@ -40,7 +40,8 @@ export const useTests = () => {
           turmas:turma_id (
             id,
             name,
-            code
+            code,
+            course_id
           ),
           courses:course_id (
             id,

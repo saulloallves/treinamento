@@ -1,27 +1,34 @@
 import { TrendingUp, Users, Award, Target } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useTestStats } from "@/hooks/useTestStats";
+import { useTests } from "@/hooks/useTests";
 
 export const TestsDashboard = () => {
-  // Mock data - replace with real data from hooks
-  const dashboardData = {
-    totalTests: 12,
-    activeTests: 8,
-    totalSubmissions: 245,
-    averagePassRate: 78.5,
-    topPerformingUnits: [
-      { unit: "Loja Centro", passRate: 92, submissions: 45 },
-      { unit: "Loja Norte", passRate: 88, submissions: 38 },
-      { unit: "Loja Sul", passRate: 84, submissions: 52 },
-      { unit: "Loja Oeste", passRate: 76, submissions: 41 },
-      { unit: "Loja Leste", passRate: 69, submissions: 69 }
-    ],
-    recentTests: [
-      { name: "Avaliação de Vendas", submissions: 45, passRate: 82, date: "15/01/2024" },
-      { name: "Teste de Atendimento", submissions: 38, passRate: 91, date: "12/01/2024" },
-      { name: "Avaliação Técnica", submissions: 52, passRate: 76, date: "08/01/2024" }
-    ]
-  };
+  const { data: stats, isLoading: statsLoading } = useTestStats();
+  const { data: tests, isLoading: testsLoading } = useTests();
+
+  if (statsLoading || testsLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="h-24 bg-gray-200 rounded"></div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Get recent tests data
+  const recentTests = tests?.slice(0, 5).map(test => ({
+    name: test.name,
+    submissions: 0, // Will be updated when we have submission data
+    passRate: 0, // Will be updated when we have submission data
+    date: new Date(test.created_at).toLocaleDateString('pt-BR')
+  })) || [];
 
   return (
     <div className="space-y-6">
@@ -33,9 +40,9 @@ export const TestsDashboard = () => {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardData.totalTests}</div>
+            <div className="text-2xl font-bold">{stats?.totalTests || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {dashboardData.activeTests} ativos
+              {stats?.activeTests || 0} ativos
             </p>
           </CardContent>
         </Card>
@@ -46,9 +53,9 @@ export const TestsDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardData.totalSubmissions}</div>
+            <div className="text-2xl font-bold">{stats?.totalSubmissions || 0}</div>
             <p className="text-xs text-muted-foreground">
-              +23 hoje
+              {stats?.todaySubmissions || 0} hoje
             </p>
           </CardContent>
         </Card>
@@ -60,9 +67,9 @@ export const TestsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {dashboardData.averagePassRate}%
+              {stats?.averagePassRate || 0}%
             </div>
-            <Progress value={dashboardData.averagePassRate} className="mt-2" />
+            <Progress value={stats?.averagePassRate || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -81,66 +88,69 @@ export const TestsDashboard = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Top Performing Units */}
+        {/* Tests by Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Performance por Unidade</CardTitle>
+            <CardTitle>Testes por Status</CardTitle>
             <CardDescription>
-              Ranking de aprovação por loja/unidade
+              Distribuição dos testes por status atual
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dashboardData.topPerformingUnits.map((unit, index) => (
-                <div key={unit.unit} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-medium">{unit.unit}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {unit.submissions} submissões
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Progress value={unit.passRate} className="w-16" />
-                    <span className="text-sm font-medium">{unit.passRate}%</span>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                  <span className="font-medium">Ativos</span>
                 </div>
-              ))}
+                <span className="text-sm font-medium">{stats?.activeTests || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                  <span className="font-medium">Rascunhos</span>
+                </div>
+                <span className="text-sm font-medium">{stats?.draftTests || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-gray-500"></div>
+                  <span className="font-medium">Arquivados</span>
+                </div>
+                <span className="text-sm font-medium">{stats?.archivedTests || 0}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Tests Performance */}
+        {/* Recent Tests */}
         <Card>
           <CardHeader>
             <CardTitle>Testes Recentes</CardTitle>
             <CardDescription>
-              Performance dos últimos testes aplicados
+              Últimos testes criados no sistema
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dashboardData.recentTests.map((test, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{test.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {test.submissions} submissões • {test.date}
+              {recentTests.length > 0 ? (
+                recentTests.map((test, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{test.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Criado em {test.date}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-medium">{test.passRate}%</div>
-                      <div className="text-sm text-muted-foreground">aprovação</div>
-                    </div>
                   </div>
-                  <Progress value={test.passRate} />
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-4">
+                  Nenhum teste encontrado
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
