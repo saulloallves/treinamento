@@ -269,6 +269,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               toast.success("Login realizado com sucesso!", {
                 description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
               });
+              setAuthProcessing(false);
               return { error: null };
             } else {
               console.error('Erro no segundo login:', retryError);
