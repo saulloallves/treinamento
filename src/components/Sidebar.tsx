@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  Target,
   ChevronRight
 } from "lucide-react";
 import { RobotIcon } from "@/components/ui/robot-icon";
@@ -186,6 +187,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       isGroup: true,
       items: [
         { name: 'Quiz', path: '/quiz', icon: FileQuestion },
+        { name: 'Testes Avaliativos', path: '/tests', icon: Target },
       ]
     },
     {

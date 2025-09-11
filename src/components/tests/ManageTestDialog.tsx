@@ -41,7 +41,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     if (!testId || !editedTest) return;
 
     try {
-      await updateTest(testId, editedTest);
+      await updateTest({ id: testId, ...editedTest });
       toast.success("Teste atualizado com sucesso!");
       setIsEditing(false);
     } catch (error) {
@@ -318,9 +318,9 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
             <Card>
               <CardHeader>
                 <CardTitle>Visualização do Teste</CardTitle>
-                <CardDescription>
+                <div className="text-sm text-muted-foreground">
                   Como o teste aparecerá para os alunos
-                </CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">

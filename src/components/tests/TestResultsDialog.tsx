@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarInitials } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -222,9 +222,6 @@ export const TestResultsDialog = ({ testId, open, onOpenChange }: TestResultsDia
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarInitials>
-                                {submission.student.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarInitials>
                               <AvatarFallback>
                                 {submission.student.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
