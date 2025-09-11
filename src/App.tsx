@@ -34,6 +34,8 @@ import StudentLessons from "./pages/student/StudentLessons";
 import StudentCourseSchedule from "./pages/student/StudentCourseSchedule";
 import TurmaLessons from "./pages/student/TurmaLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
+import StudentTests from "./pages/student/StudentTests";
+import StudentTest from "./pages/student/StudentTest";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import ProfileSelection from "./pages/ProfileSelection";
@@ -243,6 +245,16 @@ const App = () => (
               <Route path="/aluno/curso/:courseId/aulas-gravadas" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentLessons />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/testes" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTests />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/teste/:testId" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTest />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Calendar, Users } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import StudentTestsList from "@/components/student/StudentTestsList";
 const StudentPortal = () => {
   const { data, isLoading, refetch, isRefetching } = useMyEnrollments();
   const enrollments: MyEnrollment[] = (data ?? []) as MyEnrollment[];
@@ -54,11 +55,14 @@ const StudentPortal = () => {
 
       <SelfEnrollDialog open={openEnroll} onOpenChange={setOpenEnroll} />
 
-      <main>
-        {isLoading ? (
-          <p>Carregando...</p>
-        ) : (enrollments && enrollments.length > 0 ? (
-          <section className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <main className="space-y-8">
+        {/* Seção de Inscrições */}
+        <section>
+          <h3 className="text-lg font-semibold mb-4">Minhas Inscrições</h3>
+          {isLoading ? (
+            <p>Carregando...</p>
+          ) : (enrollments && enrollments.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {enrollments.map((enroll) => (
               <Card key={enroll.id} className="overflow-hidden">
                 {enroll.course?.cover_image_url && (
@@ -145,13 +149,25 @@ const StudentPortal = () => {
                 </CardContent>
               </Card>
             ))}
-          </section>
-        ) : (
-          <section className="text-center py-10">
-            <p className="text-muted-foreground mb-4">Você ainda não tem inscrições.</p>
-            <Button onClick={() => setOpenEnroll(true)}>Autoinscrever-se</Button>
-          </section>
-        ))}
+            </div>
+          ) : (
+            <div className="text-center py-10">
+              <p className="text-muted-foreground mb-4">Você ainda não tem inscrições.</p>
+              <Button onClick={() => setOpenEnroll(true)}>Autoinscrever-se</Button>
+            </div>
+          ))}
+        </section>
+
+        {/* Seção de Testes Avaliativos */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Testes Avaliativos</h3>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/aluno/testes">Ver Todos</Link>
+            </Button>
+          </div>
+          <StudentTestsList />
+        </section>
       </main>
     </BaseLayout>
   );
