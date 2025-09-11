@@ -36,11 +36,10 @@ const TestsPage = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="tests" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="tests">Meus Testes</TabsTrigger>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
-            <TabsTrigger value="evolution">Evolução</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tests">
@@ -58,9 +57,6 @@ const TestsPage = () => {
             <TestsReports />
           </TabsContent>
 
-          <TabsContent value="evolution">
-            <TestsDashboard />
-          </TabsContent>
         </Tabs>
 
         <CreateTestDialog 
