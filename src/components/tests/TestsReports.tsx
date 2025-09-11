@@ -9,8 +9,8 @@ import { Separator } from "@/components/ui/separator";
 
 export const TestsReports = () => {
   const [filters, setFilters] = useState({
-    testId: "",
-    unitCode: "",
+    testId: "all",
+    unitCode: "all",
     period: "last30days",
     reportType: "general"
   });
@@ -97,7 +97,7 @@ export const TestsReports = () => {
                   <SelectValue placeholder="Todos os testes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os testes</SelectItem>
+                  <SelectItem value="all">Todos os testes</SelectItem>
                   <SelectItem value="test1">Avaliação de Vendas</SelectItem>
                   <SelectItem value="test2">Teste de Atendimento</SelectItem>
                   <SelectItem value="test3">Avaliação Técnica</SelectItem>
@@ -114,7 +114,7 @@ export const TestsReports = () => {
                   <SelectValue placeholder="Todas as unidades" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as unidades</SelectItem>
+                  <SelectItem value="all">Todas as unidades</SelectItem>
                   <SelectItem value="centro">Loja Centro</SelectItem>
                   <SelectItem value="norte">Loja Norte</SelectItem>
                   <SelectItem value="sul">Loja Sul</SelectItem>
