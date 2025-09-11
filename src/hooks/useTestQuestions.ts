@@ -36,18 +36,58 @@ export const useTestQuestions = (testId?: string | null) => {
     queryFn: async () => {
       if (!testId) return [];
 
-      // For now, return empty array until Supabase types are updated
-      // This will be replaced with proper queries once the tables are properly typed
-      return [] as TestQuestion[];
+      const { data, error } = await supabase
+        .from("test_questions")
+        .select(`
+          *,
+          test_question_options (*)
+        `)
+        .eq("test_id", testId)
+        .order("question_order", { ascending: true });
+
+      if (error) throw error;
+      
+      return data?.map(question => ({
+        ...question,
+        options: question.test_question_options || []
+      })) as TestQuestion[];
     },
     enabled: !!testId,
   });
 
   const createQuestion = useMutation({
     mutationFn: async (questionData: CreateQuestionData) => {
-      // Placeholder implementation
-      console.log('Creating question:', questionData);
-      return { id: 'temp-id', ...questionData };
+      // Create the question first
+      const { data: question, error: questionError } = await supabase
+        .from("test_questions")
+        .insert({
+          test_id: questionData.test_id,
+          question_text: questionData.question_text,
+          question_order: questionData.question_order,
+          image_urls: questionData.image_urls || []
+        })
+        .select()
+        .single();
+
+      if (questionError) throw questionError;
+
+      // Create the options
+      if (questionData.options && questionData.options.length > 0) {
+        const optionsToInsert = questionData.options.map(option => ({
+          question_id: question.id,
+          option_text: option.option_text,
+          score_value: option.score_value,
+          option_order: option.option_order
+        }));
+
+        const { error: optionsError } = await supabase
+          .from("test_question_options")
+          .insert(optionsToInsert);
+
+        if (optionsError) throw optionsError;
+      }
+
+      return question;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-questions", testId] });
@@ -60,9 +100,40 @@ export const useTestQuestions = (testId?: string | null) => {
       options, 
       ...updates 
     }: { id: string; options?: TestQuestionOption[] } & Partial<TestQuestion>) => {
-      // Placeholder implementation
-      console.log('Updating question:', id, updates, options);
-      return { id, ...updates };
+      // Update the question
+      const { data, error } = await supabase
+        .from("test_questions")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update options if provided
+      if (options) {
+        // Delete existing options
+        await supabase
+          .from("test_question_options")
+          .delete()
+          .eq("question_id", id);
+
+        // Insert new options
+        if (options.length > 0) {
+          const optionsToInsert = options.map(option => ({
+            question_id: id,
+            option_text: option.option_text,
+            score_value: option.score_value,
+            option_order: option.option_order
+          }));
+
+          await supabase
+            .from("test_question_options")
+            .insert(optionsToInsert);
+        }
+      }
+
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-questions", testId] });
@@ -71,8 +142,19 @@ export const useTestQuestions = (testId?: string | null) => {
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => {
-      // Placeholder implementation
-      console.log('Deleting question:', id);
+      // Delete options first (cascade)
+      await supabase
+        .from("test_question_options")
+        .delete()
+        .eq("question_id", id);
+
+      // Delete the question
+      const { error } = await supabase
+        .from("test_questions")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["test-questions", testId] });
