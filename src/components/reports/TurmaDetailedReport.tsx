@@ -131,6 +131,8 @@ export const TurmaDetailedReport = ({
       <QuizDetailedView
         turmaId={turmaId}
         quizName={selectedQuiz}
+        turmaName={turmaName}
+        courseName={courseName}
         onBack={handleBackToOverview}
       />
     );
