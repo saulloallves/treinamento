@@ -23,11 +23,14 @@ import {
   XCircle,
   Clock,
   Download,
-  Loader2
+  Loader2,
+  MessageSquare,
+  FileQuestion
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { useStudentEvaluationData } from "@/hooks/useEvaluationReports";
 
 interface StudentProfileDialogProps {
   student: any;
@@ -52,6 +55,12 @@ export const StudentProfileDialog = ({ student, open, onOpenChange }: StudentPro
     isLoading,
     error
   } = useStudentProfile(student.id, open);
+
+  const {
+    data: evaluationData,
+    isLoading: evaluationLoading,
+    error: evaluationError
+  } = useStudentEvaluationData(student.id, open);
 
   const getInitials = (name: string) => {
     return name
@@ -123,12 +132,13 @@ export const StudentProfileDialog = ({ student, open, onOpenChange }: StudentPro
         </DialogHeader>
 
         <Tabs defaultValue="personal" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="personal" className="text-xs sm:text-sm">Dados Pessoais</TabsTrigger>
             <TabsTrigger value="courses" className="text-xs sm:text-sm">Cursos ({totalCourses})</TabsTrigger>
             <TabsTrigger value="attendance" className="text-xs sm:text-sm">Presenças ({totalAttendances})</TabsTrigger>
             <TabsTrigger value="certificates" className="text-xs sm:text-sm">Certificados ({totalCertificates})</TabsTrigger>
-            <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs sm:text-sm">Quiz</TabsTrigger>
+            <TabsTrigger value="evaluations" className="text-xs sm:text-sm">Avaliações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
@@ -434,6 +444,182 @@ export const StudentProfileDialog = ({ student, open, onOpenChange }: StudentPro
                   <p className="text-muted-foreground text-center py-8">
                     Nenhuma resposta de quiz encontrada
                   </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="evaluations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de Avaliações Completo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {evaluationLoading ? (
+                  <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+                ) : evaluationError ? (
+                  <div className="text-center p-8 text-red-600">
+                    Erro ao carregar dados de avaliações
+                  </div>
+                ) : evaluationData ? (
+                  <div className="space-y-6">
+                    {/* Resumo das Avaliações */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <MessageSquare className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                          <div className="text-2xl font-bold text-foreground">{evaluationData.quizResponses.length}</div>
+                          <div className="text-sm text-muted-foreground">Quiz Respondidos</div>
+                          <div className="text-sm font-medium text-green-600 mt-1">
+                            {evaluationData.quizAccuracy}% de precisão
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <FileQuestion className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                          <div className="text-2xl font-bold text-foreground">{evaluationData.testSubmissions.length}</div>
+                          <div className="text-sm text-muted-foreground">Testes Realizados</div>
+                          <div className="text-sm font-medium text-purple-600 mt-1">
+                            {evaluationData.testAverage}% de média
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <TrendingUp className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                          <div className="text-2xl font-bold text-foreground">{evaluationData.totalAttempts}</div>
+                          <div className="text-sm text-muted-foreground">Total de Tentativas</div>
+                          <div className="text-sm font-medium text-blue-600 mt-1">
+                            {Math.round((evaluationData.quizAccuracy + evaluationData.testAverage) / 2)}% geral
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Histórico de Testes */}
+                    {evaluationData.testSubmissions && evaluationData.testSubmissions.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-medium mb-4">Testes Avaliativos</h4>
+                        <div className="space-y-3">
+                          {evaluationData.testSubmissions.map((submission) => (
+                            <div key={submission.id} className="border rounded-lg p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <h5 className="font-medium text-foreground">
+                                  {submission.test?.name || "Teste sem nome"}
+                                </h5>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={
+                                    submission.passed 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : submission.status === 'completed'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-yellow-100 text-yellow-700'
+                                  }>
+                                    {submission.passed ? 'Aprovado' : 
+                                     submission.status === 'completed' ? 'Reprovado' : 
+                                     submission.status === 'in_progress' ? 'Em Andamento' : 
+                                     'Não Iniciado'}
+                                  </Badge>
+                                  <div className="text-lg font-bold text-foreground">
+                                    {Math.round(submission.percentage)}%
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Curso:</span>
+                                  <p>{submission.test?.course?.name || "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Turma:</span>
+                                  <p>{submission.test?.turma?.name || submission.test?.turma?.code || "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Pontuação:</span>
+                                  <p>{submission.total_score} / {submission.max_possible_score}</p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Tentativa:</span>
+                                  <p>{submission.attempt_number}ª tentativa</p>
+                                </div>
+                              </div>
+                              
+                              {submission.submitted_at && (
+                                <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
+                                  <div className="flex justify-between">
+                                    <span>
+                                      Finalizado em: {format(new Date(submission.submitted_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                                    </span>
+                                    {submission.time_taken_minutes && (
+                                      <span>
+                                        Tempo: {submission.time_taken_minutes} minutos
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Histórico de Quiz - Mais Compacto */}
+                    {evaluationData.quizResponses && evaluationData.quizResponses.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-medium mb-4">Quiz Recentes</h4>
+                        <div className="space-y-2">
+                          {evaluationData.quizResponses.slice(0, 10).map((response) => (
+                            <div key={response.id} className="flex justify-between items-center p-3 border rounded-lg">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-foreground text-sm">
+                                  {response.quiz?.quiz_name || "Quiz sem nome"}
+                                </h5>
+                                <p className="text-xs text-muted-foreground">
+                                  {response.quiz?.course?.name || "—"}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={response.is_correct ? "default" : "destructive"}>
+                                  {response.is_correct ? "Correto" : "Incorreto"}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(response.answered_at), 'dd/MM', { locale: ptBR })}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          {evaluationData.quizResponses.length > 10 && (
+                            <p className="text-center text-sm text-muted-foreground py-2">
+                              ... e mais {evaluationData.quizResponses.length - 10} respostas
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {evaluationData.totalAttempts === 0 && (
+                      <div className="text-center py-8">
+                        <FileQuestion className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-foreground mb-2">Nenhuma avaliação encontrada</h3>
+                        <p className="text-muted-foreground">
+                          Este aluno ainda não realizou nenhuma avaliação.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      Nenhum dado de avaliação disponível
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>

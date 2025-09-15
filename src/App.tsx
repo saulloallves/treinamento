@@ -14,6 +14,8 @@ import CoursesPage from "./pages/CoursesPage";
 import LessonsPage from "./pages/LessonsPage";
 import QuizPage from "./pages/QuizPage";
 import TestsPage from "./pages/TestsPage";
+import ReportsPage from "./pages/ReportsPage";
+import ProfessorReports from "./pages/professor/ProfessorReports";
 import EnrollmentsPage from "./pages/EnrollmentsPage";
 import AttendancePage from "./pages/AttendancePage";
 import ProgressPage from "./pages/ProgressPage";
@@ -90,6 +92,11 @@ const App = () => (
               <Route path="/tests" element={
                 <AdminRoute>
                   <TestsPage />
+                </AdminRoute>
+              } />
+              <Route path="/reports" element={
+                <AdminRoute>
+                  <ReportsPage />
                 </AdminRoute>
               } />
               <Route path="/enrollments" element={
@@ -195,6 +202,11 @@ const App = () => (
               <Route path="/professor/disparos-automaticos" element={
                 <ProfessorRoute>
                   <CommunicationPage />
+                </ProfessorRoute>
+              } />
+              <Route path="/professor/reports" element={
+                <ProfessorRoute>
+                  <ProfessorReports />
                 </ProfessorRoute>
               } />
               <Route path="/aluno" element={

@@ -50,7 +50,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
     return {
       treinamentos: ['/courses','/turmas','/lessons','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
-      avaliacoes: ['/quiz','/professor/avaliacoes'].includes(path),
+      avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
       comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
       administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
     };
@@ -135,6 +135,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       isGroup: true,
       items: [
         { name: 'Quiz', path: '/professor/avaliacoes', icon: HelpCircle },
+        { name: 'Relatórios', path: '/professor/reports', icon: BarChart3 },
       ]
     },
     {
@@ -188,6 +189,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       items: [
         { name: 'Quiz', path: '/quiz', icon: FileQuestion },
         { name: 'Testes Avaliativos', path: '/tests', icon: Target },
+        { name: 'Relatórios', path: '/reports', icon: BarChart3 },
       ]
     },
     {
