@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDetailedTurmaReports } from "@/hooks/useDetailedTurmaReports";
+import { QuizDetailedView } from "./QuizDetailedView";
+import { TestDetailedView } from "./TestDetailedView";
 import { 
   MessageSquare, 
   FileQuestion, 
@@ -16,7 +18,8 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  Target
+  Target,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,7 +38,29 @@ export const TurmaDetailedReport = ({
   onClose 
 }: TurmaDetailedReportProps) => {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
+  const [selectedTest, setSelectedTest] = useState<string | null>(null);
+  const [view, setView] = useState<'overview' | 'quiz-detail' | 'test-detail'>('overview');
   const { data: studentsData, isLoading, error } = useDetailedTurmaReports(turmaId);
+
+  // Função para voltar à visualização principal
+  const handleBackToOverview = () => {
+    setView('overview');
+    setSelectedQuiz(null);
+    setSelectedTest(null);
+  };
+
+  // Função para visualizar detalhes do quiz
+  const handleViewQuizDetail = (quizName: string) => {
+    setSelectedQuiz(quizName);
+    setView('quiz-detail');
+  };
+
+  // Função para visualizar detalhes do teste
+  const handleViewTestDetail = (testName: string) => {
+    setSelectedTest(testName);
+    setView('test-detail');
+  };
 
   if (isLoading) {
     return (
@@ -99,6 +124,46 @@ export const TurmaDetailedReport = ({
       </Card>
     );
   }
+
+  // Renderizar visualização detalhada do quiz
+  if (view === 'quiz-detail' && selectedQuiz) {
+    return (
+      <QuizDetailedView
+        turmaId={turmaId}
+        quizName={selectedQuiz}
+        onBack={handleBackToOverview}
+      />
+    );
+  }
+
+  // Renderizar visualização detalhada do teste
+  if (view === 'test-detail' && selectedTest) {
+    return (
+      <TestDetailedView
+        turmaId={turmaId}
+        testName={selectedTest}
+        onBack={handleBackToOverview}
+      />
+    );
+  }
+
+  // Agrupar quizzes únicos
+  const uniqueQuizzes = Array.from(
+    new Set(
+      studentsData.flatMap(student => 
+        student.quizResponses.map(response => response.quizName)
+      )
+    )
+  );
+
+  // Agrupar testes únicos
+  const uniqueTests = Array.from(
+    new Set(
+      studentsData.flatMap(student => 
+        student.testSubmissions.map(submission => submission.testName)
+      )
+    )
+  );
 
   // Calcular estatísticas gerais da turma
   const totalQuizResponses = studentsData.reduce((sum, s) => sum + s.quizStats.totalAnswered, 0);
@@ -220,139 +285,235 @@ export const TurmaDetailedReport = ({
 
         {/* Quiz Tab */}
         <TabsContent value="quiz">
-          <Card>
-            <CardHeader>
-              <CardTitle>Respostas de Quiz Detalhadas</CardTitle>
-              <CardDescription>Todas as respostas de quiz dos estudantes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estudante</TableHead>
-                    <TableHead>Quiz</TableHead>
-                    <TableHead>Pergunta</TableHead>
-                    <TableHead>Resposta</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {studentsData.flatMap(student => 
-                    student.quizResponses.map(response => (
-                      <TableRow key={`${student.studentId}-${response.id}`}>
-                        <TableCell>
-                          <div className="text-sm font-medium">{student.studentName}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{response.quizName}</div>
-                        </TableCell>
-                        <TableCell className="max-w-xs">
-                          <div className="text-sm truncate">{response.question}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{response.selectedAnswer}</div>
-                        </TableCell>
-                        <TableCell>
-                          {response.isCorrect ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Correto
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Incorreto
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {format(new Date(response.answeredAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+          <div className="space-y-4">
+            {/* Lista de Quizzes Únicos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Quizzes Disponíveis</CardTitle>
+                <CardDescription>Clique em um quiz para ver todas as respostas detalhadas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {uniqueQuizzes.map((quizName) => {
+                    const quizResponses = studentsData.flatMap(student => 
+                      student.quizResponses.filter(response => response.quizName === quizName)
+                    );
+                    const correctResponses = quizResponses.filter(response => response.isCorrect).length;
+                    const accuracy = quizResponses.length > 0 ? Math.round((correctResponses / quizResponses.length) * 100) : 0;
+                    
+                    return (
+                      <Button
+                        key={quizName}
+                        variant="outline"
+                        className="h-auto p-4 text-left justify-start"
+                        onClick={() => handleViewQuizDetail(quizName)}
+                      >
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium truncate">{quizName}</h4>
+                            <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                          <div className="text-sm text-muted-foreground">
+                            {quizResponses.length} respostas • {accuracy}% acerto
+                          </div>
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumo Geral dos Quizzes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo Geral - Quizzes</CardTitle>
+                <CardDescription>Visão consolidada de todas as respostas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Estudante</TableHead>
+                      <TableHead>Quiz</TableHead>
+                      <TableHead>Pergunta</TableHead>
+                      <TableHead>Resposta</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {studentsData.flatMap(student => 
+                      student.quizResponses.map(response => (
+                        <TableRow key={`${student.studentId}-${response.id}`}>
+                          <TableCell>
+                            <div className="text-sm font-medium">{student.studentName}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="link"
+                              className="h-auto p-0 text-left justify-start"
+                              onClick={() => handleViewQuizDetail(response.quizName)}
+                            >
+                              {response.quizName}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <div className="text-sm truncate">{response.question}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">{response.selectedAnswer}</div>
+                          </TableCell>
+                          <TableCell>
+                            {response.isCorrect ? (
+                              <Badge variant="default" className="bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Correto
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">
+                                <XCircle className="h-3 w-3 mr-1" />
+                                Incorreto
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {format(new Date(response.answeredAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Testes Tab */}
         <TabsContent value="tests">
-          <Card>
-            <CardHeader>
-              <CardTitle>Submissões de Testes Detalhadas</CardTitle>
-              <CardDescription>Todas as submissões de testes dos estudantes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estudante</TableHead>
-                    <TableHead>Teste</TableHead>
-                    <TableHead className="text-center">Pontuação</TableHead>
-                    <TableHead className="text-center">Percentual</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Tentativa</TableHead>
-                    <TableHead className="text-center">Tempo</TableHead>
-                    <TableHead>Data</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {studentsData.flatMap(student => 
-                    student.testSubmissions.map(submission => (
-                      <TableRow key={`${student.studentId}-${submission.id}`}>
-                        <TableCell>
-                          <div className="text-sm font-medium">{student.studentName}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{submission.testName}</div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="text-sm">
-                            {submission.totalScore}/{submission.maxPossibleScore}
+          <div className="space-y-4">
+            {/* Lista de Testes Únicos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Testes Disponíveis</CardTitle>
+                <CardDescription>Clique em um teste para ver todas as submissões detalhadas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {uniqueTests.map((testName) => {
+                    const testSubmissions = studentsData.flatMap(student => 
+                      student.testSubmissions.filter(submission => submission.testName === testName)
+                    );
+                    const passedSubmissions = testSubmissions.filter(submission => submission.passed).length;
+                    const avgScore = testSubmissions.length > 0 
+                      ? Math.round(testSubmissions.reduce((sum, sub) => sum + sub.percentage, 0) / testSubmissions.length)
+                      : 0;
+                    
+                    return (
+                      <Button
+                        key={testName}
+                        variant="outline"
+                        className="h-auto p-4 text-left justify-start"
+                        onClick={() => handleViewTestDetail(testName)}
+                      >
+                        <div className="w-full">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium truncate">{testName}</h4>
+                            <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="text-sm font-medium">{submission.percentage}%</div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {submission.passed ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
-                              <Target className="h-3 w-3 mr-1" />
-                              Aprovado
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Reprovado
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="text-sm">#{submission.attemptNumber}</div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="text-sm flex items-center justify-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {submission.timeTaken}min
+                          <div className="text-sm text-muted-foreground">
+                            {testSubmissions.length} submissões • {avgScore}% média • {passedSubmissions} aprovados
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {format(new Date(submission.submittedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumo Geral dos Testes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo Geral - Testes</CardTitle>
+                <CardDescription>Visão consolidada de todas as submissões</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Estudante</TableHead>
+                      <TableHead>Teste</TableHead>
+                      <TableHead className="text-center">Pontuação</TableHead>
+                      <TableHead className="text-center">Percentual</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-center">Tentativa</TableHead>
+                      <TableHead className="text-center">Tempo</TableHead>
+                      <TableHead>Data</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {studentsData.flatMap(student => 
+                      student.testSubmissions.map(submission => (
+                        <TableRow key={`${student.studentId}-${submission.id}`}>
+                          <TableCell>
+                            <div className="text-sm font-medium">{student.studentName}</div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="link"
+                              className="h-auto p-0 text-left justify-start"
+                              onClick={() => handleViewTestDetail(submission.testName)}
+                            >
+                              {submission.testName}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="text-sm">
+                              {submission.totalScore}/{submission.maxPossibleScore}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="text-sm font-medium">{submission.percentage}%</div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {submission.passed ? (
+                              <Badge variant="default" className="bg-green-100 text-green-800">
+                                <Target className="h-3 w-3 mr-1" />
+                                Aprovado
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">
+                                <XCircle className="h-3 w-3 mr-1" />
+                                Reprovado
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="text-sm">#{submission.attemptNumber}</div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="text-sm flex items-center justify-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {submission.timeTaken}min
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {format(new Date(submission.submittedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
