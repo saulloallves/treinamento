@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateTestDialog } from "@/components/tests/CreateTestDialog";
 import { TestsList } from "@/components/tests/TestsList";
 import { TestsDashboard } from "@/components/tests/TestsDashboard";
-import { TestsReports } from "@/components/tests/TestsReports";
+
 
 const TestsPage = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -36,10 +36,9 @@ const TestsPage = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="tests" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tests">Meus Testes</TabsTrigger>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tests">
@@ -51,10 +50,6 @@ const TestsPage = () => {
 
           <TabsContent value="dashboard">
             <TestsDashboard />
-          </TabsContent>
-
-          <TabsContent value="reports">
-            <TestsReports />
           </TabsContent>
 
         </Tabs>
