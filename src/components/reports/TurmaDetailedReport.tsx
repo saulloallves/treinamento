@@ -288,107 +288,53 @@ export const TurmaDetailedReport = ({
         {/* Quiz Tab */}
         <TabsContent value="quiz">
           <div className="space-y-4">
-            {/* Lista de Quizzes Únicos */}
             <Card>
               <CardHeader>
                 <CardTitle>Quizzes Disponíveis</CardTitle>
-                <CardDescription>Clique em um quiz para ver todas as respostas detalhadas</CardDescription>
+                <CardDescription>Clique em um quiz para navegar pelos estudantes e suas respostas</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {uniqueQuizzes.map((quizName) => {
-                    const quizResponses = studentsData.flatMap(student => 
-                      student.quizResponses.filter(response => response.quizName === quizName)
-                    );
-                    const correctResponses = quizResponses.filter(response => response.isCorrect).length;
-                    const accuracy = quizResponses.length > 0 ? Math.round((correctResponses / quizResponses.length) * 100) : 0;
-                    
-                    return (
-                      <Button
-                        key={quizName}
-                        variant="outline"
-                        className="h-auto p-4 text-left justify-start"
-                        onClick={() => handleViewQuizDetail(quizName)}
-                      >
-                        <div className="w-full">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium truncate">{quizName}</h4>
-                            <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {quizResponses.length} respostas • {accuracy}% acerto
-                          </div>
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Resumo Geral dos Quizzes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumo Geral - Quizzes</CardTitle>
-                <CardDescription>Visão consolidada de todas as respostas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Estudante</TableHead>
-                      <TableHead>Quiz</TableHead>
-                      <TableHead>Pergunta</TableHead>
-                      <TableHead>Resposta</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {studentsData.flatMap(student => 
-                      student.quizResponses.map(response => (
-                        <TableRow key={`${student.studentId}-${response.id}`}>
-                          <TableCell>
-                            <div className="text-sm font-medium">{student.studentName}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="link"
-                              className="h-auto p-0 text-left justify-start"
-                              onClick={() => handleViewQuizDetail(response.quizName)}
-                            >
-                              {response.quizName}
-                            </Button>
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            <div className="text-sm truncate">{response.question}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">{response.selectedAnswer}</div>
-                          </TableCell>
-                          <TableCell>
-                            {response.isCorrect ? (
-                              <Badge variant="default" className="bg-green-100 text-green-800">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Correto
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive">
-                                <XCircle className="h-3 w-3 mr-1" />
-                                Incorreto
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {format(new Date(response.answeredAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                {uniqueQuizzes.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum quiz encontrado nesta turma.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {uniqueQuizzes.map((quizName) => {
+                      const quizResponses = studentsData.flatMap(student => 
+                        student.quizResponses.filter(response => response.quizName === quizName)
+                      );
+                      const correctResponses = quizResponses.filter(response => response.isCorrect).length;
+                      const accuracy = quizResponses.length > 0 ? Math.round((correctResponses / quizResponses.length) * 100) : 0;
+                      const studentsWithResponses = new Set(
+                        studentsData.filter(student => 
+                          student.quizResponses.some(response => response.quizName === quizName)
+                        ).map(student => student.studentId)
+                      ).size;
+                      
+                      return (
+                        <Button
+                          key={quizName}
+                          variant="outline"
+                          className="h-auto p-4 text-left justify-start hover:bg-accent"
+                          onClick={() => handleViewQuizDetail(quizName)}
+                        >
+                          <div className="w-full">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium truncate">{quizName}</h4>
+                              <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div>{studentsWithResponses} estudantes participaram</div>
+                              <div>{quizResponses.length} respostas • {accuracy}% de acerto</div>
+                            </div>
+                          </div>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -397,122 +343,55 @@ export const TurmaDetailedReport = ({
         {/* Testes Tab */}
         <TabsContent value="tests">
           <div className="space-y-4">
-            {/* Lista de Testes Únicos */}
             <Card>
               <CardHeader>
                 <CardTitle>Testes Disponíveis</CardTitle>
-                <CardDescription>Clique em um teste para ver todas as submissões detalhadas</CardDescription>
+                <CardDescription>Clique em um teste para navegar pelos estudantes e suas submissões</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {uniqueTests.map((testName) => {
-                    const testSubmissions = studentsData.flatMap(student => 
-                      student.testSubmissions.filter(submission => submission.testName === testName)
-                    );
-                    const passedSubmissions = testSubmissions.filter(submission => submission.passed).length;
-                    const avgScore = testSubmissions.length > 0 
-                      ? Math.round(testSubmissions.reduce((sum, sub) => sum + sub.percentage, 0) / testSubmissions.length)
-                      : 0;
-                    
-                    return (
-                      <Button
-                        key={testName}
-                        variant="outline"
-                        className="h-auto p-4 text-left justify-start"
-                        onClick={() => handleViewTestDetail(testName)}
-                      >
-                        <div className="w-full">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium truncate">{testName}</h4>
-                            <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
+                {uniqueTests.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileQuestion className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Nenhum teste encontrado nesta turma.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {uniqueTests.map((testName) => {
+                      const testSubmissions = studentsData.flatMap(student => 
+                        student.testSubmissions.filter(submission => submission.testName === testName)
+                      );
+                      const passedSubmissions = testSubmissions.filter(submission => submission.passed).length;
+                      const avgScore = testSubmissions.length > 0 
+                        ? Math.round(testSubmissions.reduce((sum, sub) => sum + sub.percentage, 0) / testSubmissions.length)
+                        : 0;
+                      const studentsWithSubmissions = new Set(
+                        studentsData.filter(student => 
+                          student.testSubmissions.some(submission => submission.testName === testName)
+                        ).map(student => student.studentId)
+                      ).size;
+                      
+                      return (
+                        <Button
+                          key={testName}
+                          variant="outline"
+                          className="h-auto p-4 text-left justify-start hover:bg-accent"
+                          onClick={() => handleViewTestDetail(testName)}
+                        >
+                          <div className="w-full">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium truncate">{testName}</h4>
+                              <Eye className="h-4 w-4 ml-2 flex-shrink-0" />
+                            </div>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div>{studentsWithSubmissions} estudantes participaram</div>
+                              <div>{testSubmissions.length} submissões • {avgScore}% média • {passedSubmissions} aprovados</div>
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {testSubmissions.length} submissões • {avgScore}% média • {passedSubmissions} aprovados
-                          </div>
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Resumo Geral dos Testes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumo Geral - Testes</CardTitle>
-                <CardDescription>Visão consolidada de todas as submissões</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Estudante</TableHead>
-                      <TableHead>Teste</TableHead>
-                      <TableHead className="text-center">Pontuação</TableHead>
-                      <TableHead className="text-center">Percentual</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-center">Tentativa</TableHead>
-                      <TableHead className="text-center">Tempo</TableHead>
-                      <TableHead>Data</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {studentsData.flatMap(student => 
-                      student.testSubmissions.map(submission => (
-                        <TableRow key={`${student.studentId}-${submission.id}`}>
-                          <TableCell>
-                            <div className="text-sm font-medium">{student.studentName}</div>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="link"
-                              className="h-auto p-0 text-left justify-start"
-                              onClick={() => handleViewTestDetail(submission.testName)}
-                            >
-                              {submission.testName}
-                            </Button>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="text-sm">
-                              {submission.totalScore}/{submission.maxPossibleScore}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="text-sm font-medium">{submission.percentage}%</div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {submission.passed ? (
-                              <Badge variant="default" className="bg-green-100 text-green-800">
-                                <Target className="h-3 w-3 mr-1" />
-                                Aprovado
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive">
-                                <XCircle className="h-3 w-3 mr-1" />
-                                Reprovado
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="text-sm">#{submission.attemptNumber}</div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="text-sm flex items-center justify-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {submission.timeTaken}min
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {format(new Date(submission.submittedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
