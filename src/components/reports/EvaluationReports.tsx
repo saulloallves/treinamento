@@ -1,15 +1,19 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useEvaluationReports } from "@/hooks/useEvaluationReports";
+import { TurmaDetailedReport } from "./TurmaDetailedReport";
 import { 
   Users, 
   MessageSquare, 
   FileQuestion, 
   TrendingUp, 
   Award,
-  BarChart3
+  BarChart3,
+  Eye
 } from "lucide-react";
 
 interface EvaluationReportsProps {
@@ -30,7 +34,25 @@ export const EvaluationReports = ({
   professorMode = false,
   professorId 
 }: EvaluationReportsProps) => {
+  const [selectedTurma, setSelectedTurma] = useState<{
+    id: string;
+    name: string;
+    courseName: string;
+  } | null>(null);
+  
   const { data: reports, isLoading, error } = useEvaluationReports(filters);
+
+  // Se uma turma está selecionada, mostrar o relatório detalhado
+  if (selectedTurma) {
+    return (
+      <TurmaDetailedReport
+        turmaId={selectedTurma.id}
+        turmaName={selectedTurma.name}
+        courseName={selectedTurma.courseName}
+        onClose={() => setSelectedTurma(null)}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -149,19 +171,42 @@ export const EvaluationReports = ({
         </h3>
         
         {reports.map((report) => (
-          <Card key={report.turmaId}>
+          <Card key={report.turmaId} className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/50">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">{report.turmaName}</CardTitle>
                   <CardDescription>{report.courseName}</CardDescription>
                 </div>
-                <Badge variant="outline">
-                  {report.totalStudents} estudante{report.totalStudents !== 1 ? 's' : ''}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {report.totalStudents} estudante{report.totalStudents !== 1 ? 's' : ''}
+                  </Badge>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedTurma({
+                        id: report.turmaId,
+                        name: report.turmaName,
+                        courseName: report.courseName
+                      });
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Detalhes
+                  </Button>
+                </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent
+              onClick={() => setSelectedTurma({
+                id: report.turmaId,
+                name: report.turmaName,
+                courseName: report.courseName
+              })}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Quiz Stats */}
                 <div className="space-y-2">
