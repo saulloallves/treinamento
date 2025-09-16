@@ -75,9 +75,9 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col group shadow-sm hover:shadow-md transition-all duration-200">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[320px]">
       {/* Compact Cover Area */}
-      <div className="relative h-24">
+      <div className="relative h-20 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -89,10 +89,10 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         )}
         
         {/* Minimal Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         
         {/* Status indicator */}
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-1.5 right-1.5">
           <div className={`w-2 h-2 rounded-full ${
             course.status === 'Ativo' ? 'bg-green-400' : 
             course.status === 'Inativo' ? 'bg-red-400' : 
@@ -101,8 +101,8 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Course Type Badge */}
-        <div className="absolute bottom-2 left-2">
-          <Badge variant="secondary" className="text-xs bg-white/90 text-gray-800 border-0">
+        <div className="absolute bottom-1.5 left-1.5">
+          <Badge variant="secondary" className="text-xs bg-white/90 text-gray-800 border-0 px-1.5 py-0.5">
             {course.tipo === 'ao_vivo' ? (
               <>
                 <PlayCircle className="w-3 h-3 mr-1" />
@@ -120,31 +120,12 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
 
       {/* Content - Optimized for mobile */}
       <CardContent className="p-3 flex-1 flex flex-col">
-        {/* Title and main info */}
-        <div className="space-y-2 flex-1">
-          {/* Course Title */}
-          <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-foreground">
+        {/* Title */}
+        <div className="mb-3">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-2">
             {course.name}
           </h3>
           
-          {/* Course Meta - Compact row */}
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <BookOpen className="w-3 h-3" />
-              <span>{correctLessonCount ?? course.lessons_count}</span>
-            </div>
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto truncate max-w-20">
-              {getCorrectPublicTargetLabel()}
-            </Badge>
-          </div>
-
-          {/* Instructor - Only if available and space permits */}
-          {course.instructor && (
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Instrutor:</span> <span className="truncate">{course.instructor}</span>
-            </div>
-          )}
-
           {/* Themes - Compact display */}
           <div className="flex flex-wrap gap-1">
             {course.theme.slice(0, 2).map((theme, index) => (
@@ -156,73 +137,112 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 {theme}
               </Badge>
             ))}
+            {course.theme.length > 2 && (
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto bg-muted/50">
+                +{course.theme.length - 2}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Main Info */}
+        <div className="space-y-2 flex-1">
+          {/* Course Meta - Compact row */}
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <BookOpen className="w-3 h-3 shrink-0" />
+              <span>{correctLessonCount ?? course.lessons_count} aulas</span>
+            </div>
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto truncate max-w-24 shrink-0">
+              {getCorrectPublicTargetLabel()}
+            </Badge>
           </div>
 
+          {/* Instructor - Only if available */}
+          {course.instructor && (
+            <div className="text-xs">
+              <span className="text-muted-foreground">Instrutor:</span>
+              <div className="text-foreground font-medium truncate">{course.instructor}</div>
+            </div>
+          )}
+
           {/* Features - Compact icons */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-3 text-xs">
             {course.has_quiz && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <FileText className="w-3 h-3" />
                 <span>Quiz</span>
               </div>
             )}
             {course.generates_certificate && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Award className="w-3 h-3" />
                 <span>Certificado</span>
               </div>
             )}
           </div>
+
+          {/* Status */}
+          <div className="flex items-center gap-2 text-xs">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${
+              course.status === 'Ativo' ? 'bg-green-500' : 
+              course.status === 'Inativo' ? 'bg-red-500' : 
+              'bg-yellow-500'
+            }`} />
+            <span className="text-muted-foreground">{course.status}</span>
+          </div>
         </div>
 
         {/* Actions - Mobile optimized */}
-        <div className="pt-3 mt-auto border-t space-y-2">
-          {/* Primary action button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (course.tipo === 'gravado' && onViewRecordedCourses) {
-                onViewRecordedCourses(course.id, course.name);
-              } else {
-                onViewDetails(course);
-              }
-            }}
-            className="w-full h-8 text-xs"
-          >
-            <Eye className="w-3 h-3 mr-1" />
-            Detalhes
-          </Button>
-          
-          {/* Secondary actions in row */}
-          <div className="grid grid-cols-3 gap-1">
+        <div className="pt-3 mt-auto border-t">
+          <div className="space-y-2">
+            {/* Primary action button */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewStudents(course)}
-              className="h-8 text-xs p-0"
-              title="Ver Alunos"
+              onClick={() => {
+                if (course.tipo === 'gravado' && onViewRecordedCourses) {
+                  onViewRecordedCourses(course.id, course.name);
+                } else {
+                  onViewDetails(course);
+                }
+              }}
+              className="w-full h-8 text-xs"
             >
-              <Users className="w-3 h-3" />
+              <Eye className="w-3 h-3 mr-2" />
+              Detalhes
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(course)}
-              className="h-8 text-xs p-0"
-              title="Editar"
-            >
-              <Edit className="w-3 h-3" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(course.id)}
-              className="h-8 text-xs p-0"
-              title="Excluir"
-            >
-              <Trash2 className="w-3 h-3" />
-            </Button>
+            
+            {/* Secondary actions in row */}
+            <div className="grid grid-cols-3 gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewStudents(course)}
+                className="h-8 px-2"
+                title="Ver Alunos"
+              >
+                <Users className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(course)}
+                className="h-8 px-2"
+                title="Editar"
+              >
+                <Edit className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(course.id)}
+                className="h-8 px-2"
+                title="Excluir"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>
