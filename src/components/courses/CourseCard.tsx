@@ -116,7 +116,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         
         {/* Course Title Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-3">
-          <h3 className="text-white font-bold text-base leading-tight mb-1">
+          <h3 className="text-white font-bold text-sm leading-tight mb-1 line-clamp-2">
             {course.name}
           </h3>
           <div className="flex flex-wrap gap-1">
@@ -124,7 +124,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs bg-white/20 text-white border-white/30"
+                className="text-xs bg-white/20 text-white border-white/30 truncate max-w-20"
               >
                 {theme}
               </Badge>
@@ -143,23 +143,23 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               <BookOpen className="w-4 h-4" />
               <span>{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs truncate max-w-24">
               {getCorrectPublicTargetLabel()}
             </Badge>
           </div>
 
           {course.instructor && (
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                Instrutor: <span className="text-foreground">{course.instructor}</span>
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground min-w-0">
+                Instrutor: <span className="text-foreground truncate">{course.instructor}</span>
               </span>
             </div>
           )}
 
           {/* Features */}
-          <div className="flex gap-2">
-            <Badge variant="outline" className="text-xs">
+          <div className="flex flex-wrap gap-1">
+            <Badge variant="outline" className="text-xs shrink-0">
               {course.tipo === 'ao_vivo' ? (
                 <>
                   <PlayCircle className="w-3 h-3 mr-1" />
@@ -173,13 +173,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({
               )}
             </Badge>
             {course.has_quiz && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs shrink-0">
                 <FileText className="w-3 h-3 mr-1" />
                 Quiz
               </Badge>
             )}
             {course.generates_certificate && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs shrink-0">
                 <Award className="w-3 h-3 mr-1" />
                 Certificado
               </Badge>

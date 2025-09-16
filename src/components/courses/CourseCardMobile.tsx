@@ -133,15 +133,15 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
               <BookOpen className="w-3 h-3" />
               <span>{correctLessonCount ?? course.lessons_count}</span>
             </div>
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
+            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto truncate max-w-20">
               {getCorrectPublicTargetLabel()}
             </Badge>
           </div>
 
           {/* Instructor - Only if available and space permits */}
           {course.instructor && (
-            <div className="text-xs text-muted-foreground truncate">
-              <span className="font-medium">Instrutor:</span> {course.instructor}
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Instrutor:</span> <span className="truncate">{course.instructor}</span>
             </div>
           )}
 
@@ -151,7 +151,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs px-1.5 py-0.5 h-auto bg-muted/50"
+                className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 truncate max-w-16"
               >
                 {theme}
               </Badge>
