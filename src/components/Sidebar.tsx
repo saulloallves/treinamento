@@ -137,6 +137,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       isGroup: true,
       items: [
         { name: 'Quiz', path: '/professor/avaliacoes', icon: HelpCircle },
+        { name: 'Testes Avaliativos', path: '/professor/tests', icon: Target },
         { name: 'Relatórios', path: '/professor/reports', icon: BarChart3 },
       ]
     },
