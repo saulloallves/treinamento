@@ -1,10 +1,9 @@
 import BaseLayout from "@/components/BaseLayout";
 import { useState } from "react";
-import { Plus, Search, Filter, User } from "lucide-react";
+import { Plus, Search, Filter, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
 import { TurmaCard } from "@/components/turmas/TurmaCard";
@@ -12,10 +11,8 @@ import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
 import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
 import { EnrollStudentDialog } from "@/components/turmas/EnrollStudentDialog";
-import FilterDrawer from "@/components/mobile/FilterDrawer";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 import FloatingActionButton from "@/components/mobile/FloatingActionButton";
-import MobileCreateButton from "@/components/mobile/MobileCreateButton";
-import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const TurmasPage = () => {
@@ -33,14 +30,14 @@ const TurmasPage = () => {
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedTurmaId, setSelectedTurmaId] = useState("");
 
-  const { data: allTurmas, isLoading } = useTurmas();
+  const { data: allTurmas = [], isLoading } = useTurmas();
   const { data: courses = [] } = useCourses();
 
   // Filter only live courses
   const liveCourses = courses.filter(course => course.tipo === 'ao_vivo');
 
   // Filter turmas based on search and filters
-  const filteredTurmas = (allTurmas || []).filter(turma => {
+  const filteredTurmas = allTurmas.filter(turma => {
     const matchesSearch = !searchTerm || 
       (turma.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        turma.code?.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -69,7 +66,7 @@ const TurmasPage = () => {
   // Get unique professors for filter
   const professors = Array.from(
     new Map(
-      (allTurmas || [])
+      allTurmas
         .filter(turma => turma.responsavel_user?.name)
         .map(turma => {
           const id = turma.responsavel_user_id;
@@ -99,79 +96,11 @@ const TurmasPage = () => {
     setEditDialogOpen(true);
   };
 
-  // Get active filters count for mobile drawer
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (selectedCourse !== "todos") count++;
-    if (statusFilter !== "todos") count++;
-    if (professorFilter !== "todos") count++;
-    return count;
-  };
-
-  const clearAllFilters = () => {
-    setSearchTerm("");
-    setSelectedCourse("todos");
-    setStatusFilter("todos");
-    setProfessorFilter("todos");
-  };
-
-  const filterOptions = [
-    {
-      key: 'course',
-      label: 'Curso',
-      value: selectedCourse,
-      onChange: setSelectedCourse,
-      options: [
-        { value: 'todos', label: 'Todos os cursos' },
-        ...liveCourses.map(course => ({ value: course.id, label: course.name }))
-      ]
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      value: statusFilter,
-      onChange: setStatusFilter,
-      options: [
-        { value: 'todos', label: 'Todos' },
-        { value: 'agendada', label: 'Agendada' },
-        { value: 'em_andamento', label: 'Em Andamento' },
-        { value: 'encerrada', label: '📁 Turmas Arquivadas' },
-        { value: 'cancelada', label: 'Cancelada' }
-      ]
-    },
-    {
-      key: 'professor',
-      label: 'Professor',
-      value: professorFilter,
-      onChange: setProfessorFilter,
-      options: [
-        { value: 'todos', label: 'Todos os professores' },
-        ...professors.map(professor => ({ value: professor.id, label: professor.name }))
-      ]
-    }
-  ];
-
   if (isLoading) {
     return (
       <BaseLayout title="Gerenciar Turmas">
-        <div className={`${isMobile ? 'mobile-spacing' : 'space-y-6'}`}>
-          {/* Header skeleton */}
-          <div className="flex items-center justify-between">
-            <div>
-              <div className={`${isMobile ? 'h-6 w-32' : 'h-8 w-48'} bg-muted animate-pulse rounded`} />
-              {!isMobile && (
-                <div className="h-4 w-64 bg-muted animate-pulse rounded mt-1" />
-              )}
-            </div>
-            <div className={`${isMobile ? 'h-10 w-24' : 'h-11 w-32'} bg-muted animate-pulse rounded`} />
-          </div>
-
-          {/* Loading cards */}
-          <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}`}>
-            {[...Array(6)].map((_, i) => (
-              <SkeletonCard key={i} variant={isMobile ? 'compact' : 'default'} />
-            ))}
-          </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-muted-foreground">Carregando turmas...</div>
         </div>
       </BaseLayout>
     );
@@ -179,199 +108,126 @@ const TurmasPage = () => {
 
   return (
     <BaseLayout title="Gerenciar Turmas">
-      <div className={`${isMobile ? 'mobile-spacing pb-20' : 'space-y-6'}`}>
-        {/* Header */}
+      <div className="space-y-8">
+        {/* Header Section */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>
-              {isMobile ? 'Turmas' : 'Gestão de Turmas'}
-            </h1>
-            {!isMobile && (
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Gestão de Turmas</h1>
               <p className="text-muted-foreground">Gerencie as turmas dos cursos ao vivo</p>
-            )}
+            </div>
           </div>
+          
+          {/* Desktop Create Button */}
           {!isMobile && (
-            <Button onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={() => setCreateDialogOpen(true)}
+              className="h-11 px-6"
+            >
+              <Plus className="w-4 h-4 mr-2" />
               Nova Turma
             </Button>
           )}
         </div>
 
-        {/* Filters */}
-        {isMobile ? (
-          <FilterDrawer
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filters={filterOptions}
-            activeFiltersCount={getActiveFiltersCount()}
-            onClearFilters={clearAllFilters}
-          >
-            <Accordion type="single" collapsible className="w-full" defaultValue="filters">
-              <AccordionItem value="filters">
-                <AccordionTrigger>
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    Filtros e Busca
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-                    {/* Desktop filters content */}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </FilterDrawer>
-        ) : (
-          <Accordion type="single" collapsible className="w-full" defaultValue="filters">
-            <AccordionItem value="filters">
-              <AccordionTrigger>
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filtros e Busca
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4">
-                  {/* Quick filters */}
-                  <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md">
-                    <Button
-                      size="sm"
-                      variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
-                      onClick={() => setStatusFilter('encerrada')}
-                      className="text-xs"
-                    >
-                      📁 Turmas Arquivadas
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={statusFilter === 'em_andamento' ? 'default' : 'outline'}
-                      onClick={() => setStatusFilter('em_andamento')}
-                      className="text-xs"
-                    >
-                      Em Andamento
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={statusFilter === 'agendada' ? 'default' : 'outline'}
-                      onClick={() => setStatusFilter('agendada')}
-                      className="text-xs"
-                    >
-                      Agendadas
-                    </Button>
-                    {(statusFilter !== 'todos') && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setStatusFilter('todos')}
-                        className="text-xs"
-                      >
-                        Limpar filtro
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Buscar turma
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        placeholder="Nome ou código da turma..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
+        {/* Filters Section */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Filter className="w-4 h-4" />
+            Filtros e Busca
+          </div>
+          
+          {/* Status Filters */}
+          <TurmaStatusFilters 
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+          />
+          
+          {/* Other Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Buscar turma</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nome ou código da turma..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Curso</label>
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os cursos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os cursos</SelectItem>
+                  {liveCourses.map(course => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Professor</label>
+              <Select value={professorFilter} onValueChange={setProfessorFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os professores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os professores</SelectItem>
+                  {professors.map(professor => (
+                    <SelectItem key={professor.id} value={professor.id}>
+                      {professor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Curso
-                    </label>
-                    <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar curso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos os cursos</SelectItem>
-                        {liveCourses.map(course => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Status
-                    </label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="agendada">Agendada</SelectItem>
-                        <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                        <SelectItem value="encerrada">📁 Turmas Arquivadas</SelectItem>
-                        <SelectItem value="cancelada">Cancelada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Professor
-                    </label>
-                    <Select value={professorFilter} onValueChange={setProfessorFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar professor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos os professores</SelectItem>
-                        {professors.map(professor => (
-                          <SelectItem key={professor.id} value={professor.id}>
-                            {professor.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                   </div>
-                 </div>
-               </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        )}
+        {/* Results count */}
+        <div className="text-sm text-muted-foreground">
+          {filteredTurmas.length} turma{filteredTurmas.length !== 1 ? 's' : ''} encontrada{filteredTurmas.length !== 1 ? 's' : ''}
+        </div>
 
         {/* Content */}
         {filteredTurmas.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              {allTurmas?.length === 0 
-                ? "Nenhuma turma criada ainda." 
-                : "Nenhuma turma encontrada com os filtros aplicados."
-              }
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 bg-muted/20 rounded-full flex items-center justify-center">
+              <Users className="w-10 h-10 text-muted-foreground/50" />
             </div>
-            {liveCourses.length > 0 ? (
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              {allTurmas.length === 0 ? "Nenhuma turma encontrada" : "Nenhuma turma corresponde aos filtros"}
+            </h3>
+            <p className="text-muted-foreground max-w-md mb-6">
+              {allTurmas.length === 0 
+                ? liveCourses.length > 0 
+                  ? "Crie a primeira turma para começar!"
+                  : "Crie primeiro um curso 'Ao Vivo' para poder criar turmas."
+                : "Tente ajustar os filtros para encontrar turmas."
+              }
+            </p>
+            {liveCourses.length > 0 && (
               <Button onClick={() => handleCreateTurma()}>
                 <Plus className="w-4 h-4 mr-2" />
                 Criar primeira turma
               </Button>
-            ) : (
-              <div className="text-sm text-muted-foreground">
-                Crie primeiro um curso "Ao Vivo" para poder criar turmas.
-              </div>
             )}
           </div>
         ) : (
-          <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredTurmas.map((turma) => {
               const course = courses.find(c => c.id === turma.course_id);
               return (
@@ -389,11 +245,13 @@ const TurmasPage = () => {
         )}
 
         {/* Mobile FAB */}
-        <FloatingActionButton 
-          onClick={() => setCreateDialogOpen(true)}
-          label="Nova Turma"
-          className="z-50"
-        />
+        {isMobile && (
+          <FloatingActionButton 
+            onClick={() => setCreateDialogOpen(true)}
+            icon={Plus}
+            label="Nova Turma"
+          />
+        )}
 
         {/* Dialogs */}
         <CreateTurmaDialog
