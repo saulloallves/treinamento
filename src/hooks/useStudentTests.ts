@@ -26,7 +26,7 @@ export interface StudentTest {
   test_submissions?: {
     id: string;
     attempt_number: number;
-    status: 'in_progress' | 'submitted';
+    status: 'in_progress' | 'completed' | 'expired';
     total_score: number;
     max_possible_score: number;
     percentage: number;

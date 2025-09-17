@@ -24,13 +24,25 @@ const StudentTest = () => {
   const handleStartTest = async () => {
     if (!test) return;
     
+    // Verificar se já existe tentativa em andamento ou se atingiu limite
+    const completedAttempts = test.test_submissions?.filter(s => s.status === 'completed').length || 0;
+    const hasInProgress = test.test_submissions?.some(s => s.status === 'in_progress');
+    
+    if (hasInProgress) {
+      toast.info("Você já tem um teste em andamento");
+      navigate(`/aluno/teste/${test.id}/questoes`);
+      return;
+    }
+    
+    if (test.max_attempts && completedAttempts >= test.max_attempts) {
+      toast.error("Você atingiu o limite de tentativas para este teste");
+      return;
+    }
+    
     setIsStarting(true);
     try {
-      // TODO: Implementar lógica de iniciar teste
-      // - Criar submission
-      // - Redirecionar para interface de questões
-      toast.success("Teste iniciado com sucesso!");
-      // navigate(`/aluno/teste/${test.id}/questoes`);
+      toast.success("Redirecionando para o teste...");
+      navigate(`/aluno/teste/${test.id}/questoes`);
     } catch (error) {
       toast.error("Erro ao iniciar teste");
       console.error("Error starting test:", error);

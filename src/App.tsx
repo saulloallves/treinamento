@@ -38,6 +38,8 @@ import TurmaLessons from "./pages/student/TurmaLessons";
 import StudentQuiz from "./pages/student/StudentQuiz";
 import StudentTests from "./pages/student/StudentTests";
 import StudentTest from "./pages/student/StudentTest";
+import StudentTestQuestions from "@/components/student/StudentTestQuestions";
+import StudentTestResult from "@/components/student/StudentTestResult";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import ProfileSelection from "./pages/ProfileSelection";
@@ -267,6 +269,16 @@ const App = () => (
               <Route path="/aluno/teste/:testId" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/teste/:testId/questoes" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTestQuestions />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/teste/:testId/resultado" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTestResult />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -13,7 +13,7 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
   const hasSubmissions = test.test_submissions && test.test_submissions.length > 0;
   const latestSubmission = hasSubmissions ? 
     test.test_submissions!.sort((a, b) => b.attempt_number - a.attempt_number)[0] : null;
-  const isCompleted = latestSubmission?.status === 'submitted';
+  const isCompleted = latestSubmission?.status === 'completed';
   const isPassed = latestSubmission?.passed;
   const attemptsRemaining = test.max_attempts ? test.max_attempts - (latestSubmission?.attempt_number || 0) : null;
 
