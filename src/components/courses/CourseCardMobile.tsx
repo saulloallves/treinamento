@@ -75,9 +75,9 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[300px] max-w-[260px]">
-      {/* Cover Area - More prominent */}
-      <div className="relative h-28 shrink-0">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[280px]">
+      {/* Compact Cover Area */}
+      <div className="relative h-16 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
