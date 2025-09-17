@@ -134,7 +134,7 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTe
                 ) : turmas && turmas.length > 0 ? (
                   turmas.map((turma) => (
                     <SelectItem key={turma.id} value={turma.id}>
-                      {turma.name} - {turma.code}
+                      {turma.name}
                     </SelectItem>
                   ))
                 ) : (
