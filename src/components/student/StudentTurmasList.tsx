@@ -92,11 +92,6 @@ const StudentTurmasList = () => {
                   <p className="text-sm text-muted-foreground">
                     {enrollment.course?.name || 'Curso'}
                   </p>
-                  {enrollment.turma?.code && (
-                    <Badge variant="outline" className="text-xs">
-                      {enrollment.turma.code}
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge 
