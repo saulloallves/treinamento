@@ -68,13 +68,18 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   });
   
   if (requiredRole) {
-    // Admins têm acesso a TODAS as áreas - sem exceção
-    if (isAdmin) {
-      console.log('ProtectedRoute: Admin access granted to', requiredRole);
-      return <>{children}</>;
+    // CRITICAL: Admin deve ser redirecionado para dashboard, não ter acesso a outras áreas
+    if (requiredRole === 'Aluno' && isAdmin) {
+      console.log('ProtectedRoute: Admin trying to access student area, redirecting to dashboard');
+      return <Navigate to="/dashboard" replace />;
     }
     
-    if (requiredRole === 'Admin') {
+    if (requiredRole === 'Professor' && isAdmin && !isProfessor) {
+      console.log('ProtectedRoute: Admin trying to access professor area, redirecting to dashboard');
+      return <Navigate to="/dashboard" replace />;
+    }
+    
+    if (requiredRole === 'Admin' && !isAdmin) {
       console.log('Redirecting to /aluno because required Admin but user is not admin');
       return <Navigate to="/aluno" replace />;
     }
