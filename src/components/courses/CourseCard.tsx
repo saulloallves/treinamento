@@ -96,11 +96,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[400px]"
+      className="overflow-hidden flex flex-col group h-[320px]"
       variant="elevated"
     >
-      {/* Cover Area */}
-      <div className="relative h-32 shrink-0">
+      {/* Compact Cover Area */}
+      <div className="relative h-20 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -108,31 +108,22 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className={`w-full h-full ${gradientClass}`} />
+          <div className={`w-full h-full ${gradientClass} flex items-center justify-center`}>
+            <div className="text-white/90 font-bold text-sm px-2 text-center line-clamp-2">
+              {course.name}
+            </div>
+          </div>
         )}
         
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        
         {/* Course Type Badge */}
-        <div className="absolute top-2 right-2">
-          <Badge variant="secondary" className="text-xs bg-white/90 text-gray-800 border-0">
-            {course.tipo === 'ao_vivo' ? (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1" />
-                Curso
-              </>
-            ) : (
-              <>
-                <FileText className="w-3 h-3 mr-1" />
-                Treinamento
-              </>
-            )}
+        <div className="absolute top-1.5 right-1.5">
+          <Badge variant="secondary" className="text-xs bg-white/95 text-gray-800 border-0 px-1.5 py-0.5">
+            {course.tipo === 'ao_vivo' ? 'Curso' : 'Treinamento'}
           </Badge>
         </div>
 
         {/* Status indicator */}
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-1.5 left-1.5">
           <div className={`w-2 h-2 rounded-full ${
             course.status === 'Ativo' ? 'bg-green-400' : 
             course.status === 'Inativo' ? 'bg-red-400' : 
@@ -142,87 +133,88 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-4">
+      <CardContent className="flex-1 flex flex-col p-3">
         {/* Title */}
-        <div className="mb-3">
-          <h3 className="font-bold text-base leading-tight line-clamp-2 text-foreground mb-2">
+        <div className="mb-2">
+          <h3 className="font-bold text-lg leading-tight line-clamp-2 text-foreground mb-1">
             {course.name}
           </h3>
           
-          {/* Themes */}
+          {/* Themes - Compact */}
           <div className="flex flex-wrap gap-1">
             {course.theme.slice(0, 2).map((theme, index) => (
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs px-2 py-0.5 h-auto bg-muted/60 truncate max-w-20"
+                className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 text-muted-foreground"
               >
                 {theme}
               </Badge>
             ))}
             {course.theme.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-2 py-0.5 h-auto bg-muted/60">
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 text-muted-foreground">
                 +{course.theme.length - 2}
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Course Info */}
+        {/* Course Info - More compact */}
         <div className="space-y-2 flex-1">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
               <BookOpen className="w-4 h-4 shrink-0" />
-              <span>{correctLessonCount ?? course.lessons_count} aulas</span>
+              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
-            <Badge variant="outline" className="text-xs px-2 py-1 truncate max-w-28 shrink-0">
+            <span className="text-xs text-muted-foreground font-medium">
               {getCorrectPublicTargetLabel()}
-            </Badge>
+            </span>
           </div>
 
           {course.instructor && (
-            <div className="flex items-start gap-2 text-sm min-w-0">
-              <Users className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-              <div className="min-w-0 flex-1">
-                <span className="text-muted-foreground">Instrutor:</span>
-                <div className="text-foreground truncate font-medium">{course.instructor}</div>
+            <div className="text-sm">
+              <div className="flex items-center gap-1 text-muted-foreground mb-1">
+                <Users className="w-4 h-4 shrink-0" />
+                <span>Instrutor:</span>
               </div>
+              <div className="text-foreground font-medium truncate pl-5">{course.instructor}</div>
             </div>
           )}
 
-          {/* Features */}
-          <div className="flex flex-wrap gap-1.5">
-            {course.has_quiz && (
-              <Badge variant="outline" className="text-xs shrink-0 px-2 py-0.5">
-                <FileText className="w-3 h-3 mr-1" />
-                Quiz
-              </Badge>
-            )}
-            {course.generates_certificate && (
-              <Badge variant="outline" className="text-xs shrink-0 px-2 py-0.5">
-                <Award className="w-3 h-3 mr-1" />
-                Certificado
-              </Badge>
-            )}
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-2 text-sm">
-            <div className={`w-2 h-2 rounded-full shrink-0 ${
-              course.status === 'Ativo' ? 'bg-green-500' : 
-              course.status === 'Inativo' ? 'bg-red-500' : 
-              'bg-yellow-500'
-            }`} />
-            <span className="text-muted-foreground">{course.status}</span>
+          {/* Features & Status row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {course.has_quiz && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-xs font-medium">Quiz</span>
+                </div>
+              )}
+              {course.generates_certificate && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Award className="w-4 h-4" />
+                  <span className="text-xs font-medium">Certificado</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${
+                course.status === 'Ativo' ? 'bg-green-500' : 
+                course.status === 'Inativo' ? 'bg-red-500' : 
+                'bg-yellow-500'
+              }`} />
+              <span className="text-xs text-muted-foreground font-medium">{course.status}</span>
+            </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="pt-3 mt-auto border-t">
+        <div className="pt-2 mt-auto">
           <div className="space-y-2">
             {/* Primary action button */}
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => {
                 if (course.tipo === 'gravado' && onViewRecordedCourses) {
@@ -231,19 +223,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                   onViewDetails(course);
                 }
               }}
-              className="w-full h-9"
+              className="w-full h-8 font-medium"
             >
               <Eye className="w-4 h-4 mr-2" />
               Detalhes
             </Button>
             
             {/* Secondary actions */}
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onViewStudents(course)}
-                className="h-8 px-2"
+                className="h-7 px-2"
                 title="Ver Alunos"
               >
                 <Users className="w-4 h-4" />
@@ -252,8 +244,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-8 px-2"
-                title="Editar Curso"
+                className="h-7 px-2"
+                title="Editar"
               >
                 <Edit className="w-4 h-4" />
               </Button>
@@ -261,8 +253,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-8 px-2"
-                title="Excluir Curso"
+                className="h-7 px-2"
+                title="Excluir"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>

@@ -75,9 +75,9 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[320px]">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[280px]">
       {/* Compact Cover Area */}
-      <div className="relative h-20 shrink-0">
+      <div className="relative h-16 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -85,44 +85,35 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className={`w-full h-full ${gradientClass}`} />
+          <div className={`w-full h-full ${gradientClass} flex items-center justify-center`}>
+            <div className="text-white/95 font-bold text-xs px-2 text-center line-clamp-2">
+              {course.name}
+            </div>
+          </div>
         )}
         
-        {/* Minimal Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-        
+        {/* Course Type Badge */}
+        <div className="absolute top-1 right-1">
+          <Badge variant="secondary" className="text-xs bg-white/95 text-gray-800 border-0 px-1 py-0.5">
+            {course.tipo === 'ao_vivo' ? 'Curso' : 'Treinamento'}
+          </Badge>
+        </div>
+
         {/* Status indicator */}
-        <div className="absolute top-1.5 right-1.5">
+        <div className="absolute top-1 left-1">
           <div className={`w-2 h-2 rounded-full ${
             course.status === 'Ativo' ? 'bg-green-400' : 
             course.status === 'Inativo' ? 'bg-red-400' : 
             'bg-yellow-400'
           }`} />
         </div>
-
-        {/* Course Type Badge */}
-        <div className="absolute bottom-1.5 left-1.5">
-          <Badge variant="secondary" className="text-xs bg-white/90 text-gray-800 border-0 px-1.5 py-0.5">
-            {course.tipo === 'ao_vivo' ? (
-              <>
-                <PlayCircle className="w-3 h-3 mr-1" />
-                Curso
-              </>
-            ) : (
-              <>
-                <FileText className="w-3 h-3 mr-1" />
-                Treinamento
-              </>
-            )}
-          </Badge>
-        </div>
       </div>
 
       {/* Content - Optimized for mobile */}
-      <CardContent className="p-3 flex-1 flex flex-col">
+      <CardContent className="p-2.5 flex-1 flex flex-col">
         {/* Title */}
-        <div className="mb-3">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-2">
+        <div className="mb-2">
+          <h3 className="font-bold text-base leading-tight line-clamp-2 text-foreground mb-1">
             {course.name}
           </h3>
           
@@ -132,13 +123,13 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 truncate max-w-16"
+                className="text-xs px-1.5 py-0.5 h-auto bg-muted/40 text-muted-foreground"
               >
                 {theme}
               </Badge>
             ))}
             {course.theme.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto bg-muted/50">
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto bg-muted/40 text-muted-foreground">
                 +{course.theme.length - 2}
               </Badge>
             )}
@@ -146,59 +137,60 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Main Info */}
-        <div className="space-y-2 flex-1">
+        <div className="space-y-1.5 flex-1">
           {/* Course Meta - Compact row */}
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1 text-muted-foreground">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span>{correctLessonCount ?? course.lessons_count} aulas</span>
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
-            <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto truncate max-w-24 shrink-0">
+            <span className="text-xs text-muted-foreground font-medium">
               {getCorrectPublicTargetLabel()}
-            </Badge>
+            </span>
           </div>
 
           {/* Instructor - Only if available */}
           {course.instructor && (
             <div className="text-xs">
-              <span className="text-muted-foreground">Instrutor:</span>
-              <div className="text-foreground font-medium truncate">{course.instructor}</div>
+              <span className="text-muted-foreground">Instrutor: </span>
+              <span className="text-foreground font-medium">{course.instructor}</span>
             </div>
           )}
 
-          {/* Features - Compact icons */}
-          <div className="flex items-center gap-3 text-xs">
-            {course.has_quiz && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <FileText className="w-3 h-3" />
-                <span>Quiz</span>
-              </div>
-            )}
-            {course.generates_certificate && (
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Award className="w-3 h-3" />
-                <span>Certificado</span>
-              </div>
-            )}
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-2 text-xs">
-            <div className={`w-2 h-2 rounded-full shrink-0 ${
-              course.status === 'Ativo' ? 'bg-green-500' : 
-              course.status === 'Inativo' ? 'bg-red-500' : 
-              'bg-yellow-500'
-            }`} />
-            <span className="text-muted-foreground">{course.status}</span>
+          {/* Features & Status in one row */}
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-3">
+              {course.has_quiz && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <FileText className="w-3 h-3" />
+                  <span className="font-medium">Quiz</span>
+                </div>
+              )}
+              {course.generates_certificate && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Award className="w-3 h-3" />
+                  <span className="font-medium">Certificado</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${
+                course.status === 'Ativo' ? 'bg-green-500' : 
+                course.status === 'Inativo' ? 'bg-red-500' : 
+                'bg-yellow-500'
+              }`} />
+              <span className="text-muted-foreground font-medium">{course.status}</span>
+            </div>
           </div>
         </div>
 
         {/* Actions - Mobile optimized */}
-        <div className="pt-3 mt-auto border-t">
-          <div className="space-y-2">
+        <div className="pt-2 mt-auto">
+          <div className="space-y-1.5">
             {/* Primary action button */}
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => {
                 if (course.tipo === 'gravado' && onViewRecordedCourses) {
@@ -207,19 +199,19 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                   onViewDetails(course);
                 }
               }}
-              className="w-full h-8 text-xs"
+              className="w-full h-8 text-sm font-medium"
             >
               <Eye className="w-3 h-3 mr-2" />
               Detalhes
             </Button>
             
             {/* Secondary actions in row */}
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-3 gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onViewStudents(course)}
-                className="h-8 px-2"
+                className="h-7 px-2"
                 title="Ver Alunos"
               >
                 <Users className="w-3 h-3" />
@@ -228,7 +220,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-8 px-2"
+                className="h-7 px-2"
                 title="Editar"
               >
                 <Edit className="w-3 h-3" />
@@ -237,7 +229,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-8 px-2"
+                className="h-7 px-2"
                 title="Excluir"
               >
                 <Trash2 className="w-3 h-3" />
