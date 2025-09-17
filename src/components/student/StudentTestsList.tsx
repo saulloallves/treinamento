@@ -25,8 +25,14 @@ const StudentTestsList = () => {
 
   if (!tests || tests.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Nenhum teste avaliativo disponível no momento.</p>
+      <div className="text-center py-8 space-y-4">
+        <div className="text-6xl">📚</div>
+        <div className="space-y-2">
+          <p className="text-lg font-medium">Nenhum teste avaliativo disponível</p>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Os testes avaliativos aparecerão aqui quando seus professores criarem e ativarem testes para suas turmas.
+          </p>
+        </div>
       </div>
     );
   }

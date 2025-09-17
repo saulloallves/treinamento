@@ -63,9 +63,19 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   const handleSaveTest = async () => {
     if (!testId || !editedTest) return;
 
+    // Validar se teste pode ser ativado
+    if (editedTest.status === 'active' && (!questions || questions.length === 0)) {
+      toast.error("Não é possível ativar um teste sem perguntas!");
+      return;
+    }
+
     try {
       await updateTest({ id: testId, ...editedTest });
-      toast.success("Teste atualizado com sucesso!");
+      toast.success(
+        editedTest.status === 'active' 
+          ? "Teste ativado com sucesso! Agora está disponível para os alunos." 
+          : "Teste atualizado com sucesso!"
+      );
       setIsEditing(false);
     } catch (error) {
       toast.error("Erro ao atualizar teste");
@@ -158,9 +168,33 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
 
                   <div className="space-y-2">
                     <Label>Status</Label>
-                    <Badge variant={test.status === 'active' ? 'default' : 'secondary'}>
-                      {test.status === 'active' ? 'Ativo' : 'Rascunho'}
-                    </Badge>
+                    {isEditing ? (
+                      <Select 
+                        value={editedTest?.status || 'draft'} 
+                        onValueChange={(value) => setEditedTest(prev => ({ ...prev, status: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Rascunho</SelectItem>
+                          <SelectItem value="active">Ativo</SelectItem>
+                          <SelectItem value="archived">Arquivado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Badge variant={test.status === 'active' ? 'default' : 'secondary'}>
+                          {test.status === 'active' ? 'Ativo' : 
+                           test.status === 'archived' ? 'Arquivado' : 'Rascunho'}
+                        </Badge>
+                        {test.status === 'draft' && (
+                          <span className="text-xs text-muted-foreground">
+                            (Não visível para alunos)
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

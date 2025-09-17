@@ -70,18 +70,22 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
         </div>
 
         {/* Informações do Curso/Turma */}
-        {test.courses && (
-          <div className="text-xs text-muted-foreground">
-            <span>Curso: {test.courses.name}</span>
-          </div>
-        )}
-        
-        {test.turmas && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="w-3 h-3" />
-            <span>{test.turmas.name || test.turmas.code || 'Turma'}</span>
-          </div>
-        )}
+        <div className="space-y-1">
+          {test.courses && (
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Curso:</span> {test.courses.name}
+            </div>
+          )}
+          
+          {test.turmas && (
+            <div className="flex items-center gap-1 text-xs">
+              <Users className="w-3 h-3 text-primary" />
+              <span className="font-medium text-primary">
+                {test.turmas.name || test.turmas.code || 'Turma'}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Detalhes do Teste */}
         <div className="space-y-1">
