@@ -46,11 +46,6 @@ const TurmaLessonsCard = ({ turma, onClick, onViewRecordedLessons }: TurmaLesson
               {turma.name}
             </CardTitle>
             <p className="text-sm text-muted-foreground">{turma.course_name}</p>
-            {turma.code && (
-              <Badge variant="outline" className="text-xs">
-                {turma.code}
-              </Badge>
-            )}
           </div>
           <div className="flex items-center gap-2">
             <Badge 
