@@ -11,14 +11,6 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
     <div className={`flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md ${className}`}>
       <Button
         size="sm"
-        variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
-        onClick={() => onStatusChange('encerrada')}
-        className="text-xs"
-      >
-        📁 Turmas Arquivadas
-      </Button>
-      <Button
-        size="sm"
         variant={statusFilter === 'em_andamento' ? 'default' : 'outline'}
         onClick={() => onStatusChange('em_andamento')}
         className="text-xs"
@@ -32,6 +24,14 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
         className="text-xs"
       >
         Agendadas
+      </Button>
+      <Button
+        size="sm"
+        variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
+        onClick={() => onStatusChange('encerrada')}
+        className="text-xs"
+      >
+        📁 Turmas Arquivadas
       </Button>
       {(statusFilter !== 'todos' && statusFilter !== 'all') && (
         <Button
