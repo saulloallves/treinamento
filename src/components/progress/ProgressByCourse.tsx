@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProgressCard } from "./ProgressCard";
 import { ProgressDetailsDialog } from "./ProgressDetailsDialog";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface ProgressGroup {
   id: string;
@@ -15,6 +16,7 @@ interface ProgressGroup {
 const ProgressByCourse = () => {
   const [selectedGroup, setSelectedGroup] = useState<ProgressGroup | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const { data: progressData, isLoading } = useQuery({
     queryKey: ["progress", "by-course"],
@@ -31,7 +33,7 @@ const ProgressByCourse = () => {
           course_id,
           turma_id,
           courses(name, tipo, lessons_count),
-          turmas(id, name, code)
+          turmas(id, name, code, status)
         `)
         .order("created_at", { ascending: false });
       
@@ -77,6 +79,7 @@ const ProgressByCourse = () => {
             progress_percentage: realProgress,
             courseName: enrollment.courses?.name ?? "—",
             turmaName: enrollment.turmas?.name || enrollment.turmas?.code || "Turma não definida",
+            turmaStatus: enrollment.turmas?.status,
           };
         })
       );
@@ -88,9 +91,24 @@ const ProgressByCourse = () => {
   const groupedProgress = useMemo(() => {
     if (!progressData) return [];
 
+    // Filter by turma status
+    const filteredProgressData = progressData.filter(progress => {
+      const turmaStatus = progress.turmaStatus;
+      if (statusFilter === "todos") {
+        // Default view: show only active turmas (exclude 'encerrada')
+        return turmaStatus !== 'encerrada';
+      } else if (statusFilter === "encerrada") {
+        // Archive view: show only archived turmas
+        return turmaStatus === 'encerrada';
+      } else {
+        // Specific status filter
+        return turmaStatus === statusFilter;
+      }
+    });
+
     const groups = new Map<string, ProgressGroup>();
 
-    progressData.forEach((progress) => {
+    filteredProgressData.forEach((progress) => {
       const key = `${progress.course_id}-${progress.turma_id}`;
       
       if (!groups.has(key)) {
@@ -109,7 +127,7 @@ const ProgressByCourse = () => {
     return Array.from(groups.values()).sort((a, b) => 
       a.courseName.localeCompare(b.courseName)
     );
-  }, [progressData]);
+  }, [progressData, statusFilter]);
 
   const handleCardClick = (group: ProgressGroup) => {
     setSelectedGroup(group);
@@ -136,14 +154,21 @@ const ProgressByCourse = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {groupedProgress.map((group) => (
-          <ProgressCard
-            key={group.id}
-            group={group}
-            onClick={() => handleCardClick(group)}
-          />
-        ))}
+      <div className="space-y-6">
+        <TurmaStatusFilters 
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {groupedProgress.map((group) => (
+            <ProgressCard
+              key={group.id}
+              group={group}
+              onClick={() => handleCardClick(group)}
+            />
+          ))}
+        </div>
       </div>
 
       {selectedGroup && (

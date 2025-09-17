@@ -31,6 +31,7 @@ export interface Enrollment {
     id: string;
     name: string;
     code: string;
+    status?: string;
     responsavel_name?: string;
   };
 }
@@ -62,6 +63,7 @@ export const useEnrollments = (courseId?: string) => {
             id,
             name,
             code,
+            status,
             responsavel_name
           )
         `)

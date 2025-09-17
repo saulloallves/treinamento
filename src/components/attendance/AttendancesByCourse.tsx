@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AttendanceCard } from "./AttendanceCard";
 import { AttendanceDetailsDialog } from "./AttendanceDetailsDialog";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface AttendanceGroup {
   id: string;
@@ -15,6 +16,7 @@ interface AttendanceGroup {
 const AttendancesByCourse = () => {
   const [selectedGroup, setSelectedGroup] = useState<AttendanceGroup | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const { data: attendances, isLoading } = useQuery({
     queryKey: ["attendance", "by-course"],
@@ -26,6 +28,7 @@ const AttendancesByCourse = () => {
           id,
           name,
           code,
+          status,
           course_id,
           courses(id, name)
         `)
@@ -95,6 +98,7 @@ const AttendancesByCourse = () => {
           courseId: course?.id,
           courseName: course?.name ?? "—",
           turmaName: turma.name || turma.code || "Turma não definida",
+          turmaStatus: turma.status,
           attendances: attendancesForTurma
         };
       });
@@ -104,14 +108,29 @@ const AttendancesByCourse = () => {
   const groupedAttendances = useMemo(() => {
     if (!attendances) return [];
 
-    return attendances.map((turmaData) => ({
+    // Filter turmas by status
+    const filteredAttendances = attendances.filter(turmaData => {
+      const turmaStatus = turmaData.turmaStatus;
+      if (statusFilter === "todos") {
+        // Default view: show only active turmas (exclude 'encerrada')
+        return turmaStatus !== 'encerrada';
+      } else if (statusFilter === "encerrada") {
+        // Archive view: show only archived turmas
+        return turmaStatus === 'encerrada';
+      } else {
+        // Specific status filter
+        return turmaStatus === statusFilter;
+      }
+    });
+
+    return filteredAttendances.map((turmaData) => ({
       id: `${turmaData.courseId}-${turmaData.turmaId}`,
       name: `${turmaData.courseId}-${turmaData.turmaId}`,
       turmaName: turmaData.turmaName,
       courseName: turmaData.courseName,
       items: turmaData.attendances
     })).sort((a, b) => a.courseName.localeCompare(b.courseName));
-  }, [attendances]);
+  }, [attendances, statusFilter]);
 
   const handleCardClick = (group: AttendanceGroup) => {
     setSelectedGroup(group);
@@ -138,14 +157,21 @@ const AttendancesByCourse = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {groupedAttendances.map((group) => (
-          <AttendanceCard
-            key={group.id}
-            group={group}
-            onClick={() => handleCardClick(group)}
-          />
-        ))}
+      <div className="space-y-6">
+        <TurmaStatusFilters 
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {groupedAttendances.map((group) => (
+            <AttendanceCard
+              key={group.id}
+              group={group}
+              onClick={() => handleCardClick(group)}
+            />
+          ))}
+        </div>
       </div>
 
       {selectedGroup && (

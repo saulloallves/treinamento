@@ -3,13 +3,30 @@ import { useEnrollments } from "@/hooks/useEnrollments";
 import { Card } from "@/components/ui/card";
 import { EnrollmentTurmaCard } from "./EnrollmentTurmaCard";
 import { TurmaEnrollmentsDialog } from "./TurmaEnrollmentsDialog";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const EnrollmentsByCourse = () => {
   const { data: enrollments = [], isLoading } = useEnrollments();
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const grouped = useMemo(() => {
+    // First filter enrollments by turma status
+    const filteredEnrollments = enrollments.filter(enrollment => {
+      const turmaStatus = enrollment.turmas?.status;
+      if (statusFilter === "todos") {
+        // Default view: show only active turmas (exclude 'encerrada')
+        return turmaStatus !== 'encerrada';
+      } else if (statusFilter === "encerrada") {
+        // Archive view: show only archived turmas
+        return turmaStatus === 'encerrada';
+      } else {
+        // Specific status filter
+        return turmaStatus === statusFilter;
+      }
+    });
+
     const map = new Map<string, { 
       name: string; 
       turmaName: string;
@@ -17,7 +34,8 @@ const EnrollmentsByCourse = () => {
       courseName: string;
       items: typeof enrollments 
     }>();
-    for (const e of enrollments) {
+    
+    for (const e of filteredEnrollments) {
       const key = `${e.course_id}-${e.turma_id}` || "sem-turma";
       const courseName = (e.courses?.name || "Sem curso").trim();
       const turmaName = e.turmas?.name || e.turmas?.code || "Turma não definida";
@@ -38,7 +56,7 @@ const EnrollmentsByCourse = () => {
     return Array.from(map.entries())
       .map(([id, g]) => ({ id, ...g }))
       .sort((a, b) => a.courseName.localeCompare(b.courseName));
-  }, [enrollments]);
+  }, [enrollments, statusFilter]);
 
   const handleCardClick = (group: any) => {
     setSelectedGroup(group);
@@ -63,14 +81,21 @@ const EnrollmentsByCourse = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {grouped.map((group) => (
-          <EnrollmentTurmaCard
-            key={group.id}
-            group={group}
-            onClick={() => handleCardClick(group)}
-          />
-        ))}
+      <div className="space-y-6">
+        <TurmaStatusFilters 
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {grouped.map((group) => (
+            <EnrollmentTurmaCard
+              key={group.id}
+              group={group}
+              onClick={() => handleCardClick(group)}
+            />
+          ))}
+        </div>
       </div>
 
       <TurmaEnrollmentsDialog
