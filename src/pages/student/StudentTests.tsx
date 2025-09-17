@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import BaseLayout from "@/components/BaseLayout";
-import StudentTestsList from "@/components/student/StudentTestsList";
+import StudentTurmasList from "@/components/student/StudentTurmasList";
 
 const StudentTests = () => {
   useEffect(() => {
@@ -11,11 +11,11 @@ const StudentTests = () => {
     <BaseLayout title="Área do Aluno">
       <header className="mb-6">
         <h2 className="text-2xl font-semibold">Testes Avaliativos</h2>
-        <p className="text-muted-foreground">Realize os testes dos seus cursos e acompanhe seu desempenho.</p>
+        <p className="text-muted-foreground">Selecione uma turma para ver os testes disponíveis.</p>
       </header>
 
       <main>
-        <StudentTestsList />
+        <StudentTurmasList />
       </main>
     </BaseLayout>
   );

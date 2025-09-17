@@ -40,6 +40,7 @@ import StudentTests from "./pages/student/StudentTests";
 import StudentTest from "./pages/student/StudentTest";
 import StudentTestQuestions from "@/components/student/StudentTestQuestions";
 import StudentTestResult from "@/components/student/StudentTestResult";
+import StudentTurmaTests from "./pages/student/StudentTurmaTests";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import ProfileSelection from "./pages/ProfileSelection";
@@ -279,6 +280,11 @@ const App = () => (
               <Route path="/aluno/teste/:testId/resultado" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentTestResult />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/turma/:turmaId/testes" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTurmaTests />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
