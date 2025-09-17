@@ -68,29 +68,30 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   });
   
   if (requiredRole) {
-    // Admins têm acesso a todas as áreas
+    // Admins têm acesso a TODAS as áreas - sem exceção
     if (isAdmin) {
+      console.log('ProtectedRoute: Admin access granted to', requiredRole);
       return <>{children}</>;
     }
     
-    if (requiredRole === 'Admin' && detectedProfile !== 'Admin') {
-      console.log('Redirecting to /aluno because required Admin but detected:', detectedProfile);
+    if (requiredRole === 'Admin') {
+      console.log('Redirecting to /aluno because required Admin but user is not admin');
       return <Navigate to="/aluno" replace />;
     }
-    if (requiredRole === 'Aluno' && detectedProfile !== 'Aluno') {
+    if (requiredRole === 'Aluno' && !currentUser) {
       // Se é professor, vai para área do professor
-      if (detectedProfile === 'Professor') {
-        console.log('Redirecting to /professor because required Aluno but detected: Professor');
+      if (isProfessor) {
+        console.log('Redirecting to /professor because required Aluno but user is professor');
         return <Navigate to="/professor" replace />;
       }
-      // Se é admin, vai para dashboard
-      console.log('Redirecting to /dashboard because required Aluno but detected:', detectedProfile);
-      return <Navigate to="/dashboard" replace />;
+      // Sem perfil de aluno, redireciona para auth
+      console.log('Redirecting to /auth because required Aluno but no student profile');
+      return <Navigate to="/auth" replace />;
     }
-    if (requiredRole === 'Professor' && detectedProfile !== 'Professor') {
-      console.log('Redirecting based on detected profile:', detectedProfile);
-      if (detectedProfile === 'Admin') return <Navigate to="/dashboard" replace />;
-      return <Navigate to="/aluno" replace />;
+    if (requiredRole === 'Professor' && !isProfessor) {
+      console.log('Redirecting based on profile - not a professor');
+      if (currentUser) return <Navigate to="/aluno" replace />;
+      return <Navigate to="/auth" replace />;
     }
   }
 

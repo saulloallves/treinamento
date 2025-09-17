@@ -60,29 +60,22 @@ const RoleRedirect = () => {
 
   // Check if user has student profile (exists in users table)
   const hasStudentProfile = !!currentUser;
+  
+  console.log('RoleRedirect - Profile Detection:', {
+    isAdmin,
+    isProfessor,
+    detectedProfile,
+    hasStudentProfile
+  });
 
   // Professor redirect
   if (isProfessor && !isAdmin) {
     return <Navigate to="/professor" replace />;
   }
 
-  // Se o usuário tem múltiplos perfis (admin + aluno/professor), verificar preferência
-  if (isAdmin && (hasStudentProfile || isProfessor)) {
-    console.log('RoleRedirect - Admin with multiple profiles, redirecting to:', detectedProfile);
-    if (detectedProfile === 'Admin') {
-      return <Navigate to="/dashboard" replace />;
-    } else if (detectedProfile === 'Aluno') {
-      return <Navigate to="/aluno" replace />;
-    } else if (detectedProfile === 'Professor') {
-      return <Navigate to="/professor" replace />;
-    } else {
-      return <Navigate to="/perfil" replace />;
-    }
-  }
-
-  // Se só é admin, vai para dashboard
-  if (isAdmin && !hasStudentProfile && !isProfessor) {
-    console.log('RoleRedirect - Admin only, redirecting to dashboard');
+  // Se é admin, SEMPRE vai para dashboard (independente de outros perfis)
+  if (isAdmin) {
+    console.log('RoleRedirect - Admin detected, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
