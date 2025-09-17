@@ -19,7 +19,8 @@ import {
   X,
   ChevronDown,
   Target,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck
 } from "lucide-react";
 import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
@@ -83,6 +84,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       { icon: GraduationCap, label: "Cursos", path: "/aluno" },
       { icon: BookOpen, label: "Aulas", path: "/aluno/aulas" },
       { icon: FileQuestion, label: "Quiz", path: "/aluno/quiz" },
+      { icon: ClipboardCheck, label: "Testes Avaliativos", path: "/aluno/testes" },
     ];
 
     // Adicionar gestão de colaboradores se for franqueado

@@ -11,7 +11,8 @@ import {
   MessageSquare,
   ClipboardCheck,
   Award,
-  UserCheck
+  UserCheck,
+  FileText
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
@@ -55,11 +56,11 @@ const BottomNavigation = () => {
 
   // Menu para aluno franqueado (Franqueado)
   const franchiseeStudentItems: NavItem[] = [
+    { label: 'Portal', href: '/aluno', icon: Home },
     { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
     { label: 'Quiz', href: '/aluno/quiz', icon: ClipboardCheck },
-    { label: 'Cursos', href: '/aluno/cursos', icon: BookOpen },
-    { label: 'Colaboradores', href: '/aluno/colaboradores', icon: UserCheck },
-    { label: 'Perfil', href: '/aluno/perfil', icon: Users }
+    { label: 'Testes', href: '/aluno/testes', icon: FileText },
+    { label: 'Colaboradores', href: '/aluno/colaboradores', icon: UserCheck }
   ];
 
   // Menu para aluno colaborador
@@ -67,7 +68,7 @@ const BottomNavigation = () => {
     { label: 'Portal', href: '/aluno', icon: Home },
     { label: 'Cursos', href: '/aluno/cursos', icon: BookOpen },
     { label: 'Aulas', href: '/aluno/aulas', icon: GraduationCap },
-    { label: 'Certificados', href: '/certificates', icon: Award },
+    { label: 'Testes', href: '/aluno/testes', icon: FileText },
     { label: 'Perfil', href: '/aluno/perfil', icon: Users }
   ];
 
@@ -96,8 +97,7 @@ const BottomNavigation = () => {
     if (isFranchisee) {
       navigationItems = franchiseeStudentItems;
     } else if (isCollaborator) {
-      // Colaboradores não têm menu inferior
-      return null;
+      navigationItems = collaboratorStudentItems;
     } else {
       navigationItems = regularStudentItems;
     }
