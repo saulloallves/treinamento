@@ -21,7 +21,7 @@ interface ManageTestDialogProps {
 }
 
 export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialogProps) => {
-  const [activeTab, setActiveTab] = useState("info");
+  const [activeTab, setActiveTab] = useState("questions");
   const [isEditing, setIsEditing] = useState(false);
   const [editedTest, setEditedTest] = useState<any>(null);
   const [questionTexts, setQuestionTexts] = useState<Record<string, string>>({});
@@ -36,7 +36,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     if (test && open) {
       setEditedTest({ ...test });
       setIsEditing(false);
-      setActiveTab("info");
+      setActiveTab("questions");
     }
   }, [test, open]);
 
@@ -115,18 +115,214 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
             {test.name}
           </DialogTitle>
           <DialogDescription>
-            Gerencie as configurações e perguntas do teste
+            Gerencie as perguntas e configurações do teste
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="info">Informações</TabsTrigger>
             <TabsTrigger value="questions">
               Perguntas ({questions?.length || 0})
             </TabsTrigger>
+            <TabsTrigger value="info">Configurações</TabsTrigger>
             <TabsTrigger value="preview">Visualizar</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="questions" className="space-y-4">
+            {(!questions || questions.length === 0) ? (
+              <div className="text-center py-12">
+                <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhuma pergunta cadastrada</h3>
+                <p className="text-muted-foreground mb-6">
+                  Adicione perguntas para que os alunos possam fazer este teste
+                </p>
+                <Button onClick={handleAddQuestion} size="lg">
+                  <Plus className="h-5 w-5 mr-2" />
+                  Adicionar Primeira Pergunta
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Perguntas do Teste</h3>
+                  <Button onClick={handleAddQuestion}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar Pergunta
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {questions?.map((question, index) => (
+                    <Card key={question.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-base">
+                            Pergunta {index + 1}
+                          </CardTitle>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => deleteQuestion(question.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Tipo de Pergunta</Label>
+                          <Select 
+                            value={question.question_type} 
+                            onValueChange={(value: 'multiple_choice' | 'essay') => {
+                              updateQuestion({
+                                id: question.id,
+                                question_type: value,
+                                max_score: value === 'essay' ? 10 : undefined
+                              });
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
+                              <SelectItem value="essay">Dissertativa</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Texto da Pergunta</Label>
+                          <Textarea
+                            value={questionTexts[question.id] || question.question_text}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setQuestionTexts(prev => ({
+                                ...prev,
+                                [question.id]: newValue
+                              }));
+                              debouncedUpdateQuestion(question.id, { question_text: newValue });
+                            }}
+                            rows={2}
+                          />
+                        </div>
+
+                        {question.image_urls && question.image_urls.length > 0 && (
+                          <div className="space-y-2">
+                            <Label>Imagens</Label>
+                            <div className="flex gap-2">
+                              {question.image_urls.map((url, imgIndex) => (
+                                <div key={imgIndex} className="relative">
+                                  <img 
+                                    src={url} 
+                                    alt={`Imagem ${imgIndex + 1}`}
+                                    className="w-20 h-20 object-cover rounded border"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {question.question_type === 'multiple_choice' ? (
+                          <div className="space-y-3">
+                            <Label>Alternativas (Sistema de Pontuação)</Label>
+                            <div className="space-y-3">
+                              {question.options?.map((option, optionIndex) => (
+                                <div key={option.id || optionIndex} className="border rounded-lg p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <Label className="text-sm font-medium">
+                                      Alternativa {String.fromCharCode(65 + optionIndex)} - 
+                                      <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                        option.score_value === 0 ? 'bg-red-100 text-red-800' :
+                                        option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-green-100 text-green-800'
+                                      }`}>
+                                        {option.score_value === 0 ? 'Errada (0 pts)' :
+                                         option.score_value === 1 ? 'Mediana (1 pt)' :
+                                         'Correta (2 pts)'}
+                                      </span>
+                                    </Label>
+                                  </div>
+                                  <Input
+                                    value={option.option_text}
+                                    onChange={(e) => {
+                                      const updatedOptions = question.options?.map(opt => 
+                                        opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
+                                      ) || [];
+                                      updateQuestion({
+                                        id: question.id,
+                                        options: updatedOptions
+                                      });
+                                    }}
+                                    placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <Label>Configuração da Pergunta Dissertativa</Label>
+                            <div className="border rounded-lg p-3">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">Pontuação Máxima</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="100"
+                                  value={question.max_score || 10}
+                                  onChange={(e) => {
+                                    updateQuestion({
+                                      id: question.id,
+                                      max_score: parseInt(e.target.value) || 10
+                                    });
+                                  }}
+                                  placeholder="Ex: 10"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Esta pergunta será avaliada manualmente e pode receber até {question.max_score || 10} pontos.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <Separator />
+                        
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              // Create a file input element
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/*';
+                              input.multiple = true;
+                              input.onchange = (e) => {
+                                const files = (e.target as HTMLInputElement).files;
+                                if (files) {
+                                  // Here you would upload the files and get URLs
+                                  // For now, we'll just show a message
+                                  toast.success(`${files.length} imagem(ns) selecionada(s) - funcionalidade de upload será implementada`);
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <Image className="h-4 w-4 mr-1" />
+                            Adicionar Imagem
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </TabsContent>
 
           <TabsContent value="info" className="space-y-4">
             <Card>
@@ -273,241 +469,6 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="questions" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Perguntas do Teste</h3>
-              <Button onClick={handleAddQuestion}>
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar Pergunta
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {questions?.map((question, index) => (
-                <Card key={question.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-base">
-                        Pergunta {index + 1}
-                      </CardTitle>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => deleteQuestion(question.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    <div className="space-y-2">
-                      <Label>Tipo de Pergunta</Label>
-                      <Select 
-                        value={question.question_type} 
-                        onValueChange={(value: 'multiple_choice' | 'essay') => {
-                          updateQuestion({
-                            id: question.id,
-                            question_type: value,
-                            max_score: value === 'essay' ? 10 : undefined
-                          });
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="multiple_choice">Múltipla Escolha</SelectItem>
-                          <SelectItem value="essay">Dissertativa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Texto da Pergunta</Label>
-                      <Textarea
-                        value={questionTexts[question.id] || question.question_text}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          setQuestionTexts(prev => ({
-                            ...prev,
-                            [question.id]: newValue
-                          }));
-                          debouncedUpdateQuestion(question.id, { question_text: newValue });
-                        }}
-                        rows={2}
-                      />
-                    </div>
-
-                    {question.image_urls && question.image_urls.length > 0 && (
-                      <div className="space-y-2">
-                        <Label>Imagens</Label>
-                        <div className="flex gap-2">
-                          {question.image_urls.map((url, imgIndex) => (
-                            <div key={imgIndex} className="relative">
-                              <img 
-                                src={url} 
-                                alt={`Imagem ${imgIndex + 1}`}
-                                className="w-20 h-20 object-cover rounded border"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {question.question_type === 'multiple_choice' ? (
-                      <div className="space-y-3">
-                        <Label>Alternativas (Sistema de Pontuação)</Label>
-                        <div className="space-y-3">
-                          {question.options?.map((option, optionIndex) => (
-                            <div key={option.id || optionIndex} className="border rounded-lg p-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <Label className="text-sm font-medium">
-                                  Alternativa {String.fromCharCode(65 + optionIndex)} - 
-                                  <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                                    option.score_value === 0 ? 'bg-red-100 text-red-800' :
-                                    option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-green-100 text-green-800'
-                                  }`}>
-                                    {option.score_value === 0 ? 'Errada (0 pts)' :
-                                     option.score_value === 1 ? 'Mediana (1 pt)' :
-                                     'Correta (2 pts)'}
-                                  </span>
-                                </Label>
-                              </div>
-                              <Input
-                                value={option.option_text}
-                                onChange={(e) => {
-                                  const updatedOptions = question.options?.map(opt => 
-                                    opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
-                                  ) || [];
-                                  updateQuestion({
-                                    id: question.id,
-                                    options: updatedOptions
-                                  });
-                                }}
-                                placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
-                              />
-                            </div>
-                          )) || (
-                            <div className="space-y-2">
-                              <div className="border rounded-lg p-3">
-                                <Label className="text-sm font-medium mb-2 block">
-                                  Alternativa A - <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Errada (0 pts)</span>
-                                </Label>
-                                <Input placeholder="Digite a alternativa errada..." />
-                              </div>
-                              <div className="border rounded-lg p-3">
-                                <Label className="text-sm font-medium mb-2 block">
-                                  Alternativa B - <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Mediana (1 pt)</span>
-                                </Label>
-                                <Input placeholder="Digite a alternativa mediana..." />
-                              </div>
-                              <div className="border rounded-lg p-3">
-                                <Label className="text-sm font-medium mb-2 block">
-                                  Alternativa C - <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Correta (2 pts)</span>
-                                </Label>
-                                <Input placeholder="Digite a alternativa correta..." />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <Label>Configuração da Pergunta Dissertativa</Label>
-                        <div className="border rounded-lg p-3">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Pontuação Máxima</Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={question.max_score || 10}
-                              onChange={(e) => {
-                                updateQuestion({
-                                  id: question.id,
-                                  max_score: parseInt(e.target.value) || 10
-                                });
-                              }}
-                              placeholder="Ex: 10"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              Esta pergunta será avaliada manualmente e pode receber até {question.max_score || 10} pontos.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <Separator />
-                    
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          // Create a file input element
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.multiple = true;
-                          input.onchange = (e) => {
-                            const files = (e.target as HTMLInputElement).files;
-                            if (files) {
-                              // Here you would upload the files and get URLs
-                              // For now, we'll just show a message
-                              toast.success(`${files.length} imagem(ns) selecionada(s) - funcionalidade de upload será implementada`);
-                            }
-                          };
-                          input.click();
-                        }}
-                      >
-                        <Image className="h-4 w-4 mr-1" />
-                        Adicionar Imagem
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          if (!question.options || question.options.length === 0) {
-                            updateQuestion({
-                              id: question.id,
-                              options: [
-                                { option_text: "Resposta errada", score_value: 0, option_order: 1 },
-                                { option_text: "Resposta mediana", score_value: 1, option_order: 2 },
-                                { option_text: "Resposta correta", score_value: 2, option_order: 3 }
-                              ]
-                            });
-                          }
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        {question.options?.length ? 'Salvar Alterações' : 'Configurar Alternativas'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {(!questions || questions.length === 0) && (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-8">
-                    <Plus className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Nenhuma pergunta adicionada</h3>
-                    <p className="text-muted-foreground text-center mb-4">
-                      Comece adicionando a primeira pergunta do teste
-                    </p>
-                    <Button onClick={handleAddQuestion}>
-                      Adicionar Primeira Pergunta
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
           </TabsContent>
 
           <TabsContent value="preview">

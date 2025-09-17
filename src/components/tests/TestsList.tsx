@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Edit, Eye, Play, Users, FileText, MoreVertical } from "lucide-react";
+import { Users, FileText, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTests } from "@/hooks/useTests";
 import { ManageTestDialog } from "./ManageTestDialog";
 import { TestResultsDialog } from "./TestResultsDialog";
-import { SimpleCreateTestDialog } from "./SimpleCreateTestDialog";
 
 interface TestsListProps {
   refreshTrigger: number;
@@ -19,7 +17,6 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -32,14 +29,17 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const handleManageTest = (testId: string) => {
+  const handleTestClick = (testId: string, event: React.MouseEvent) => {
+    // Prevent event if clicking on results button
+    if ((event.target as HTMLElement).closest('[data-results-button]')) {
+      setSelectedTestId(testId);
+      setResultsDialogOpen(true);
+      return;
+    }
+    
+    // Default action: open question management
     setSelectedTestId(testId);
     setManageDialogOpen(true);
-  };
-
-  const handleViewResults = (testId: string) => {
-    setSelectedTestId(testId);
-    setResultsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -81,40 +81,30 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {tests.map((test) => (
-          <Card key={test.id} className="hover:shadow-md transition-shadow">
+          <Card 
+            key={test.id} 
+            className="hover:shadow-md transition-shadow cursor-pointer hover:bg-accent/50"
+            onClick={(e) => handleTestClick(test.id, e)}
+          >
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1 flex-1">
+              <div className="space-y-1">
+                <div className="flex items-start justify-between">
                   <CardTitle className="text-lg line-clamp-2">{test.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {test.description || "Sem descrição"}
-                  </CardDescription>
+                  {getStatusBadge(test.status)}
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleManageTest(test.id)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Gerenciar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleViewResults(test.id)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Resultados
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <CardDescription className="line-clamp-2">
+                  {test.description || "Clique para adicionar perguntas"}
+                </CardDescription>
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
-                {getStatusBadge(test.status)}
                 <span className="text-sm text-muted-foreground">
                   {test.max_attempts} tentativa{test.max_attempts > 1 ? 's' : ''}
+                </span>
+                <span className="text-sm font-medium">
+                  {test.passing_percentage}% para aprovação
                 </span>
               </div>
 
@@ -126,41 +116,33 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
                     {(test as any).turmas?.name || 'Turma não encontrada'}
                   </span>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Taxa de Aprovação:</span>
-                  <span className="font-medium">{test.passing_percentage}%</span>
-                </div>
 
                 {test.time_limit_minutes && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Tempo Limite:</span>
+                    <span className="text-muted-foreground">Tempo:</span>
                     <span className="font-medium">{test.time_limit_minutes} minutos</span>
                   </div>
                 )}
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleManageTest(test.id)}
-                  className="flex-1"
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Gerenciar
-                </Button>
                 
-                {test.status === 'active' && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleViewResults(test.id)}
-                    className="flex-1"
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Resultados
-                  </Button>
-                )}
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-sm text-muted-foreground">
+                    Clique para {test.status === 'draft' ? 'adicionar perguntas' : 'gerenciar'}
+                  </span>
+                  {test.status === 'active' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      data-results-button="true"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTestId(test.id);
+                        setResultsDialogOpen(true);
+                      }}
+                    >
+                      Ver Resultados
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
