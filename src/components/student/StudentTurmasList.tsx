@@ -2,16 +2,46 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Users, Calendar, BookOpen, ChevronRight } from "lucide-react";
+import { Users, Calendar, BookOpen, ChevronRight, ClipboardList } from "lucide-react";
 import { useMyEnrollments } from "@/hooks/useMyEnrollments";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 
 const StudentTurmasList = () => {
   const { data: enrollments, isLoading, error } = useMyEnrollments();
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'em_andamento':
+        return 'Em Andamento';
+      case 'agendada':
+        return 'Agendada';
+      case 'encerrada':
+        return 'Encerrada';
+      case 'cancelada':
+        return 'Cancelada';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'em_andamento':
+        return 'bg-green-500';
+      case 'agendada':
+        return 'bg-blue-500';
+      case 'encerrada':
+        return 'bg-gray-500';
+      case 'cancelada':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-400';
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
           <SkeletonCard key={i} />
         ))}
@@ -33,7 +63,7 @@ const StudentTurmasList = () => {
   if (turmaEnrollments.length === 0) {
     return (
       <div className="text-center py-8 space-y-4">
-        <div className="text-6xl">👥</div>
+        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <div className="space-y-2">
           <p className="text-lg font-medium">Nenhuma turma encontrada</p>
           <p className="text-muted-foreground max-w-md mx-auto">
@@ -45,80 +75,86 @@ const StudentTurmasList = () => {
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {turmaEnrollments.map((enrollment) => (
-        <Card key={enrollment.id} className="overflow-hidden hover:shadow-md transition-shadow">
-          {enrollment.course?.cover_image_url && (
-            <div className="aspect-[4/3] w-full overflow-hidden">
-              <img 
-                src={enrollment.course.cover_image_url} 
-                alt={enrollment.course.name || "Capa do curso"}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-          
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" />
-              <CardTitle className="text-base leading-tight">
-                {enrollment.turma?.name || enrollment.turma?.code || `Turma ${enrollment.turma_id}`}
-              </CardTitle>
+        <Card 
+          key={enrollment.id} 
+          className="transition-all hover:shadow-md cursor-pointer group"
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-semibold text-foreground">
+                  {enrollment.turma?.name || enrollment.turma?.code || `Turma ${enrollment.turma_id}`}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {enrollment.course?.name || 'Curso'}
+                </p>
+                {enrollment.turma?.code && (
+                  <Badge variant="outline" className="text-xs">
+                    {enrollment.turma.code}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs ${getStatusColor(enrollment.turma?.status || '')} text-white`}
+                >
+                  {getStatusText(enrollment.turma?.status || '')}
+                </Badge>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
             </div>
           </CardHeader>
           
-          <CardContent className="space-y-3">
-            {/* Status da Turma */}
-            <div className="flex items-center justify-between">
-              <Badge variant={
-                enrollment.turma?.status === 'em_andamento' ? 'default' :
-                enrollment.turma?.status === 'agendada' ? 'secondary' : 'outline'
-              }>
-                {enrollment.turma?.status === 'em_andamento' ? 'Em Andamento' :
-                 enrollment.turma?.status === 'agendada' ? 'Agendada' :
-                 enrollment.turma?.status || 'Status'}
-              </Badge>
-            </div>
-
-            {/* Informações do Curso */}
-            {enrollment.course && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <BookOpen className="w-3 h-3" />
-                  <span className="font-medium">{enrollment.course.name}</span>
+          <CardContent className="space-y-4">
+            {/* Progresso */}
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+              <div className="flex items-center gap-2 mb-2">
+                <ClipboardList className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Progresso Geral</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Conclusão</span>
+                  <span className="font-medium">{enrollment.progress_percentage}%</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all" 
+                    style={{ width: `${enrollment.progress_percentage}%` }}
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Data de Conclusão */}
             {enrollment.turma?.completion_deadline && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="w-3 h-3" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" />
                 <span>Prazo: {new Date(enrollment.turma.completion_deadline).toLocaleDateString('pt-BR')}</span>
               </div>
             )}
 
-            {/* Progresso */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Progresso</span>
-                <span className="font-medium">{enrollment.progress_percentage}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all" 
-                  style={{ width: `${enrollment.progress_percentage}%` }}
-                />
-              </div>
-            </div>
-
             {/* Botão para Ver Testes */}
-            <Button asChild variant="outline" className="w-full h-8 text-xs">
-              <Link to={`/aluno/turma/${enrollment.turma_id}/testes`}>
-                Ver Testes Avaliativos
-                <ChevronRight className="w-3 h-3 ml-1" />
-              </Link>
-            </Button>
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ClipboardList className="h-4 w-4" />
+                <span>Testes disponíveis</span>
+              </div>
+              
+              <Button 
+                asChild
+                variant="outline" 
+                size="sm" 
+                className="text-xs"
+              >
+                <Link to={`/aluno/turma/${enrollment.turma_id}/testes`}>
+                  Ver Testes Avaliativos
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}
