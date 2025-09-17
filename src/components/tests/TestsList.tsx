@@ -93,7 +93,7 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
                   {getStatusBadge(test.status)}
                 </div>
                 <CardDescription className="line-clamp-2">
-                  {test.description || "Clique para adicionar perguntas"}
+                  {test.description || "Clique para gerenciar este teste"}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -126,7 +126,7 @@ export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
                 
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-sm text-muted-foreground">
-                    Clique para {test.status === 'draft' ? 'adicionar perguntas' : 'gerenciar'}
+                    Clique para {test.status === 'draft' ? 'configurar perguntas' : 'gerenciar teste'}
                   </span>
                   {test.status === 'active' && (
                     <Button 
