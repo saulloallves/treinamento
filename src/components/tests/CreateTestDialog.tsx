@@ -19,14 +19,15 @@ interface CreateTestDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onTestCreated: () => void;
+  preSelectedTurma?: any;
 }
 
-export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTestDialogProps) => {
+export const CreateTestDialog = ({ open, onOpenChange, onTestCreated, preSelectedTurma }: CreateTestDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    turma_id: "",
-    course_id: "",
+    turma_id: preSelectedTurma?.id || "",
+    course_id: preSelectedTurma?.course_id || "",
     passing_percentage: 70,
     max_attempts: 1,
     time_limit_minutes: null as number | null,
@@ -55,12 +56,12 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTe
       toast.success("Teste criado com sucesso!");
       onTestCreated();
       
-      // Reset form
+      // Reset form with pre-selected turma if available
       setFormData({
         name: "",
         description: "",
-        turma_id: "",
-        course_id: "",
+        turma_id: preSelectedTurma?.id || "",
+        course_id: preSelectedTurma?.course_id || "",
         passing_percentage: 70,
         max_attempts: 1,
         time_limit_minutes: null,
@@ -124,24 +125,33 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated }: CreateTe
           {/* Turma */}
           <div className="space-y-2">
             <Label htmlFor="turma">Turma *</Label>
-            <Select onValueChange={handleTurmaChange} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a turma" />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingTurmas ? (
-                  <SelectItem value="loading" disabled>Carregando turmas...</SelectItem>
-                ) : turmas && turmas.length > 0 ? (
-                  turmas.map((turma) => (
-                    <SelectItem key={turma.id} value={turma.id}>
-                      {turma.name}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-turmas" disabled>Nenhuma turma encontrada</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            {preSelectedTurma ? (
+              <div className="p-3 bg-muted rounded-md">
+                <span className="font-medium">{preSelectedTurma.name || preSelectedTurma.code}</span>
+                <p className="text-sm text-muted-foreground">
+                  {preSelectedTurma.course?.name}
+                </p>
+              </div>
+            ) : (
+              <Select onValueChange={handleTurmaChange} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a turma" />
+                </SelectTrigger>
+                <SelectContent>
+                  {loadingTurmas ? (
+                    <SelectItem value="loading" disabled>Carregando turmas...</SelectItem>
+                  ) : turmas && turmas.length > 0 ? (
+                    turmas.map((turma) => (
+                      <SelectItem key={turma.id} value={turma.id}>
+                        {turma.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-turmas" disabled>Nenhuma turma encontrada</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

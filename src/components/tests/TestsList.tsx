@@ -10,10 +10,14 @@ import { TestResultsDialog } from "./TestResultsDialog";
 interface TestsListProps {
   refreshTrigger: number;
   onCreateTest?: () => void;
+  customTests?: any[];
 }
 
-export const TestsList = ({ refreshTrigger, onCreateTest }: TestsListProps) => {
-  const { data: tests, isLoading } = useTests();
+export const TestsList = ({ refreshTrigger, onCreateTest, customTests }: TestsListProps) => {
+  const { data: allTests, isLoading } = useTests();
+  
+  // Use custom tests if provided, otherwise use all tests
+  const tests = customTests || allTests;
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
