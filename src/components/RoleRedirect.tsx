@@ -17,25 +17,32 @@ const RoleRedirect = () => {
     document.title = "Direcionando...";
   }, []);
 
-  // Debug logging to identify stuck loading states
-  useEffect(() => {
-    console.log('RoleRedirect Debug:', {
-      user: !!user,
-      userId: user?.id,
-      loading,
-      checking,
-      checkingProfessor,
-      loadingCurrentUser,
-      isAdmin,
-      isProfessor,
-      currentUser: !!currentUser,
-      authProcessing
-    });
-  }, [user, loading, checking, checkingProfessor, loadingCurrentUser, isAdmin, isProfessor, currentUser, authProcessing]);
+  // Debug logging detalhado
+  console.log('RoleRedirect Debug State:', {
+    user: !!user,
+    userId: user?.id,
+    loading,
+    checking,
+    checkingProfessor,
+    loadingCurrentUser,
+    isAdmin,
+    isProfessor,
+    currentUser: !!currentUser,
+    authProcessing,
+    currentUrl: window.location.href,
+    currentPath: window.location.pathname
+  });
 
   // Show loading only while essential auth data is loading
   if (loading || checking || checkingProfessor || loadingCurrentUser || authProcessing) {
-    console.log('RoleRedirect - Still loading:', { loading, checking, checkingProfessor, loadingCurrentUser, authProcessing });
+    console.log('RoleRedirect - Still loading, waiting...', { 
+      loading, 
+      checking, 
+      checkingProfessor, 
+      loadingCurrentUser, 
+      authProcessing,
+      currentPath: window.location.pathname 
+    });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -44,11 +51,9 @@ const RoleRedirect = () => {
   }
 
   if (!user) {
+    console.log('RoleRedirect - No user, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
-
-  // Approval status checking is now handled in useAuth.signIn
-  // This prevents the "trembling" effect from multiple components checking the same thing
 
   // Auto-detect and set profile
   const detectedProfile = getAutoDetectedProfile(isAdmin, isProfessor);
@@ -65,26 +70,31 @@ const RoleRedirect = () => {
     isAdmin,
     isProfessor,
     detectedProfile,
-    hasStudentProfile
+    hasStudentProfile,
+    currentPath: window.location.pathname,
+    willRedirectTo: isAdmin ? '/dashboard' : (isProfessor && !isAdmin ? '/professor' : (!isAdmin && !isProfessor && hasStudentProfile ? '/aluno' : '/auth'))
   });
 
-  // Professor redirect
-  if (isProfessor && !isAdmin) {
-    return <Navigate to="/professor" replace />;
+  // PRIORIDADE ABSOLUTA: Se é admin, SEMPRE vai para dashboard (independente de outros perfis)
+  if (isAdmin) {
+    console.log('RoleRedirect - ADMIN DETECTED - redirecting to dashboard');
+    return <Navigate to="/dashboard" replace />;
   }
 
-  // Se é admin, SEMPRE vai para dashboard (independente de outros perfis)
-  if (isAdmin) {
-    console.log('RoleRedirect - Admin detected, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
+  // Professor redirect (apenas se não for admin)
+  if (isProfessor && !isAdmin) {
+    console.log('RoleRedirect - Professor detected, redirecting to professor area');
+    return <Navigate to="/professor" replace />;
   }
 
   // Se só é aluno, vai para área do aluno
   if (!isAdmin && !isProfessor && hasStudentProfile) {
+    console.log('RoleRedirect - Student profile detected, redirecting to student area');
     return <Navigate to="/aluno" replace />;
   }
 
   // Fallback - se não tem nenhum perfil válido
+  console.log('RoleRedirect - No valid profile detected, redirecting to auth');
   return <Navigate to="/auth" replace />;
 };
 
