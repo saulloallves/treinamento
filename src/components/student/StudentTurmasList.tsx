@@ -77,86 +77,56 @@ const StudentTurmasList = () => {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {turmaEnrollments.map((enrollment) => (
-        <Card 
+        <Link 
           key={enrollment.id} 
-          className="transition-all hover:shadow-md cursor-pointer group"
+          to={`/aluno/turma/${enrollment.turma_id}/testes`}
+          className="block"
         >
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  {enrollment.turma?.name || enrollment.turma?.code || `Turma ${enrollment.turma_id}`}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {enrollment.course?.name || 'Curso'}
-                </p>
-                {enrollment.turma?.code && (
-                  <Badge variant="outline" className="text-xs">
-                    {enrollment.turma.code}
+          <Card className="transition-all hover:shadow-md cursor-pointer group">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-semibold text-foreground">
+                    {enrollment.turma?.name || enrollment.turma?.code || `Turma ${enrollment.turma_id}`}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {enrollment.course?.name || 'Curso'}
+                  </p>
+                  {enrollment.turma?.code && (
+                    <Badge variant="outline" className="text-xs">
+                      {enrollment.turma.code}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="secondary" 
+                    className={`text-xs ${getStatusColor(enrollment.turma?.status || '')} text-white`}
+                  >
+                    {getStatusText(enrollment.turma?.status || '')}
                   </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant="secondary" 
-                  className={`text-xs ${getStatusColor(enrollment.turma?.status || '')} text-white`}
-                >
-                  {getStatusText(enrollment.turma?.status || '')}
-                </Badge>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            {/* Progresso */}
-            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <div className="flex items-center gap-2 mb-2">
-                <ClipboardList className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Progresso Geral</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Conclusão</span>
-                  <span className="font-medium">{enrollment.progress_percentage}%</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all" 
-                    style={{ width: `${enrollment.progress_percentage}%` }}
-                  />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </div>
               </div>
-            </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              {/* Data de Conclusão */}
+              {enrollment.turma?.completion_deadline && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>Prazo: {new Date(enrollment.turma.completion_deadline).toLocaleDateString('pt-BR')}</span>
+                </div>
+              )}
 
-            {/* Data de Conclusão */}
-            {enrollment.turma?.completion_deadline && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span>Prazo: {new Date(enrollment.turma.completion_deadline).toLocaleDateString('pt-BR')}</span>
-              </div>
-            )}
-
-            {/* Botão para Ver Testes */}
-            <div className="flex items-center justify-between pt-2">
+              {/* Indicador de Testes */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ClipboardList className="h-4 w-4" />
                 <span>Testes disponíveis</span>
               </div>
-              
-              <Button 
-                asChild
-                variant="outline" 
-                size="sm" 
-                className="text-xs"
-              >
-                <Link to={`/aluno/turma/${enrollment.turma_id}/testes`}>
-                  Ver Testes Avaliativos
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );
