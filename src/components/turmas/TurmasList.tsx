@@ -8,6 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { CreateTurmaDialog } from "./CreateTurmaDialog";
 import { EnrollStudentDialog } from "./EnrollStudentDialog";
 import { useState } from "react";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface TurmasListProps {
   courseId: string;
@@ -34,6 +35,21 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
   const concludeTurma = useConcludeTurma();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedTurmaId, setSelectedTurmaId] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+
+  // Filter turmas by status (same logic as other components)
+  const filteredTurmas = turmas?.filter(turma => {
+    if (statusFilter === "todos") {
+      // Default view: show only active turmas (exclude 'encerrada')
+      return turma.status !== 'encerrada';
+    } else if (statusFilter === "encerrada") {
+      // Archive view: show only archived turmas
+      return turma.status === 'encerrada';
+    } else {
+      // Specific status filter
+      return turma.status === statusFilter;
+    }
+  }) || [];
 
   const handleStartTurma = (turmaId: string) => {
     startTurma.mutate(turmaId);
@@ -58,9 +74,18 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
         <h3 className="text-lg font-semibold">Turmas</h3>
       </div>
 
-      {!turmas || turmas.length === 0 ? (
+      {/* Quick Status Filters */}
+      <TurmaStatusFilters 
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+      />
+
+      {!filteredTurmas || filteredTurmas.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          Nenhuma turma criada ainda. Clique em "Criar Turma" para começar.
+          {turmas?.length === 0 
+            ? "Nenhuma turma criada ainda. Clique em 'Criar Turma' para começar."
+            : "Nenhuma turma encontrada com o filtro aplicado."
+          }
         </div>
       ) : (
         <Table>
@@ -75,7 +100,7 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {turmas.map((turma) => (
+            {filteredTurmas.map((turma) => (
               <TableRow key={turma.id}>
                 <TableCell>
                   <div>

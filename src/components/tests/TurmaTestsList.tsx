@@ -7,6 +7,7 @@ import { useTurmas, Turma } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
 import { useTests } from "@/hooks/useTests";
 import TurmaTestCard from "./TurmaTestCard";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface TurmaTestsListProps {
   onSelectTurma: (turma: Turma) => void;
@@ -42,7 +43,19 @@ const TurmaTestsList = ({ onSelectTurma }: TurmaTestsListProps) => {
       turma.course?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCourse = !selectedCourse || selectedCourse === "all" || turma.course_id === selectedCourse;
-    const matchesStatus = !selectedStatus || selectedStatus === "all" || turma.status === selectedStatus;
+    
+    // Status filter logic (same as TurmasPage)
+    let matchesStatus;
+    if (selectedStatus === "todos" || selectedStatus === "all") {
+      // Default view: show only active turmas (exclude 'encerrada')
+      matchesStatus = turma.status !== 'encerrada';
+    } else if (selectedStatus === "encerrada") {
+      // Archive view: show only archived turmas
+      matchesStatus = turma.status === 'encerrada';
+    } else {
+      // Specific status filter
+      matchesStatus = turma.status === selectedStatus;
+    }
     
     return matchesSearch && matchesCourse && matchesStatus;
   });
@@ -73,6 +86,13 @@ const TurmaTestsList = ({ onSelectTurma }: TurmaTestsListProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
+          {/* Quick Status Filters */}
+          <TurmaStatusFilters 
+            statusFilter={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            className="mb-4"
+          />
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-3">
               <label className="text-sm font-medium text-foreground">Buscar</label>

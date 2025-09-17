@@ -5,9 +5,12 @@ import { Link } from "react-router-dom";
 import { Users, Calendar, BookOpen, ChevronRight, ClipboardList } from "lucide-react";
 import { useMyEnrollments } from "@/hooks/useMyEnrollments";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
+import { useState } from "react";
+import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const StudentTurmasList = () => {
   const { data: enrollments, isLoading, error } = useMyEnrollments();
+  const [statusFilter, setStatusFilter] = useState("todos");
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -57,8 +60,22 @@ const StudentTurmasList = () => {
     );
   }
 
-  // Filtrar apenas inscrições que têm turma_id
-  const turmaEnrollments = enrollments?.filter(enrollment => enrollment.turma_id) || [];
+  // Filtrar apenas inscrições que têm turma_id e aplicar filtro de status
+  const turmaEnrollments = enrollments?.filter(enrollment => {
+    if (!enrollment.turma_id) return false;
+    
+    const turmaStatus = enrollment.turma?.status;
+    if (statusFilter === "todos") {
+      // Default view: show only active turmas (exclude 'encerrada')
+      return turmaStatus !== 'encerrada';
+    } else if (statusFilter === "encerrada") {
+      // Archive view: show only archived turmas
+      return turmaStatus === 'encerrada';
+    } else {
+      // Specific status filter
+      return turmaStatus === statusFilter;
+    }
+  }) || [];
 
   if (turmaEnrollments.length === 0) {
     return (
@@ -75,7 +92,14 @@ const StudentTurmasList = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-6">
+      {/* Quick Status Filters */}
+      <TurmaStatusFilters 
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+      />
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {turmaEnrollments.map((enrollment) => (
         <Link 
           key={enrollment.id} 
@@ -123,6 +147,7 @@ const StudentTurmasList = () => {
           </Card>
         </Link>
       ))}
+      </div>
     </div>
   );
 };
