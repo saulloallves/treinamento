@@ -21,7 +21,7 @@ const LessonsListMobile = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [lessonsFilter, setLessonsFilter] = useState<'upcoming' | 'archived'>('upcoming');
-
+  const [activeTab, setActiveTab] = useState('upcoming-all');
   const { data: lessons = [], isLoading } = useLessons(lessonsFilter);
   const { data: courses = [] } = useCourses();
   const deleteLessonMutation = useDeleteLesson();
@@ -114,14 +114,17 @@ const LessonsListMobile = () => {
       </Accordion>
 
       {/* Tabs Mobile - Stack em duas linhas */}
-      <Tabs defaultValue="upcoming-all" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="space-y-2">
           {/* Primeira linha */}
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger 
               value="upcoming-all" 
               className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
-              onClick={() => setLessonsFilter('upcoming')}
+              onClick={() => {
+                setLessonsFilter('upcoming');
+                setActiveTab('upcoming-all');
+              }}
             >
               <span className="font-medium">Próximas</span>
               <span className="text-xs opacity-70">({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})</span>
@@ -129,7 +132,10 @@ const LessonsListMobile = () => {
             <TabsTrigger 
               value="upcoming-by-course" 
               className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
-              onClick={() => setLessonsFilter('upcoming')}
+              onClick={() => {
+                setLessonsFilter('upcoming');
+                setActiveTab('upcoming-by-course');
+              }}
             >
               <span className="font-medium">Por Curso</span>
               <span className="text-xs opacity-70">Próximas</span>
@@ -141,7 +147,10 @@ const LessonsListMobile = () => {
             <TabsTrigger 
               value="archived-all" 
               className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
-              onClick={() => setLessonsFilter('archived')}
+              onClick={() => {
+                setLessonsFilter('archived');
+                setActiveTab('archived-all');
+              }}
             >
               <span className="font-medium">Arquivadas</span>
               <span className="text-xs opacity-70">({lessonsFilter === 'archived' ? filteredLessons.length : 0})</span>
@@ -149,7 +158,10 @@ const LessonsListMobile = () => {
             <TabsTrigger 
               value="archived-by-course" 
               className="text-xs px-2 py-1.5 flex flex-col items-center gap-1"
-              onClick={() => setLessonsFilter('archived')}
+              onClick={() => {
+                setLessonsFilter('archived');
+                setActiveTab('archived-by-course');
+              }}
             >
               <span className="font-medium">Por Curso</span>
               <span className="text-xs opacity-70">Arquivadas</span>
