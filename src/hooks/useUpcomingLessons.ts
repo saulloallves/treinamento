@@ -53,15 +53,13 @@ export const useUpcomingLessons = () => {
         if (enrolledCourseIds.length === 0) return [];
       }
 
-      // 3) Busca aulas futuras (apenas com data de início definida)
+      // 3) Busca aulas futuras (com ou sem data de início definida)
       const nowIso = new Date().toISOString();
       let lessonsQuery = supabase
         .from('lessons')
         .select('id,title,course_id,zoom_start_time,zoom_join_url,status,created_at')
         .eq('status', 'Ativo')
-        .not('zoom_start_time', 'is', null)
-        .gt('zoom_start_time', nowIso)
-        .order('zoom_start_time', { ascending: true });
+        .order('zoom_start_time', { ascending: true, nullsFirst: false });
 
       if (shouldActAsStudent) {
         lessonsQuery = lessonsQuery.in('course_id', enrolledCourseIds);
@@ -72,7 +70,19 @@ export const useUpcomingLessons = () => {
       const lessons = (lessonsRes.data as any[]) ?? [];
       if (lessons.length === 0) return [];
 
-      const lessonIds = lessons.map((l) => l.id);
+      // Filtrar apenas aulas futuras
+      const filteredLessons = lessons.filter((lesson: any) => {
+        // Se não tem zoom_start_time, mostrar (aulas de streaming próprio)
+        if (!lesson.zoom_start_time) return true;
+        
+        // Se tem zoom_start_time, verificar se é futura
+        const lessonStart = new Date(lesson.zoom_start_time);
+        return new Date() < lessonStart;
+      });
+
+      if (filteredLessons.length === 0) return [];
+
+      const lessonIds = filteredLessons.map((l) => l.id);
 
       // 4) Busca contagem de presença por aula (participantes)
       const attendanceRes = await supabase
@@ -81,7 +91,7 @@ export const useUpcomingLessons = () => {
         .in("lesson_id", lessonIds);
 
       // 5) Busca nomes dos cursos envolvidos
-      const courseIds = Array.from(new Set(lessons.map((l: any) => l.course_id).filter(Boolean)));
+      const courseIds = Array.from(new Set(filteredLessons.map((l: any) => l.course_id).filter(Boolean)));
       const coursesRes = await supabase
         .from('courses')
         .select('id,name')
@@ -97,7 +107,7 @@ export const useUpcomingLessons = () => {
         courseNameById.set(c.id, c.name);
       }
 
-      return lessons.map((l) => {
+      return filteredLessons.map((l) => {
         const dtSrc = (l as any).zoom_start_time ?? (l as any).created_at;
         const dt = dtSrc ? new Date(dtSrc) : new Date();
         return {
