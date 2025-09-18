@@ -78,7 +78,7 @@ const StreamingTestRoom = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
-    // Removed automatic media initialization
+    initializeMedia();
     setIsConnected(true);
     
     toast({
@@ -106,11 +106,6 @@ const StreamingTestRoom = () => {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
-      
-      toast({
-        title: "Câmera conectada",
-        description: "Sua câmera e microfone estão prontos para uso",
-      });
     } catch (error) {
       console.error('Error accessing media:', error);
       toast({
@@ -307,18 +302,6 @@ const StreamingTestRoom = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              {!localStream && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={initializeMedia}
-                  className="gap-2"
-                >
-                  <Play className="h-4 w-4" />
-                  Conectar Câmera
-                </Button>
-              )}
-              
               <Button
                 variant="outline"
                 size="sm"
@@ -348,16 +331,6 @@ const StreamingTestRoom = () => {
                 <MessageCircle className="h-4 w-4" />
                 Chat
               </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Opções
-              </Button>
             </div>
           </div>
         </div>
@@ -366,165 +339,130 @@ const StreamingTestRoom = () => {
       {/* Main Content */}
       <div className="flex-1 flex">
         {/* Video Area */}
-        <div className="flex-1 relative bg-gradient-to-br from-gray-900 to-gray-800">
-          {!localStream ? (
-            /* Camera Not Connected State */
-            <div className="absolute inset-4 flex items-center justify-center">
-              <div className="text-center text-white bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 max-w-md">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gray-700 rounded-full flex items-center justify-center">
-                  <VideoOff className="h-10 w-10 text-gray-400" />
+        <div className="flex-1 relative bg-gray-900">
+          {/* Main Video */}
+          <div className="absolute inset-4">
+            <div className="w-full h-full rounded-lg overflow-hidden bg-gray-800 relative">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              
+              {!videoEnabled && (
+                <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <VideoOff className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg">{user?.email?.split('@')[0] || 'Você'}</p>
+                    <p className="text-sm text-gray-400">Câmera desligada</p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">Câmera Desconectada</h3>
-                <p className="text-gray-300 mb-6 leading-relaxed">
-                  Para participar da reunião, você precisa conectar sua câmera e microfone.
-                </p>
-                <Button 
-                  onClick={initializeMedia}
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl"
-                >
-                  <Video className="h-5 w-5 mr-2" />
-                  Conectar Câmera
-                </Button>
-                <p className="text-xs text-gray-400 mt-4">
-                  Permitir acesso à câmera e microfone nas configurações do navegador
-                </p>
+              )}
+
+              {/* Video Overlay */}
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center justify-between text-white">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {user?.email?.split('@')[0] || 'Você'}
+                    </span>
+                    {screenSharing && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Monitor className="h-3 w-3 mr-1" />
+                        Compartilhando
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    {audioEnabled ? (
+                      <Mic className="h-4 w-4" />
+                    ) : (
+                      <MicOff className="h-4 w-4 text-red-400" />
+                    )}
+                    {videoEnabled ? (
+                      <Video className="h-4 w-4" />
+                    ) : (
+                      <VideoOff className="h-4 w-4 text-red-400" />
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          ) : (
-            /* Main Video */
-            <div className="absolute inset-4">
-              <div className="w-full h-full rounded-2xl overflow-hidden bg-gray-800 relative shadow-2xl border border-gray-700">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-                
-                {!videoEnabled && (
-                  <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
-                        <VideoOff className="h-10 w-10 text-gray-400" />
-                      </div>
-                      <p className="text-xl font-medium">{user?.email?.split('@')[0] || 'Você'}</p>
-                      <p className="text-sm text-gray-400">Câmera desligada</p>
-                    </div>
-                  </div>
+          </div>
+
+          {/* Controls */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+            <div className="flex items-center gap-2 bg-card/95 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border">
+              <Button
+                variant={audioEnabled ? "secondary" : "destructive"}
+                size="sm"
+                onClick={toggleAudio}
+                className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
+                title={audioEnabled ? "Desligar microfone" : "Ligar microfone"}
+              >
+                {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+              </Button>
+
+              <Button
+                variant={videoEnabled ? "secondary" : "destructive"}
+                size="sm"
+                onClick={toggleVideo}
+                className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
+                title={videoEnabled ? "Desligar câmera" : "Ligar câmera"}
+              >
+                {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              </Button>
+
+              <Button
+                variant={screenSharing ? "default" : "secondary"}
+                size="sm"
+                onClick={toggleScreenShare}
+                className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
+                title={screenSharing ? "Parar compartilhamento" : "Compartilhar tela"}
+              >
+                {screenSharing ? <MonitorOff className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+              </Button>
+
+              <div className="w-px h-8 bg-border mx-3" />
+
+              <Button
+                onClick={toggleStreaming}
+                className={`rounded-full px-6 py-3 font-medium transition-all hover:scale-105 ${
+                  isStreaming 
+                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg' 
+                    : 'bg-green-600 hover:bg-green-700 text-white shadow-lg'
+                }`}
+                title={isStreaming ? "Parar transmissão" : "Iniciar transmissão"}
+              >
+                {isStreaming ? (
+                  <>
+                    <Square className="h-4 w-4 mr-2" />
+                    Parar Transmissão
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Iniciar Transmissão
+                  </>
                 )}
+              </Button>
 
-                {/* Video Overlay */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 flex items-center justify-between text-white border border-white/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium">
-                          {(user?.email?.split('@')[0] || 'Você').substring(0, 2).toUpperCase()}
-                        </span>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {user?.email?.split('@')[0] || 'Você'}
-                      </span>
-                      {screenSharing && (
-                        <Badge variant="secondary" className="text-xs px-2 py-1">
-                          <Monitor className="h-3 w-3 mr-1" />
-                          Compartilhando Tela
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {audioEnabled ? (
-                        <Mic className="h-4 w-4 text-green-400" />
-                      ) : (
-                        <MicOff className="h-4 w-4 text-red-400" />
-                      )}
-                      {videoEnabled ? (
-                        <Video className="h-4 w-4 text-green-400" />
-                      ) : (
-                        <VideoOff className="h-4 w-4 text-red-400" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div className="w-px h-8 bg-border mx-3" />
+
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => navigate(-1)}
+                className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
+                title="Sair da reunião"
+              >
+                <PhoneOff className="h-5 w-5" />
+              </Button>
             </div>
-          )}
-
-          {/* Controls - Only show when camera is connected */}
-          {localStream && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-              <div className="flex items-center gap-2 bg-card/95 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border">
-                <Button
-                  variant={audioEnabled ? "secondary" : "destructive"}
-                  size="sm"
-                  onClick={toggleAudio}
-                  className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                  title={audioEnabled ? "Desligar microfone" : "Ligar microfone"}
-                >
-                  {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                </Button>
-
-                <Button
-                  variant={videoEnabled ? "secondary" : "destructive"}
-                  size="sm"
-                  onClick={toggleVideo}
-                  className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                  title={videoEnabled ? "Desligar câmera" : "Ligar câmera"}
-                >
-                  {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-                </Button>
-
-                <Button
-                  variant={screenSharing ? "default" : "secondary"}
-                  size="sm"
-                  onClick={toggleScreenShare}
-                  className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                  title={screenSharing ? "Parar compartilhamento" : "Compartilhar tela"}
-                >
-                  {screenSharing ? <MonitorOff className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
-                </Button>
-
-                <div className="w-px h-8 bg-border mx-3" />
-
-                <Button
-                  onClick={toggleStreaming}
-                  className={`rounded-full px-6 py-3 font-medium transition-all hover:scale-105 ${
-                    isStreaming 
-                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg' 
-                      : 'bg-green-600 hover:bg-green-700 text-white shadow-lg'
-                  }`}
-                  title={isStreaming ? "Parar transmissão" : "Iniciar transmissão"}
-                >
-                  {isStreaming ? (
-                    <>
-                      <Square className="h-4 w-4 mr-2" />
-                      Parar Transmissão
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Iniciar Transmissão
-                    </>
-                  )}
-                </Button>
-
-                <div className="w-px h-8 bg-border mx-3" />
-
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => navigate(-1)}
-                  className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                  title="Sair da reunião"
-                >
-                  <PhoneOff className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Side Panels */}
