@@ -78,9 +78,10 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       const nowIso = new Date().toISOString();
       
       if (filterType === 'upcoming') {
+        // Incluir aulas agendadas no futuro OU aulas de streaming interno (sem zoom_start_time)
         query = query
-          .gte('zoom_start_time', nowIso)
-          .order('zoom_start_time', { ascending: true });
+          .or(`zoom_start_time.gte.${nowIso},zoom_start_time.is.null`)
+          .order('zoom_start_time', { ascending: true, nullsFirst: false });
       } else if (filterType === 'archived') {
         query = query
           .not('zoom_start_time', 'is', null)
