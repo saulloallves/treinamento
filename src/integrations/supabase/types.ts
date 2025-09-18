@@ -2067,6 +2067,14 @@ export type Database = {
           whatsapp_notifications: boolean
         }[]
       }
+      user_can_access_turma: {
+        Args: { _turma_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_access_turma_enrollments: {
+        Args: { _turma_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       approval_status: "pendente" | "aprovado" | "rejeitado"
