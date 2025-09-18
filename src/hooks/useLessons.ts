@@ -74,24 +74,8 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
           )
         `);
 
-      // Filtrar baseado no tipo solicitado
-      const nowIso = new Date().toISOString();
-      
-      if (filterType === 'upcoming') {
-        // Buscar todas as aulas ativas e depois filtrar no código
-        query = query
-          .eq('status', 'Ativo')
-          .order('zoom_start_time', { ascending: true, nullsFirst: false });
-      } else if (filterType === 'archived') {
-        // Incluir apenas aulas com data no passado
-        query = query
-          .not('zoom_start_time', 'is', null)
-          .lt('zoom_start_time', nowIso)
-          .order('zoom_start_time', { ascending: false });
-      } else {
-        // 'all' - mostrar todas ordenadas por data de criação
-        query = query.order('created_at', { ascending: false });
-      }
+      // For all filter types, get all lessons and filter by time logic later
+      query = query.order('zoom_start_time', { ascending: filterType === 'upcoming' ? true : false, nullsFirst: false });
 
       const { data: lessons, error } = await query;
 
@@ -105,20 +89,43 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         throw error;
       }
 
-      // Filtrar aulas "próximas" no código para melhor controle
+      // Filter lessons based on time logic
       let filteredLessons = lessons;
+      const now = new Date();
+      
       if (filterType === 'upcoming') {
-        const now = new Date();
         filteredLessons = lessons.filter((lesson: any) => {
-          // Aulas de streaming interno (sem zoom_start_time) são sempre próximas se ativas
-          if (!lesson.zoom_start_time && lesson.status === 'Ativo') {
+          // Only active lessons can be upcoming
+          if (lesson.status !== 'Ativo') {
+            return false;
+          }
+          
+          // Lessons without scheduled time are always upcoming if active
+          if (!lesson.zoom_start_time) {
             return true;
           }
-          // Aulas agendadas são próximas se a data é futura
-          if (lesson.zoom_start_time) {
-            return new Date(lesson.zoom_start_time) > now;
+          
+          // For scheduled lessons, check if they haven't finished yet
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes
+          const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000);
+          
+          // Upcoming: lesson hasn't finished yet (now <= end time)
+          return now <= lessonEnd;
+        });
+      } else if (filterType === 'archived') {
+        filteredLessons = lessons.filter((lesson: any) => {
+          // Only scheduled lessons can be archived
+          if (!lesson.zoom_start_time) {
+            return false;
           }
-          return false;
+          
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes  
+          const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000);
+          
+          // Archived: lesson has finished (now > end time)
+          return now > lessonEnd;
         });
       }
 
