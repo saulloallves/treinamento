@@ -44,3 +44,38 @@ export const safeFormatDateTimeDetailed = (
 ): string => {
   return safeFormatDate(date, "dd/MM/yyyy 'às' HH:mm");
 };
+
+/**
+ * Check if a lesson has finished based on its start time and duration
+ */
+export const hasLessonFinished = (
+  startTime: string | Date | null | undefined,
+  durationMinutes: number = 60
+): boolean => {
+  if (!startTime) return false;
+  
+  try {
+    const start = new Date(startTime);
+    if (isNaN(start.getTime())) return false;
+    
+    const end = new Date(start.getTime() + durationMinutes * 60000);
+    const now = new Date();
+    
+    return now > end;
+  } catch (error) {
+    console.warn('Error checking lesson finish status:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if a lesson is currently happening or upcoming
+ */
+export const isLessonUpcoming = (
+  startTime: string | Date | null | undefined,
+  durationMinutes: number = 60
+): boolean => {
+  if (!startTime) return true; // Lessons without scheduled time are considered upcoming
+  
+  return !hasLessonFinished(startTime, durationMinutes);
+};

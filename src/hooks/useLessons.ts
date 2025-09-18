@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { hasLessonFinished, isLessonUpcoming } from '@/lib/dateUtils';
 
 export interface Lesson {
   id: string;
@@ -91,7 +92,6 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
 
       // Filter lessons based on time logic
       let filteredLessons = lessons;
-      const now = new Date();
       
       if (filterType === 'upcoming') {
         filteredLessons = lessons.filter((lesson: any) => {
@@ -100,18 +100,8 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
             return false;
           }
           
-          // Lessons without scheduled time are always upcoming if active
-          if (!lesson.zoom_start_time) {
-            return true;
-          }
-          
-          // For scheduled lessons, check if they haven't finished yet
-          const lessonStart = new Date(lesson.zoom_start_time);
-          const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes
-          const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000);
-          
-          // Upcoming: lesson hasn't finished yet (now <= end time)
-          return now <= lessonEnd;
+          // Use utility function to check if lesson is upcoming
+          return isLessonUpcoming(lesson.zoom_start_time, lesson.duration_minutes);
         });
       } else if (filterType === 'archived') {
         filteredLessons = lessons.filter((lesson: any) => {
@@ -120,12 +110,8 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
             return false;
           }
           
-          const lessonStart = new Date(lesson.zoom_start_time);
-          const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes  
-          const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000);
-          
-          // Archived: lesson has finished (now > end time)
-          return now > lessonEnd;
+          // Use utility function to check if lesson has finished
+          return hasLessonFinished(lesson.zoom_start_time, lesson.duration_minutes);
         });
       }
 
