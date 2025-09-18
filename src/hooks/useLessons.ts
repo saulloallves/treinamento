@@ -55,8 +55,9 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
   const { toast } = useToast();
   
   return useQuery({
-    queryKey: ['lessons', filterType],
+    queryKey: ['lessons', filterType, Date.now()], // Force fresh data
     queryFn: async () => {
+      console.log(`🔄 NEW QUERY EXECUTION for filterType: ${filterType}`);
       let query = supabase
         .from('lessons')
         .select(`
@@ -94,10 +95,13 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       let filteredLessons = lessons;
       const now = new Date();
       
-      console.log(`🔍 Filtering ${lessons.length} lessons for ${filterType} at ${now.toISOString()}`);
+      console.log(`🔍 EXECUTING FILTER for ${filterType} with ${lessons.length} total lessons`);
+      console.log('📋 All lessons titles:', lessons.map(l => l.title));
       
       if (filterType === 'upcoming') {
         filteredLessons = lessons.filter((lesson: any) => {
+          console.log(`🔎 Checking lesson: "${lesson.title}"`);
+          
           // Only active lessons can be upcoming
           if (lesson.status !== 'Ativo') {
             console.log(`❌ ${lesson.title} - not active (${lesson.status})`);
@@ -105,15 +109,14 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
           }
           
           // PRECISE LOGIC: Only "Aula inaugural - Streaming" should be upcoming
-          // This is the only streaming lesson that hasn't passed yet
           if (lesson.title === 'Aula inaugural - Streaming') {
-            console.log(`✅ ${lesson.title} - streaming lesson, always upcoming`);
+            console.log(`✅ ${lesson.title} - STREAMING LESSON, ALWAYS UPCOMING`);
             return true;
           }
           
           // For all other lessons, check if they have zoom_start_time and haven't finished
           if (!lesson.zoom_start_time) {
-            console.log(`❌ ${lesson.title} - no scheduled time, not the streaming lesson, should be archived`);
+            console.log(`❌ ${lesson.title} - NO SCHEDULED TIME, NOT STREAMING LESSON, SHOULD BE ARCHIVED`);
             return false;
           }
           
@@ -123,7 +126,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
           const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
           const hasFinished = now > lessonEnd;
           
-          console.log(`${hasFinished ? '❌' : '✅'} ${lesson.title}:`, {
+          console.log(`${hasFinished ? '❌' : '✅'} ${lesson.title} SCHEDULED:`, {
             start: lessonStart.toISOString(),
             end: lessonEnd.toISOString(),
             now: now.toISOString(),
@@ -134,16 +137,17 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         });
       } else if (filterType === 'archived') {
         filteredLessons = lessons.filter((lesson: any) => {
+          console.log(`🗂️ Checking for archive: "${lesson.title}"`);
+          
           // The streaming lesson should never be archived
           if (lesson.title === 'Aula inaugural - Streaming') {
-            console.log(`❌ ${lesson.title} - streaming lesson, never archived`);
+            console.log(`❌ ${lesson.title} - STREAMING LESSON, NEVER ARCHIVED`);
             return false;
           }
           
           // All other lessons should be archived
-          // Either they have no scheduled time (old lessons) or they have finished
           if (!lesson.zoom_start_time) {
-            console.log(`✅ ${lesson.title} - no scheduled time, should be archived`);
+            console.log(`✅ ${lesson.title} - NO SCHEDULED TIME, SHOULD BE ARCHIVED`);
             return true;
           }
           
@@ -152,10 +156,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
           const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
           const hasFinished = now > lessonEnd;
           
-          console.log(`${hasFinished ? '✅' : '❌'} ${lesson.title} for archived:`, {
-            start: lessonStart.toISOString(),
-            end: lessonEnd.toISOString(),
-            now: now.toISOString(),
+          console.log(`${hasFinished ? '✅' : '❌'} ${lesson.title} SCHEDULED for archived:`, {
             hasFinished
           });
           
@@ -163,10 +164,8 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         });
       }
       
-      console.log(`📊 Filter result: ${filteredLessons.length} lessons for ${filterType}`);
-      filteredLessons.forEach(lesson => {
-        console.log(`- ${lesson.title} (${lesson.zoom_start_time ? 'scheduled' : 'no schedule'})`);
-      });
+      console.log(`📊 FINAL FILTER RESULT for ${filterType}: ${filteredLessons.length} lessons`);
+      console.log('📋 Filtered lessons:', filteredLessons.map(l => l.title));
 
       // Enriquecer com professor (preferir sessão -> turma) e suportar múltiplos nomes
       const lessonsWithProfessor = await Promise.all(
