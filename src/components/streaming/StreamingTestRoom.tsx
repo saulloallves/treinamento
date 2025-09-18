@@ -98,6 +98,34 @@ const StreamingTestRoom = () => {
   }, []);
 
   const initializeMedia = async () => {
+    // Não inicializar mídia automaticamente - apenas quando necessário
+    console.log('Media initialization skipped - will be requested when needed');
+  };
+
+  const cleanupMedia = () => {
+    console.log('Cleaning up media resources...');
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        console.log(`Stopping ${track.kind} track`);
+        track.stop();
+      });
+      setLocalStream(null);
+    }
+    
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    
+    // Reset states
+    setVideoEnabled(false);
+    setAudioEnabled(false);
+    setScreenSharing(false);
+    setIsStreaming(false);
+    
+    console.log('Media cleanup completed');
+  };
+
+  const startMedia = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 1280, height: 720 },
@@ -112,6 +140,14 @@ const StreamingTestRoom = () => {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
+      
+      setVideoEnabled(true);
+      setAudioEnabled(true);
+      
+      toast({
+        title: "Câmera conectada",
+        description: "Sua câmera e microfone foram ativados",
+      });
     } catch (error) {
       console.error('Error accessing media:', error);
       toast({
@@ -119,12 +155,6 @@ const StreamingTestRoom = () => {
         description: "Não foi possível acessar câmera/microfone. Verifique as permissões.",
         variant: "destructive"
       });
-    }
-  };
-
-  const cleanupMedia = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
     }
   };
 
@@ -202,10 +232,25 @@ const StreamingTestRoom = () => {
   };
 
   const toggleStreaming = () => {
-    setIsStreaming(!isStreaming);
+    const newStreamingState = !isStreaming;
+    setIsStreaming(newStreamingState);
+    
+    // Update room status in parent component if possible
+    const updateRoomStatus = () => {
+      const rooms = JSON.parse(localStorage.getItem('streamingRooms') || '[]');
+      const updatedRooms = rooms.map((room: any) => 
+        room.id === lessonId 
+          ? { ...room, status: newStreamingState ? 'live' : 'waiting' }
+          : room
+      );
+      localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+    };
+    
+    updateRoomStatus();
+    
     toast({
-      title: isStreaming ? "Transmissão encerrada" : "Transmissão iniciada",
-      description: isStreaming ? "A transmissão foi interrompida" : "Sua transmissão está ao vivo"
+      title: newStreamingState ? "Transmissão iniciada" : "Transmissão encerrada",
+      description: newStreamingState ? "Sua transmissão está ao vivo" : "A transmissão foi interrompida"
     });
   };
 
@@ -273,6 +318,22 @@ const StreamingTestRoom = () => {
   const canEndMeeting = isAdmin || isProfessor;
 
   const endMeeting = () => {
+    // Stop streaming first
+    setIsStreaming(false);
+    
+    // Update room status in storage
+    const updateRoomStatus = () => {
+      const rooms = JSON.parse(localStorage.getItem('streamingRooms') || '[]');
+      const updatedRooms = rooms.map((room: any) => 
+        room.id === lessonId 
+          ? { ...room, status: 'ended', participants: 0 }
+          : room
+      );
+      localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+    };
+    
+    updateRoomStatus();
+    
     setMeetingEnded(true);
     setIsConnected(false);
     cleanupMedia();
@@ -283,10 +344,22 @@ const StreamingTestRoom = () => {
       variant: "destructive"
     });
 
-    // Simular notificação para todos os participantes
+    // Redirect after cleanup
     setTimeout(() => {
       navigate('/streaming');
     }, 2000);
+  };
+
+  const leaveMeeting = () => {
+    // Cleanup media before leaving
+    cleanupMedia();
+    
+    toast({
+      title: "Saiu da reunião",
+      description: "Você saiu da sala de streaming",
+    });
+    
+    navigate('/streaming');
   };
 
   // Se a reunião foi finalizada, mostrar tela de encerramento
@@ -406,7 +479,24 @@ const StreamingTestRoom = () => {
                 className="w-full h-full object-cover"
               />
               
-              {!videoEnabled && (
+              {!localStream ? (
+                <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <VideoOff className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg">{user?.email?.split('@')[0] || 'Você'}</p>
+                    <p className="text-sm text-gray-400 mb-4">Câmera desconectada</p>
+                    <Button 
+                      onClick={startMedia}
+                      variant="outline"
+                      size="sm"
+                      className="text-white border-white hover:bg-white hover:text-black"
+                    >
+                      <Video className="h-4 w-4 mr-2" />
+                      Conectar Câmera
+                    </Button>
+                  </div>
+                </div>
+              ) : !videoEnabled ? (
                 <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
                   <div className="text-center text-white">
                     <VideoOff className="h-16 w-16 mx-auto mb-4 text-gray-400" />
@@ -414,7 +504,7 @@ const StreamingTestRoom = () => {
                     <p className="text-sm text-gray-400">Câmera desligada</p>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Video Overlay */}
               <div className="absolute bottom-4 left-4 right-4">
@@ -457,6 +547,7 @@ const StreamingTestRoom = () => {
                 onClick={toggleAudio}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
                 title={audioEnabled ? "Desligar microfone" : "Ligar microfone"}
+                disabled={!localStream}
               >
                 {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
               </Button>
@@ -467,6 +558,7 @@ const StreamingTestRoom = () => {
                 onClick={toggleVideo}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
                 title={videoEnabled ? "Desligar câmera" : "Ligar câmera"}
+                disabled={!localStream}
               >
                 {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
               </Button>
@@ -477,6 +569,7 @@ const StreamingTestRoom = () => {
                 onClick={toggleScreenShare}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
                 title={screenSharing ? "Parar compartilhamento" : "Compartilhar tela"}
+                disabled={!localStream}
               >
                 {screenSharing ? <MonitorOff className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
               </Button>
@@ -510,7 +603,7 @@ const StreamingTestRoom = () => {
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => navigate(-1)}
+                onClick={leaveMeeting}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
                 title="Sair da reunião"
               >

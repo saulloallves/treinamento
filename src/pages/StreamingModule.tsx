@@ -13,24 +13,36 @@ import { useToast } from '@/hooks/use-toast';
 const StreamingModule = () => {
   const [createRoomDialog, setCreateRoomDialog] = useState(false);
   const [roomName, setRoomName] = useState('');
-  const [rooms, setRooms] = useState([
-    {
-      id: 'demo-room-1',
-      name: 'Sala de Teste Principal',
-      participants: 0,
-      status: 'waiting',
-      createdAt: new Date().toISOString(),
-      isDemo: true
-    },
-    {
-      id: 'demo-room-2', 
-      name: 'Reunião de Apresentação',
-      participants: 2,
-      status: 'live',
-      createdAt: new Date().toISOString(),
-      isDemo: true
+  const [rooms, setRooms] = useState(() => {
+    // Initialize from localStorage if available
+    const storedRooms = localStorage.getItem('streamingRooms');
+    if (storedRooms) {
+      return JSON.parse(storedRooms);
     }
-  ]);
+    
+    // Default rooms
+    const defaultRooms = [
+      {
+        id: 'demo-room-1',
+        name: 'Sala de Teste Principal',
+        participants: 0,
+        status: 'waiting',
+        createdAt: new Date().toISOString(),
+        isDemo: true
+      },
+      {
+        id: 'demo-room-2', 
+        name: 'Reunião de Apresentação',
+        participants: 2,
+        status: 'waiting',
+        createdAt: new Date().toISOString(),
+        isDemo: true
+      }
+    ];
+    
+    localStorage.setItem('streamingRooms', JSON.stringify(defaultRooms));
+    return defaultRooms;
+  });
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,7 +66,10 @@ const StreamingModule = () => {
       isDemo: true
     };
 
-    setRooms([newRoom, ...rooms]);
+    const updatedRooms = [newRoom, ...rooms];
+    setRooms(updatedRooms);
+    localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+    
     setRoomName('');
     setCreateRoomDialog(false);
     
@@ -63,6 +78,19 @@ const StreamingModule = () => {
       description: `Sala "${roomName}" criada com sucesso`,
     });
   };
+
+  // Refresh rooms when component mounts or when returning from a room
+  React.useEffect(() => {
+    const handleFocus = () => {
+      const storedRooms = localStorage.getItem('streamingRooms');
+      if (storedRooms) {
+        setRooms(JSON.parse(storedRooms));
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   const joinRoom = (roomId: string) => {
     navigate(`/aula-ao-vivo/${roomId}`);
