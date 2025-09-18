@@ -17,31 +17,18 @@ const StreamingModule = () => {
     // Initialize from localStorage if available
     const storedRooms = localStorage.getItem('streamingRooms');
     if (storedRooms) {
-      return JSON.parse(storedRooms);
+      try {
+        const parsed = JSON.parse(storedRooms);
+        // Filter out demo/fake rooms and keep only real user-created rooms
+        return parsed.filter((room: any) => !room.isDemo);
+      } catch (error) {
+        console.error('Error parsing stored rooms:', error);
+        return [];
+      }
     }
     
-    // Default rooms
-    const defaultRooms = [
-      {
-        id: 'demo-room-1',
-        name: 'Sala de Teste Principal',
-        participants: 0,
-        status: 'waiting',
-        createdAt: new Date().toISOString(),
-        isDemo: true
-      },
-      {
-        id: 'demo-room-2', 
-        name: 'Reunião de Apresentação',
-        participants: 2,
-        status: 'waiting',
-        createdAt: new Date().toISOString(),
-        isDemo: true
-      }
-    ];
-    
-    localStorage.setItem('streamingRooms', JSON.stringify(defaultRooms));
-    return defaultRooms;
+    // Start with empty rooms array - no fake data
+    return [];
   });
   
   const navigate = useNavigate();
@@ -63,7 +50,7 @@ const StreamingModule = () => {
       participants: 0,
       status: 'waiting' as const,
       createdAt: new Date().toISOString(),
-      isDemo: true
+      isDemo: false // Real user-created room
     };
 
     const updatedRooms = [newRoom, ...rooms];
@@ -84,9 +71,31 @@ const StreamingModule = () => {
     const handleFocus = () => {
       const storedRooms = localStorage.getItem('streamingRooms');
       if (storedRooms) {
-        setRooms(JSON.parse(storedRooms));
+        try {
+          const parsed = JSON.parse(storedRooms);
+          // Filter out demo/fake rooms and keep only real user-created rooms
+          setRooms(parsed.filter((room: any) => !room.isDemo));
+        } catch (error) {
+          console.error('Error parsing stored rooms:', error);
+          setRooms([]);
+        }
       }
     };
+
+    // Also clean existing data on mount
+    const storedRooms = localStorage.getItem('streamingRooms');
+    if (storedRooms) {
+      try {
+        const parsed = JSON.parse(storedRooms);
+        const realRooms = parsed.filter((room: any) => !room.isDemo);
+        localStorage.setItem('streamingRooms', JSON.stringify(realRooms));
+        setRooms(realRooms);
+      } catch (error) {
+        console.error('Error cleaning stored rooms:', error);
+        localStorage.removeItem('streamingRooms');
+        setRooms([]);
+      }
+    }
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
