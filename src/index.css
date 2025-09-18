@@ -51,8 +51,9 @@ html, body, #root {
   /* Glassmorphism effects */
   .glass-sidebar {
     backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
   }
 
   .glass-dark {
@@ -62,23 +63,86 @@ html, body, #root {
   }
 
   .sidebar-icon-circular {
-    @apply w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105;
+    @apply w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105 relative overflow-hidden;
+  }
+
+  .sidebar-icon-circular::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-icon-circular:hover::before {
+    opacity: 1;
   }
 
   .sidebar-icon-active {
-    @apply bg-primary text-primary-foreground shadow-md;
+    @apply bg-primary text-primary-foreground shadow-lg scale-105;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
   }
 
   .sidebar-icon-inactive {
-    @apply bg-white/20 text-foreground hover:bg-primary/20 hover:text-primary;
+    @apply bg-white/10 text-foreground hover:bg-primary/20 hover:text-primary;
+    backdrop-filter: blur(10px);
   }
 
   .sidebar-menu-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 hover:bg-white/10;
+    @apply flex items-center gap-4 px-2 py-2 rounded-2xl transition-all duration-300 hover:bg-white/5 relative overflow-hidden;
+  }
+
+  .sidebar-menu-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-menu-item:hover::before {
+    opacity: 1;
   }
 
   .sidebar-menu-expanded {
-    @apply bg-white/10 backdrop-blur-sm rounded-xl border border-white/20;
+    @apply bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 shadow-lg;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  }
+
+  .sidebar-text-pill {
+    @apply bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thumb-white\/20::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: transparent;
   }
   
   /* Mobile grid system */
