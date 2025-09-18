@@ -51,13 +51,13 @@ html, body, #root {
   /* Glassmorphism effects */
   .glass-sidebar {
     backdrop-filter: blur(16px);
-    background: linear-gradient(135deg, rgba(0, 123, 255, 0.08) 0%, rgba(0, 123, 255, 0.03) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 24px rgba(0, 123, 255, 0.08);
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.06) 0%, rgba(0, 123, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.06);
   }
 
   .sidebar-icon-circular {
-    @apply w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-md hover:scale-105 relative overflow-hidden;
+    @apply w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 relative overflow-hidden;
   }
 
   .sidebar-icon-circular::before {
@@ -65,27 +65,33 @@ html, body, #root {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(0, 123, 255, 0.1), transparent);
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.15), transparent);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
   }
 
   .sidebar-icon-circular:hover::before {
     opacity: 1;
   }
 
+  .sidebar-icon-circular:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+  }
+
   .sidebar-icon-active {
-    @apply bg-primary text-primary-foreground shadow-md scale-105;
-    box-shadow: 0 2px 12px rgba(0, 123, 255, 0.3);
+    @apply bg-primary text-primary-foreground;
+    box-shadow: 0 2px 10px rgba(0, 123, 255, 0.25);
+    transform: scale(1.02);
   }
 
   .sidebar-icon-inactive {
     @apply bg-white/10 text-foreground hover:bg-primary/20 hover:text-primary;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
   }
 
   .sidebar-menu-item {
-    @apply flex items-center gap-3 px-2 py-1.5 rounded-xl transition-all duration-300 hover:bg-white/5 relative overflow-hidden;
+    @apply flex items-center gap-2.5 px-1.5 py-1 rounded-xl transition-all duration-300 hover:bg-white/5 relative overflow-hidden;
   }
 
   .sidebar-menu-item::before {
@@ -93,7 +99,7 @@ html, body, #root {
     position: absolute;
     inset: 0;
     border-radius: 0.75rem;
-    background: linear-gradient(135deg, rgba(0, 123, 255, 0.03), transparent);
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.02), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -103,13 +109,18 @@ html, body, #root {
   }
 
   .sidebar-menu-expanded {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
     @apply backdrop-blur-sm rounded-xl border border-white/10 shadow-sm;
   }
 
   .sidebar-text-pill {
-    @apply backdrop-blur-sm rounded-full px-3 py-1 border border-white/20 text-sm;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    @apply backdrop-blur-sm rounded-full px-2.5 py-0.5 border border-white/20 text-xs;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  }
+
+  .sidebar-submenu-pill {
+    @apply backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10 text-xs;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
   }
 
   /* Custom scrollbar */

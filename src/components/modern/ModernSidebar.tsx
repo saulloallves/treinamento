@@ -264,18 +264,18 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           if (isMobile) setIsOpen(false);
           setActiveGroup(null);
         }}
-        className={`sidebar-menu-item group ${isSubItem ? 'ml-2' : ''}`}
+        className={`sidebar-menu-item group ${isSubItem ? 'ml-1.5' : ''}`}
       >
         <div className={`sidebar-icon-circular ${
           isActive ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
         }`}>
-          <Icon className="w-4 h-4" />
+          <Icon className="w-3.5 h-3.5" />
         </div>
         {isOpen && (
-          <div className={`sidebar-text-pill transition-all duration-300 ${
+          <div className={`${isSubItem ? 'sidebar-submenu-pill' : 'sidebar-text-pill'} transition-all duration-400 ${
             isActive ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
           }`}>
-            <span className="text-xs">
+            <span className="text-xs leading-none">
               {item.name || item.label}
             </span>
           </div>
@@ -293,33 +293,33 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       const isExpanded = expandedGroups[item.id];
       
       return (
-        <div key={item.id} className="space-y-1.5">
+        <div key={item.id} className="space-y-1">
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
             className="w-full flex items-center justify-between sidebar-menu-item group focus:outline-none"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div className={`sidebar-icon-circular ${
                 activeGroup === item.id ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
               }`}>
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-3.5 h-3.5" />
               </div>
               {isOpen && (
-                <div className={`sidebar-text-pill transition-all duration-300 ${
+                <div className={`sidebar-text-pill transition-all duration-400 ${
                   activeGroup === item.id ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
                 }`}>
-                  <span className="text-xs">
+                  <span className="text-xs leading-none">
                     {item.name}
                   </span>
                 </div>
               )}
             </div>
             {isOpen && (
-              <div className={`sidebar-icon-circular w-6 h-6 ${
+              <div className={`sidebar-icon-circular w-5 h-5 ${
                 isExpanded ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
               }`}>
-                <ChevronRight className={`h-3 w-3 transition-all duration-300 ${
+                <ChevronRight className={`h-2.5 w-2.5 transition-all duration-400 ${
                   isExpanded ? 'rotate-90' : 'rotate-0'
                 }`} />
               </div>
@@ -327,7 +327,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           </button>
           
           {item.items && isExpanded && isOpen && (
-            <div className="sidebar-menu-expanded space-y-1 p-2 ml-4 animate-fade-in">
+            <div className="sidebar-menu-expanded space-y-0.5 p-1.5 ml-3 animate-fade-in">
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
@@ -354,13 +354,13 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className={`sidebar-icon-circular ${
             isActive ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
           }`}>
-            <Icon className="w-4 h-4" />
+            <Icon className="w-3.5 h-3.5" />
           </div>
           {isOpen && (
-            <div className={`sidebar-text-pill transition-all duration-300 ${
+            <div className={`sidebar-text-pill transition-all duration-400 ${
               isActive ? 'text-primary font-semibold' : 'text-foreground group-hover:text-primary'
             }`}>
-              <span className="text-xs">
+              <span className="text-xs leading-none">
                 {item.label}
               </span>
             </div>
@@ -387,34 +387,34 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       {/* Sidebar */}
       <div
         className={`
-          glass-sidebar fixed left-2 top-2 bottom-2 z-50 flex flex-col transition-all duration-500 ease-out rounded-2xl
-          ${isOpen ? 'w-64' : 'w-16'}
+          glass-sidebar fixed left-2 top-2 bottom-2 z-50 flex flex-col transition-all duration-400 ease-out rounded-2xl
+          ${isOpen ? 'w-60' : 'w-14'}
           ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
       >
         {/* Toggle Button */}
-        <div className="absolute -right-3 top-4 z-10">
+        <div className="absolute -right-2.5 top-3 z-10">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="sidebar-icon-circular sidebar-icon-active shadow-md w-7 h-7"
+            className="sidebar-icon-circular sidebar-icon-active shadow-sm w-6 h-6"
           >
-            {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+            {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
           </button>
         </div>
 
         {/* Header */}
-        <div className="p-4 border-b border-white/8">
-          <div className="flex items-center gap-3">
-            <div className="sidebar-icon-circular sidebar-icon-active w-8 h-8">
+        <div className="p-3 border-b border-white/6">
+          <div className="flex items-center gap-2.5">
+            <div className="sidebar-icon-circular sidebar-icon-active">
               <GraduationCap className="w-4 h-4" />
             </div>
             {isOpen && (
-              <div className="sidebar-text-pill">
+              <div className="sidebar-text-pill transition-all duration-400">
                 <div>
-                  <h2 className="text-sm font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  <h2 className="text-xs font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                     Sistema
                   </h2>
-                  <p className="text-xs text-foreground/60 mt-0.5">
+                  <p className="text-xs text-foreground/50 mt-0.5 leading-none">
                     Treinamento
                   </p>
                 </div>
@@ -424,27 +424,27 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {shouldShowAdminMenu && renderMenuGroup(adminMenuStructure)}
           {shouldShowProfessorMenu && renderMenuGroup(professorMenuStructure)}
           {!shouldShowAdminMenu && !shouldShowProfessorMenu && renderStudentMenu()}
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/8">
-          <div className="flex items-center gap-3">
-            <div className="sidebar-icon-circular sidebar-icon-inactive w-8 h-8">
+        <div className="p-3 border-t border-white/6">
+          <div className="flex items-center gap-2.5">
+            <div className="sidebar-icon-circular sidebar-icon-inactive">
               <span className="text-xs font-medium">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
             {isOpen && (
-              <div className="sidebar-text-pill">
+              <div className="sidebar-text-pill transition-all duration-400">
                 <div>
-                  <p className="text-xs font-medium text-foreground">
+                  <p className="text-xs font-medium text-foreground leading-none">
                     {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
                   </p>
-                  <p className="text-xs text-foreground/60 truncate max-w-32">
+                  <p className="text-xs text-foreground/50 truncate max-w-28 mt-0.5 leading-none">
                     {user?.email?.split('@')[0]}
                   </p>
                 </div>
@@ -458,9 +458,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       {isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="fixed top-4 left-4 z-60 sidebar-icon-circular sidebar-icon-active shadow-md w-10 h-10 md:hidden"
+          className="fixed top-4 left-4 z-60 sidebar-icon-circular sidebar-icon-active shadow-md w-9 h-9 md:hidden"
         >
-          {isOpen ? <X size={18} /> : <Menu size={18} />}
+          {isOpen ? <X size={16} /> : <Menu size={16} />}
         </button>
       )}
     </>
