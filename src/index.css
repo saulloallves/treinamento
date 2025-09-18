@@ -192,14 +192,14 @@ html, body, #root {
   }
 
   body {
-    @apply bg-brand-white text-brand-black font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     min-height: 100vh;
   }
 }
 
 @layer components {
   .card-clean {
-    @apply bg-brand-white rounded-lg border border-gray-200 shadow-clean hover:shadow-clean-md transition-shadow duration-200;
+    @apply bg-card rounded-lg border border-border shadow-clean hover:shadow-clean-md transition-shadow duration-200;
   }
 
   .btn-clean {
@@ -207,23 +207,23 @@ html, body, #root {
   }
 
   .btn-primary {
-    @apply btn-clean bg-brand-blue text-brand-white hover:bg-blue-600 focus:ring-brand-blue shadow-clean;
+    @apply btn-clean bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary shadow-clean;
   }
 
   .btn-secondary {
-    @apply btn-clean bg-brand-white text-brand-gray-dark border border-gray-300 hover:bg-gray-50 focus:ring-brand-blue shadow-clean;
+    @apply btn-clean bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 focus:ring-primary shadow-clean;
   }
 
   .sidebar-clean {
-    @apply bg-brand-white border-r border-gray-200;
+    @apply bg-sidebar border-r border-sidebar-border;
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-md text-brand-gray-dark hover:text-brand-blue hover:bg-brand-blue-light transition-colors duration-200;
+    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-md text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent transition-colors duration-200;
   }
 
   .sidebar-item-active {
-    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-md text-brand-white bg-brand-blue shadow-clean;
+    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-md text-sidebar-primary-foreground bg-sidebar-primary shadow-clean;
   }
 
   .metric-card {
@@ -231,11 +231,11 @@ html, body, #root {
   }
 
   .text-title {
-    @apply text-brand-black font-semibold;
+    @apply text-foreground font-semibold;
   }
 
   .text-secondary {
-    @apply text-brand-gray-dark;
+    @apply text-muted-foreground;
   }
 
   /* Mobile-first responsive utilities */
@@ -282,7 +282,7 @@ html, body, #root {
   }
 
   .text-link {
-    @apply text-brand-blue hover:text-blue-600 transition-colors duration-200;
+    @apply text-primary hover:text-primary/90 transition-colors duration-200;
   }
 
   /* Design System Moderno */
@@ -304,7 +304,7 @@ html, body, #root {
   }
 
   .modern-button-secondary {
-    @apply bg-white/80 backdrop-blur-sm text-gray-700 font-medium px-4 py-2 rounded-full border border-gray-200 transition-all duration-300 hover:bg-white hover:shadow-md hover:scale-105 active:scale-95;
+    @apply bg-secondary/80 backdrop-blur-sm text-secondary-foreground font-medium px-4 py-2 rounded-full border border-border transition-all duration-300 hover:bg-secondary hover:shadow-md hover:scale-105 active:scale-95;
   }
 
   .status-badge {
@@ -322,7 +322,7 @@ html, body, #root {
   }
 
   .status-finished {
-    @apply bg-gray-100 text-gray-600;
+    @apply bg-muted text-muted-foreground;
   }
 
   .status-cancelled {

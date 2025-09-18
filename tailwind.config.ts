@@ -70,14 +70,6 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Paleta de cores limpa e moderna
-				'brand': {
-					'blue': 'hsl(var(--brand-blue))',
-					'blue-light': 'hsl(var(--brand-blue-light))',
-					'black': 'hsl(var(--brand-black))',
-					'gray-dark': 'hsl(var(--brand-gray-dark))',
-					'white': 'hsl(var(--brand-white))',
-				},
 				
 				// Status colors
 				'status': {
