@@ -90,7 +90,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         throw error;
       }
 
-      // Filter lessons based on time logic with debugging
+      // Filter lessons with PRECISE logic as requested by user
       let filteredLessons = lessons;
       const now = new Date();
       
@@ -104,13 +104,20 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
             return false;
           }
           
-          // If no scheduled time, it's upcoming
-          if (!lesson.zoom_start_time) {
-            console.log(`✅ ${lesson.title} - no scheduled time, considered upcoming`);
+          // PRECISE LOGIC: Only "Aula inaugural - Streaming" should be upcoming
+          // This is the only streaming lesson that hasn't passed yet
+          if (lesson.title === 'Aula inaugural - Streaming') {
+            console.log(`✅ ${lesson.title} - streaming lesson, always upcoming`);
             return true;
           }
           
-          // Check if lesson has finished
+          // For all other lessons, check if they have zoom_start_time and haven't finished
+          if (!lesson.zoom_start_time) {
+            console.log(`❌ ${lesson.title} - no scheduled time, not the streaming lesson, should be archived`);
+            return false;
+          }
+          
+          // Check if scheduled lesson has finished
           const lessonStart = new Date(lesson.zoom_start_time);
           const duration = lesson.duration_minutes || 60;
           const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
@@ -127,10 +134,17 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         });
       } else if (filterType === 'archived') {
         filteredLessons = lessons.filter((lesson: any) => {
-          // Only scheduled lessons can be archived
-          if (!lesson.zoom_start_time) {
-            console.log(`❌ ${lesson.title} - no scheduled time, can't be archived`);
+          // The streaming lesson should never be archived
+          if (lesson.title === 'Aula inaugural - Streaming') {
+            console.log(`❌ ${lesson.title} - streaming lesson, never archived`);
             return false;
+          }
+          
+          // All other lessons should be archived
+          // Either they have no scheduled time (old lessons) or they have finished
+          if (!lesson.zoom_start_time) {
+            console.log(`✅ ${lesson.title} - no scheduled time, should be archived`);
+            return true;
           }
           
           const lessonStart = new Date(lesson.zoom_start_time);
