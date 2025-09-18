@@ -90,30 +90,69 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         throw error;
       }
 
-      // Filter lessons based on time logic
+      // Filter lessons based on time logic with debugging
       let filteredLessons = lessons;
+      const now = new Date();
+      
+      console.log(`🔍 Filtering ${lessons.length} lessons for ${filterType} at ${now.toISOString()}`);
       
       if (filterType === 'upcoming') {
         filteredLessons = lessons.filter((lesson: any) => {
           // Only active lessons can be upcoming
           if (lesson.status !== 'Ativo') {
+            console.log(`❌ ${lesson.title} - not active (${lesson.status})`);
             return false;
           }
           
-          // Use utility function to check if lesson is upcoming
-          return isLessonUpcoming(lesson.zoom_start_time, lesson.duration_minutes);
+          // If no scheduled time, it's upcoming
+          if (!lesson.zoom_start_time) {
+            console.log(`✅ ${lesson.title} - no scheduled time, considered upcoming`);
+            return true;
+          }
+          
+          // Check if lesson has finished
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const duration = lesson.duration_minutes || 60;
+          const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
+          const hasFinished = now > lessonEnd;
+          
+          console.log(`${hasFinished ? '❌' : '✅'} ${lesson.title}:`, {
+            start: lessonStart.toISOString(),
+            end: lessonEnd.toISOString(),
+            now: now.toISOString(),
+            hasFinished
+          });
+          
+          return !hasFinished;
         });
       } else if (filterType === 'archived') {
         filteredLessons = lessons.filter((lesson: any) => {
           // Only scheduled lessons can be archived
           if (!lesson.zoom_start_time) {
+            console.log(`❌ ${lesson.title} - no scheduled time, can't be archived`);
             return false;
           }
           
-          // Use utility function to check if lesson has finished
-          return hasLessonFinished(lesson.zoom_start_time, lesson.duration_minutes);
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const duration = lesson.duration_minutes || 60;
+          const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
+          const hasFinished = now > lessonEnd;
+          
+          console.log(`${hasFinished ? '✅' : '❌'} ${lesson.title} for archived:`, {
+            start: lessonStart.toISOString(),
+            end: lessonEnd.toISOString(),
+            now: now.toISOString(),
+            hasFinished
+          });
+          
+          return hasFinished;
         });
       }
+      
+      console.log(`📊 Filter result: ${filteredLessons.length} lessons for ${filterType}`);
+      filteredLessons.forEach(lesson => {
+        console.log(`- ${lesson.title} (${lesson.zoom_start_time ? 'scheduled' : 'no schedule'})`);
+      });
 
       // Enriquecer com professor (preferir sessão -> turma) e suportar múltiplos nomes
       const lessonsWithProfessor = await Promise.all(
