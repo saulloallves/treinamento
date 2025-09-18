@@ -78,11 +78,12 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       const nowIso = new Date().toISOString();
       
       if (filterType === 'upcoming') {
-        // Incluir aulas agendadas no futuro OU aulas de streaming interno (sem zoom_start_time)
+        // Buscar todas as aulas ativas e depois filtrar no código
         query = query
-          .or(`zoom_start_time.gte.${nowIso},zoom_start_time.is.null`)
+          .eq('status', 'Ativo')
           .order('zoom_start_time', { ascending: true, nullsFirst: false });
       } else if (filterType === 'archived') {
+        // Incluir apenas aulas com data no passado
         query = query
           .not('zoom_start_time', 'is', null)
           .lt('zoom_start_time', nowIso)
@@ -104,9 +105,26 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         throw error;
       }
 
+      // Filtrar aulas "próximas" no código para melhor controle
+      let filteredLessons = lessons;
+      if (filterType === 'upcoming') {
+        const now = new Date();
+        filteredLessons = lessons.filter((lesson: any) => {
+          // Aulas de streaming interno (sem zoom_start_time) são sempre próximas se ativas
+          if (!lesson.zoom_start_time && lesson.status === 'Ativo') {
+            return true;
+          }
+          // Aulas agendadas são próximas se a data é futura
+          if (lesson.zoom_start_time) {
+            return new Date(lesson.zoom_start_time) > now;
+          }
+          return false;
+        });
+      }
+
       // Enriquecer com professor (preferir sessão -> turma) e suportar múltiplos nomes
       const lessonsWithProfessor = await Promise.all(
-        lessons.map(async (lesson: any) => {
+        filteredLessons.map(async (lesson: any) => {
           const namesSet = new Map<string, string>();
 
           // 1) Preferir professores das turmas vinculadas via lesson_sessions
