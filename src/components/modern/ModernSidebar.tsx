@@ -32,6 +32,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 interface ModernSidebarProps {
   showInMobile?: boolean;
@@ -41,7 +42,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(!isMobile);
+  const { isOpen, updateSidebarState } = useSidebarState();
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const userInteracting = useRef(false);
   
@@ -65,11 +66,38 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   // Auto-collapse on mobile
   useEffect(() => {
     if (isMobile) {
-      setIsOpen(false);
+      updateSidebarState(false);
     } else {
-      setIsOpen(true);
+      updateSidebarState(true);
     }
-  }, [isMobile]);
+  }, [isMobile, updateSidebarState]);
+
+  // Close sidebar when clicking outside on desktop
+  useEffect(() => {
+    if (!isMobile && isOpen) {
+      const handleClickOutside = (event: MouseEvent) => {
+        const sidebar = document.querySelector('.glass-sidebar');
+        const target = event.target as Node;
+        
+        if (sidebar && !sidebar.contains(target)) {
+          // Don't close if clicking on the toggle button
+          const toggleButton = event.target as Element;
+          if (!toggleButton.closest('[data-sidebar-toggle]')) {
+            updateSidebarState(false);
+          }
+        }
+      };
+
+      const timer = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [isMobile, isOpen]);
   
   // Reset active group when navigating to a different route
   useEffect(() => {
@@ -261,7 +289,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         key={item.path}
         to={item.path}
         onClick={() => {
-          if (isMobile) setIsOpen(false);
+          if (isMobile) updateSidebarState(false);
           setActiveGroup(null);
         }}
         className={`sidebar-menu-item group ${isSubItem ? 'ml-1.5' : ''}`}
@@ -346,7 +374,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           key={index}
           to={item.path}
           onClick={() => {
-            if (isMobile) setIsOpen(false);
+            if (isMobile) updateSidebarState(false);
             setActiveGroup(null);
           }}
           className="sidebar-menu-item group"
@@ -376,11 +404,19 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
   return (
     <>
+      {/* Desktop Overlay */}
+      {!isMobile && isOpen && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-400"
+          onClick={() => updateSidebarState(false)}
+        />
+      )}
+
       {/* Mobile Overlay */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-all duration-400"
+          onClick={() => updateSidebarState(false)}
         />
       )}
 
@@ -388,14 +424,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       <div
         className={`
           glass-sidebar fixed left-2 top-2 bottom-2 z-50 flex flex-col transition-all duration-400 ease-out rounded-2xl
-          ${isOpen ? 'w-60' : 'w-14'}
+          ${isOpen ? 'w-64' : 'w-14'}
           ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
         `}
       >
         {/* Toggle Button */}
         <div className="absolute -right-2.5 top-3 z-10">
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => updateSidebarState(!isOpen)}
+            data-sidebar-toggle
             className="sidebar-icon-circular sidebar-icon-active shadow-sm w-6 h-6"
           >
             {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
@@ -457,8 +494,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       {/* Mobile Toggle Button */}
       {isMobile && (
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="fixed top-4 left-4 z-60 sidebar-icon-circular sidebar-icon-active shadow-md w-9 h-9 md:hidden"
+          onClick={() => updateSidebarState(!isOpen)}
+          data-sidebar-toggle
+          className="fixed top-4 left-4 z-60 sidebar-icon-circular sidebar-icon-active shadow-md w-9 h-9 md:hidden transition-all duration-400"
         >
           {isOpen ? <X size={16} /> : <Menu size={16} />}
         </button>

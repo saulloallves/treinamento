@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getSelectedProfile } from "@/lib/profile";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 interface BaseLayoutProps {
   title: string;
@@ -20,6 +21,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const isMobile = useIsMobile();
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { isOpen: sidebarOpen } = useSidebarState();
   
   // Determinar se deve mostrar sidebar baseado no perfil selecionado
   const selectedProfile = getSelectedProfile();
@@ -33,7 +35,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
       )}
       
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-400 ease-out ${
-        !isMobile ? 'ml-18' : ''
+        !isMobile && shouldShowSidebar ? (sidebarOpen ? 'ml-68' : 'ml-18') : ''
       }`}>
         {/* Header responsivo */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-border/50 px-3 md:px-8 py-3 md:py-6 relative z-10 rounded-xl m-2 shadow-sm">

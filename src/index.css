@@ -56,6 +56,17 @@ html, body, #root {
     box-shadow: 0 4px 20px rgba(0, 123, 255, 0.06);
   }
 
+  /* Content margin adjustment for sidebar */
+  .content-with-sidebar {
+    margin-left: 4.5rem; /* ml-18 equivalent */
+    transition: margin-left 0.4s ease-out;
+  }
+
+  .content-with-sidebar-open {
+    margin-left: 17rem; /* ml-68 equivalent */
+    transition: margin-left 0.4s ease-out;
+  }
+
   .sidebar-icon-circular {
     @apply w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 relative overflow-hidden;
   }
