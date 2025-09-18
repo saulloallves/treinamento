@@ -26,18 +26,18 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
+    <div className="min-h-screen min-h-[100dvh] flex bg-gradient-to-br from-background via-background to-muted/20 w-full min-w-0 items-start">
       {/* Mostrar sidebar para admins/professores mesmo no mobile */}
       {(shouldShowSidebar || !(isMobile && showBottomNav)) && (
         <Sidebar showInMobile={shouldShowSidebar || !showBottomNav} />
       )}
       
-      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
+      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-2 mr-2' : ''}`}>
         {/* Header responsivo */}
-        <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
+        <header className="bg-white/80 backdrop-blur-sm border-b border-border/50 px-3 md:px-8 py-3 md:py-6 relative z-10 rounded-xl m-2 shadow-sm">
           <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
+              <h1 className="text-lg md:text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-1 md:mb-2 truncate">
                 {title}
               </h1>
               <p className="text-xs md:text-base text-muted-foreground truncate">
@@ -48,7 +48,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
               onClick={signOut}
               variant="outline"
               size={isMobile ? "sm" : "default"}
-              className="flex items-center gap-2 ml-3 shrink-0 h-8 md:h-10"
+              className="flex items-center gap-2 ml-3 shrink-0 h-8 md:h-10 bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-300"
             >
               <LogOut className="h-3 w-3 md:h-4 md:w-4" />
               {!isMobile && "Sair"}

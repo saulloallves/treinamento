@@ -47,6 +47,39 @@ html, body, #root {
   .fab {
     @apply fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-out hover:shadow-xl active:scale-95;
   }
+
+  /* Glassmorphism effects */
+  .glass-sidebar {
+    backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-dark {
+    backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-icon-circular {
+    @apply w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105;
+  }
+
+  .sidebar-icon-active {
+    @apply bg-primary text-primary-foreground shadow-md;
+  }
+
+  .sidebar-icon-inactive {
+    @apply bg-white/20 text-foreground hover:bg-primary/20 hover:text-primary;
+  }
+
+  .sidebar-menu-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 hover:bg-white/10;
+  }
+
+  .sidebar-menu-expanded {
+    @apply bg-white/10 backdrop-blur-sm rounded-xl border border-white/20;
+  }
   
   /* Mobile grid system */
   .mobile-grid-1 {
