@@ -20,7 +20,6 @@ import {
   ChevronDown,
   Target,
   ChevronRight,
-  ChevronLeft,
   ClipboardCheck,
   Video
 } from "lucide-react";
@@ -34,7 +33,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import ProfileSwitcher from "@/components/ProfileSwitcher";
 
 interface SidebarProps {
   showInMobile?: boolean;
@@ -261,25 +259,22 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
+          // Reset active group when navigating to a new page
           setActiveGroup(null);
         }}
-        className={`sidebar-menu-item group ${isSubItem ? 'ml-2' : ''}`}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
+          isActive 
+            ? "bg-primary text-white" 
+            : "text-foreground hover:bg-secondary hover:text-primary"
+        } ${isSubItem ? 'ml-6' : ''}`}
       >
-        <div className={`sidebar-icon-circular ${
-          isActive ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
-        }`}>
+        <div className="w-8 h-8 rounded-sm flex items-center justify-center">
           <Icon className="w-5 h-5" />
         </div>
-        {(isOpen || !isSubItem) && (
-          <span className={`text-sm font-medium transition-colors duration-300 ${
-            isActive ? 'text-primary' : 'text-foreground group-hover:text-primary'
-          }`}>
-            {item.name || item.label}
-          </span>
-        )}
+        <span className="text-sm">{item.name || item.label}</span>
       </Link>
     );
-  }, [location.pathname, isMobile, isOpen]);
+  }, [location.pathname, isMobile]);
 
   const renderAdminMenu = useCallback(() => {
     return adminMenuStructure.map((item) => {
@@ -291,35 +286,29 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       const hasActiveChild = isGroupActive(item);
       
       return (
-        <div key={item.id} className="space-y-2">
+        <div key={item.id} className="space-y-1">
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
-            className="w-full flex items-center justify-between sidebar-menu-item group focus:outline-none"
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
+              activeGroup === item.id
+                ? 'bg-secondary text-primary'
+                : 'text-foreground hover:bg-secondary hover:text-primary'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`sidebar-icon-circular ${
-                activeGroup === item.id ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
-              }`}>
+              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
                 <item.icon className="w-5 h-5" />
               </div>
-              {isOpen && (
-                <span className={`text-sm font-medium transition-colors duration-300 ${
-                  activeGroup === item.id ? 'text-primary' : 'text-foreground group-hover:text-primary'
-                }`}>
-                  {item.name}
-                </span>
-              )}
+              {item.name}
             </div>
-            {isOpen && (
-              <ChevronRight className={`h-4 w-4 transition-all duration-300 ${
-                isExpanded ? 'rotate-90 text-primary' : 'rotate-0 text-foreground/60'
-              }`} />
-            )}
+            <div className="will-change-transform">
+              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
+            </div>
           </button>
           
-          {item.items && isExpanded && isOpen && (
-            <div className="sidebar-menu-expanded space-y-1 p-2 ml-4">
+          {item.items && (
+            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
@@ -338,35 +327,29 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       const hasActiveChild = isGroupActive(item);
       
       return (
-        <div key={item.id} className="space-y-2">
+        <div key={item.id} className="space-y-1">
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
-            className="w-full flex items-center justify-between sidebar-menu-item group focus:outline-none"
+            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
+              activeGroup === item.id
+                ? 'bg-secondary text-primary'
+                : 'text-foreground hover:bg-secondary hover:text-primary'
+            }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`sidebar-icon-circular ${
-                activeGroup === item.id ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
-              }`}>
+              <div className="w-8 h-8 rounded-sm flex items-center justify-center">
                 <item.icon className="w-5 h-5" />
               </div>
-              {isOpen && (
-                <span className={`text-sm font-medium transition-colors duration-300 ${
-                  activeGroup === item.id ? 'text-primary' : 'text-foreground group-hover:text-primary'
-                }`}>
-                  {item.name}
-                </span>
-              )}
+              {item.name}
             </div>
-            {isOpen && (
-              <ChevronRight className={`h-4 w-4 transition-all duration-300 ${
-                isExpanded ? 'rotate-90 text-primary' : 'rotate-0 text-foreground/60'
-              }`} />
-            )}
+            <div className="will-change-transform">
+              <ChevronRight className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? 'rotate-90' : 'rotate-0'}`} />
+            </div>
           </button>
           
-          {item.items && isExpanded && isOpen && (
-            <div className="sidebar-menu-expanded space-y-1 p-2 ml-4">
+          {item.items && (
+            <div className={`space-y-1 ${isExpanded ? 'block' : 'hidden'}`}>
               {item.items.map((subItem: any) => renderMenuItem(subItem, true))}
             </div>
           )}
@@ -386,26 +369,23 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
           to={item.path}
           onClick={() => {
             if (isMobile) setIsOpen(false);
+            // Reset active group when navigating to a new page
             setActiveGroup(null);
           }}
-          className="sidebar-menu-item group"
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
+            isActive 
+              ? "bg-primary text-white" 
+              : "text-foreground hover:bg-secondary hover:text-primary"
+          }`}
         >
-          <div className={`sidebar-icon-circular ${
-            isActive ? 'sidebar-icon-active' : 'sidebar-icon-inactive'
-          }`}>
+          <div className="w-8 h-8 rounded-sm flex items-center justify-center">
             <Icon className="w-5 h-5" />
           </div>
-          {isOpen && (
-            <span className={`text-sm font-medium transition-colors duration-300 ${
-              isActive ? 'text-primary' : 'text-foreground group-hover:text-primary'
-            }`}>
-              {item.label}
-            </span>
-          )}
+          <span className="text-sm">{item.label}</span>
         </Link>
       );
     });
-  }, [studentMenuItems, location.pathname, isMobile, isOpen]);
+  }, [studentMenuItems, location.pathname, isMobile]);
 
   if (isMobile && !showInMobile) {
     return null;

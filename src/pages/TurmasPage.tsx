@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
-import { TurmaCard } from "@/components/turmas/TurmaCard";
+import { ModernTurmaCard } from "@/components/modern/ModernTurmaCard";
+import { DashboardStats } from "@/components/modern/DashboardStats";
 import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
 import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
@@ -109,28 +110,35 @@ const TurmasPage = () => {
   return (
     <BaseLayout title="Gerenciar Turmas">
       <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-primary" />
+        {/* Header Moderno */}
+        <div className="modern-header">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground mb-1">Gestão de Turmas</h1>
+                <p className="text-muted-foreground text-lg">Gerencie as turmas dos cursos ao vivo com estilo</p>
+              </div>
             </div>
-            <div>
-              <p className="text-muted-foreground">Gerencie as turmas dos cursos ao vivo</p>
-            </div>
+            
+            {/* Desktop Create Button Moderno */}
+            {!isMobile && (
+              <Button 
+                onClick={() => setCreateDialogOpen(true)}
+                variant="modern"
+                size="lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nova Turma
+              </Button>
+            )}
           </div>
-          
-          {/* Desktop Create Button */}
-          {!isMobile && (
-            <Button 
-              onClick={() => setCreateDialogOpen(true)}
-              className="h-11 px-6"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Turma
-            </Button>
-          )}
         </div>
+
+        {/* Dashboard Stats */}
+        <DashboardStats />
 
         {/* Filters Section */}
         <div className="space-y-6">
@@ -226,11 +234,11 @@ const TurmasPage = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-animation">
             {filteredTurmas.map((turma) => {
               const course = courses.find(c => c.id === turma.course_id);
               return (
-                <TurmaCard
+                <ModernTurmaCard
                   key={turma.id}
                   turma={turma}
                   course={course}
