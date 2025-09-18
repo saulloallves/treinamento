@@ -75,10 +75,12 @@ export const useUpcomingLessons = () => {
       console.log('Current time:', now.toISOString());
       
       const filteredLessons = lessons.filter((lesson: any) => {
-        // Se não tem zoom_start_time, mostrar (aulas de streaming próprio)
+        // Se não tem zoom_start_time, verificar se created_at é futuro ou recente (aulas de streaming próprio)
         if (!lesson.zoom_start_time) {
-          console.log('Lesson without zoom_start_time (streaming):', lesson.title);
-          return true;
+          const createdAt = new Date(lesson.created_at);
+          const isRecent = now.getTime() - createdAt.getTime() < (7 * 24 * 60 * 60 * 1000); // Últimos 7 dias
+          console.log('Lesson without zoom_start_time (streaming):', lesson.title, 'Created:', createdAt.toISOString(), 'Is recent:', isRecent);
+          return isRecent;
         }
         
         // Se tem zoom_start_time, verificar se é futura
