@@ -1,4 +1,5 @@
 
+import StreamingLessonButton from '@/components/streaming/StreamingLessonButton';
 import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Video, Clock, ExternalLink, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -271,6 +272,11 @@ const LessonsList = () => {
                         
                         {/* Actions Section */}
                         <div className="flex items-center gap-2 shrink-0">
+                          <StreamingLessonButton
+                            lessonId={lesson.id}
+                            hasZoomUrl={!!lesson.zoom_join_url}
+                            streamStatus={(lesson as any).live_stream_status || 'waiting'}
+                          />
                           {(lesson.zoom_join_url || lesson.video_url) && (
                             <Button
                               size="sm"

@@ -71,6 +71,50 @@ const handleSave = async () => {
       });
       return;
     }
+
+    // If video_url is empty, create internal streaming lesson
+    if (!formData.video_url.trim()) {
+      try {
+        await createLessonMutation.mutateAsync({
+          ...formData,
+          video_url: '', // Empty for internal streaming
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ["lessons"] });
+        await queryClient.invalidateQueries({ queryKey: ["courses"] });
+
+        toast({
+          title: "Aula ao vivo criada!",
+          description: "Aula configurada para streaming interno do sistema.",
+        });
+
+        setFormData({
+          course_id: "",
+          title: "",
+          description: "",
+          video_url: "",
+          content: "",
+          duration_minutes: 0,
+          order_index: 1,
+          status: "Ativo",
+          attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
+        });
+        setIsLiveZoom(false);
+        setLiveDate("");
+        setLiveTime("");
+        onOpenChange(false);
+        return;
+      } catch (error: any) {
+        toast({
+          title: "Erro ao criar aula",
+          description: error.message || "Tente novamente em instantes.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Otherwise, create Zoom meeting
     try {
       setIsCreatingLive(true);
       const { data: sessionData } = await supabase.auth.getSession();
@@ -275,8 +319,8 @@ const handleClose = () => {
 <div className="grid gap-2">
   <div className="flex items-center justify-between">
     <div>
-      <Label htmlFor="isLiveZoom">Aula ao vivo (Zoom)</Label>
-      <p className="text-sm text-muted-foreground">Geraremos o link automaticamente no horário definido.</p>
+      <Label htmlFor="isLiveZoom">Aula ao vivo</Label>
+      <p className="text-sm text-muted-foreground">Escolha entre Zoom ou streaming interno do sistema.</p>
     </div>
     <Switch id="isLiveZoom" checked={isLiveZoom} onCheckedChange={setIsLiveZoom} />
   </div>
@@ -328,8 +372,13 @@ const handleClose = () => {
     value={formData.video_url}
     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
     disabled={isLiveZoom || isCreatingLive}
-    placeholder={isLiveZoom ? "Será preenchido automaticamente com o link do Zoom" : undefined}
+    placeholder={isLiveZoom ? "Será preenchido automaticamente ou deixe vazio para usar streaming interno" : "URL do vídeo gravado"}
   />
+  {isLiveZoom && !formData.video_url && (
+    <p className="text-sm text-muted-foreground">
+      💡 Deixe o campo vazio para usar o sistema de streaming interno (similar ao Google Meet)
+    </p>
+  )}
 </div>
 
           <div className="grid gap-2">

@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
+import LiveStream from "./pages/LiveStream";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
@@ -290,6 +291,11 @@ const App = () => (
               <Route path="/aluno/turma/:turmaId/testes" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentTurmaTests />
+                </ProtectedRoute>
+              } />
+              <Route path="/aula-ao-vivo/:lessonId" element={
+                <ProtectedRoute>
+                  <LiveStream />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
