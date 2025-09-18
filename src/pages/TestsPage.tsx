@@ -30,7 +30,6 @@ const TestsPage = () => {
               <ClipboardList className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Testes Avaliativos</h1>
               <p className="text-muted-foreground">Sistema completo de avaliação com pontuação diferenciada</p>
             </div>
           </div>

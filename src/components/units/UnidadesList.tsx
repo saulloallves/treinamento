@@ -78,7 +78,6 @@ const UnidadesList = () => {
       {/* Header com estatísticas */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Unidades</h2>
           <p className="text-muted-foreground">
             Gerencie todas as unidades da rede
           </p>

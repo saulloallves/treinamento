@@ -28,8 +28,7 @@ const QuizPage = () => {
               <BookCheck className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Quiz por Turma</h1>
-              <p className="text-muted-foreground">Gerencie quizzes e avaliações das suas turmas</p>
+              <p className="text-muted-foreground">Gerencie quizzes e avaliações organizadas por turma</p>
             </div>
           </div>
 

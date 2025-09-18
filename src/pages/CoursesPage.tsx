@@ -22,8 +22,7 @@ const CoursesPage = () => {
               <BookOpen className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Cursos</h1>
-              <p className="text-muted-foreground">Gerencie os cursos de treinamento</p>
+              <p className="text-muted-foreground">Gerencie os cursos de treinamento do sistema</p>
             </div>
           </div>
           

@@ -116,7 +116,6 @@ const TurmasPage = () => {
               <Users className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Gestão de Turmas</h1>
               <p className="text-muted-foreground">Gerencie as turmas dos cursos ao vivo</p>
             </div>
           </div>

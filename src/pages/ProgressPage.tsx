@@ -7,8 +7,7 @@ const ProgressPage = () => {
     <BaseLayout title="Progresso dos Usuários">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Progresso dos Usuários</h2>
-          <p className="text-muted-foreground">Bem-vindo! Visualize o progresso dos estudantes por curso e turma.</p>
+          <p className="text-muted-foreground">Acompanhe o progresso e desempenho dos estudantes por curso e turma</p>
         </div>
       </div>
 
