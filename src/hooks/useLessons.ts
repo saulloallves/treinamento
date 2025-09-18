@@ -90,14 +90,43 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       let filteredLessons = lessons;
       
       if (filterType === 'upcoming') {
-        // Only "Aula inaugural - Streaming" should be upcoming
+        // Show active lessons that are upcoming (either no scheduled time or scheduled in the future)
         filteredLessons = lessons.filter((lesson: any) => {
-          return lesson.status === 'Ativo' && lesson.title === 'Aula inaugural - Streaming';
+          if (lesson.status !== 'Ativo') return false;
+          
+          // Always show "Aula inaugural - Streaming"
+          if (lesson.title === 'Aula inaugural - Streaming') return true;
+          
+          // If no zoom_start_time, show as upcoming (new lessons without schedule)
+          if (!lesson.zoom_start_time) return true;
+          
+          // If has zoom_start_time, check if it's in the future or hasn't ended yet
+          const now = new Date();
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const duration = lesson.duration_minutes || 60;
+          const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
+          
+          return now <= lessonEnd;
         });
       } else if (filterType === 'archived') {
-        // All lessons except "Aula inaugural - Streaming" should be archived
+        // Show lessons that are archived (finished or inactive)
         filteredLessons = lessons.filter((lesson: any) => {
-          return lesson.title !== 'Aula inaugural - Streaming';
+          // Never archive the streaming lesson
+          if (lesson.title === 'Aula inaugural - Streaming') return false;
+          
+          // Archive inactive lessons
+          if (lesson.status !== 'Ativo') return true;
+          
+          // If no zoom_start_time, keep as upcoming (don't archive)
+          if (!lesson.zoom_start_time) return false;
+          
+          // If has zoom_start_time, archive if it has finished
+          const now = new Date();
+          const lessonStart = new Date(lesson.zoom_start_time);
+          const duration = lesson.duration_minutes || 60;
+          const lessonEnd = new Date(lessonStart.getTime() + duration * 60000);
+          
+          return now > lessonEnd;
         });
       }
 
