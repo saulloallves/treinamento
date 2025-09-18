@@ -217,7 +217,7 @@ const LessonsList = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
-                                Aula #{lesson.order_index}
+                                 {lesson.order_index}
                               </span>
                               <span
                                 className={`px-2 py-1 text-xs rounded-md font-medium ${
@@ -362,7 +362,7 @@ const LessonsList = () => {
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
-                                    Aula #{lesson.order_index}
+                                     {lesson.order_index}
                                   </span>
                                   <span
                                     className={`px-2 py-1 text-xs rounded-md font-medium ${
@@ -484,7 +484,7 @@ const LessonsList = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                Aula #{lesson.order_index}
+                                 {lesson.order_index}
                               </span>
                               <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
                                 Arquivada
@@ -599,7 +599,7 @@ const LessonsList = () => {
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                    Aula #{lesson.order_index}
+                                    {lesson.order_index}
                                   </span>
                                   <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
                                     Arquivada
