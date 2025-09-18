@@ -17,8 +17,6 @@ const buttonVariants = cva(
         ghost: "hover:bg-gray-100 text-brand-gray-dark hover:text-brand-black",
         link: "text-brand-blue underline-offset-4 hover:underline hover:text-blue-600",
         success: "bg-green-500 text-brand-white hover:bg-green-600 shadow-clean hover:shadow-clean-md",
-        modern: "modern-button",
-        "modern-secondary": "modern-button-secondary",
       },
       size: {
         default: "h-10 px-4 py-2",
