@@ -3,19 +3,41 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getSelectedProfile } from "@/lib/profile";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const RoleRedirect = () => {
   const { user, loading } = useAuth();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
+  const [hasStudentProfile, setHasStudentProfile] = useState(false);
+  
+  useEffect(() => {
+    const checkStudentProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data: studentData } = await supabase
+        .from('users')
+        .select('id, user_type, role')
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      setHasStudentProfile(!!studentData);
+    };
+    
+    if (user?.id) {
+      checkStudentProfile();
+    }
+  }, [user?.id]);
 
   console.log('RoleRedirect:', { 
     user: !!user, 
     loading, 
     isAdmin, 
     isProfessor, 
-    hasCurrentUser: !!currentUser,
+    hasStudentProfile,
     checkingAdmin, 
     checkingProfessor, 
     loadingCurrentUser 
@@ -37,19 +59,42 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirecionar baseado no perfil do usuário
-  if (isAdmin) {
-    console.log('RoleRedirect - Admin user, redirecting to dashboard');
+  // Contar quantos perfis o usuário possui
+  const profileCount = [isAdmin, isProfessor, hasStudentProfile].filter(Boolean).length;
+  
+  // Se o usuário tem múltiplos perfis, verificar se já selecionou um
+  if (profileCount > 1) {
+    const selectedProfile = getSelectedProfile();
+    if (!selectedProfile) {
+      console.log('RoleRedirect - Multiple profiles, no selection, redirecting to profile selection');
+      return <Navigate to="/perfil" replace />;
+    }
+    
+    // Redirecionar baseado no perfil selecionado
+    if (selectedProfile === 'Admin' && isAdmin) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    if (selectedProfile === 'Professor' && isProfessor) {
+      return <Navigate to="/professor" replace />;
+    }
+    if (selectedProfile === 'Aluno' && hasStudentProfile) {
+      return <Navigate to="/aluno" replace />;
+    }
+  }
+
+  // Se tem apenas um perfil, redirecionar diretamente
+  if (isAdmin && profileCount === 1) {
+    console.log('RoleRedirect - Single admin profile, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
-  if (isProfessor) {
-    console.log('RoleRedirect - Professor user, redirecting to professor area');
+  if (isProfessor && profileCount === 1) {
+    console.log('RoleRedirect - Single professor profile, redirecting to professor area');
     return <Navigate to="/professor" replace />;
   }
   
-  if (currentUser) {
-    console.log('RoleRedirect - Student user, redirecting to student area');
+  if (hasStudentProfile && profileCount === 1) {
+    console.log('RoleRedirect - Single student profile, redirecting to student area');
     return <Navigate to="/aluno" replace />;
   }
 

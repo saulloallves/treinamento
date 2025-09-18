@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getAutoDetectedProfile, setSelectedProfile } from '@/lib/profile';
+import { getAutoDetectedProfile, setSelectedProfile, getSelectedProfile } from '@/lib/profile';
 import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
@@ -51,52 +51,64 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   // Approval status checking is now handled in useAuth.signIn
   // This prevents the "trembling" effect from multiple components checking the same thing
 
-  // Auto-detect and set profile if needed
-  const detectedProfile = getAutoDetectedProfile(isAdmin, isProfessor);
+  // Check for profile selection if user has multiple profiles
+  const profileCount = [isAdmin, isProfessor, !!currentUser].filter(Boolean).length;
+  const selectedProfile = getSelectedProfile();
   
-  // Auto-save the detected profile for consistency across sessions
-  if (detectedProfile) {
-    setSelectedProfile(detectedProfile);
+  // If user has multiple profiles but no selection, redirect to profile selection
+  if (profileCount > 1 && !selectedProfile) {
+    return <Navigate to="/perfil" replace />;
+  }
+  
+  // If user has single profile, auto-detect and set it
+  if (profileCount === 1 && !selectedProfile) {
+    const autoProfile = getAutoDetectedProfile(isAdmin, isProfessor);
+    if (autoProfile) {
+      setSelectedProfile(autoProfile);
+    }
   }
   
   console.log('ProtectedRoute Debug:', {
     requiredRole,
-    detectedProfile,
+    selectedProfile,
     isAdmin,
     isProfessor,
     userId: user.id
   });
   
+  // Role-based access control with profile selection respect
   if (requiredRole) {
-    // CRITICAL: Admin deve ser redirecionado para dashboard, não ter acesso a outras áreas
-    if (requiredRole === 'Aluno' && isAdmin) {
-      console.log('ProtectedRoute: Admin trying to access student area, redirecting to dashboard');
-      return <Navigate to="/dashboard" replace />;
-    }
-    
-    if (requiredRole === 'Professor' && isAdmin && !isProfessor) {
-      console.log('ProtectedRoute: Admin trying to access professor area, redirecting to dashboard');
-      return <Navigate to="/dashboard" replace />;
-    }
-    
-    if (requiredRole === 'Admin' && !isAdmin) {
-      console.log('Redirecting to /aluno because required Admin but user is not admin');
-      return <Navigate to="/aluno" replace />;
-    }
-    if (requiredRole === 'Aluno' && !currentUser) {
-      // Se é professor, vai para área do professor
-      if (isProfessor) {
-        console.log('Redirecting to /professor because required Aluno but user is professor');
-        return <Navigate to="/professor" replace />;
+    if (requiredRole === 'Admin') {
+      if (!isAdmin) {
+        return <Navigate to="/aluno" replace />;
       }
-      // Sem perfil de aluno, redireciona para auth
-      console.log('Redirecting to /auth because required Aluno but no student profile');
-      return <Navigate to="/auth" replace />;
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Admin') {
+        if (selectedProfile === 'Professor') return <Navigate to="/professor" replace />;
+        if (selectedProfile === 'Aluno') return <Navigate to="/aluno" replace />;
+      }
     }
-    if (requiredRole === 'Professor' && !isProfessor) {
-      console.log('Redirecting based on profile - not a professor');
-      if (currentUser) return <Navigate to="/aluno" replace />;
-      return <Navigate to="/auth" replace />;
+    
+    if (requiredRole === 'Professor') {
+      if (!isProfessor && !isAdmin) {
+        return <Navigate to="/aluno" replace />;
+      }
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Professor' && selectedProfile !== 'Admin') {
+        if (selectedProfile === 'Aluno') return <Navigate to="/aluno" replace />;
+        if (isAdmin) return <Navigate to="/dashboard" replace />;
+      }
+    }
+    
+    if (requiredRole === 'Aluno') {
+      if (!currentUser && !isAdmin && !isProfessor) {
+        return <Navigate to="/auth" replace />;
+      }
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Aluno') {
+        if (selectedProfile === 'Admin' && isAdmin) return <Navigate to="/dashboard" replace />;
+        if (selectedProfile === 'Professor' && isProfessor) return <Navigate to="/professor" replace />;
+      }
     }
   }
 

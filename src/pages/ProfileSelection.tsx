@@ -36,26 +36,7 @@ const ProfileSelection = () => {
     }
   }, [user?.id]);
 
-  // Auto-redirect effect (separate from data fetching)
-  useEffect(() => {
-    if (loading || checking || checkingProfessor) return;
-    
-    // Se só tem um perfil, redireciona automaticamente
-    if (!isAdmin && !isProfessor && hasStudentProfile) {
-      navigate('/aluno');
-      return;
-    }
-    
-    if (!isAdmin && isProfessor && !hasStudentProfile) {
-      navigate('/professor');
-      return;
-    }
-    
-    if (isAdmin && !hasStudentProfile && !isProfessor) {
-      navigate('/dashboard');
-      return;
-    }
-  }, [loading, checking, checkingProfessor, isAdmin, isProfessor, hasStudentProfile, navigate]);
+  // Auto-redirect effect removed - let users choose their profile even if they have only one
 
   if (loading || checking || checkingProfessor) {
     return (
