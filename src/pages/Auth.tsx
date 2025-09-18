@@ -160,8 +160,8 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-white">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -185,8 +185,8 @@ const Auth = () => {
 
         <Card className="border border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70 shadow-xl ring-1 ring-primary/10 rounded-2xl">
           <CardHeader className="text-center space-y-2 pb-4">
-            <CardTitle className="text-2xl text-brand-black">Acesse sua conta</CardTitle>
-            <CardDescription className="text-brand-gray-dark">
+            <CardTitle className="text-2xl text-foreground">Acesse sua conta</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Faça login ou crie uma nova conta para continuar
             </CardDescription>
           </CardHeader>
@@ -229,7 +229,7 @@ const Auth = () => {
               <TabsContent value="login-student">
                 <form onSubmit={handleStudentSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -237,11 +237,10 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha</Label>
+                    <Label htmlFor="password" className="text-foreground font-medium">Senha</Label>
                     <Input
                       id="password"
                       type="password"
@@ -249,7 +248,6 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <Button 
@@ -265,9 +263,9 @@ const Auth = () => {
               <TabsContent value="register-student">
                 <form onSubmit={handleStudentSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="userRole" className="text-brand-gray-dark font-medium">Você é *</Label>
+                    <Label htmlFor="userRole" className="text-foreground font-medium">Você é *</Label>
                     <Select value={userRole} onValueChange={(value: 'Franqueado' | 'Colaborador') => setUserRole(value)}>
-                      <SelectTrigger className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20">
+                      <SelectTrigger>
                         <SelectValue placeholder="Selecione seu papel na unidade" />
                       </SelectTrigger>
                       <SelectContent>
@@ -278,7 +276,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="unitCode" className="text-brand-gray-dark font-medium">Código da Unidade *</Label>
+                    <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
                     <Input
                       id="unitCode"
                       type="text"
@@ -286,15 +284,14 @@ const Auth = () => {
                       value={unitCode}
                       onChange={(e) => setUnitCode(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
 
                   {userRole === 'Colaborador' && (
                     <div className="space-y-2">
-                      <Label htmlFor="position" className="text-brand-gray-dark font-medium">Cargo *</Label>
+                      <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
                       <Select value={position} onValueChange={setPosition} required>
-                        <SelectTrigger className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20">
+                        <SelectTrigger>
                           <SelectValue placeholder="Selecione o cargo" />
                         </SelectTrigger>
                         <SelectContent className="z-[100]">
@@ -311,7 +308,7 @@ const Auth = () => {
                   )}
                   
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-brand-gray-dark font-medium">Nome Completo *</Label>
+                    <Label htmlFor="fullName" className="text-foreground font-medium">Nome Completo *</Label>
                     <Input
                       id="fullName"
                       type="text"
@@ -319,12 +316,11 @@ const Auth = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-brand-gray-dark font-medium">Email *</Label>
+                    <Label htmlFor="email" className="text-foreground font-medium">Email *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -332,12 +328,11 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-brand-gray-dark font-medium">Senha *</Label>
+                    <Label htmlFor="password" className="text-foreground font-medium">Senha *</Label>
                     <Input
                       id="password"
                       type="password"
@@ -346,13 +341,12 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
 
                   {userRole === 'Colaborador' && (
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-800">
+                    <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+                      <p className="text-sm text-primary">
                         <strong>Atenção:</strong> Como colaborador, seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.
                       </p>
                     </div>
@@ -371,7 +365,7 @@ const Auth = () => {
               <TabsContent value="login-professor">
                 <form onSubmit={handleProfessorSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email-professor-login" className="text-brand-gray-dark font-medium">Email</Label>
+                    <Label htmlFor="email-professor-login" className="text-foreground font-medium">Email</Label>
                     <Input
                       id="email-professor-login"
                       type="email"
@@ -379,11 +373,10 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-professor-login" className="text-brand-gray-dark font-medium">Senha</Label>
+                    <Label htmlFor="password-professor-login" className="text-foreground font-medium">Senha</Label>
                     <Input
                       id="password-professor-login"
                       type="password"
@@ -391,7 +384,6 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <Button 
@@ -408,7 +400,7 @@ const Auth = () => {
               <TabsContent value="login-admin">
                 <form onSubmit={handleAdminSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email-admin-login" className="text-brand-gray-dark font-medium">Email</Label>
+                    <Label htmlFor="email-admin-login" className="text-foreground font-medium">Email</Label>
                     <Input
                       id="email-admin-login"
                       type="email"
@@ -416,11 +408,10 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-admin-login" className="text-brand-gray-dark font-medium">Senha</Label>
+                    <Label htmlFor="password-admin-login" className="text-foreground font-medium">Senha</Label>
                     <Input
                       id="password-admin-login"
                       type="password"
@@ -428,7 +419,6 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-gray-300 focus:border-brand-blue focus:ring-brand-blue/20"
                     />
                   </div>
                   <Button 
@@ -446,7 +436,7 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        <div className="text-center text-sm text-brand-gray-dark">
+        <div className="text-center text-sm text-muted-foreground">
           Ao continuar, você concorda com nossos termos de uso
         </div>
       </div>
