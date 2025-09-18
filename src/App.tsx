@@ -10,6 +10,8 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import LiveStream from "./pages/LiveStream";
 import StreamingDemo from "@/components/streaming/StreamingDemo";
+import StreamingModule from "./pages/StreamingModule";
+import StreamingTestRoom from "@/components/streaming/StreamingTestRoom";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
@@ -214,6 +216,11 @@ const App = () => (
                   <CommunicationPage />
                 </ProfessorRoute>
               } />
+              <Route path="/streaming" element={
+                <ProfessorRoute>
+                  <StreamingModule />
+                </ProfessorRoute>
+              } />
               <Route path="/professor/reports" element={
                 <ProfessorRoute>
                   <ProfessorReports />
@@ -294,9 +301,14 @@ const App = () => (
                   <StudentTurmaTests />
                 </ProtectedRoute>
               } />
+              <Route path="/streaming" element={
+                <AdminRoute>
+                  <StreamingModule />
+                </AdminRoute>
+              } />
               <Route path="/aula-ao-vivo/:lessonId" element={
                 <ProtectedRoute>
-                  <LiveStream />
+                  <StreamingTestRoom />
                 </ProtectedRoute>
               } />
               <Route path="/streaming-demo" element={

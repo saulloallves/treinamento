@@ -20,7 +20,8 @@ import {
   ChevronDown,
   Target,
   ChevronRight,
-  ClipboardCheck
+  ClipboardCheck,
+  Video
 } from "lucide-react";
 import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
@@ -49,7 +50,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const path = location.pathname;
     return {
-      treinamentos: ['/courses','/turmas','/lessons','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
+      treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
       avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
       comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
@@ -117,6 +118,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         { name: 'Cursos', path: '/professor/cursos', icon: GraduationCap },
         { name: 'Turmas', path: '/professor/turmas', icon: Calendar },
         { name: 'Aulas', path: '/professor/aulas', icon: BookOpen },
+        { name: 'Streaming', path: '/streaming', icon: Video },
       ]
     },
     {
@@ -170,6 +172,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         { name: 'Cursos', path: '/courses', icon: GraduationCap },
         { name: 'Turmas', path: '/turmas', icon: Calendar },
         { name: 'Aulas', path: '/lessons', icon: BookOpen },
+        { name: 'Streaming', path: '/streaming', icon: Video },
       ]
     },
     {
