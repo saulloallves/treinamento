@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getSelectedProfile } from "@/lib/profile";
+import ProfileSwitcher from "@/components/ProfileSwitcher";
 
 interface BaseLayoutProps {
   title: string;
@@ -48,15 +49,18 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
                 Bem-vindo, {user?.user_metadata?.full_name || user?.email}!
               </p>
             </div>
-            <Button 
-              onClick={signOut}
-              variant="outline"
-              size={isMobile ? "sm" : "default"}
-              className="flex items-center gap-2 ml-3 shrink-0 h-8 md:h-10 bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 rounded-full border-white/20"
-            >
-              <LogOut className="h-3 w-3 md:h-4 md:w-4" />
-              {!isMobile && "Sair"}
-            </Button>
+            <div className="flex items-center gap-3">
+              {user && shouldShowSidebar && <ProfileSwitcher />}
+              <Button 
+                onClick={signOut}
+                variant="outline"
+                size={isMobile ? "sm" : "default"}
+                className="flex items-center gap-2 shrink-0 h-8 md:h-10 bg-white/50 backdrop-blur-sm hover:bg-white/80 transition-all duration-300 rounded-full border-white/20"
+              >
+                <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+                {!isMobile && "Sair"}
+              </Button>
+            </div>
           </div>
         </header>
 

@@ -294,7 +294,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       const isExpanded = expandedGroups[item.id];
       
       return (
-        <div key={item.id} className="space-y-2">
+        <div key={item.id} className="space-y-1.5">
           <button
             type="button"
             onClick={() => toggleGroup(item.id)}
@@ -425,7 +425,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {shouldShowAdminMenu && renderMenuGroup(adminMenuStructure)}
           {shouldShowProfessorMenu && renderMenuGroup(professorMenuStructure)}
           {!shouldShowAdminMenu && !shouldShowProfessorMenu && renderStudentMenu()}
@@ -440,17 +440,14 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
               </span>
             </div>
             {isOpen && (
-              <div className="sidebar-text-pill flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-foreground">
-                      {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
-                    </p>
-                    <p className="text-xs text-foreground/60 truncate max-w-32">
-                      {user?.email}
-                    </p>
-                  </div>
-                  {user && <ProfileSwitcher />}
+              <div className="sidebar-text-pill">
+                <div>
+                  <p className="text-xs font-medium text-foreground">
+                    {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                  </p>
+                  <p className="text-xs text-foreground/60 truncate max-w-32">
+                    {user?.email?.split('@')[0]}
+                  </p>
                 </div>
               </div>
             )}
