@@ -240,17 +240,28 @@ const LessonsListMobile = () => {
                     
                     {/* Actions */}
                     <div className="flex gap-2 pt-3 border-t">
-                      {(lesson.zoom_join_url || lesson.video_url) && (
+                      {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                      {lesson.zoom_join_url ? (
                         <Button
                           className="flex-1"
                           size="sm"
                           onClick={() =>
-                            window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                            window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                           }
                         >
-                          Acessar
+                          Entrar no Zoom
                         </Button>
-                      )}
+                      ) : lesson.video_url ? (
+                        <Button
+                          className="flex-1"
+                          size="sm"
+                          onClick={() =>
+                            window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                          }
+                        >
+                          Ver Vídeo
+                        </Button>
+                      ) : null}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -321,16 +332,26 @@ const LessonsListMobile = () => {
                               </div>
                               
                               <div className="flex gap-1 shrink-0">
-                                {(lesson.zoom_join_url || lesson.video_url) && (
+                                {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                                {lesson.zoom_join_url ? (
                                   <Button
                                     size="sm"
                                     onClick={() =>
-                                      window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                      window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                                     }
                                   >
-                                    Acessar
+                                    Entrar no Zoom
                                   </Button>
-                                )}
+                                ) : lesson.video_url ? (
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                    }
+                                  >
+                                    Ver Vídeo
+                                  </Button>
+                                ) : null}
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
@@ -435,18 +456,30 @@ const LessonsListMobile = () => {
                     
                     {/* Actions */}
                     <div className="flex gap-2 pt-3 border-t">
-                      {(lesson.zoom_join_url || lesson.video_url) && (
+                      {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                      {lesson.zoom_join_url ? (
                         <Button
                           variant="outline"
                           className="flex-1"
                           size="sm"
                           onClick={() =>
-                            window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                            window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                           }
                         >
-                          Acessar
+                          Ver Gravação Zoom
                         </Button>
-                      )}
+                      ) : lesson.video_url ? (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          size="sm"
+                          onClick={() =>
+                            window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                          }
+                        >
+                          Ver Vídeo
+                        </Button>
+                      ) : null}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -520,17 +553,28 @@ const LessonsListMobile = () => {
                               </div>
                               
                               <div className="flex gap-1 shrink-0">
-                                {(lesson.zoom_join_url || lesson.video_url) && (
+                                {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                                {lesson.zoom_join_url ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
-                                      window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                      window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                                     }
                                   >
-                                    Acessar
+                                    Ver Gravação Zoom
                                   </Button>
-                                )}
+                                ) : lesson.video_url ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                    }
+                                  >
+                                    Ver Vídeo
+                                  </Button>
+                                ) : null}
                                 <Button 
                                   variant="outline" 
                                   size="sm" 

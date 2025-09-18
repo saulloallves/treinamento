@@ -272,22 +272,38 @@ const LessonsList = () => {
                         
                         {/* Actions Section */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <StreamingLessonButton
-                            lessonId={lesson.id}
-                            hasZoomUrl={!!lesson.zoom_join_url}
-                            streamStatus={(lesson as any).live_stream_status || 'waiting'}
-                          />
-                          {(lesson.zoom_join_url || lesson.video_url) && (
+                          {/* Show only Zoom button for Zoom lessons, or streaming/video buttons for others */}
+                          {lesson.zoom_join_url ? (
                             <Button
                               size="sm"
                               className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
                               onClick={() =>
-                                window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                               }
                             >
                               <ExternalLink className="w-4 h-4 mr-1" />
-                              Acessar
+                              Entrar no Zoom
                             </Button>
+                          ) : (
+                            <>
+                              <StreamingLessonButton
+                                lessonId={lesson.id}
+                                hasZoomUrl={false}
+                                streamStatus={(lesson as any).live_stream_status || 'waiting'}
+                              />
+                              {lesson.video_url && (
+                                <Button
+                                  size="sm"
+                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                  onClick={() =>
+                                    window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                  }
+                                >
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Ver Vídeo
+                                </Button>
+                              )}
+                            </>
                           )}
                           <Button 
                             variant="outline" 
@@ -408,17 +424,38 @@ const LessonsList = () => {
                             
                             {/* Actions Section */}
                             <div className="flex items-center gap-2 shrink-0">
-                              {(lesson.zoom_join_url || lesson.video_url) && (
+                              {/* Show only Zoom button for Zoom lessons, or streaming/video buttons for others */}
+                              {lesson.zoom_join_url ? (
                                 <Button
                                   size="sm"
                                   className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
                                   onClick={() =>
-                                    window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                    window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                                   }
                                 >
                                   <ExternalLink className="w-4 h-4 mr-1" />
-                                  Acessar
+                                  Entrar no Zoom
                                 </Button>
+                              ) : (
+                                <>
+                                  <StreamingLessonButton
+                                    lessonId={lesson.id}
+                                    hasZoomUrl={false}
+                                    streamStatus={(lesson as any).live_stream_status || 'waiting'}
+                                  />
+                                  {lesson.video_url && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                      onClick={() =>
+                                        window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                      }
+                                    >
+                                      <Video className="w-4 h-4 mr-1" />
+                                      Ver Vídeo
+                                    </Button>
+                                  )}
+                                </>
                               )}
                               <Button 
                                 variant="outline" 
@@ -530,19 +567,32 @@ const LessonsList = () => {
                         
                         {/* Actions Section */}
                         <div className="flex items-center gap-2 shrink-0">
-                          {(lesson.zoom_join_url || lesson.video_url) && (
+                          {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                          {lesson.zoom_join_url ? (
                             <Button
                               size="sm"
                               variant="outline"
                               className="px-4 py-2 h-9"
                               onClick={() =>
-                                window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                               }
                             >
                               <ExternalLink className="w-4 h-4 mr-1" />
-                              Acessar
+                              Ver Gravação Zoom
                             </Button>
-                          )}
+                          ) : lesson.video_url ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="px-4 py-2 h-9"
+                              onClick={() =>
+                                window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                              }
+                            >
+                              <Video className="w-4 h-4 mr-1" />
+                              Ver Vídeo
+                            </Button>
+                          ) : null}
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -654,19 +704,32 @@ const LessonsList = () => {
                             
                             {/* Actions Section */}
                             <div className="flex items-center gap-2 shrink-0">
-                              {(lesson.zoom_join_url || lesson.video_url) && (
+                              {/* Show only Zoom button for Zoom lessons, or video buttons for others */}
+                              {lesson.zoom_join_url ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   className="px-4 py-2 h-9"
                                   onClick={() =>
-                                    window.open((lesson.zoom_join_url || lesson.video_url)!, "_blank", "noopener,noreferrer")
+                                    window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                                   }
                                 >
                                   <ExternalLink className="w-4 h-4 mr-1" />
-                                  Acessar
+                                  Ver Gravação Zoom
                                 </Button>
-                              )}
+                              ) : lesson.video_url ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="px-4 py-2 h-9"
+                                  onClick={() =>
+                                    window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                  }
+                                >
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Ver Vídeo
+                                </Button>
+                              ) : null}
                               <Button 
                                 variant="outline" 
                                 size="sm" 
