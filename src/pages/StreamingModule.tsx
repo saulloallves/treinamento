@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Video, Users, Calendar, Clock, Play } from 'lucide-react';
+import { Plus, Video, Users, Calendar, Clock, Play, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -105,11 +105,11 @@ const StreamingModule = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => joinRoom('demo-test')}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-105" onClick={() => joinRoom('demo-test')}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-3 bg-green-100 rounded-xl">
                   <Play className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
@@ -120,10 +120,10 @@ const StreamingModule = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/streaming-demo')}>
+          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-105" onClick={() => navigate('/streaming-demo')}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-3 bg-blue-100 rounded-xl">
                   <Video className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
@@ -133,16 +133,30 @@ const StreamingModule = () => {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setCreateRoomDialog(true)}>
+          
+          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-105" onClick={() => setCreateRoomDialog(true)}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
+                <div className="p-3 bg-purple-100 rounded-xl">
                   <Plus className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Criar Sala</h3>
                   <p className="text-sm text-muted-foreground">Nova sala personalizada</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-105 border-2 border-dashed border-muted-foreground/25">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <Calendar className="h-6 w-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Agendar Reunião</h3>
+                  <p className="text-sm text-muted-foreground">Em breve</p>
                 </div>
               </div>
             </CardContent>
@@ -170,11 +184,16 @@ const StreamingModule = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {rooms.map((room) => (
-                <Card key={room.id} className="hover:shadow-md transition-shadow">
+                <Card key={room.id} className="hover:shadow-lg transition-all hover:scale-105 border">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{room.name}</CardTitle>
+                        <CardTitle className="text-lg truncate flex items-center gap-2">
+                          {room.name}
+                          {room.status === 'live' && (
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          )}
+                        </CardTitle>
                         <CardDescription className="flex items-center gap-2 mt-1">
                           <Clock className="h-3 w-3" />
                           Criada {new Date(room.createdAt).toLocaleTimeString('pt-BR', { 
@@ -184,7 +203,7 @@ const StreamingModule = () => {
                         </CardDescription>
                       </div>
                       <Badge 
-                        className={`${getStatusColor(room.status)} text-white text-xs px-2 py-1`}
+                        className={`${getStatusColor(room.status)} text-white text-xs px-3 py-1 rounded-full`}
                       >
                         {getStatusText(room.status)}
                       </Badge>
@@ -192,32 +211,63 @@ const StreamingModule = () => {
                   </CardHeader>
                   
                   <CardContent className="pt-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>{room.participants} participantes</span>
-                      </div>
-                      
-                      <Button 
-                        size="sm" 
-                        onClick={() => joinRoom(room.id)}
-                        className="gap-2"
-                      >
-                        <Video className="h-3 w-3" />
-                        Entrar
-                      </Button>
-                    </div>
-
-                    {room.status === 'live' && (
-                      <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                          <span className="text-sm text-red-700 font-medium">
-                            Transmissão ao vivo em andamento
-                          </span>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          <span>{room.participants}</span>
+                        </div>
+                        <div className="text-xs bg-muted px-2 py-1 rounded">
+                          ID: {room.id}
                         </div>
                       </div>
-                    )}
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => joinRoom(room.id)}
+                          className="gap-2 flex-1"
+                        >
+                          <Video className="h-3 w-3" />
+                          Entrar na Sala
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            const link = `${window.location.origin}/aula-ao-vivo/${room.id}`;
+                            try {
+                              await navigator.clipboard.writeText(link);
+                              toast({
+                                title: "Link copiado!",
+                                description: "O link da sala foi copiado para a área de transferência"
+                              });
+                            } catch (error) {
+                              toast({
+                                title: "Erro ao copiar",
+                                description: "Não foi possível copiar o link",
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          title="Copiar link da sala"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+
+                      {room.status === 'live' && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                            <span className="text-sm text-red-700 font-medium">
+                              🔴 Transmissão ao vivo em andamento
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
