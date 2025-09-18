@@ -71,13 +71,21 @@ export const useUpcomingLessons = () => {
       if (lessons.length === 0) return [];
 
       // Filtrar apenas aulas futuras
+      const now = new Date();
+      console.log('Current time:', now.toISOString());
+      
       const filteredLessons = lessons.filter((lesson: any) => {
         // Se não tem zoom_start_time, mostrar (aulas de streaming próprio)
-        if (!lesson.zoom_start_time) return true;
+        if (!lesson.zoom_start_time) {
+          console.log('Lesson without zoom_start_time (streaming):', lesson.title);
+          return true;
+        }
         
         // Se tem zoom_start_time, verificar se é futura
         const lessonStart = new Date(lesson.zoom_start_time);
-        return new Date() < lessonStart;
+        const isFuture = now < lessonStart;
+        console.log('Lesson:', lesson.title, 'Start:', lessonStart.toISOString(), 'Is future:', isFuture);
+        return isFuture;
       });
 
       if (filteredLessons.length === 0) return [];
