@@ -90,12 +90,15 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       let filteredLessons = lessons;
       
       if (filterType === 'upcoming') {
-        // Show all active lessons that are upcoming (including streaming lessons)
+        // Show only active lessons with future dates
         filteredLessons = lessons.filter((lesson: any) => {
           if (lesson.status !== 'Ativo') return false;
           
-          // If no zoom_start_time, consider it upcoming (streaming lessons or newly created)
-          if (!lesson.zoom_start_time) return true;
+          // If no zoom_start_time, don't show in upcoming (should be in archived or need scheduling)
+          if (!lesson.zoom_start_time) {
+            // Special case: always keep "Aula inaugural - Streaming" in upcoming
+            return lesson.title === 'Aula inaugural - Streaming';
+          }
           
           // Check if lesson date is in the future
           const now = new Date();
