@@ -16,6 +16,8 @@ export const useDashboardStats = () => {
   return useQuery<DashboardStats>({
     queryKey: ["dashboard_stats"],
     queryFn: async () => {
+      console.log('useDashboardStats - Starting query');
+      try {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -64,7 +66,7 @@ export const useDashboardStats = () => {
           )
         : 0;
 
-      return {
+      const result = {
         usersActive,
         coursesAvailable,
         certificatesIssued,
@@ -74,6 +76,13 @@ export const useDashboardStats = () => {
         attendancesThisMonth,
         completionRate: avg,
       };
+      
+      console.log('useDashboardStats - Query result:', result);
+      return result;
+      } catch (error) {
+        console.error('useDashboardStats - Error:', error);
+        throw error;
+      }
     },
   });
 };

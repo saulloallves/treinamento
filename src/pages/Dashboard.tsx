@@ -21,12 +21,24 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
+  console.log('Dashboard - Component rendering');
+  
   const [activityPage, setActivityPage] = useState(1);
   const [activityItemsPerPage, setActivityItemsPerPage] = useState(5);
   const [lessonsPage, setLessonsPage] = useState(1);
   const [lessonsItemsPerPage, setLessonsItemsPerPage] = useState(4);
   const isMobile = useIsMobile();
-  const { data, isLoading, refetch } = useDashboardStats();
+  const { data, isLoading, refetch, error } = useDashboardStats();
+  
+  console.log('Dashboard - State:', { data, isLoading, error });
+  
+  if (error) {
+    console.error('Dashboard - Error:', error);
+    return <div className="p-6">
+      <h1 className="text-2xl font-bold text-red-600">Erro no Dashboard</h1>
+      <p className="text-gray-600 mt-2">{error.message}</p>
+    </div>;
+  }
 
   const formatNumber = (n: number | undefined) =>
     typeof n === "number" ? n.toLocaleString("pt-BR") : "0";
