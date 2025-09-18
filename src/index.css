@@ -50,20 +50,14 @@ html, body, #root {
 
   /* Glassmorphism effects */
   .glass-sidebar {
-    backdrop-filter: blur(20px);
-    background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 123, 255, 0.05) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
-  }
-
-  .glass-dark {
-    backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.08) 0%, rgba(0, 123, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 24px rgba(0, 123, 255, 0.08);
   }
 
   .sidebar-icon-circular {
-    @apply w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:scale-105 relative overflow-hidden;
+    @apply w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-md hover:scale-105 relative overflow-hidden;
   }
 
   .sidebar-icon-circular::before {
@@ -81,25 +75,25 @@ html, body, #root {
   }
 
   .sidebar-icon-active {
-    @apply bg-primary text-primary-foreground shadow-lg scale-105;
-    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
+    @apply bg-primary text-primary-foreground shadow-md scale-105;
+    box-shadow: 0 2px 12px rgba(0, 123, 255, 0.3);
   }
 
   .sidebar-icon-inactive {
     @apply bg-white/10 text-foreground hover:bg-primary/20 hover:text-primary;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
   }
 
   .sidebar-menu-item {
-    @apply flex items-center gap-4 px-2 py-2 rounded-2xl transition-all duration-300 hover:bg-white/5 relative overflow-hidden;
+    @apply flex items-center gap-3 px-2 py-1.5 rounded-xl transition-all duration-300 hover:bg-white/5 relative overflow-hidden;
   }
 
   .sidebar-menu-item::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, rgba(0, 123, 255, 0.05), transparent);
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(0, 123, 255, 0.03), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -109,13 +103,13 @@ html, body, #root {
   }
 
   .sidebar-menu-expanded {
-    @apply bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 shadow-lg;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    @apply backdrop-blur-sm rounded-xl border border-white/10 shadow-sm;
   }
 
   .sidebar-text-pill {
-    @apply bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    @apply backdrop-blur-sm rounded-full px-3 py-1 border border-white/20 text-sm;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
   }
 
   /* Custom scrollbar */

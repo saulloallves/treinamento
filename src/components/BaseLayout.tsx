@@ -33,7 +33,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
       )}
       
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-500 ease-out ${
-        !isMobile ? 'ml-24' : ''
+        !isMobile ? 'ml-20' : ''
       }`}>
         {/* Header responsivo */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-border/50 px-3 md:px-8 py-3 md:py-6 relative z-10 rounded-xl m-2 shadow-sm">
