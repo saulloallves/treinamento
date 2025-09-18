@@ -65,16 +65,11 @@ const LessonsListForCourse = ({ courseId }: LessonsListForCourseProps) => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-medium">{lesson.title}</h4>
-                      <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
-                        #{lesson.order_index}
-                      </span>
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
                           lesson.status === "Ativo"
                             ? "bg-green-100 text-green-700"
-                            : lesson.status === "Em revisão"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-700"
+                            : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {lesson.status}

@@ -194,8 +194,14 @@ const LessonsListMobile = () => {
                           {lesson.courses?.name}
                         </p>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                            #{lesson.order_index}
+                          <Badge
+                            className={`text-xs px-1.5 py-0.5 ${
+                              lesson.status === "Ativo"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {lesson.status}
                           </Badge>
                           <Badge 
                             className={`text-xs px-1.5 py-0.5 ${
@@ -324,8 +330,14 @@ const LessonsListMobile = () => {
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-medium text-sm mb-1 line-clamp-2">{lesson.title}</h4>
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                                    #{lesson.order_index}
+                                  <Badge
+                                    className={`text-xs px-1.5 py-0.5 ${
+                                      lesson.status === "Ativo"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-gray-100 text-gray-600"
+                                    }`}
+                                  >
+                                    {lesson.status}
                                   </Badge>
                                 </div>
                                 
@@ -419,7 +431,7 @@ const LessonsListMobile = () => {
                         </p>
                         <div className="flex items-center gap-2">
                           <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
-                            #{lesson.order_index}
+                            Arquivada
                           </Badge>
                           <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
                             Arquivada
@@ -543,7 +555,7 @@ const LessonsListMobile = () => {
                                 <h4 className="font-medium text-sm mb-1 line-clamp-2">{lesson.title}</h4>
                                 <div className="flex items-center gap-2 mb-2">
                                   <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
-                                    #{lesson.order_index}
+                                    Arquivada
                                   </Badge>
                                   <Badge className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600">
                                     Arquivada

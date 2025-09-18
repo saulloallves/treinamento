@@ -216,9 +216,6 @@ const LessonsList = () => {
                               </p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
-                                 {lesson.order_index}
-                              </span>
                               <span
                                 className={`px-2 py-1 text-xs rounded-md font-medium ${
                                   lesson.status === "Ativo"
@@ -361,9 +358,6 @@ const LessonsList = () => {
                                   <h4 className="font-semibold text-brand-black line-clamp-1">{lesson.title}</h4>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="px-2 py-1 text-xs rounded-md bg-brand-blue-light text-brand-blue font-medium">
-                                     {lesson.order_index}
-                                  </span>
                                   <span
                                     className={`px-2 py-1 text-xs rounded-md font-medium ${
                                       lesson.status === "Ativo"
@@ -484,9 +478,6 @@ const LessonsList = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                 {lesson.order_index}
-                              </span>
-                              <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
                                 Arquivada
                               </span>
                             </div>
@@ -598,9 +589,6 @@ const LessonsList = () => {
                                   <h4 className="font-semibold text-brand-black line-clamp-1">{lesson.title}</h4>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                    {lesson.order_index}
-                                  </span>
                                   <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
                                     Arquivada
                                   </span>
