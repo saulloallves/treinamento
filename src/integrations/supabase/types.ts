@@ -649,6 +649,9 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           id: string
+          live_stream_room_id: string | null
+          live_stream_settings: Json | null
+          live_stream_status: string | null
           order_index: number
           status: string
           title: string
@@ -668,6 +671,9 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          live_stream_room_id?: string | null
+          live_stream_settings?: Json | null
+          live_stream_status?: string | null
           order_index?: number
           status?: string
           title: string
@@ -687,6 +693,9 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          live_stream_room_id?: string | null
+          live_stream_settings?: Json | null
+          live_stream_status?: string | null
           order_index?: number
           status?: string
           title?: string
@@ -706,6 +715,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      live_participants: {
+        Row: {
+          audio_enabled: boolean
+          created_at: string
+          id: string
+          is_instructor: boolean
+          joined_at: string
+          left_at: string | null
+          lesson_id: string
+          screen_sharing: boolean
+          status: string
+          updated_at: string
+          user_id: string
+          user_name: string
+          video_enabled: boolean
+        }
+        Insert: {
+          audio_enabled?: boolean
+          created_at?: string
+          id?: string
+          is_instructor?: boolean
+          joined_at?: string
+          left_at?: string | null
+          lesson_id: string
+          screen_sharing?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_name: string
+          video_enabled?: boolean
+        }
+        Update: {
+          audio_enabled?: boolean
+          created_at?: string
+          id?: string
+          is_instructor?: boolean
+          joined_at?: string
+          left_at?: string | null
+          lesson_id?: string
+          screen_sharing?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+          video_enabled?: boolean
+        }
+        Relationships: []
       }
       modules: {
         Row: {
