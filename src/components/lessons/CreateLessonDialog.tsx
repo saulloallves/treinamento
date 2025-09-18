@@ -41,7 +41,7 @@ const [formData, setFormData] = useState<LessonInput>({
   attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
 });
 
-const [isLiveZoom, setIsLiveZoom] = useState(false);
+const [streamingType, setStreamingType] = useState<'none' | 'zoom' | 'internal'>('none');
 const [liveDate, setLiveDate] = useState<string>("");
 const [liveTime, setLiveTime] = useState<string>("");
 const [isCreatingLive, setIsCreatingLive] = useState(false);
@@ -53,7 +53,7 @@ const handleSave = async () => {
     return;
   }
 
-  if (isLiveZoom) {
+  if (streamingType !== 'none') {
     if (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0) {
       toast({
         title: "Dados incompletos",
@@ -72,8 +72,8 @@ const handleSave = async () => {
       return;
     }
 
-    // If video_url is empty, create internal streaming lesson
-    if (!formData.video_url.trim()) {
+    // If streaming type is internal, create lesson without external URL
+    if (streamingType === 'internal') {
       try {
         await createLessonMutation.mutateAsync({
           ...formData,
@@ -88,21 +88,7 @@ const handleSave = async () => {
           description: "Aula configurada para streaming interno do sistema.",
         });
 
-        setFormData({
-          course_id: "",
-          title: "",
-          description: "",
-          video_url: "",
-          content: "",
-          duration_minutes: 0,
-          order_index: 1,
-          status: "Ativo",
-          attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
-        });
-        setIsLiveZoom(false);
-        setLiveDate("");
-        setLiveTime("");
-        onOpenChange(false);
+        resetForm();
         return;
       } catch (error: any) {
         toast({
@@ -114,8 +100,9 @@ const handleSave = async () => {
       }
     }
 
-    // Otherwise, create Zoom meeting
-    try {
+    // If streaming type is zoom, create Zoom meeting
+    if (streamingType === 'zoom') {
+      try {
       setIsCreatingLive(true);
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
@@ -159,41 +146,30 @@ const handleSave = async () => {
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
       await queryClient.invalidateQueries({ queryKey: ["courses"] });
 
-      toast({
-        title: "Aula ao vivo criada!",
-        description: "Link do Zoom gerado e salvo automaticamente.",
-      });
+        toast({
+          title: "Aula ao vivo criada!",
+          description: "Link do Zoom gerado e salvo automaticamente.",
+        });
 
-
-      setFormData({
-        course_id: "",
-        title: "",
-        description: "",
-        video_url: "",
-        content: "",
-        duration_minutes: 0,
-        order_index: 1,
-        status: "Ativo",
-        attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
-      });
-      setIsLiveZoom(false);
-      setLiveDate("");
-      setLiveTime("");
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao criar aula ao vivo",
-        description: error.message || "Tente novamente em instantes.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreatingLive(false);
+        resetForm();
+      } catch (error: any) {
+        toast({
+          title: "Erro ao criar aula ao vivo",
+          description: error.message || "Tente novamente em instantes.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCreatingLive(false);
+      }
+      return;
     }
-    return;
   }
 
   await createLessonMutation.mutateAsync(formData);
+  resetForm();
+};
 
+const resetForm = () => {
   setFormData({
     course_id: "",
     title: "",
@@ -205,28 +181,14 @@ const handleSave = async () => {
     status: "Ativo",
     attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
   });
-  setIsLiveZoom(false);
+  setStreamingType('none');
   setLiveDate("");
   setLiveTime("");
   onOpenChange(false);
 };
 
 const handleClose = () => {
-  setFormData({
-    course_id: "",
-    title: "",
-    description: "",
-    video_url: "",
-    content: "",
-    duration_minutes: 0,
-    order_index: 1,
-    status: "Ativo",
-    attendance_keyword: DEFAULT_ATTENDANCE_KEYWORD
-  });
-  setIsLiveZoom(false);
-  setLiveDate("");
-  setLiveTime("");
-  onOpenChange(false);
+  resetForm();
 };
 
   return (
@@ -316,16 +278,70 @@ const handleClose = () => {
             </div>
           </div>
 
-<div className="grid gap-2">
-  <div className="flex items-center justify-between">
-    <div>
-      <Label htmlFor="isLiveZoom">Aula ao vivo</Label>
-      <p className="text-sm text-muted-foreground">Escolha entre Zoom ou streaming interno do sistema.</p>
+<div className="grid gap-4">
+  <div className="grid gap-3">
+    <Label>Tipo de Aula</Label>
+    <div className="grid grid-cols-1 gap-3">
+      <div 
+        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          streamingType === 'none' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+        }`}
+        onClick={() => setStreamingType('none')}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-4 h-4 rounded-full border-2 ${
+            streamingType === 'none' ? 'border-primary bg-primary' : 'border-gray-300'
+          }`}>
+            {streamingType === 'none' && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
+          </div>
+          <div>
+            <h4 className="font-medium">Aula Gravada</h4>
+            <p className="text-sm text-muted-foreground">Upload de vídeo pré-gravado</p>
+          </div>
+        </div>
+      </div>
+      
+      <div 
+        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          streamingType === 'internal' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+        }`}
+        onClick={() => setStreamingType('internal')}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-4 h-4 rounded-full border-2 ${
+            streamingType === 'internal' ? 'border-primary bg-primary' : 'border-gray-300'
+          }`}>
+            {streamingType === 'internal' && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
+          </div>
+          <div>
+            <h4 className="font-medium">🚀 Streaming Interno</h4>
+            <p className="text-sm text-muted-foreground">Sistema próprio similar ao Google Meet</p>
+          </div>
+        </div>
+      </div>
+      
+      <div 
+        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          streamingType === 'zoom' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+        }`}
+        onClick={() => setStreamingType('zoom')}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-4 h-4 rounded-full border-2 ${
+            streamingType === 'zoom' ? 'border-primary bg-primary' : 'border-gray-300'
+          }`}>
+            {streamingType === 'zoom' && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
+          </div>
+          <div>
+            <h4 className="font-medium">Zoom Meeting</h4>
+            <p className="text-sm text-muted-foreground">Integração com Zoom para aulas ao vivo</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <Switch id="isLiveZoom" checked={isLiveZoom} onCheckedChange={setIsLiveZoom} />
   </div>
 </div>
-{isLiveZoom && (
+{(streamingType === 'zoom' || streamingType === 'internal') && (
   <div className="grid gap-4">
     <div className="grid grid-cols-2 gap-4">
       <div className="grid gap-2">
@@ -347,36 +363,44 @@ const handleClose = () => {
         />
       </div>
     </div>
-            <div className="grid gap-2">
-              <Label htmlFor="attendance_keyword">Palavra-chave para Presença</Label>
-              <Input
-                id="attendance_keyword"
-                value={formData.attendance_keyword || ""}
-                onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
-                placeholder="Palavra-chave para confirmar presença"
-              />
-              <p className="text-sm text-muted-foreground">
-                {formData.status === 'Ativo' 
-                  ? 'Aulas ativas sempre requerem palavra-chave para presença'
-                  : 'Alunos precisarão inserir esta palavra-chave para confirmar presença'
-                }
-              </p>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="attendance_keyword_main">Palavra-chave para Presença</Label>
+            <Input
+              id="attendance_keyword_main"
+              value={formData.attendance_keyword || ""}
+              onChange={(e) => setFormData({ ...formData, attendance_keyword: e.target.value })}
+              placeholder="Palavra-chave para confirmar presença"
+            />
+            <p className="text-sm text-muted-foreground">
+              {(streamingType === 'zoom' || streamingType === 'internal') ? 
+                'Obrigatório para aulas ao vivo - alunos digitarão para confirmar presença' :
+                'Opcional para aulas gravadas'
+              }
+            </p>
+          </div>
   </div>
 )}
 
 <div className="grid gap-2">
-  <Label htmlFor="video_url">Link do Vídeo</Label>
+  <Label htmlFor="video_url">
+    {streamingType === 'none' ? 'Link do Vídeo Gravado' : 
+     streamingType === 'zoom' ? 'Link do Zoom (será gerado automaticamente)' : 
+     'Streaming Interno (não precisa de link)'}
+  </Label>
   <Input
     id="video_url"
     value={formData.video_url}
     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-    disabled={isLiveZoom || isCreatingLive}
-    placeholder={isLiveZoom ? "Será preenchido automaticamente ou deixe vazio para usar streaming interno" : "URL do vídeo gravado"}
+    disabled={streamingType === 'zoom' || streamingType === 'internal' || isCreatingLive}
+    placeholder={
+      streamingType === 'none' ? "https://exemplo.com/video.mp4" :
+      streamingType === 'zoom' ? "Será preenchido automaticamente" :
+      "Sistema interno - não precisa de URL"
+    }
   />
-  {isLiveZoom && !formData.video_url && (
+  {streamingType === 'internal' && (
     <p className="text-sm text-muted-foreground">
-      💡 Deixe o campo vazio para usar o sistema de streaming interno (similar ao Google Meet)
+      ✨ O sistema de streaming interno funciona diretamente no navegador, sem necessidade de links externos
     </p>
   )}
 </div>
@@ -399,9 +423,9 @@ const handleClose = () => {
               placeholder="Palavra-chave para confirmar presença"
             />
             <p className="text-sm text-muted-foreground">
-              {formData.status === 'Ativo' 
-                ? 'Aulas ativas sempre requerem palavra-chave para presença'
-                : 'Alunos precisarão inserir esta palavra-chave para confirmar presença'
+              {streamingType === 'internal' || streamingType === 'zoom' ? 
+                'Obrigatório para aulas ao vivo - alunos digitarão para confirmar presença' :
+                'Opcional para aulas gravadas'
               }
             </p>
           </div>
@@ -414,13 +438,16 @@ const handleClose = () => {
           </Button>
 <Button 
   onClick={handleSave}
-  disabled={
-    isCreatingLive ||
-    createLessonMutation.isPending ||
-    !formData.title.trim() ||
-    !formData.course_id ||
-    (isLiveZoom && (!liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0 || !formData.attendance_keyword || formData.attendance_keyword.trim().length < 3))
-  }
+          disabled={
+            isCreatingLive ||
+            createLessonMutation.isPending ||
+            !formData.title.trim() ||
+            !formData.course_id ||
+            ((streamingType === 'zoom' || streamingType === 'internal') && (
+              !liveDate || !liveTime || !formData.duration_minutes || formData.duration_minutes <= 0 || 
+              !formData.attendance_keyword || formData.attendance_keyword.trim().length < 3
+            ))
+          }
 >
   <Save className="w-4 h-4" />
   {(isCreatingLive || createLessonMutation.isPending) ? "Criando..." : "Criar Aula"}
