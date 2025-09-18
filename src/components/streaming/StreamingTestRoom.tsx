@@ -84,7 +84,7 @@ const StreamingTestRoom = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
-    initializeMedia();
+    // Don't initialize media automatically - user will connect when needed
     setIsConnected(true);
     
     toast({
@@ -542,25 +542,23 @@ const StreamingTestRoom = () => {
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
             <div className="flex items-center gap-2 bg-card/95 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg border">
               <Button
-                variant={audioEnabled ? "secondary" : "destructive"}
+                variant={audioEnabled && localStream ? "secondary" : "destructive"}
                 size="sm"
-                onClick={toggleAudio}
+                onClick={localStream ? toggleAudio : startMedia}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                title={audioEnabled ? "Desligar microfone" : "Ligar microfone"}
-                disabled={!localStream}
+                title={!localStream ? "Conectar mídia" : audioEnabled ? "Desligar microfone" : "Ligar microfone"}
               >
-                {audioEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                {audioEnabled && localStream ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
               </Button>
 
               <Button
-                variant={videoEnabled ? "secondary" : "destructive"}
+                variant={videoEnabled && localStream ? "secondary" : "destructive"}
                 size="sm"
-                onClick={toggleVideo}
+                onClick={localStream ? toggleVideo : startMedia}
                 className="rounded-full w-12 h-12 p-0 hover:scale-105 transition-transform"
-                title={videoEnabled ? "Desligar câmera" : "Ligar câmera"}
-                disabled={!localStream}
+                title={!localStream ? "Conectar mídia" : videoEnabled ? "Desligar câmera" : "Ligar câmera"}
               >
-                {videoEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+                {videoEnabled && localStream ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
               </Button>
 
               <Button
