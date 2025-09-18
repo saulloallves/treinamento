@@ -32,7 +32,6 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import ProfileSwitcher from "@/components/ProfileSwitcher";
 
 interface ModernSidebarProps {
   showInMobile?: boolean;
