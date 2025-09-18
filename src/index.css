@@ -108,81 +108,81 @@ html, body, #root {
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3%;
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3%;
+    --popover-foreground: 0 0% 0%;
 
     --primary: 214 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 100% 96%;
-    --secondary-foreground: 214 100% 20%;
+    --secondary: 214 100% 97%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 214 100% 96%;
-    --muted-foreground: 214 50% 40%;
+    --muted: 214 100% 97%;
+    --muted-foreground: 0 0% 20%;
 
-    --accent: 214 100% 92%;
-    --accent-foreground: 214 100% 25%;
+    --accent: 214 100% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
     --ring: 214 100% 50%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 3%;
+    --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 214 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 100% 96%;
-    --sidebar-accent-foreground: 214 100% 20%;
-    --sidebar-border: 214 20% 90%;
+    --sidebar-accent: 214 100% 97%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 214 100% 50%;
 
-    /* Paleta de cores azul moderna */
+    /* Paleta de cores moderna e sofisticada */
     --brand-blue: 214 100% 50%;      /* #007BFF */
-    --brand-blue-light: 214 100% 96%; /* Azul muito claro */
-    --brand-blue-dark: 214 100% 25%;  /* Azul escuro */
-    --brand-gray: 214 20% 60%;       /* Cinza com tom azul */
-    --brand-gray-light: 214 20% 95%; /* Cinza claro com tom azul */
+    --brand-blue-light: 214 100% 97%; /* #E6F0FF */
+    --brand-black: 0 0% 0%;          /* #000000 */
+    --brand-gray-dark: 0 0% 20%;     /* #333333 */
+    --brand-white: 0 0% 100%;        /* #FFFFFF */
     
-    /* Gradientes azuis */
-    --gradient-primary: linear-gradient(135deg, hsl(214 100% 50%), hsl(214 100% 40%));
-    --gradient-secondary: linear-gradient(135deg, hsl(214 100% 96%), hsl(214 50% 98%));
+    /* Gradientes sofisticados */
+    --gradient-primary: linear-gradient(135deg, hsl(214 100% 50%), hsl(252 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(214 100% 97%), hsl(252 100% 98%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(214 20% 98%));
-    --gradient-header: linear-gradient(135deg, hsl(214 100% 50% / 0.05), hsl(214 100% 40% / 0.05));
+    --gradient-header: linear-gradient(135deg, hsl(214 100% 50% / 0.05), hsl(252 100% 65% / 0.05));
     
-    /* Sombras azuis */
+    /* Sombras elegantes */
     --shadow-elegant: 0 8px 32px hsl(214 100% 50% / 0.08);
-    --shadow-card: 0 4px 16px hsl(214 20% 50% / 0.04);
-    --shadow-card-hover: 0 8px 24px hsl(214 20% 50% / 0.08);
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.04);
+    --shadow-card-hover: 0 8px 24px hsl(0 0% 0% / 0.08);
     --shadow-button: 0 4px 12px hsl(214 100% 50% / 0.25);
     
-    /* Status colors - tons de azul */
-    --status-active: 142 76% 36%;     /* Verde para ativo */
-    --status-pending: 43 96% 56%;     /* Amarelo para pendente */
-    --status-finished: 214 20% 85%;   /* Cinza azulado para finalizado */
-    --status-cancelled: 0 84% 60%;    /* Vermelho para cancelado */
+    /* Status colors */
+    --status-active: 142 76% 36%;     /* Verde */
+    --status-pending: 43 96% 56%;     /* Amarelo */
+    --status-finished: 220 14% 96%;   /* Cinza */
+    --status-cancelled: 0 84% 60%;    /* Vermelho */
   }
 
   .dark {
-    --background: 214 50% 3%;
-    --foreground: 214 20% 98%;
-    --card: 214 50% 6%;
-    --card-foreground: 214 20% 98%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
     --primary: 214 100% 60%;
-    --secondary: 214 30% 10%;
-    --muted: 214 30% 10%;
+    --secondary: 0 0% 15%;
+    --muted: 0 0% 15%;
     --accent: 214 100% 60%;
-    --border: 214 30% 15%;
-    --input: 214 30% 15%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
   }
 }
 
@@ -285,7 +285,7 @@ html, body, #root {
     @apply text-primary hover:text-primary/90 transition-colors duration-200;
   }
 
-  /* Design System Moderno - Tons de Azul */
+  /* Design System Moderno */
   .modern-header {
     background: var(--gradient-header);
     @apply rounded-2xl p-8 mb-8;
