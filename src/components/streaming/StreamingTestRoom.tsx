@@ -29,12 +29,16 @@ import {
   Info
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsProfessor } from '@/hooks/useIsProfessor';
 
 const StreamingTestRoom = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: isAdmin } = useIsAdmin(user?.id);
+  const { data: isProfessor } = useIsProfessor(user?.id);
   
   const [roomName] = useState(lessonId === 'demo-test' ? 'Sala de Teste Rápido' : `Sala ${lessonId}`);
   const [isConnected, setIsConnected] = useState(false);
@@ -45,6 +49,8 @@ const StreamingTestRoom = () => {
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showEndMeetingDialog, setShowEndMeetingDialog] = useState(false);
+  const [meetingEnded, setMeetingEnded] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [participants] = useState([
     {
@@ -264,6 +270,43 @@ const StreamingTestRoom = () => {
     }
   };
 
+  const canEndMeeting = isAdmin || isProfessor;
+
+  const endMeeting = () => {
+    setMeetingEnded(true);
+    setIsConnected(false);
+    cleanupMedia();
+    
+    toast({
+      title: "Reunião finalizada",
+      description: "A reunião foi encerrada pelo organizador",
+      variant: "destructive"
+    });
+
+    // Simular notificação para todos os participantes
+    setTimeout(() => {
+      navigate('/streaming');
+    }, 2000);
+  };
+
+  // Se a reunião foi finalizada, mostrar tela de encerramento
+  if (meetingEnded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <PhoneOff className="h-8 w-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-semibold">Reunião Finalizada</h2>
+          <p className="text-muted-foreground">A reunião foi encerrada pelo organizador</p>
+          <Button onClick={() => navigate('/streaming')} className="mt-4">
+            Voltar ao Módulo de Streaming
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -331,6 +374,18 @@ const StreamingTestRoom = () => {
                 <MessageCircle className="h-4 w-4" />
                 Chat
               </Button>
+              
+              {canEndMeeting && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowEndMeetingDialog(true)}
+                  className="gap-2"
+                >
+                  <PhoneOff className="h-4 w-4" />
+                  Finalizar Reunião
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -606,6 +661,55 @@ const StreamingTestRoom = () => {
               onClick={() => setShowShareDialog(false)}
             >
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* End Meeting Dialog */}
+      <Dialog open={showEndMeetingDialog} onOpenChange={setShowEndMeetingDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <PhoneOff className="h-5 w-5" />
+              Finalizar Reunião
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja finalizar esta reunião? Todos os participantes serão desconectados e a reunião será encerrada permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-destructive/10 p-4 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-destructive mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-destructive mb-1">Esta ação não pode ser desfeita:</p>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li>• Todos os participantes serão desconectados</li>
+                  <li>• A transmissão será interrompida imediatamente</li>
+                  <li>• O histórico do chat será perdido</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-start gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowEndMeetingDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                setShowEndMeetingDialog(false);
+                endMeeting();
+              }}
+            >
+              Finalizar Reunião
             </Button>
           </DialogFooter>
         </DialogContent>
