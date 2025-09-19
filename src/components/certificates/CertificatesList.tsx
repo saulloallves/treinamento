@@ -102,7 +102,7 @@ const CertificatesList = () => {
     return m;
   }, [enrollmentsForCertsQuery.data]);
 
-  const rows = useMemo(() => {
+  const groupedByTurma = useMemo(() => {
     const all = (certsQuery.data ?? []) as any[];
     const enriched = all.map((c) => {
       const enr = enrollmentsMap.get(c.enrollment_id);
@@ -119,13 +119,34 @@ const CertificatesList = () => {
         url: c.certificate_url as string | null,
       };
     });
+
     const q = searchTerm.trim().toLowerCase();
-    return enriched.filter((r) => {
+    const filtered = enriched.filter((r) => {
       const matchesSearch = !q || r.studentName.toLowerCase().includes(q);
       const matchesCourse = selectedCourse === "todos" || r.courseName === selectedCourse;
       return matchesSearch && matchesCourse;
     });
+
+    // Group by turma
+    const grouped = filtered.reduce((acc, cert) => {
+      const turmaKey = cert.turmaName;
+      if (!acc[turmaKey]) {
+        acc[turmaKey] = {
+          turmaName: cert.turmaName,
+          professorName: cert.professorName,
+          certificates: []
+        };
+      }
+      acc[turmaKey].certificates.push(cert);
+      return acc;
+    }, {} as Record<string, { turmaName: string; professorName: string; certificates: any[] }>);
+
+    return Object.values(grouped).sort((a, b) => a.turmaName.localeCompare(b.turmaName));
   }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
+
+  const totalCertificates = useMemo(() => {
+    return groupedByTurma.reduce((total, group) => total + group.certificates.length, 0);
+  }, [groupedByTurma]);
 
   const stats = useMemo(() => {
     const total = (certsQuery.data ?? []).length;
@@ -189,67 +210,91 @@ const CertificatesList = () => {
         </div>
       </div>
 
-      {/* Lista de Certificados */}
-      <div className="card-clean overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[200px]">Aluno</TableHead>
-              <TableHead className="min-w-[180px]">Curso</TableHead>
-              <TableHead className="w-[140px]">Turma</TableHead>
-              <TableHead className="w-[140px]">Professor</TableHead>
-              <TableHead className="w-[120px]">Data da Emissão</TableHead>
-              <TableHead className="w-[80px]">Status</TableHead>
-              <TableHead className="w-[120px]">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.id as any}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                    <span className="font-medium truncate">{r.studentName}</span>
+      {/* Lista de Certificados Agrupados por Turma */}
+      <div className="space-y-4">
+        {groupedByTurma.length === 0 ? (
+          <div className="card-clean p-8 text-center">
+            <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Nenhum certificado encontrado</p>
+          </div>
+        ) : (
+          groupedByTurma.map((group) => (
+            <div key={group.turmaName} className="card-clean overflow-hidden">
+              {/* Cabeçalho da Turma */}
+              <div className="bg-muted/50 px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{group.turmaName}</h3>
+                    <p className="text-sm text-muted-foreground">Professor: {group.professorName}</p>
                   </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Award className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-muted-foreground">{r.courseName}</span>
+                  <div className="text-sm text-muted-foreground">
+                    {group.certificates.length} certificado{group.certificates.length !== 1 ? 's' : ''}
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-muted-foreground">{r.turmaName}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-muted-foreground">{r.professorName}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span className="text-muted-foreground text-sm">
-                      {r.generatedAt ? new Date(r.generatedAt).toLocaleDateString('pt-BR') : '—'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                    String(r.status).toLowerCase() === 'emitido' 
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                  }`}>
-                    {r.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {/* Ações removidas conforme solicitação do usuário */}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+
+              {/* Tabela de Certificados da Turma */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">Aluno</TableHead>
+                    <TableHead className="min-w-[180px]">Curso</TableHead>
+                    <TableHead className="w-[120px]">Data da Emissão</TableHead>
+                    <TableHead className="w-[80px]">Status</TableHead>
+                    <TableHead className="w-[120px]">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {group.certificates.map((cert) => (
+                    <TableRow key={cert.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-primary-foreground" />
+                          </div>
+                          <span className="font-medium truncate">{cert.studentName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Award className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-muted-foreground">{cert.courseName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-muted-foreground text-sm">
+                            {cert.generatedAt ? new Date(cert.generatedAt).toLocaleDateString('pt-BR') : '—'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                          String(cert.status).toLowerCase() === 'emitido' 
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                        }`}>
+                          {cert.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {cert.url && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={cert.url} target="_blank" rel="noopener noreferrer">
+                              <Download className="w-4 h-4 mr-2" />
+                              Baixar
+                            </a>
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Estatísticas (reais) */}
