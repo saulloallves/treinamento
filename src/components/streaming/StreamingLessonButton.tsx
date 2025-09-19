@@ -22,12 +22,12 @@ const StreamingLessonButton: React.FC<StreamingLessonButtonProps> = ({
     navigate(`/aula-ao-vivo/${lessonId}`);
   };
 
-  const getStatusColor = () => {
+  const getStatusVariant = () => {
     switch (streamStatus) {
-      case 'live': return 'bg-red-600 hover:bg-red-700';
-      case 'waiting': return 'bg-blue-600 hover:bg-blue-700';
-      case 'ended': return 'bg-gray-600 hover:bg-gray-700';
-      default: return 'bg-blue-600 hover:bg-blue-700';
+      case 'live': return 'default'; // Uses primary blue
+      case 'waiting': return 'default'; // Uses primary blue
+      case 'ended': return 'secondary'; // Uses secondary/muted styling
+      default: return 'default'; // Uses primary blue
     }
   };
 
@@ -47,7 +47,7 @@ const StreamingLessonButton: React.FC<StreamingLessonButtonProps> = ({
   return (
     <Button
       onClick={handleJoinStream}
-      className={`${getStatusColor()} text-white`}
+      variant={getStatusVariant()}
       size="sm"
       disabled={streamStatus === 'ended'}
     >
