@@ -11,7 +11,7 @@ import Index from "./pages/Index";
 import LiveStream from "./pages/LiveStream";
 import StreamingDemo from "@/components/streaming/StreamingDemo";
 import StreamingModule from "./pages/StreamingModule";
-import StreamingTestRoom from "@/components/streaming/StreamingTestRoom";
+import FullScreenStreamRoom from "@/components/streaming/FullScreenStreamRoom";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CoursesPage from "./pages/CoursesPage";
@@ -308,7 +308,7 @@ const App = () => (
               } />
               <Route path="/aula-ao-vivo/:lessonId" element={
                 <ProtectedRoute>
-                  <StreamingTestRoom />
+                  <FullScreenStreamRoom />
                 </ProtectedRoute>
               } />
               <Route path="/streaming-demo" element={
