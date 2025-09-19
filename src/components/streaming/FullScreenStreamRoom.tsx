@@ -241,6 +241,20 @@ const FullScreenStreamRoom = () => {
     if (!isInstructor || !lessonId) return;
 
     try {
+      // Ensure WebRTC is initialized and local stream is active
+      if (!webRTCManagerRef.current) {
+        await initializeWebRTC();
+      }
+
+      // If no local stream, try to initialize it
+      if (!localStream && webRTCManagerRef.current) {
+        const stream = await webRTCManagerRef.current.initializeLocalStream(audioEnabled, videoEnabled);
+        if (stream && localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          setLocalStream(stream);
+        }
+      }
+
       // Skip database operations for demo rooms
       const isDemoRoom = lessonId?.startsWith('room-') || lessonId?.startsWith('demo-');
       
