@@ -62,10 +62,15 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
       
     } catch (error) {
       console.error('Error requesting permissions:', error);
+      
+      // Set permission granted to true even if denied - user can still join without media
+      setPermissionGranted(true);
+      await getDevices();
+      
       toast({
-        title: "Erro de Permissão",
-        description: "É necessário permitir acesso à câmera e microfone",
-        variant: "destructive",
+        title: "Permissões de Mídia",
+        description: "Você pode entrar na sala sem câmera/microfone",
+        variant: "default",
       });
     }
   };

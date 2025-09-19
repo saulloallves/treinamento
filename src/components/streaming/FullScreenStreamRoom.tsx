@@ -54,14 +54,27 @@ const FullScreenStreamRoom = () => {
   // Enter fullscreen on mount
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(console.log);
+    // Try fullscreen but don't fail if not supported
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {
+          console.log('Fullscreen not supported or denied');
+        });
+      }
+    } catch (e) {
+      console.log('Fullscreen API not available');
     }
     
     return () => {
       document.body.style.overflow = 'auto';
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(console.log);
+      try {
+        if (document.exitFullscreen && document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {
+            console.log('Exit fullscreen failed');
+          });
+        }
+      } catch (e) {
+        console.log('Exit fullscreen not available');
       }
     };
   }, []);
@@ -78,6 +91,29 @@ const FullScreenStreamRoom = () => {
 
   const loadLessonData = async () => {
     try {
+      // Check if it's a demo room (starts with 'room-' or 'demo-')
+      const isDemoRoom = lessonId?.startsWith('room-') || lessonId?.startsWith('demo-');
+      
+      if (isDemoRoom) {
+        // For demo rooms, create fake lesson data
+        const demoLesson = {
+          id: lessonId,
+          title: lessonId === 'demo-test' ? 'Sala de Teste Rápido' : `Sala Demo ${lessonId}`,
+          courses: {
+            name: 'Demo Course',
+            instructor: user?.email?.split('@')[0] || 'Professor Demo'
+          },
+          live_stream_status: 'waiting',
+          created_by: user?.id
+        };
+        
+        setLesson(demoLesson);
+        setStreamStatus('waiting');
+        setIsInstructor(true); // Demo rooms make everyone instructor
+        return;
+      }
+
+      // For real lessons, query the database
       const { data: lessonData, error } = await supabase
         .from('lessons')
         .select(`
@@ -136,6 +172,18 @@ const FullScreenStreamRoom = () => {
     if (!user || !lessonId) return;
 
     try {
+      // Skip database operations for demo rooms
+      const isDemoRoom = lessonId?.startsWith('room-') || lessonId?.startsWith('demo-');
+      
+      if (isDemoRoom) {
+        toast({
+          title: "Conectado",
+          description: "Você entrou na sala de demonstração",
+        });
+        return;
+      }
+
+      // Only for real lessons
       const { error } = await supabase
         .from('live_participants')
         .insert({
@@ -193,6 +241,18 @@ const FullScreenStreamRoom = () => {
     if (!isInstructor || !lessonId) return;
 
     try {
+      // Skip database operations for demo rooms
+      const isDemoRoom = lessonId?.startsWith('room-') || lessonId?.startsWith('demo-');
+      
+      if (isDemoRoom) {
+        setStreamStatus('live');
+        toast({
+          title: "Transmissão iniciada",
+          description: "Demo: A aula ao vivo está no ar!",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('lessons')
         .update({ live_stream_status: 'live' })
@@ -220,6 +280,19 @@ const FullScreenStreamRoom = () => {
     if (!isInstructor || !lessonId) return;
 
     try {
+      // Skip database operations for demo rooms
+      const isDemoRoom = lessonId?.startsWith('room-') || lessonId?.startsWith('demo-');
+      
+      if (isDemoRoom) {
+        setStreamStatus('ended');
+        webRTCManagerRef.current?.cleanup();
+        toast({
+          title: "Transmissão encerrada",
+          description: "Demo: A aula foi finalizada",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('lessons')
         .update({ live_stream_status: 'ended' })
