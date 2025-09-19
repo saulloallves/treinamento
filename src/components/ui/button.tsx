@@ -10,13 +10,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-blue text-brand-white hover:bg-blue-600 shadow-clean hover:shadow-clean-md",
-        destructive: "bg-red-500 text-brand-white hover:bg-red-600 shadow-clean hover:shadow-clean-md",
-        outline: "border border-gray-300 bg-brand-white text-brand-gray-dark hover:bg-gray-50 shadow-clean",
-        secondary: "bg-brand-blue-light text-brand-blue hover:bg-blue-100 shadow-clean",
-        ghost: "hover:bg-gray-100 text-brand-gray-dark hover:text-brand-black",
-        link: "text-brand-blue underline-offset-4 hover:underline hover:text-blue-600",
-        success: "bg-green-500 text-brand-white hover:bg-green-600 shadow-clean hover:shadow-clean-md",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-clean hover:shadow-clean-md",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-clean hover:shadow-clean-md",
+        outline: "border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground shadow-clean",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-clean",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/90",
+        success: "bg-green-500 text-white hover:bg-green-600 shadow-clean hover:shadow-clean-md",
         modern: "modern-button",
         "modern-secondary": "modern-button-secondary",
       },
