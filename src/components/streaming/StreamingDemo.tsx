@@ -33,7 +33,7 @@ const StreamingDemo = () => {
     {
       icon: <Users className="h-6 w-6" />,
       title: "Múltiplos Participantes",
-      description: "Suporte para dezenas de participantes simultâneos"
+      description: "Participantes ilimitados em suas aulas ao vivo"
     },
     {
       icon: <Play className="h-6 w-6" />,

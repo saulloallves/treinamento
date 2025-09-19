@@ -373,7 +373,7 @@ const StreamingModule = () => {
                   <Users className="h-8 w-8 text-green-600" />
                 </div>
                 <h4 className="font-semibold text-base mb-2">Múltiplos Usuários</h4>
-                <p className="text-sm text-muted-foreground">Até 50 participantes simultâneos</p>
+                <p className="text-sm text-muted-foreground">Participantes ilimitados</p>
               </div>
               
               <div className="group text-center p-6 bg-gradient-to-br from-purple-500/5 to-purple-600/10 rounded-2xl border border-purple-500/20 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
