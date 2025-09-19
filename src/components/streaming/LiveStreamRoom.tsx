@@ -263,6 +263,11 @@ const LiveStreamRoom = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            {participants.length > 12 && (
+              <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                {participants.length} participantes conectados
+              </div>
+            )}
             <Button
               variant="outline"
               size="sm"

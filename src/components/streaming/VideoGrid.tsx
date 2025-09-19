@@ -31,7 +31,9 @@ const VideoGrid: React.FC<VideoGridProps> = ({
     if (totalVideos <= 1) return 'grid-cols-1';
     if (totalVideos <= 4) return 'grid-cols-2';
     if (totalVideos <= 9) return 'grid-cols-3';
-    return 'grid-cols-4';
+    if (totalVideos <= 16) return 'grid-cols-4';
+    if (totalVideos <= 25) return 'grid-cols-5';
+    return 'grid-cols-6';
   };
 
   const VideoCard = ({ 
@@ -51,7 +53,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({
     isLocal?: boolean;
     participantId?: string;
   }) => (
-    <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+    <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video min-h-[120px] max-h-[300px]">
       <video
         ref={isLocal ? localVideoRef : 
           (el) => {
@@ -103,8 +105,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({
   );
 
   return (
-    <div className="h-full p-4">
-      <div className={`grid gap-4 h-full ${getGridClass()}`}>
+    <div className="h-full p-4 overflow-auto">
+      <div className={`grid gap-2 sm:gap-4 h-auto min-h-full ${getGridClass()}`}>
         {/* Local video */}
         {localStream && (
           <VideoCard
