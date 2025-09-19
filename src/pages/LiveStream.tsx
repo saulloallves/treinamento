@@ -1,8 +1,8 @@
 import React from 'react';
-import FullScreenStreamRoom from '@/components/streaming/FullScreenStreamRoom';
+import LiveStreamRoom from '@/components/streaming/LiveStreamRoom';
 
 const LiveStream = () => {
-  return <FullScreenStreamRoom />;
+  return <LiveStreamRoom />;
 };
 
 export default LiveStream;
