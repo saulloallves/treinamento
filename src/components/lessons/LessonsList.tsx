@@ -261,7 +261,6 @@ const LessonsList = () => {
                           {lesson.zoom_join_url ? (
                             <Button
                               size="sm"
-                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
                               onClick={() =>
                                 window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                               }
