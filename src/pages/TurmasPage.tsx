@@ -99,13 +99,13 @@ const TurmasPage = () => {
         {/* Header Moderno */}
         <div className="modern-header">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
-                <Users className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <Users className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground mb-0.5">Gestão de Turmas</h1>
-                <p className="text-muted-foreground text-sm">Gerencie as turmas dos cursos ao vivo com estilo</p>
+                <h1 className="text-lg font-bold text-foreground mb-0">Gestão de Turmas</h1>
+                <p className="text-muted-foreground text-xs">Gerencie as turmas dos cursos ao vivo</p>
               </div>
             </div>
             
@@ -114,9 +114,10 @@ const TurmasPage = () => {
               <Button 
                 onClick={() => setCreateDialogOpen(true)}
                 variant="modern"
-                size="default"
+                size="sm"
+                className="h-8"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-3 h-3 mr-1.5" />
                 Nova Turma
               </Button>
             )}
@@ -137,18 +138,18 @@ const TurmasPage = () => {
           <div className="flex flex-wrap gap-3">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Buscar turma..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-8 h-8 text-sm"
                 />
               </div>
             </div>
             
             <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[180px] h-8 text-sm">
                 <SelectValue placeholder="Todos os cursos" />
               </SelectTrigger>
               <SelectContent>
@@ -162,7 +163,7 @@ const TurmasPage = () => {
             </Select>
             
             <Select value={professorFilter} onValueChange={setProfessorFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[180px] h-8 text-sm">
                 <SelectValue placeholder="Todos os professores" />
               </SelectTrigger>
               <SelectContent>
