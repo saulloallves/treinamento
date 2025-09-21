@@ -481,7 +481,7 @@ const LessonsList = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                Arquivada
+                                Finalizada
                               </span>
                             </div>
                           </div>
@@ -530,8 +530,7 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3"
-                            style={{ color: '#007BFF', borderColor: '#d1d5db' }}
+                            className="h-9 px-3 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -594,7 +593,7 @@ const LessonsList = () => {
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                    Arquivada
+                                    Finalizada
                                   </span>
                                 </div>
                               </div>
@@ -631,8 +630,7 @@ const LessonsList = () => {
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3"
-                                style={{ color: '#007BFF', borderColor: '#d1d5db' }}
+                                className="h-9 px-3 border-blue-500 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
