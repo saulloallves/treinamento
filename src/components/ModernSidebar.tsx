@@ -285,7 +285,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     
     const menuItem = (
       <Link
-        key={item.path}
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
@@ -313,7 +312,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     // Wrap with tooltip if collapsed and not mobile
     if (isCollapsed && !isMobile && !isSubItem) {
       return (
-        <Tooltip key={item.path}>
+        <Tooltip>
           <TooltipTrigger asChild>
             {menuItem}
           </TooltipTrigger>
@@ -379,7 +378,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const renderMenu = (menuStructure: any[]) => {
     return menuStructure.map((item) => {
       if (!item.isGroup) {
-        return renderMenuItem(item);
+        return (
+          <div key={item.path}>
+            {renderMenuItem(item)}
+          </div>
+        );
       }
 
       const isExpanded = expandedGroups[item.id];
@@ -398,7 +401,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
               }`}
             >
               <div className="space-y-0.5 pt-1">
-                {item.items?.map((subItem: any) => renderMenuItem(subItem, true))}
+                {item.items?.map((subItem: any) => (
+                  <div key={`${item.id}-${subItem.path}`}>
+                    {renderMenuItem(subItem, true)}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -413,28 +420,29 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       const isActive = location.pathname === item.path;
       
       return (
-        <Link
-          key={index}
-          to={item.path}
-          onClick={() => {
-            if (isMobile) setIsOpen(false);
-          }}
-          className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
-            isActive 
-              ? "bg-blue-50 text-blue-700 shadow-sm" 
-              : "text-slate-700 hover:text-slate-900"
-          }`}
-        >
-          {/* Active indicator bar */}
-          {isActive && (
-            <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
-          )}
-          
-          <div className="w-5 h-5 shrink-0">
-            <Icon className="w-5 h-5 transition-colors" />
-          </div>
-          <span className="font-medium truncate">{item.label}</span>
-        </Link>
+        <div key={item.path}>
+          <Link
+            to={item.path}
+            onClick={() => {
+              if (isMobile) setIsOpen(false);
+            }}
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
+              isActive 
+                ? "bg-blue-50 text-blue-700 shadow-sm" 
+                : "text-slate-700 hover:text-slate-900"
+            }`}
+          >
+            {/* Active indicator bar */}
+            {isActive && (
+              <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
+            )}
+            
+            <div className="w-5 h-5 shrink-0">
+              <Icon className="w-5 h-5 transition-colors" />
+            </div>
+            <span className="font-medium truncate">{item.label}</span>
+          </Link>
+        </div>
       );
     });
   };
