@@ -94,10 +94,10 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         filteredLessons = lessons.filter((lesson: any) => {
           if (lesson.status !== 'Ativo') return false;
           
-          // If no zoom_start_time, show in upcoming only if it's not recorded (video_url empty/null)
+          // If no zoom_start_time, don't show in upcoming (should be in archived or need scheduling)
           if (!lesson.zoom_start_time) {
-            // Show streaming lessons without date (need scheduling)
-            return !lesson.video_url || lesson.video_url.trim() === '';
+            // Special case: always keep "Aula inaugural - Streaming" in upcoming
+            return lesson.title === 'Aula inaugural - Streaming';
           }
           
           // Check if lesson date is in the future
@@ -110,13 +110,14 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       } else if (filterType === 'archived') {
         // Show lessons that have passed their scheduled date
         filteredLessons = lessons.filter((lesson: any) => {
+          // Never archive the streaming lesson
+          if (lesson.title === 'Aula inaugural - Streaming') return false;
+          
           // Archive inactive lessons
           if (lesson.status !== 'Ativo') return true;
           
-          // If no zoom_start_time but has video_url, it's a recorded lesson - archive it
-          if (!lesson.zoom_start_time) {
-            return lesson.video_url && lesson.video_url.trim() !== '';
-          }
+          // If no zoom_start_time, show in archived (needs scheduling)
+          if (!lesson.zoom_start_time) return true;
           
           // Check if lesson has passed
           const now = new Date();
