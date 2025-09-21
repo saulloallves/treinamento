@@ -159,253 +159,293 @@ const StreamingModule = () => {
           </div>
         </div>
 
-        {/* Quick Actions - Compact Dashboard Style */}
-        <div className="space-y-3">
-          <div>
-            <h2 className="text-lg font-bold mb-1">Ações Rápidas</h2>
-            <p className="text-sm text-muted-foreground">Acesse rapidamente as principais funcionalidades</p>
+        {/* Two-Column Professional Dashboard Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Left Column - Main Content (60%) */}
+          <div className="xl:col-span-2 space-y-8">
+            {/* Quick Actions - Compact Dashboard Style */}
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-lg font-bold mb-1">Ações Rápidas</h2>
+                <p className="text-sm text-muted-foreground">Acesse rapidamente as principais funcionalidades</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-green-500/5 to-green-500/10 hover:from-green-500/10 hover:to-green-500/15" onClick={() => joinRoom('demo-test')}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                        <Play className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm">Teste Rápido</h3>
+                        <p className="text-xs text-muted-foreground">Testar funcionalidades</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-blue-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-blue-500/15" onClick={() => navigate('/streaming-demo')}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                        <Video className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm">Ver Demo</h3>
+                        <p className="text-xs text-muted-foreground">Conhecer funcionalidades</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-purple-500/5 to-purple-500/10 hover:from-purple-500/10 hover:to-purple-500/15" onClick={() => setCreateRoomDialog(true)}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                        <Plus className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm">Criar Sala</h3>
+                        <p className="text-xs text-muted-foreground">Nova sala personalizada</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-2 border-dashed border-muted-foreground/25 bg-gradient-to-r from-amber-500/5 to-amber-500/10">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500/10 rounded-lg group-hover:bg-amber-500/20 transition-colors">
+                        <Calendar className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm">Agendar</h3>
+                        <p className="text-xs text-muted-foreground">Em breve</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Collapsible Rooms List */}
+            <Accordion type="single" collapsible className="w-full" defaultValue="rooms">
+              <AccordionItem value="rooms">
+                <AccordionTrigger className="text-left hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold">Salas Disponíveis</h2>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {rooms.length}
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pt-2">
+                    <p className="text-sm text-muted-foreground mb-4">Gerencie suas salas de streaming criadas</p>
+                    
+                    {rooms.length === 0 ? (
+                      <Card className="border-2 border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/20 to-muted/10">
+                        <CardContent className="p-8 text-center">
+                          <div className="max-w-md mx-auto space-y-3">
+                            <div className="p-4 bg-muted/30 rounded-full w-fit mx-auto">
+                              <Video className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                              <h3 className="text-lg font-semibold">Nenhuma sala criada</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Crie sua primeira sala de streaming para começar
+                              </p>
+                            </div>
+                            <Button 
+                              onClick={() => setCreateRoomDialog(true)}
+                              size="default" 
+                              className="gap-2 mt-4"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Criar Primeira Sala
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {rooms.map((room) => (
+                          <Card key={room.id} className="group hover:shadow-lg transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-br from-card to-muted/10">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0 space-y-1">
+                                  <CardTitle className="text-base truncate flex items-center gap-2">
+                                    <span>{room.name}</span>
+                                    {room.status === 'live' && (
+                                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+                                    )}
+                                  </CardTitle>
+                                  <CardDescription className="flex items-center gap-2 text-xs">
+                                    <Clock className="h-3 w-3" />
+                                    Criada às {new Date(room.createdAt).toLocaleTimeString('pt-BR', { 
+                                      hour: '2-digit', 
+                                      minute: '2-digit' 
+                                    })}
+                                  </CardDescription>
+                                </div>
+                                <Badge 
+                                  className={`${getStatusColor(room.status)} text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm`}
+                                >
+                                  {getStatusText(room.status)}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            
+                            <CardContent className="pt-0 space-y-3">
+                              <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs font-medium">{room.participants} participantes</span>
+                                </div>
+                                <div className="text-xs bg-background px-2 py-1 rounded border font-mono">
+                                  ID: {room.id.split('-')[1]}
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => joinRoom(room.id)}
+                                  className="gap-2 flex-1 font-semibold"
+                                >
+                                  <Video className="h-3 w-3" />
+                                  Entrar
+                                </Button>
+                                
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={async () => {
+                                    const link = `${window.location.origin}/aula-ao-vivo/${room.id}`;
+                                    try {
+                                      await navigator.clipboard.writeText(link);
+                                      toast({
+                                        title: "Link copiado!",
+                                        description: "O link da sala foi copiado para a área de transferência"
+                                      });
+                                    } catch (error) {
+                                      toast({
+                                        title: "Erro ao copiar",
+                                        description: "Não foi possível copiar o link",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                  title="Copiar link da sala"
+                                  className="px-3"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              {room.status === 'live' && (
+                                <div className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-lg">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+                                    <span className="text-xs text-red-700 font-semibold">
+                                      🔴 Transmissão ao vivo
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-green-500/5 to-green-500/10 hover:from-green-500/10 hover:to-green-500/15" onClick={() => joinRoom('demo-test')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
-                    <Play className="h-4 w-4 text-green-600" />
+
+          {/* Right Column - Secondary Content (40%) */}
+          <div className="xl:col-span-1 space-y-6">
+            {/* Features Info - Compact Sidebar Style */}
+            <Card className="border-border/50 bg-gradient-to-br from-card to-muted/10 shadow-lg sticky top-6">
+              <CardHeader className="pb-4">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">Funcionalidades</CardTitle>
+                  <CardDescription className="text-sm">
+                    Recursos disponíveis do sistema
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="group p-3 bg-gradient-to-r from-blue-500/5 to-blue-600/10 rounded-lg border border-blue-500/20 hover:border-blue-500/30 transition-all duration-200 hover:scale-[1.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                      <Video className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm">Vídeo HD</h4>
+                      <p className="text-xs text-muted-foreground">Qualidade até 1080p</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">Teste Rápido</h3>
-                    <p className="text-xs text-muted-foreground">Testar funcionalidades</p>
+                </div>
+                
+                <div className="group p-3 bg-gradient-to-r from-green-500/5 to-green-600/10 rounded-lg border border-green-500/20 hover:border-green-500/30 transition-all duration-200 hover:scale-[1.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                      <Users className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm">Múltiplos Usuários</h4>
+                      <p className="text-xs text-muted-foreground">Users ilimitados</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="group p-3 bg-gradient-to-r from-purple-500/5 to-purple-600/10 rounded-lg border border-purple-500/20 hover:border-purple-500/30 transition-all duration-200 hover:scale-[1.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                      <div className="h-4 w-4 flex items-center justify-center text-sm">💬</div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm">Chat ao Vivo</h4>
+                      <p className="text-xs text-muted-foreground">Mensagens em tempo real</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="group p-3 bg-gradient-to-r from-orange-500/5 to-orange-600/10 rounded-lg border border-orange-500/20 hover:border-orange-500/30 transition-all duration-200 hover:scale-[1.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-500/10 rounded-lg group-hover:bg-orange-500/20 transition-colors">
+                      <div className="h-4 w-4 flex items-center justify-center text-sm">📺</div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm">Compartilhar Tela</h4>
+                      <p className="text-xs text-muted-foreground">Apresentações e demos</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-blue-500/5 to-blue-500/10 hover:from-blue-500/10 hover:to-blue-500/15" onClick={() => navigate('/streaming-demo')}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                    <Video className="h-4 w-4 text-blue-600" />
+            {/* Future Expansion Area */}
+            <Card className="border-2 border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/5 to-muted/10">
+              <CardContent className="p-6 text-center">
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted/30 rounded-full w-fit mx-auto">
+                    <Calendar className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">Ver Demo</h3>
-                    <p className="text-xs text-muted-foreground">Conhecer funcionalidades</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-r from-purple-500/5 to-purple-500/10 hover:from-purple-500/10 hover:to-purple-500/15" onClick={() => setCreateRoomDialog(true)}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
-                    <Plus className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">Criar Sala</h3>
-                    <p className="text-xs text-muted-foreground">Nova sala personalizada</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-[1.01] border-2 border-dashed border-muted-foreground/25 bg-gradient-to-r from-amber-500/5 to-amber-500/10">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-500/10 rounded-lg group-hover:bg-amber-500/20 transition-colors">
-                    <Calendar className="h-4 w-4 text-amber-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm">Agendar</h3>
-                    <p className="text-xs text-muted-foreground">Em breve</p>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-sm">Próximas Funcionalidades</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Estatísticas de uso, calendário de agendamentos e mais recursos em breve
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Collapsible Rooms List */}
-        <Accordion type="single" collapsible className="w-full" defaultValue="rooms">
-          <AccordionItem value="rooms">
-            <AccordionTrigger className="text-left hover:no-underline">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold">Salas Disponíveis</h2>
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {rooms.length}
-                </Badge>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2">
-                <p className="text-sm text-muted-foreground mb-4">Gerencie suas salas de streaming criadas</p>
-                
-                {rooms.length === 0 ? (
-                  <Card className="border-2 border-dashed border-muted-foreground/25 bg-gradient-to-br from-muted/20 to-muted/10">
-                    <CardContent className="p-8 text-center">
-                      <div className="max-w-md mx-auto space-y-3">
-                        <div className="p-4 bg-muted/30 rounded-full w-fit mx-auto">
-                          <Video className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <div className="space-y-2">
-                          <h3 className="text-lg font-semibold">Nenhuma sala criada</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Crie sua primeira sala de streaming para começar
-                          </p>
-                        </div>
-                        <Button 
-                          onClick={() => setCreateRoomDialog(true)}
-                          size="default" 
-                          className="gap-2 mt-4"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Criar Primeira Sala
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {rooms.map((room) => (
-                      <Card key={room.id} className="group hover:shadow-lg transition-all duration-200 hover:scale-[1.01] border-border/50 bg-gradient-to-br from-card to-muted/10">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0 space-y-1">
-                              <CardTitle className="text-lg truncate flex items-center gap-2">
-                                <span>{room.name}</span>
-                                {room.status === 'live' && (
-                                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-                                )}
-                              </CardTitle>
-                              <CardDescription className="flex items-center gap-2 text-xs">
-                                <Clock className="h-3 w-3" />
-                                Criada às {new Date(room.createdAt).toLocaleTimeString('pt-BR', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </CardDescription>
-                            </div>
-                            <Badge 
-                              className={`${getStatusColor(room.status)} text-white text-xs px-2 py-1 rounded-full font-medium shadow-sm`}
-                            >
-                              {getStatusText(room.status)}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        
-                        <CardContent className="pt-0 space-y-3">
-                          <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <Users className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs font-medium">{room.participants} participantes</span>
-                            </div>
-                            <div className="text-xs bg-background px-2 py-1 rounded border font-mono">
-                              ID: {room.id.split('-')[1]}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => joinRoom(room.id)}
-                              className="gap-2 flex-1 font-semibold"
-                            >
-                              <Video className="h-3 w-3" />
-                              Entrar
-                            </Button>
-                            
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                const link = `${window.location.origin}/aula-ao-vivo/${room.id}`;
-                                try {
-                                  await navigator.clipboard.writeText(link);
-                                  toast({
-                                    title: "Link copiado!",
-                                    description: "O link da sala foi copiado para a área de transferência"
-                                  });
-                                } catch (error) {
-                                  toast({
-                                    title: "Erro ao copiar",
-                                    description: "Não foi possível copiar o link",
-                                    variant: "destructive"
-                                  });
-                                }
-                              }}
-                              title="Copiar link da sala"
-                              className="px-3"
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-
-                          {room.status === 'live' && (
-                            <div className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-                                <span className="text-xs text-red-700 font-semibold">
-                                  🔴 Transmissão ao vivo
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-
-        {/* Features Info */}
-        <Card className="border-border/50 bg-gradient-to-br from-card to-muted/10 shadow-lg">
-          <CardHeader className="pb-6">
-            <div className="space-y-2">
-              <CardTitle className="text-2xl">Funcionalidades Disponíveis</CardTitle>
-              <CardDescription className="text-base">
-                Descubra todas as funcionalidades avançadas do nosso sistema de streaming
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="group text-center p-6 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-2xl border border-blue-500/20 hover:border-blue-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-blue-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-blue-500/20 transition-colors">
-                  <Video className="h-8 w-8 text-blue-600" />
-                </div>
-                <h4 className="font-semibold text-base mb-2">Vídeo HD</h4>
-                <p className="text-sm text-muted-foreground">Qualidade adaptável até 1080p</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-green-500/5 to-green-600/10 rounded-2xl border border-green-500/20 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-green-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-green-500/20 transition-colors">
-                  <Users className="h-8 w-8 text-green-600" />
-                </div>
-                <h4 className="font-semibold text-base mb-2">Múltiplos Usuários</h4>
-                <p className="text-sm text-muted-foreground">Participantes ilimitados</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-purple-500/5 to-purple-600/10 rounded-2xl border border-purple-500/20 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-purple-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-purple-500/20 transition-colors">
-                  <div className="h-8 w-8 flex items-center justify-center text-2xl">💬</div>
-                </div>
-                <h4 className="font-semibold text-base mb-2">Chat ao Vivo</h4>
-                <p className="text-sm text-muted-foreground">Mensagens em tempo real</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-orange-500/5 to-orange-600/10 rounded-2xl border border-orange-500/20 hover:border-orange-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-orange-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-orange-500/20 transition-colors">
-                  <div className="h-8 w-8 flex items-center justify-center text-2xl">📺</div>
-                </div>
-                <h4 className="font-semibold text-base mb-2">Compartilhar Tela</h4>
-                <p className="text-sm text-muted-foreground">Apresentações e demonstrações</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Create Room Dialog */}
