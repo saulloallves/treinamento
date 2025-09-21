@@ -8,7 +8,7 @@ export interface Turma {
   name?: string;
   code?: string;
   responsavel_user_id: string;
-  status: 'agendada' | 'inscricoes_abertas' | 'inscricoes_encerradas' | 'em_andamento' | 'encerrada' | 'cancelada';
+  status: 'agendada' | 'inscricoes_abertas' | 'inscricoes_encerradas' | 'em_andamento' | 'encerrada' | 'cancelada' | 'transformar_treinamento';
   start_at?: string;
   end_at?: string;
   enrollment_open_at?: string;

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { TurmaKanbanColumn } from "./TurmaKanbanColumn";
-import { Turma } from "@/hooks/useTurmas";
+import { Turma, useUpdateTurma } from "@/hooks/useTurmas";
 import { Course } from "@/hooks/useCourses";
 import { useKanbanColumns } from "@/hooks/useKanbanColumns";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { KanbanColumnManager } from "./KanbanColumnManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 
 interface TurmaKanbanBoardProps {
   turmas: Turma[];
@@ -26,13 +27,18 @@ export const TurmaKanbanBoard = ({
   const [draggedTurma, setDraggedTurma] = useState<Turma | null>(null);
   const [showColumnManager, setShowColumnManager] = useState(false);
   const { columns } = useKanbanColumns();
+  const updateTurma = useUpdateTurma();
+  const { toast } = useToast();
 
   // Group turmas by status using dynamic columns
   const groupedTurmas = columns.reduce((acc, column) => {
-    acc[column.status] = turmas.filter(turma => 
-      (turma.status as any) === column.status || 
-      turma.status === column.status
-    );
+    if (column.status === 'transformar_treinamento') {
+      // For now, this custom column will be empty until we have metadata to distinguish
+      // turmas that should be in this column vs regular 'encerrada' turmas
+      acc[column.status] = [];
+    } else {
+      acc[column.status] = turmas.filter(turma => turma.status === column.status);
+    }
     return acc;
   }, {} as Record<string, Turma[]>);
 
@@ -44,14 +50,48 @@ export const TurmaKanbanBoard = ({
     setDraggedTurma(null);
   };
 
-  const handleDrop = (targetStatus: string) => {
-    if (!draggedTurma) return;
+  // Map custom kanban statuses to valid turma statuses
+  const mapKanbanStatusToTurmaStatus = (kanbanStatus: string): Turma['status'] => {
+    switch (kanbanStatus) {
+      case 'transformar_treinamento':
+        return 'encerrada'; // Custom status maps to 'encerrada' with additional metadata
+      default:
+        return kanbanStatus as Turma['status'];
+    }
+  };
+
+  const handleDrop = async (targetStatus: string) => {
+    if (!draggedTurma || draggedTurma.status === targetStatus) {
+      setDraggedTurma(null);
+      return;
+    }
     
-    // Here you would normally call an API to update the turma status
-    // For now, we'll just log it
-    console.log(`Moving turma ${draggedTurma.id} to status ${targetStatus}`);
-    
-    setDraggedTurma(null);
+    try {
+      const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
+      
+      await updateTurma.mutateAsync({
+        id: draggedTurma.id,
+        status: turmaStatus,
+        // Add custom metadata for transformar_treinamento
+        ...(targetStatus === 'transformar_treinamento' ? {
+          // You can add custom fields here if needed
+        } : {})
+      });
+      
+      toast({
+        title: "Turma movida com sucesso!",
+        description: `A turma foi movida para ${columns.find(c => c.status === targetStatus)?.title || targetStatus}.`,
+      });
+    } catch (error) {
+      console.error('Error updating turma status:', error);
+      toast({
+        title: "Erro ao mover turma",
+        description: "Não foi possível atualizar o status da turma.",
+        variant: "destructive",
+      });
+    } finally {
+      setDraggedTurma(null);
+    }
   };
 
   const gridCols = columns.length <= 3 ? 'md:grid-cols-3' : 
