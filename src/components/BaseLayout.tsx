@@ -69,14 +69,14 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
             : 'ml-64' 
           : ''
       }`}>
-        {/* Header responsivo */}
-        <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
+        {/* Header responsivo - sticky e sem border inferior */}
+        <header className="bg-background sticky top-0 z-20 px-3 md:px-8 py-4 md:py-6">
           <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2 truncate">
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground mb-1 truncate">
                 {title}
               </h1>
-              <p className="text-xs md:text-base text-muted-foreground truncate">
+              <p className="text-xs md:text-sm text-muted-foreground truncate">
                 Bem-vindo, {user?.user_metadata?.full_name || user?.email}!
               </p>
             </div>
@@ -92,8 +92,8 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
           </div>
         </header>
 
-        {/* Conteúdo principal responsivo */}
-        <main className={`flex-1 min-h-0 p-3 md:p-6 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-[calc(8rem+env(safe-area-inset-bottom))]' : 'pb-6'}`}>
+        {/* Conteúdo principal responsivo - com padding top reduzido */}
+        <main className={`flex-1 min-h-0 p-3 md:p-6 pt-2 md:pt-4 overflow-y-auto overflow-x-hidden ${isMobile && showBottomNav ? 'pb-[calc(8rem+env(safe-area-inset-bottom))]' : 'pb-6'}`}>
           <div className="w-full min-w-0 space-y-4">
             {children}
           </div>

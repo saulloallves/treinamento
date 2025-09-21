@@ -104,8 +104,8 @@ const TurmasPage = () => {
                 <Users className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-foreground mb-0">Gestão de Turmas</h1>
-                <p className="text-muted-foreground text-xs">Gerencie as turmas dos cursos ao vivo</p>
+                <h1 className="page-title mb-0">Gestão de Turmas</h1>
+                <p className="description text-xs">Gerencie as turmas dos cursos ao vivo</p>
               </div>
             </div>
             
@@ -182,10 +182,10 @@ const TurmasPage = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-muted/20 rounded-full flex items-center justify-center">
               <Users className="w-8 h-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <h3 className="section-title mb-2">
               Nenhuma turma encontrada
             </h3>
-            <p className="text-muted-foreground max-w-md mb-4">
+            <p className="description max-w-md mb-4">
               {liveCourses.length > 0 
                 ? "Crie a primeira turma para começar!"
                 : "Crie primeiro um curso 'Ao Vivo' para poder criar turmas."

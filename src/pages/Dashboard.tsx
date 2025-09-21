@@ -30,8 +30,8 @@ const Dashboard = () => {
   
   if (error) {
     return <div className="p-6">
-      <h1 className="text-2xl font-bold text-red-600">Erro no Dashboard</h1>
-      <p className="text-gray-600 mt-2">{error.message}</p>
+      <h1 className="page-title text-red-600">Erro no Dashboard</h1>
+      <p className="description mt-2">{error.message}</p>
     </div>;
   }
 
@@ -138,7 +138,7 @@ const Dashboard = () => {
         {/* Atividade Recente */}
         <div className="xl:col-span-2">
           <TouchCard className={isMobile ? 'p-4' : 'p-6'}>
-            <h2 className={`font-semibold text-brand-black mb-4 ${
+            <h2 className={`section-title mb-4 ${
               isMobile ? 'text-lg mb-4' : 'text-xl mb-6'
             }`}>
               Atividade Recente
@@ -173,9 +173,11 @@ const Dashboard = () => {
                             {activity.type === 'whatsapp' && <MessageSquare className={`text-purple-600 ${isMobile ? 'w-4 h-4' : 'w-3 h-3'}`} />}
                           </div>
                           <div className="flex-1">
-                            <h3 className={`font-medium text-brand-black ${isMobile ? 'text-sm' : 'text-sm'}`}>{activity.action}</h3>
-                            <p className={`text-brand-gray-dark ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.description}</p>
-                            <p className={`text-brand-gray-dark mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.time}</p>
+                          <h3 className={`card-title mb-1 ${isMobile ? 'text-sm' : 'text-sm'}`}>
+                            {activity.action}
+                          </h3>
+                          <p className={`description ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.description}</p>
+                          <p className={`metadata mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>{activity.time}</p>
                           </div>
                         </div>
                       </TouchCard>
@@ -207,7 +209,7 @@ const Dashboard = () => {
         {/* Próximas Aulas */}
         <div>
           <TouchCard className={isMobile ? 'p-4' : 'p-6'}>
-            <h2 className={`font-semibold text-brand-black mb-4 ${
+            <h2 className={`section-title mb-4 ${
               isMobile ? 'text-lg mb-4' : 'text-xl mb-6'
             }`}>
               Próximas Aulas Ao Vivo
@@ -242,10 +244,10 @@ const Dashboard = () => {
                           className={`${isMobile ? 'p-3' : 'p-3'} hover:shadow-clean-md transition-shadow`}
                           variant="outlined"
                         >
-                          <h3 className={`font-medium text-brand-black mb-1 ${isMobile ? 'text-sm' : 'text-sm'}`}>
+                          <h3 className={`card-title mb-1 ${isMobile ? 'text-sm' : 'text-sm'}`}>
                             {lesson.title}
                           </h3>
-                          <p className={`text-brand-gray-dark mb-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                          <p className={`description mb-2 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                             {lesson.course}
                           </p>
                           <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -284,7 +286,7 @@ const Dashboard = () => {
                 );
               })()
             ) : (
-              <p className="text-sm text-brand-gray-dark">Nenhuma aula ao vivo agendada.</p>
+              <p className="caption">Nenhuma aula ao vivo agendada.</p>
             )}
           </TouchCard>
         </div>
