@@ -263,7 +263,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
   ];
 
-  // Robust toggle function with duplicate prevention and StrictMode protection
+  // Enhanced toggle function for collapsed menu - auto-expands when clicking groups
   const toggleGroup = useCallback((groupId: string, event?: React.MouseEvent) => {
     // Prevent event bubbling and default behavior
     if (event) {
@@ -277,6 +277,12 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
     
     isTogglingRef.current = true;
+    
+    // If sidebar is collapsed, expand it first and then open the group
+    if (isCollapsed) {
+      setIsCollapsed(false);
+      localStorage.setItem('sidebar-collapsed', 'false');
+    }
     
     // Use requestAnimationFrame to ensure state update happens on next frame
     requestAnimationFrame(() => {
@@ -303,7 +309,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         }
       }, 100);
     });
-  }, []);
+  }, [isCollapsed]);
 
   // Simple check without useCallback to avoid re-renders
   const isGroupActive = (group: any) => {
@@ -588,8 +594,8 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           </div>
         </div>
 
-        {/* Toggle button - moved below header */}
-        <div className="px-4 py-2 border-b border-slate-200/60">
+        {/* Toggle button - positioned in header */}
+        <div className="px-4 py-2 border-b border-slate-200/60 bg-slate-50/30">
           <Button
             variant="ghost"
             size="icon"
