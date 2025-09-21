@@ -626,7 +626,7 @@ const LessonsList = () => {
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3"
+                                className="h-9 px-3 text-primary hover:text-primary hover:bg-primary/10 border-gray-300"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -635,7 +635,7 @@ const LessonsList = () => {
                                 size="sm"
                                 onClick={() => handleDeleteLesson(lesson.id)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-gray-300"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
