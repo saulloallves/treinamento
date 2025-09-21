@@ -44,6 +44,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const location = useLocation();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  
+  console.log('🔄 ModernSidebar FULL RE-RENDER at path:', location.pathname);
+  
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -56,13 +59,16 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   // Initialize expanded groups based on current route - ONLY on mount, never changes
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const path = location.pathname;
-    return {
+    console.log('🚀 Initializing sidebar with path:', path);
+    const initialState = {
       treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
       avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
       comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
       administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
     };
+    console.log('📋 Initial expanded groups state:', initialState);
+    return initialState;
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
@@ -249,10 +255,16 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
   // CRITICAL: Only toggle - NO automatic behavior, NO dependencies on location
   const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
+    console.log('🔧 toggleGroup called for:', groupId);
+    setExpandedGroups(prev => {
+      console.log('📋 Current expanded groups:', prev);
+      const newState = {
+        ...prev,
+        [groupId]: !prev[groupId]
+      };
+      console.log('📋 New expanded groups:', newState);
+      return newState;
+    });
   };
 
   // Simple check without useCallback to avoid re-renders
@@ -269,6 +281,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         key={item.path}
         to={item.path}
         onClick={() => {
+          console.log('🔗 Menu item clicked:', item.name || item.label, 'isSubItem:', isSubItem);
           if (isMobile) setIsOpen(false);
           // NO other actions - do NOT interfere with accordion state
         }}
