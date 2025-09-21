@@ -53,16 +53,13 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
   
-  // Initialize expanded groups based on current route - ONLY on mount, never auto-update
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
-    const path = location.pathname;
-    return {
-      treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
-      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
-      avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
-      comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
-      administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
-    };
+  // Initialize all groups as closed - NO automatic logic based on routes
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    treinamentos: false,
+    gestaoAlunos: false,
+    avaliacoes: false,
+    comunicacao: false,
+    administracao: false,
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
@@ -256,7 +253,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
   const isGroupActive = useCallback((group: any) => {
     return group.items?.some((item: any) => location.pathname === item.path);
-  }, [location.pathname]);
+  }, []);  // Remove location.pathname dependency to prevent re-renders
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
@@ -304,7 +301,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
 
     return menuItem;
-  }, [location.pathname, isMobile, isCollapsed]);
+  }, [isMobile, isCollapsed]);  // Remove location.pathname to prevent re-renders
 
   const renderGroupButton = useCallback((item: any) => {
     const isExpanded = expandedGroups[item.id];
@@ -416,7 +413,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </Link>
       );
     });
-  }, [studentMenuItems, location.pathname, isMobile]);
+  }, [studentMenuItems, isMobile]);  // Remove location.pathname to prevent re-renders
 
   if (isMobile && !showInMobile) {
     return null;
