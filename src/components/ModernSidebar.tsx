@@ -97,6 +97,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       if (!isMobile && !isCollapsed && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setIsCollapsed(true);
         localStorage.setItem('sidebar-collapsed', 'true');
+        // Close all submenus when collapsing via click outside
+        setExpandedGroups({});
+        sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify({}));
       }
     };
 
