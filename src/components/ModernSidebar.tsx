@@ -583,39 +583,39 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       >
         {/* Header da sidebar */}
         <div className="p-6 border-b border-slate-200/60 relative">
-          <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
-            {!isCollapsed && (
-              <div>
-                <h1 className="text-lg font-semibold text-slate-900">
-                  Cresci e Perdi
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Sistema de Treinamentos
-                </p>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`flex items-center gap-3 ${isCollapsed ? '' : 'flex-1'}`}>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <GraduationCap className="w-6 h-6 text-white" />
               </div>
-            )}
+              {!isCollapsed && (
+                <div className="flex-1">
+                  <h1 className="text-lg font-semibold text-slate-900">
+                    Cresci e Perdi
+                  </h1>
+                  <p className="text-xs text-slate-500">
+                    Sistema de Treinamentos
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Toggle button integrated in header */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleCollapsed}
+              className={`h-8 w-8 hover:bg-slate-100 transition-colors flex-shrink-0 ${
+                isCollapsed ? 'absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-md border border-slate-200 rounded-full' : ''
+              }`}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-        </div>
-
-        {/* Toggle button - positioned in header */}
-        <div className="px-4 py-2 border-b border-slate-200/60 bg-slate-50/30">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleCollapsed}
-            className={`h-8 w-8 hover:bg-slate-100 transition-colors ${
-              isCollapsed ? 'mx-auto' : 'ml-auto'
-            }`}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
         </div>
 
         {/* Menu de navegação */}
