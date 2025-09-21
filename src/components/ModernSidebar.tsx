@@ -332,18 +332,24 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         onClick={() => {
           if (isMobile) setIsOpen(false);
         }}
-        className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
+        className={`group relative flex items-center rounded-lg text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
             ? "bg-blue-50 text-blue-700 shadow-sm" 
             : "text-slate-700 hover:text-slate-900"
-        } ${isSubItem ? 'ml-7 pl-4' : ''} ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
+        } ${
+          isSubItem 
+            ? 'ml-7 pl-4 gap-3 px-3 py-2' 
+            : isCollapsed && !isMobile 
+              ? 'justify-center px-2 py-2 mx-1' 
+              : 'gap-3 px-3 py-2'
+        }`}
       >
-        {/* Active indicator bar */}
-        {isActive && !isSubItem && (
+        {/* Active indicator bar - hidden when collapsed */}
+        {isActive && !isSubItem && !isCollapsed && (
           <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
         )}
         
-        <div className={`shrink-0 ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} ${isCollapsed && !isMobile && !isSubItem ? 'mx-auto' : ''}`}>
+        <div className={`shrink-0 flex items-center justify-center ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'}`}>
           <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} transition-colors`} />
         </div>
         {(!isCollapsed || isMobile) && (
