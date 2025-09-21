@@ -52,77 +52,66 @@ export const TurmaKanbanBoard = ({
 
   // Map custom kanban statuses to valid turma statuses
   const mapKanbanStatusToTurmaStatus = (kanbanStatus: string): Turma['status'] => {
-    // All statuses map directly now - no custom mapping
+    // All statuses map directly now, including transformar_treinamento
     return kanbanStatus as Turma['status'];
   };
 
-  const handleDrop = async (targetStatus: string) => {
-    if (!draggedTurma) {
-      setDraggedTurma(null);
-      return;
-    }
-    
-    console.log('Drop initiated:', {
-      draggedTurma: draggedTurma.name,
-      currentStatus: draggedTurma.status,
-      targetStatus,
-      mappedStatus: mapKanbanStatusToTurmaStatus(targetStatus)
+// Remove debug logs for production
+const handleDrop = async (targetStatus: string) => {
+  if (!draggedTurma) {
+    setDraggedTurma(null);
+    return;
+  }
+  
+  const originalStatus = draggedTurma.status;
+  const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
+  
+  // Skip if already in correct status
+  if (originalStatus === turmaStatus) {
+    setDraggedTurma(null);
+    return;
+  }
+  
+  // Optimistic update - immediately update UI
+  setOptimisticTurmas(prev => 
+    prev.map(turma => 
+      turma.id === draggedTurma.id 
+        ? { ...turma, status: turmaStatus }
+        : turma
+    )
+  );
+  
+  try {
+    await updateTurma.mutateAsync({
+      id: draggedTurma.id,
+      status: turmaStatus,
     });
     
-    const originalStatus = draggedTurma.status;
-    const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
+    toast({
+      title: "Turma movida com sucesso!",
+      description: `A turma foi movida para ${columns.find(c => c.status === targetStatus)?.title || targetStatus}.`,
+    });
+  } catch (error) {
+    console.error('Error updating turma status:', error);
     
-    // Skip if already in correct status (compare mapped statuses)
-    if (originalStatus === turmaStatus) {
-      console.log('Turma already in correct status, skipping update');
-      setDraggedTurma(null);
-      return;
-    }
-    
-    console.log('Applying optimistic update');
-    
-    // Optimistic update - immediately update UI
+    // Rollback optimistic update on error
     setOptimisticTurmas(prev => 
       prev.map(turma => 
         turma.id === draggedTurma.id 
-          ? { ...turma, status: turmaStatus }
+          ? { ...turma, status: originalStatus }
           : turma
       )
     );
     
-    try {
-      console.log('Calling API update');
-      await updateTurma.mutateAsync({
-        id: draggedTurma.id,
-        status: turmaStatus,
-      });
-      
-      console.log('API update successful');
-      toast({
-        title: "Turma movida com sucesso!",
-        description: `A turma foi movida para ${columns.find(c => c.status === targetStatus)?.title || targetStatus}.`,
-      });
-    } catch (error) {
-      console.error('Error updating turma status:', error);
-      
-      // Rollback optimistic update on error
-      setOptimisticTurmas(prev => 
-        prev.map(turma => 
-          turma.id === draggedTurma.id 
-            ? { ...turma, status: originalStatus }
-            : turma
-        )
-      );
-      
-      toast({
-        title: "Erro ao mover turma",
-        description: "Não foi possível atualizar o status da turma.",
-        variant: "destructive",
-      });
-    } finally {
-      setDraggedTurma(null);
-    }
-  };
+    toast({
+      title: "Erro ao mover turma",
+      description: "Não foi possível atualizar o status da turma.",
+      variant: "destructive",
+    });
+  } finally {
+    setDraggedTurma(null);
+  }
+};
 
   const gridCols = columns.length <= 3 ? 'md:grid-cols-3' : 
                    columns.length === 4 ? 'md:grid-cols-4' : 

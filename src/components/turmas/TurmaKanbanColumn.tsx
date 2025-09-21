@@ -58,7 +58,6 @@ export const TurmaKanbanColumn = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    console.log('Drop event fired for column:', title, 'status:', status);
     setIsDragOver(false);
     onDrop(status);
   };
