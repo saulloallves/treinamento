@@ -76,7 +76,7 @@ const handleSave = async () => {
     if (streamingType === 'internal') {
       try {
         // Combine date and time for internal streaming lessons
-        const scheduledDateTime = new Date(`${liveDate}T${liveTime}`).toISOString();
+        const scheduledDateTime = `${liveDate}T${liveTime}:00`;
         
         await createLessonMutation.mutateAsync({
           ...formData,

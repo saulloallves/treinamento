@@ -245,7 +245,7 @@ const LessonsList = () => {
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-brand-blue" />
                                 <span>
-                                  {format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  {lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}
                                 </span>
                               </div>
                             )}
@@ -383,7 +383,7 @@ const LessonsList = () => {
                                 {lesson.zoom_start_time && (
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-4 h-4 text-brand-blue" />
-                                    <span>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                                    <span>{lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}</span>
                                   </div>
                                 )}
                               </div>
@@ -497,7 +497,7 @@ const LessonsList = () => {
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-brand-blue" />
                                 <span>
-                                  {format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                  {lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}
                                 </span>
                               </div>
                             )}
@@ -602,7 +602,7 @@ const LessonsList = () => {
                                 {lesson.zoom_start_time && (
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-4 h-4 text-brand-blue" />
-                                    <span>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                                    <span>{lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}</span>
                                   </div>
                                 )}
                               </div>

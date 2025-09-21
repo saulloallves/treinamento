@@ -160,9 +160,9 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
                   formData.zoom_start_time.slice(0, 16) : ""}
                 onChange={(e) => {
                   if (e.target.value) {
-                    // Mantém o valor exatamente como digitado pelo usuário
-                    const isoValue = e.target.value + ':00.000Z';
-                    setFormData({ ...formData, zoom_start_time: isoValue });
+                    // Salva como timestamp local sem conversão de timezone
+                    const localTimestamp = e.target.value + ':00';
+                    setFormData({ ...formData, zoom_start_time: localTimestamp });
                   } else {
                     setFormData({ ...formData, zoom_start_time: null });
                   }
