@@ -31,6 +31,10 @@ const LessonsList = () => {
   const { data: courses = [] } = useCourses();
   const deleteLessonMutation = useDeleteLesson();
 
+  // Get both upcoming and archived lessons separately for correct counts
+  const { data: upcomingLessons = [] } = useLessons('upcoming');
+  const { data: archivedLessons = [] } = useLessons('archived');
+
   const handleEditLesson = (lesson: Lesson) => {
     setEditingLesson(lesson);
     setIsEditDialogOpen(true);
@@ -166,7 +170,7 @@ const LessonsList = () => {
             value="upcoming-all"
             onClick={() => handleTabChange('upcoming', 'upcoming-all')}
           >
-            Próximas Aulas ({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})
+            Próximas Aulas ({upcomingLessons.length})
           </TabsTrigger>
           <TabsTrigger 
             value="upcoming-by-course"
@@ -178,7 +182,7 @@ const LessonsList = () => {
             value="archived-all"
             onClick={() => handleTabChange('archived', 'archived-all')}
           >
-            Aulas Arquivadas ({lessonsFilter === 'archived' ? filteredLessons.length : 0})
+            Aulas Arquivadas ({archivedLessons.length})
           </TabsTrigger>
           <TabsTrigger 
             value="archived-by-course"
@@ -526,7 +530,8 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 text-primary hover:text-primary hover:bg-primary/10 border-gray-300"
+                            className="h-9 px-3"
+                            style={{ color: '#007BFF', borderColor: '#d1d5db' }}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -626,7 +631,8 @@ const LessonsList = () => {
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 text-primary hover:text-primary hover:bg-primary/10 border-gray-300"
+                                className="h-9 px-3"
+                                style={{ color: '#007BFF', borderColor: '#d1d5db' }}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
