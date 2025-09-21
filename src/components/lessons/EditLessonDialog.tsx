@@ -149,8 +149,8 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             />
           </div>
 
-          {/* Campo data/hora para aulas de streaming (sem video_url) */}
-          {!formData.video_url && (
+          {/* Campo data/hora para aulas de streaming (sem video_url ou streaming interno) */}
+          {(!formData.video_url) && (
             <div className="grid gap-2">
               <Label htmlFor="zoom_start_time">Data e Hora da Aula</Label>
               <Input
