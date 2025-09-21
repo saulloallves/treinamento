@@ -149,6 +149,22 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             />
           </div>
 
+          {/* Campo data/hora para aulas de streaming (sem video_url) */}
+          {!formData.video_url && (
+            <div className="grid gap-2">
+              <Label htmlFor="zoom_start_time">Data e Hora da Aula</Label>
+              <Input
+                id="zoom_start_time"
+                type="datetime-local"
+                value={formData.zoom_start_time ? new Date(formData.zoom_start_time).toISOString().slice(0, 16) : ""}
+                onChange={(e) => setFormData({ ...formData, zoom_start_time: e.target.value ? new Date(e.target.value).toISOString() : null })}
+              />
+              <p className="text-sm text-muted-foreground">
+                Data e hora em que a aula será realizada (para arquivamento automático)
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="content">Conteúdo</Label>
             <Input
