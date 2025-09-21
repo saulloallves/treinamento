@@ -45,8 +45,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   
-  console.log('🔄 ModernSidebar FULL RE-RENDER at path:', location.pathname);
-  
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -56,10 +54,18 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
   
-  // Initialize expanded groups based on current route - ONLY on mount, never changes
+  // Use sessionStorage to persist accordion state across route changes
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {};
+    
+    // Try to get from sessionStorage first
+    const saved = sessionStorage.getItem('sidebar-expanded-groups');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    
+    // Only initialize based on route if no saved state exists
     const path = location.pathname;
-    console.log('🚀 Initializing sidebar with path:', path);
     const initialState = {
       treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
       gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
@@ -67,7 +73,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
       administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
     };
-    console.log('📋 Initial expanded groups state:', initialState);
+    
+    // Save initial state to sessionStorage
+    sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(initialState));
     return initialState;
   });
 
@@ -253,16 +261,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
   ];
 
-  // CRITICAL: Only toggle - NO automatic behavior, NO dependencies on location
+  // Toggle group and persist to sessionStorage
   const toggleGroup = (groupId: string) => {
-    console.log('🔧 toggleGroup called for:', groupId);
     setExpandedGroups(prev => {
-      console.log('📋 Current expanded groups:', prev);
       const newState = {
         ...prev,
         [groupId]: !prev[groupId]
       };
-      console.log('📋 New expanded groups:', newState);
+      // Persist to sessionStorage
+      sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(newState));
       return newState;
     });
   };
@@ -281,9 +288,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         key={item.path}
         to={item.path}
         onClick={() => {
-          console.log('🔗 Menu item clicked:', item.name || item.label, 'isSubItem:', isSubItem);
           if (isMobile) setIsOpen(false);
-          // NO other actions - do NOT interfere with accordion state
         }}
         className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
