@@ -526,7 +526,7 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 text-brand-blue hover:text-brand-blue hover:bg-blue-50 border-gray-300"
+                            className="h-9 px-3 text-primary hover:text-primary hover:bg-primary/10 border-gray-300"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
