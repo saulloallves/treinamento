@@ -72,12 +72,16 @@ const handleSave = async () => {
       return;
     }
 
-    // If streaming type is internal, create lesson without external URL
+    // If streaming type is internal, create lesson with date/time
     if (streamingType === 'internal') {
       try {
+        // Combine date and time into zoom_start_time for scheduling
+        const combinedDateTime = new Date(`${liveDate}T${liveTime}`);
+        
         await createLessonMutation.mutateAsync({
           ...formData,
           video_url: '', // Empty for internal streaming
+          zoom_start_time: combinedDateTime.toISOString(),
         });
 
         await queryClient.invalidateQueries({ queryKey: ["lessons"] });

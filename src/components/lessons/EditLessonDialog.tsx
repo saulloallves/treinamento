@@ -25,6 +25,8 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
   const { data: courses = [] } = useCourses();
   const updateLessonMutation = useUpdateLesson();
   const [formData, setFormData] = useState<Lesson | null>(null);
+  const [liveDate, setLiveDate] = useState<string>("");
+  const [liveTime, setLiveTime] = useState<string>("");
 
   useEffect(() => {
     if (lesson) {
@@ -35,6 +37,16 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
           (lesson.status === 'Ativo' ? DEFAULT_ATTENDANCE_KEYWORD : '')
       };
       setFormData(updatedLesson);
+      
+      // Extract date and time from zoom_start_time if it exists
+      if (lesson.zoom_start_time) {
+        const startDate = new Date(lesson.zoom_start_time);
+        setLiveDate(startDate.toISOString().split('T')[0]);
+        setLiveTime(startDate.toTimeString().slice(0, 5));
+      } else {
+        setLiveDate("");
+        setLiveTime("");
+      }
     }
   }, [lesson]);
 
@@ -50,7 +62,14 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
       return; // Validação visual já está no disabled do botão
     }
 
-    await updateLessonMutation.mutateAsync(formData);
+    // Se tiver data e hora preenchidas, atualizar zoom_start_time
+    let updatedFormData = { ...formData };
+    if (liveDate && liveTime) {
+      const combinedDateTime = new Date(`${liveDate}T${liveTime}`);
+      updatedFormData.zoom_start_time = combinedDateTime.toISOString();
+    }
+
+    await updateLessonMutation.mutateAsync(updatedFormData);
     onOpenChange(false);
   };
 
@@ -157,6 +176,35 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
             />
           </div>
+
+          {/* Data e hora para aulas de streaming (se tiver zoom_start_time ou for streaming) */}
+          {(formData.zoom_start_time || formData.video_url === '' || !formData.video_url) && (
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="liveDate">Data da Aula</Label>
+                  <Input
+                    id="liveDate"
+                    type="date"
+                    value={liveDate}
+                    onChange={(e) => setLiveDate(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="liveTime">Hora da Aula</Label>
+                  <Input
+                    id="liveTime"
+                    type="time"
+                    value={liveTime}
+                    onChange={(e) => setLiveTime(e.target.value)}
+                  />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Configure data e hora para aulas de streaming interno ou Zoom
+              </p>
+            </div>
+          )}
 
           {/* Campo palavra-chave - sempre visível para aulas ativas ou com palavra já definida */}
           {(formData.status === 'Ativo' || formData.attendance_keyword) && (
