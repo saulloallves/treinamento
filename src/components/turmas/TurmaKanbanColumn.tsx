@@ -68,7 +68,7 @@ export const TurmaKanbanColumn = ({
 
       {/* Column Content */}
       <div
-        className={`min-h-[400px] p-4 border-l border-r border-b rounded-b-lg ${color} ${
+        className={`p-4 border-l border-r border-b rounded-b-lg ${color} ${
           isDragOver ? 'bg-opacity-50 border-dashed border-2' : ''
         }`}
         onDragOver={handleDragOver}
