@@ -513,31 +513,22 @@ const LessonsList = () => {
                         
                         {/* Actions Section */}
                         <div className="flex items-center gap-2 shrink-0">
-                          {lesson.video_url && (
-                            <Button
-                              size="sm"
-                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
-                              onClick={() =>
-                                window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
-                              }
-                            >
-                              <Video className="w-4 h-4 mr-1" />
-                              Ver Vídeo
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 h-9 border-0"
+                            onClick={() => lesson.video_url && window.open(lesson.video_url, "_blank", "noopener,noreferrer")}
+                          >
+                            <Video className="w-4 h-4 mr-1" />
+                            Finalizado
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            style={{ 
-                              color: '#3B82F6 !important',
-                              borderColor: '#3B82F6 !important',
-                              backgroundColor: 'transparent'
-                            }}
-                            className="h-9 px-3"
+                            className="h-9 px-3 border-blue-500 text-blue-500 hover:bg-blue-50"
                           >
-                            <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                            <Edit className="w-4 h-4" />
                           </Button>
                           <Button 
                             variant="outline" 
@@ -618,31 +609,22 @@ const LessonsList = () => {
                             </div>
                             
                             <div className="flex items-center gap-2 shrink-0">
-                              {lesson.video_url && (
-                                <Button
-                                  size="sm"
-                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
-                                  onClick={() =>
-                                    window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
-                                  }
-                                >
-                                  <Video className="w-4 h-4 mr-1" />
-                                  Ver Vídeo
-                                </Button>
-                              )}
+                              <Button
+                                size="sm"
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 h-9 border-0"
+                                onClick={() => lesson.video_url && window.open(lesson.video_url, "_blank", "noopener,noreferrer")}
+                              >
+                                <Video className="w-4 h-4 mr-1" />
+                                Finalizado
+                              </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                style={{ 
-                                  color: '#3B82F6 !important',
-                                  borderColor: '#3B82F6 !important',
-                                  backgroundColor: 'transparent'
-                                }}
-                                className="h-9 px-3"
+                                className="h-9 px-3 border-blue-500 text-blue-500 hover:bg-blue-50"
                               >
-                                <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                                <Edit className="w-4 h-4" />
                               </Button>
                               <Button 
                                 variant="outline" 
