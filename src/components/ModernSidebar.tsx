@@ -343,7 +343,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
         )}
         
-        <div className={`shrink-0 ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'}`}>
+        <div className={`shrink-0 ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} ${isCollapsed && !isMobile && !isSubItem ? 'mx-auto' : ''}`}>
           <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} transition-colors`} />
         </div>
         {(!isCollapsed || isMobile) && (
@@ -385,7 +385,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         } ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
       >
         <div className="flex items-center gap-3 pointer-events-none">
-          <div className="w-5 h-5 shrink-0">
+          <div className={`w-5 h-5 shrink-0 ${isCollapsed && !isMobile ? 'mx-auto' : ''}`}>
             <item.icon className="w-5 h-5 transition-colors" />
           </div>
           {(!isCollapsed || isMobile) && (
