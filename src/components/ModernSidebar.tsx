@@ -53,17 +53,20 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
   
-  // Initialize all groups as closed - NO automatic logic based on routes
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    treinamentos: false,
-    gestaoAlunos: false,
-    avaliacoes: false,
-    comunicacao: false,
-    administracao: false,
+  // Initialize expanded groups based on current route - ONLY on component mount
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const path = location.pathname;
+    return {
+      treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
+      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
+      avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
+      comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
+      administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
+    };
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
-  const { data: isProfessor = false } = useIsProfessor(user?.id);
+  const { data: isProfessor = false } = useIsProfessor(user?.id);  
   const { data: currentUser } = useCurrentUser();
   const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
