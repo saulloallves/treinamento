@@ -119,14 +119,34 @@ export const useUpcomingLessons = () => {
 
       return filteredLessons.map((l) => {
         const dtSrc = (l as any).zoom_start_time ?? (l as any).created_at;
-        const dt = dtSrc ? new Date(dtSrc) : new Date();
+        
+        // Extract date and time directly from string to avoid timezone conversion
+        let dateStr = "—";
+        let timeStr = "—";
+        
+        if (dtSrc) {
+          // Direct string manipulation to avoid timezone conversion
+          const dateMatch = dtSrc.match(/^(\d{4})-(\d{2})-(\d{2})/);
+          const timeMatch = dtSrc.match(/T(\d{2}):(\d{2})/);
+          
+          if (dateMatch) {
+            const [, year, month, day] = dateMatch;
+            dateStr = `${day}/${month}/${year}`;
+          }
+          
+          if (timeMatch) {
+            const [, hour, minute] = timeMatch;
+            timeStr = `${hour}:${minute}`;
+          }
+        }
+        
         return {
           id: l.id,
           title: l.title,
           course: courseNameById.get(l.course_id) ?? "—",
           course_id: l.course_id,
-          date: format(dt, "dd/MM/yyyy", { locale: ptBR }),
-          time: format(dt, "HH:mm", { locale: ptBR }),
+          date: dateStr,
+          time: timeStr,
           participants: countsByLesson.get(l.id) ?? 0,
           joinUrl: (l as any).zoom_join_url ?? undefined,
         } as UpcomingLessonItem;
