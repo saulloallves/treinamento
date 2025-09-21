@@ -38,13 +38,7 @@ export const TurmaKanbanBoard = ({
 
   // Group turmas by status using dynamic columns with optimistic updates
   const groupedTurmas = columns.reduce((acc, column) => {
-    if (column.status === 'transformar_treinamento') {
-      // This column shows 'encerrada' turmas that have been moved here
-      // For now, we'll show all 'encerrada' turmas here until we add metadata
-      acc[column.status] = optimisticTurmas.filter(turma => turma.status === 'encerrada');
-    } else {
-      acc[column.status] = optimisticTurmas.filter(turma => turma.status === column.status);
-    }
+    acc[column.status] = optimisticTurmas.filter(turma => turma.status === column.status);
     return acc;
   }, {} as Record<string, Turma[]>);
 
@@ -58,12 +52,8 @@ export const TurmaKanbanBoard = ({
 
   // Map custom kanban statuses to valid turma statuses
   const mapKanbanStatusToTurmaStatus = (kanbanStatus: string): Turma['status'] => {
-    switch (kanbanStatus) {
-      case 'transformar_treinamento':
-        return 'encerrada'; // Custom status maps to 'encerrada' with additional metadata
-      default:
-        return kanbanStatus as Turma['status'];
-    }
+    // All statuses map directly now - no custom mapping
+    return kanbanStatus as Turma['status'];
   };
 
   const handleDrop = async (targetStatus: string) => {
@@ -83,7 +73,7 @@ export const TurmaKanbanBoard = ({
     const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
     
     // Skip if already in correct status (compare mapped statuses)
-    if (originalStatus === turmaStatus && targetStatus !== 'transformar_treinamento') {
+    if (originalStatus === turmaStatus) {
       console.log('Turma already in correct status, skipping update');
       setDraggedTurma(null);
       return;
@@ -105,10 +95,6 @@ export const TurmaKanbanBoard = ({
       await updateTurma.mutateAsync({
         id: draggedTurma.id,
         status: turmaStatus,
-        // Add custom metadata for transformar_treinamento
-        ...(targetStatus === 'transformar_treinamento' ? {
-          // You can add custom fields here if needed
-        } : {})
       });
       
       console.log('API update successful');
