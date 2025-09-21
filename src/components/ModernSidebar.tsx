@@ -55,7 +55,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const userInteracting = useRef(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   
-  // Initialize expanded groups based on current route
+  // Initialize expanded groups based on current route - STATIC, no auto-updates
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const path = location.pathname;
     return {
@@ -93,14 +93,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isCollapsed, isMobile]);
-  
-  // Only reset active group on navigation, don't touch expanded groups
-  // This prevents accordion shake when clicking submenu items
-  useEffect(() => {
-    if (!userInteracting.current) {
-      setActiveGroup(null);
-    }
-  }, [location.pathname]);
   
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => 
@@ -258,27 +250,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   ];
 
   const toggleGroup = useCallback((groupId: string) => {
-    userInteracting.current = true;
     setExpandedGroups(prev => ({
       ...prev,
       [groupId]: !prev[groupId]
     }));
-    setActiveGroup(groupId);
-    // Increased timeout to prevent race conditions
-    setTimeout(() => {
-      userInteracting.current = false;
-    }, 300);
   }, []);
 
   const isGroupActive = useCallback((group: any) => {
-    if (activeGroup === group.id) {
-      return true;
-    }
-    if (activeGroup === null) {
-      return group.items?.some((item: any) => location.pathname === item.path);
-    }
-    return false;
-  }, [location.pathname, activeGroup]);
+    return group.items?.some((item: any) => location.pathname === item.path);
+  }, [location.pathname]);
 
   const renderMenuItem = useCallback((item: any, isSubItem = false) => {
     const Icon = item.icon;
@@ -290,11 +270,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
-          // Set interaction flag to prevent accordion shake on navigation
-          userInteracting.current = true;
-          setTimeout(() => {
-            userInteracting.current = false;
-          }, 300);
         }}
         className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
