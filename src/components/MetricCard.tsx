@@ -24,23 +24,23 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, onClick }: M
   const content = (
     <>
       {/* Header do card - mobile optimized */}
-      <div className={`flex items-center justify-between ${isMobile ? 'mb-2' : 'mb-2'}`}>
-        <div className={`rounded-lg bg-brand-blue-light flex items-center justify-center ${
-          isMobile ? 'w-6 h-6' : 'w-7 h-7'
+      <div className={`flex items-center justify-between ${isMobile ? 'mb-1.5' : 'mb-1.5'}`}>
+        <div className={`rounded-md bg-brand-blue-light flex items-center justify-center ${
+          isMobile ? 'w-5 h-5' : 'w-6 h-6'
         }`}>
-          <Icon className={`text-brand-blue ${isMobile ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
+          <Icon className={`text-brand-blue ${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} />
         </div>
         {change && change !== "—" && (
-          <div className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
+          <div className={`px-1 py-0.5 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
             {change}
           </div>
         )}
       </div>
       
       {/* Conteúdo principal - mobile optimized */}
-      <div className={`space-y-0.5 ${isMobile ? 'space-y-0' : 'space-y-0.5'}`}>
+      <div className={`space-y-0.5 ${isMobile ? 'space-y-0' : 'space-y-0'}`}>
         <h3 className={`font-bold text-brand-black ${
-          isMobile ? 'text-lg' : 'text-xl'
+          isMobile ? 'text-base' : 'text-lg'
         }`}>
           {value}
         </h3>
@@ -57,7 +57,7 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, onClick }: M
     return (
       <TouchCard 
         onClick={onClick} 
-        className={`p-2 ${onClick ? 'cursor-pointer' : ''}`}
+        className={`p-1.5 ${onClick ? 'cursor-pointer' : ''}`}
         variant="elevated"
       >
         {content}

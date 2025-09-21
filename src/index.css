@@ -319,7 +319,7 @@ html, body, #root {
   }
 
   .metric-card {
-    @apply card-clean hover:shadow-clean-lg transition-all duration-200;
+    @apply p-3 bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
   }
 
   .text-title {
