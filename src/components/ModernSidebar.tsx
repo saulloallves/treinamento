@@ -83,6 +83,12 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
     localStorage.setItem('sidebar-collapsed', newCollapsedState.toString());
+    
+    // Close all submenus when collapsing
+    if (newCollapsedState) {
+      setExpandedGroups({});
+      sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify({}));
+    }
   }, [isCollapsed]);
   
   // Click outside to close when expanded (desktop only)
