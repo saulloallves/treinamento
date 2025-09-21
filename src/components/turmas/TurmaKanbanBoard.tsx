@@ -2,6 +2,11 @@ import { useState } from "react";
 import { TurmaKanbanColumn } from "./TurmaKanbanColumn";
 import { Turma } from "@/hooks/useTurmas";
 import { Course } from "@/hooks/useCourses";
+import { useKanbanColumns } from "@/hooks/useKanbanColumns";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { KanbanColumnManager } from "./KanbanColumnManager";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface TurmaKanbanBoardProps {
   turmas: Turma[];
@@ -19,53 +24,17 @@ export const TurmaKanbanBoard = ({
   onEditTurma,
 }: TurmaKanbanBoardProps) => {
   const [draggedTurma, setDraggedTurma] = useState<Turma | null>(null);
+  const [showColumnManager, setShowColumnManager] = useState(false);
+  const { columns } = useKanbanColumns();
 
-  // Group turmas by status
-  const groupedTurmas = {
-    agendada: turmas.filter(turma => turma.status === 'agendada'),
-    em_andamento: turmas.filter(turma => turma.status === 'em_andamento'),
-    transformar_treinamento: turmas.filter(turma => (turma.status as any) === 'transformar_treinamento'),
-    encerrada: turmas.filter(turma => turma.status === 'encerrada'),
-  };
-
-  const columns = [
-    {
-      id: 'agendada',
-      title: 'Planejadas',
-      status: 'agendada' as const,
-      turmas: groupedTurmas.agendada,
-      color: 'bg-blue-50 border-blue-200',
-      headerColor: 'bg-blue-500',
-      count: groupedTurmas.agendada.length,
-    },
-    {
-      id: 'em_andamento', 
-      title: 'Em Andamento',
-      status: 'em_andamento' as const,
-      turmas: groupedTurmas.em_andamento,
-      color: 'bg-orange-50 border-orange-200',
-      headerColor: 'bg-orange-500',
-      count: groupedTurmas.em_andamento.length,
-    },
-    {
-      id: 'transformar_treinamento',
-      title: 'Transformar em Treinamento', 
-      status: 'transformar_treinamento' as const,
-      turmas: groupedTurmas.transformar_treinamento,
-      color: 'bg-purple-50 border-purple-200',
-      headerColor: 'bg-purple-500',
-      count: groupedTurmas.transformar_treinamento.length,
-    },
-    {
-      id: 'encerrada',
-      title: 'Finalizadas',
-      status: 'encerrada' as const,
-      turmas: groupedTurmas.encerrada,
-      color: 'bg-green-50 border-green-200',
-      headerColor: 'bg-green-500',
-      count: groupedTurmas.encerrada.length,
-    },
-  ];
+  // Group turmas by status using dynamic columns
+  const groupedTurmas = columns.reduce((acc, column) => {
+    acc[column.status] = turmas.filter(turma => 
+      (turma.status as any) === column.status || 
+      turma.status === column.status
+    );
+    return acc;
+  }, {} as Record<string, Turma[]>);
 
   const handleDragStart = (turma: Turma) => {
     setDraggedTurma(turma);
@@ -85,19 +54,39 @@ export const TurmaKanbanBoard = ({
     setDraggedTurma(null);
   };
 
+  const gridCols = columns.length <= 3 ? 'md:grid-cols-3' : 
+                   columns.length === 4 ? 'md:grid-cols-4' : 
+                   'md:grid-cols-5';
+
   return (
-    <div className="kanban-board">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-full">
+    <div className="kanban-board space-y-6">
+      {/* Column Management */}
+      <div className="flex justify-end">
+        <Collapsible open={showColumnManager} onOpenChange={setShowColumnManager}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Settings className="w-4 h-4 mr-2" />
+              {showColumnManager ? 'Ocultar' : 'Gerenciar'} Colunas
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-4">
+            <KanbanColumnManager />
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
+      {/* Kanban Board */}
+      <div className={`grid grid-cols-1 ${gridCols} gap-6 h-full`}>
         {columns.map((column) => (
           <TurmaKanbanColumn
             key={column.id}
             title={column.title}
             status={column.status}
-            turmas={column.turmas}
+            turmas={groupedTurmas[column.status] || []}
             courses={courses}
             color={column.color}
             headerColor={column.headerColor}
-            count={column.count}
+            count={(groupedTurmas[column.status] || []).length}
             onViewDetails={onViewDetails}
             onEnrollStudent={onEnrollStudent}
             onEditTurma={onEditTurma}
@@ -110,10 +99,12 @@ export const TurmaKanbanBoard = ({
       </div>
       
       {/* Summary at bottom */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+      <div className={`mt-6 grid grid-cols-1 ${gridCols} gap-4 text-center`}>
         {columns.map((column) => (
           <div key={column.id} className="bg-card rounded-lg p-4 border">
-            <div className="text-2xl font-bold text-foreground">{column.count}</div>
+            <div className="text-2xl font-bold text-foreground">
+              {(groupedTurmas[column.status] || []).length}
+            </div>
             <div className="text-sm text-muted-foreground">{column.title}</div>
           </div>
         ))}
