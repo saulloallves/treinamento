@@ -156,8 +156,19 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
               <Input
                 id="zoom_start_time"
                 type="datetime-local"
-                value={formData.zoom_start_time ? new Date(formData.zoom_start_time).toISOString().slice(0, 16) : ""}
-                onChange={(e) => setFormData({ ...formData, zoom_start_time: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                value={formData.zoom_start_time ? 
+                  new Date(new Date(formData.zoom_start_time).getTime() - new Date(formData.zoom_start_time).getTimezoneOffset() * 60000)
+                    .toISOString().slice(0, 16) : ""}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    // Convert local datetime back to UTC
+                    const localDate = new Date(e.target.value);
+                    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+                    setFormData({ ...formData, zoom_start_time: utcDate.toISOString() });
+                  } else {
+                    setFormData({ ...formData, zoom_start_time: null });
+                  }
+                }}
               />
               <p className="text-sm text-muted-foreground">
                 Data e hora em que a aula será realizada (para arquivamento automático)
