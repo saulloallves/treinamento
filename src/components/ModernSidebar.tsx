@@ -53,6 +53,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     return false;
   });
   const userInteracting = useRef(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   
   // Initialize expanded groups based on current route
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
@@ -77,6 +78,21 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     setIsCollapsed(newCollapsedState);
     localStorage.setItem('sidebar-collapsed', newCollapsedState.toString());
   }, [isCollapsed]);
+  
+  // Click outside to close when expanded (desktop only)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!isMobile && !isCollapsed && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsCollapsed(true);
+        localStorage.setItem('sidebar-collapsed', 'true');
+      }
+    };
+
+    if (!isMobile && !isCollapsed) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isCollapsed, isMobile]);
   
   // Reset active group when navigating to a different route, but preserve expanded groups
   useEffect(() => {
@@ -272,16 +288,13 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
-          // Don't reset activeGroup when clicking submenu items to prevent accordion shake
-          if (!isSubItem) {
-            setActiveGroup(null);
-          }
+          // Prevent accordion shake: don't reset activeGroup when clicking submenu items
         }}
         className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
             ? "bg-blue-50 text-blue-700 shadow-sm" 
             : "text-slate-700 hover:text-slate-900"
-        } ${isSubItem ? 'ml-7 pl-4' : ''} ${isCollapsed && !isMobile ? 'justify-center px-2' : ''}`}
+        } ${isSubItem ? 'ml-7 pl-4' : ''} ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
       >
         {/* Active indicator bar */}
         {isActive && !isSubItem && (
@@ -326,7 +339,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           hasActiveChild
             ? 'bg-slate-100/50 text-slate-900'
             : 'text-slate-700 hover:text-slate-900'
-        } ${isCollapsed && !isMobile ? 'justify-center px-2' : ''}`}
+        } ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 shrink-0">
@@ -509,23 +522,12 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
   return (
     <TooltipProvider>
-      <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white fixed top-0 left-0 z-40 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}>
+      <div 
+        ref={sidebarRef}
+        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white fixed top-0 left-0 z-40 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}
+      >
         {/* Header da sidebar */}
         <div className="p-6 border-b border-slate-200/60 relative">
-          {/* Toggle button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleCollapsed}
-            className="absolute top-4 right-3 h-8 w-8 hover:bg-slate-100 z-10"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
-          
           <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
               <GraduationCap className="w-6 h-6 text-white" />
@@ -543,8 +545,26 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           </div>
         </div>
 
+        {/* Toggle button - moved below header */}
+        <div className="px-4 py-2 border-b border-slate-200/60">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleCollapsed}
+            className={`h-8 w-8 hover:bg-slate-100 transition-colors ${
+              isCollapsed ? 'mx-auto' : 'ml-auto'
+            }`}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
         {/* Menu de navegação */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto sidebar-scroll" style={{ scrollbarGutter: 'stable' }}>
+        <nav className={`flex-1 space-y-2 overflow-y-auto sidebar-scroll ${isCollapsed ? 'p-2' : 'p-4'}`} style={{ scrollbarGutter: 'stable' }}>
           {shouldShowAdminMenu 
             ? renderMenu(adminMenuStructure) 
             : shouldShowProfessorMenu 
