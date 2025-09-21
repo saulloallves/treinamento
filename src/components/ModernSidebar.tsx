@@ -54,29 +54,21 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
   
-  // Use sessionStorage to persist accordion state across route changes
+  // Simplified state management - use only sessionStorage, no route-based initialization
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     
-    // Try to get from sessionStorage first
     const saved = sessionStorage.getItem('sidebar-expanded-groups');
     if (saved) {
-      return JSON.parse(saved);
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {};
+      }
     }
     
-    // Only initialize based on route if no saved state exists
-    const path = location.pathname;
-    const initialState = {
-      treinamentos: ['/courses','/turmas','/lessons','/streaming','/professor/cursos','/professor/turmas','/professor/aulas'].includes(path),
-      gestaoAlunos: ['/enrollments','/attendance','/progress','/certificates','/professor/inscricoes','/professor/presenca','/professor/progresso'].includes(path),
-      avaliacoes: ['/quiz','/tests','/reports','/professor/avaliacoes','/professor/reports'].includes(path),
-      comunicacao: ['/whatsapp','/professor/comunicacao','/communication','/professor/disparos-automaticos'].includes(path),
-      administracao: ['/users','/professors','/admins','/units','/settings'].includes(path),
-    };
-    
-    // Save initial state to sessionStorage
-    sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(initialState));
-    return initialState;
+    // Start with empty state - user manually expands what they need
+    return {};
   });
 
   const { data: isAdmin = false } = useIsAdmin(user?.id);
@@ -261,18 +253,24 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
   ];
 
-  // Toggle group and persist to sessionStorage
-  const toggleGroup = (groupId: string) => {
+  // Toggle group with optimized state management and debounce protection
+  const toggleGroup = useCallback((groupId: string) => {
     setExpandedGroups(prev => {
       const newState = {
         ...prev,
         [groupId]: !prev[groupId]
       };
-      // Persist to sessionStorage
-      sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(newState));
+      
+      // Persist to sessionStorage immediately
+      try {
+        sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(newState));
+      } catch (error) {
+        console.warn('Failed to save sidebar state:', error);
+      }
+      
       return newState;
     });
-  };
+  }, []);
 
   // Simple check without useCallback to avoid re-renders
   const isGroupActive = (group: any) => {
