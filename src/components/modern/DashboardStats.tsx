@@ -12,10 +12,10 @@ interface StatCardProps {
 const StatCard = ({ title, value, icon: Icon, description, color }: StatCardProps) => (
   <div className="metric-modern animate-fade-in-up">
     <div className={`metric-icon ${color}`}>
-      <Icon className="w-6 h-6 text-white" />
+      <Icon className="w-5 h-5 text-white" />
     </div>
-    <div className="text-2xl font-bold text-foreground mb-1">{value}</div>
-    <div className="text-sm font-medium text-foreground mb-1">{title}</div>
+    <div className="text-xl font-bold text-foreground mb-1">{value}</div>
+    <div className="text-sm font-medium text-foreground mb-0.5">{title}</div>
     <div className="text-xs text-muted-foreground">{description}</div>
   </div>
 );
@@ -69,7 +69,7 @@ export const DashboardStats = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-animation">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-animation">
       {stats.map((stat, index) => (
         <StatCard key={index} {...stat} />
       ))}

@@ -8,12 +8,12 @@ interface TurmaStatusFiltersProps {
 
 const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: TurmaStatusFiltersProps) => {
   return (
-    <div className={`flex flex-wrap gap-2 p-3 bg-muted/30 rounded-md ${className}`}>
+    <div className={`flex flex-wrap gap-2 p-2 bg-muted/30 rounded-md ${className}`}>
       <Button
         size="sm"
         variant={statusFilter === 'em_andamento' ? 'default' : 'outline'}
         onClick={() => onStatusChange('em_andamento')}
-        className="text-xs"
+        className="text-xs h-7"
       >
         Em Andamento
       </Button>
@@ -21,7 +21,7 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
         size="sm"
         variant={statusFilter === 'agendada' ? 'default' : 'outline'}
         onClick={() => onStatusChange('agendada')}
-        className="text-xs"
+        className="text-xs h-7"
       >
         Agendadas
       </Button>
@@ -29,7 +29,7 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
         size="sm"
         variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
         onClick={() => onStatusChange('encerrada')}
-        className="text-xs"
+        className="text-xs h-7"
       >
         📁 Turmas Arquivadas
       </Button>
@@ -38,7 +38,7 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
           size="sm"
           variant="ghost"
           onClick={() => onStatusChange('todos')}
-          className="text-xs"
+          className="text-xs h-7"
         >
           Limpar filtro
         </Button>

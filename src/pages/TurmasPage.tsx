@@ -109,17 +109,17 @@ const TurmasPage = () => {
 
   return (
     <BaseLayout title="Gerenciar Turmas">
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header Moderno */}
         <div className="modern-header">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
-                <Users className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <Users className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-1">Gestão de Turmas</h1>
-                <p className="text-muted-foreground text-lg">Gerencie as turmas dos cursos ao vivo com estilo</p>
+                <h1 className="text-2xl font-bold text-foreground mb-0.5">Gestão de Turmas</h1>
+                <p className="text-muted-foreground text-sm">Gerencie as turmas dos cursos ao vivo com estilo</p>
               </div>
             </div>
             
@@ -128,9 +128,9 @@ const TurmasPage = () => {
               <Button 
                 onClick={() => setCreateDialogOpen(true)}
                 variant="modern"
-                size="lg"
+                size="default"
               >
-                <Plus className="w-5 h-5 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Nova Turma
               </Button>
             )}
@@ -141,7 +141,7 @@ const TurmasPage = () => {
         <DashboardStats />
 
         {/* Filters Section */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Filter className="w-4 h-4" />
             Filtros e Busca
@@ -154,8 +154,8 @@ const TurmasPage = () => {
           />
           
           {/* Other Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">Buscar turma</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -168,7 +168,7 @@ const TurmasPage = () => {
               </div>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">Curso</label>
               <Select value={selectedCourse} onValueChange={setSelectedCourse}>
                 <SelectTrigger>
@@ -185,7 +185,7 @@ const TurmasPage = () => {
               </Select>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">Professor</label>
               <Select value={professorFilter} onValueChange={setProfessorFilter}>
                 <SelectTrigger>
@@ -211,14 +211,14 @@ const TurmasPage = () => {
 
         {/* Content */}
         {filteredTurmas.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 bg-muted/20 rounded-full flex items-center justify-center">
-              <Users className="w-10 h-10 text-muted-foreground/50" />
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted/20 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               {allTurmas.length === 0 ? "Nenhuma turma encontrada" : "Nenhuma turma corresponde aos filtros"}
             </h3>
-            <p className="text-muted-foreground max-w-md mb-6">
+            <p className="text-muted-foreground max-w-md mb-4">
               {allTurmas.length === 0 
                 ? liveCourses.length > 0 
                   ? "Crie a primeira turma para começar!"
@@ -234,7 +234,7 @@ const TurmasPage = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-animation">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-animation">
             {filteredTurmas.map((turma) => {
               const course = courses.find(c => c.id === turma.course_id);
               return (

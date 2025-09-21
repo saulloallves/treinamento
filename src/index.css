@@ -226,6 +226,32 @@ html, body, #root {
     @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-md text-sidebar-primary-foreground bg-sidebar-primary shadow-clean;
   }
 
+  /* Cards & Components - Compact design */
+  .card-clean {
+    @apply bg-card text-card-foreground rounded-lg border shadow-clean p-4;
+  }
+
+  .btn-clean {
+    @apply bg-white text-foreground border border-input rounded-md px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm hover:bg-primary/90 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground rounded-md px-3 py-1.5 text-sm hover:bg-secondary/80 transition-colors;
+  }
+
+  /* Sidebar */
+  .sidebar-clean {
+    @apply bg-background border-r border-border;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer;
+  }
+
   .metric-card {
     @apply card-clean hover:shadow-clean-lg transition-all duration-200;
   }
@@ -285,30 +311,30 @@ html, body, #root {
     @apply text-primary hover:text-primary/90 transition-colors duration-200;
   }
 
-  /* Design System Moderno */
+  /* Design System Moderno - Compact */
   .modern-header {
     background: var(--gradient-header);
-    @apply rounded-2xl p-8 mb-8;
+    @apply rounded-2xl p-6 mb-6;
   }
 
   .modern-card {
     background: var(--gradient-card);
     box-shadow: var(--shadow-card);
-    @apply rounded-xl border-0 transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1;
+    @apply rounded-xl border-0 p-4 transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1;
   }
 
   .modern-button {
     background: var(--gradient-primary);
     box-shadow: var(--shadow-button);
-    @apply text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95;
+    @apply text-white font-semibold px-4 py-2 text-sm rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95;
   }
 
   .modern-button-secondary {
-    @apply bg-secondary/80 backdrop-blur-sm text-secondary-foreground font-medium px-4 py-2 rounded-full border border-border transition-all duration-300 hover:bg-secondary hover:shadow-md hover:scale-105 active:scale-95;
+    @apply bg-secondary/80 backdrop-blur-sm text-secondary-foreground font-medium px-3 py-1.5 text-sm rounded-full border border-border transition-all duration-300 hover:bg-secondary hover:shadow-md hover:scale-105 active:scale-95;
   }
 
   .status-badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold backdrop-blur-sm;
   }
 
   .status-active {
@@ -331,7 +357,7 @@ html, body, #root {
   }
 
   .metric-modern {
-    @apply modern-card p-6 text-center;
+    @apply modern-card p-4 text-center;
   }
 
   .metric-icon {

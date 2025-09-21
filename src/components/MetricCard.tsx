@@ -24,28 +24,28 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, onClick }: M
   const content = (
     <>
       {/* Header do card - mobile optimized */}
-      <div className={`flex items-center justify-between ${isMobile ? 'mb-4' : 'mb-6'}`}>
+      <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-4'}`}>
         <div className={`rounded-lg bg-brand-blue-light flex items-center justify-center ${
-          isMobile ? 'w-10 h-10' : 'w-12 h-12'
+          isMobile ? 'w-8 h-8' : 'w-10 h-10'
         }`}>
-          <Icon className={`text-brand-blue ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
+          <Icon className={`text-brand-blue ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
         </div>
         {change && change !== "—" && (
-          <div className={`px-3 py-1 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${changeStyles[changeType]}`}>
             {change}
           </div>
         )}
       </div>
       
       {/* Conteúdo principal - mobile optimized */}
-      <div className={`space-y-1 ${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+      <div className={`space-y-1 ${isMobile ? 'space-y-0.5' : 'space-y-1'}`}>
         <h3 className={`font-bold text-brand-black ${
-          isMobile ? 'text-2xl' : 'text-3xl'
+          isMobile ? 'text-xl' : 'text-2xl'
         }`}>
           {value}
         </h3>
         <p className={`text-brand-gray-dark font-medium ${
-          isMobile ? 'text-sm' : 'text-base'
+          isMobile ? 'text-xs' : 'text-sm'
         }`}>
           {title}
         </p>
@@ -57,7 +57,7 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, onClick }: M
     return (
       <TouchCard 
         onClick={onClick} 
-        className={`p-4 ${onClick ? 'cursor-pointer' : ''}`}
+        className={`p-3 ${onClick ? 'cursor-pointer' : ''}`}
         variant="elevated"
       >
         {content}
@@ -66,7 +66,7 @@ const MetricCard = ({ title, value, change, changeType, icon: Icon, onClick }: M
   }
 
   return (
-    <div className="metric-card p-6">
+    <div className="metric-card">
       {content}
     </div>
   );

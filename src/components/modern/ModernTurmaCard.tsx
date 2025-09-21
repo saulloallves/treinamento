@@ -43,19 +43,19 @@ export const ModernTurmaCard = ({
   return (
     <div className="modern-card p-0 overflow-hidden animate-fade-in-up">
       {/* Header colorido baseado no status */}
-      <div className={`h-2 ${statusConfig.className}`} />
+      <div className={`h-1.5 ${statusConfig.className}`} />
       
-      <div className="p-6">
+      <div className="p-4">
         {/* Status badge e menu */}
-        <div className="flex items-start justify-between mb-4">
-          <Badge className={`status-badge ${statusConfig.className}`}>
+        <div className="flex items-start justify-between mb-3">
+          <Badge className={`status-badge ${statusConfig.className} text-xs px-2 py-0.5`}>
             {statusConfig.label}
           </Badge>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-gray-100">
+                <MoreHorizontal className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -76,26 +76,26 @@ export const ModernTurmaCard = ({
         </div>
 
         {/* Título e curso */}
-        <div className="mb-4">
-          <h3 className="font-bold text-lg text-foreground mb-1 line-clamp-1">
+        <div className="mb-3">
+          <h3 className="font-bold text-base text-foreground mb-1 line-clamp-1">
             {turma.name}
           </h3>
           <p className="text-sm text-muted-foreground line-clamp-1">
             {course?.name || 'Curso não encontrado'}
           </p>
           {turma.code && (
-            <p className="text-xs text-muted-foreground mt-1 font-mono">
+            <p className="text-xs text-muted-foreground mt-0.5 font-mono">
               #{turma.code}
             </p>
           )}
         </div>
 
         {/* Informações com ícones */}
-        <div className="space-y-3 mb-4">
+        <div className="space-y-2 mb-3">
           {/* Professor */}
           <div className="flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-muted-foreground truncate">
+            <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+            <span className="text-muted-foreground truncate text-xs">
               {turma.responsavel_user?.name || 'Professor não definido'}
             </span>
           </div>
@@ -103,8 +103,8 @@ export const ModernTurmaCard = ({
           {/* Data de início */}
           {turma.start_date && (
             <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="text-muted-foreground text-xs">
                 Início: {format(new Date(turma.start_date), "dd MMM yyyy", { locale: ptBR })}
               </span>
             </div>
@@ -112,8 +112,8 @@ export const ModernTurmaCard = ({
 
           {/* Inscrições */}
           <div className="flex items-center gap-2 text-sm">
-            <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <span className="text-muted-foreground">
+            <Users className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+          <span className="text-muted-foreground text-xs">
             {enrollmentCount} inscrição{enrollmentCount !== 1 ? 'ões' : ''}
             </span>
           </div>
@@ -123,6 +123,7 @@ export const ModernTurmaCard = ({
         <Button 
           onClick={() => onViewDetails(turma)} 
           variant="modern-secondary" 
+          size="sm"
           className="w-full"
         >
           Ver Detalhes
