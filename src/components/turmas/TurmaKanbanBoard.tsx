@@ -87,10 +87,7 @@ const handleDrop = async (targetStatus: string) => {
       status: turmaStatus,
     });
     
-    toast({
-      title: "Turma movida com sucesso!",
-      description: `A turma foi movida para ${columns.find(c => c.status === targetStatus)?.title || targetStatus}.`,
-    });
+    // No success toast - silent success for better UX
   } catch (error) {
     console.error('Error updating turma status:', error);
     
