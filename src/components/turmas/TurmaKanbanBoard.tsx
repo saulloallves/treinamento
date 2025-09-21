@@ -24,6 +24,7 @@ export const TurmaKanbanBoard = ({
   const groupedTurmas = {
     agendada: turmas.filter(turma => turma.status === 'agendada'),
     em_andamento: turmas.filter(turma => turma.status === 'em_andamento'),
+    transformar_treinamento: turmas.filter(turma => (turma.status as any) === 'transformar_treinamento'),
     encerrada: turmas.filter(turma => turma.status === 'encerrada'),
   };
 
@@ -45,6 +46,15 @@ export const TurmaKanbanBoard = ({
       color: 'bg-orange-50 border-orange-200',
       headerColor: 'bg-orange-500',
       count: groupedTurmas.em_andamento.length,
+    },
+    {
+      id: 'transformar_treinamento',
+      title: 'Transformar em Treinamento', 
+      status: 'transformar_treinamento' as const,
+      turmas: groupedTurmas.transformar_treinamento,
+      color: 'bg-purple-50 border-purple-200',
+      headerColor: 'bg-purple-500',
+      count: groupedTurmas.transformar_treinamento.length,
     },
     {
       id: 'encerrada',
@@ -77,7 +87,7 @@ export const TurmaKanbanBoard = ({
 
   return (
     <div className="kanban-board">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-full">
         {columns.map((column) => (
           <TurmaKanbanColumn
             key={column.id}
@@ -100,7 +110,7 @@ export const TurmaKanbanBoard = ({
       </div>
       
       {/* Summary at bottom */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
         {columns.map((column) => (
           <div key={column.id} className="bg-card rounded-lg p-4 border">
             <div className="text-2xl font-bold text-foreground">{column.count}</div>

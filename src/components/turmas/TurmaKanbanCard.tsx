@@ -36,6 +36,8 @@ export const TurmaKanbanCard = ({
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Planejada</Badge>;
       case 'em_andamento':
         return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Em Andamento</Badge>;
+      case 'transformar_treinamento':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Transformar em Treinamento</Badge>;
       case 'encerrada':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Finalizada</Badge>;
       default:
