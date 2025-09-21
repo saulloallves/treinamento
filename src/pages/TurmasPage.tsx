@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
-import { DashboardStats } from "@/components/modern/DashboardStats";
+
 import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
 import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
@@ -124,8 +124,6 @@ const TurmasPage = () => {
           </div>
         </div>
 
-        {/* Dashboard Stats */}
-        <DashboardStats />
 
         {/* Kanban Board Section */}  
         <div className="space-y-4">
