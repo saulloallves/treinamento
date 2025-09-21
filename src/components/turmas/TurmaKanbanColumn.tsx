@@ -68,8 +68,8 @@ export const TurmaKanbanColumn = ({
 
       {/* Column Content */}
       <div
-        className={`max-h-[calc(100vh-300px)] overflow-y-auto p-4 border-l border-r border-b rounded-b-lg ${color} ${
-          isDragOver ? 'bg-opacity-50 border-dashed border-2' : ''
+        className={`max-h-[calc(100vh-300px)] overflow-y-auto p-4 border-l border-r border-b rounded-b-lg transition-all duration-200 ${color} ${
+          isDragOver ? 'bg-primary/10 border-primary border-dashed border-2 ring-2 ring-primary/30' : ''
         } custom-scrollbar`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

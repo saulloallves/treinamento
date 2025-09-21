@@ -61,8 +61,8 @@ export const TurmaKanbanCard = ({
 
   return (
     <Card 
-      className={`kanban-card cursor-grab hover:shadow-md transition-all duration-200 ${
-        isDragging ? 'opacity-50 rotate-2 scale-105' : 'hover:scale-[1.02]'
+      className={`kanban-card cursor-grab active:cursor-grabbing hover:shadow-lg transition-all duration-200 ${
+        isDragging ? 'opacity-30 rotate-2 scale-105 ring-2 ring-primary/50' : 'hover:scale-[1.02]'
       }`}
       draggable
       onDragStart={handleDragStart}

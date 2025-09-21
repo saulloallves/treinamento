@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TurmaKanbanColumn } from "./TurmaKanbanColumn";
 import { Turma, useUpdateTurma } from "@/hooks/useTurmas";
 import { Course } from "@/hooks/useCourses";
@@ -26,18 +26,24 @@ export const TurmaKanbanBoard = ({
 }: TurmaKanbanBoardProps) => {
   const [draggedTurma, setDraggedTurma] = useState<Turma | null>(null);
   const [showColumnManager, setShowColumnManager] = useState(false);
+  const [optimisticTurmas, setOptimisticTurmas] = useState<Turma[]>(turmas);
   const { columns } = useKanbanColumns();
   const updateTurma = useUpdateTurma();
   const { toast } = useToast();
 
-  // Group turmas by status using dynamic columns
+  // Update optimistic turmas when turmas prop changes
+  useEffect(() => {
+    setOptimisticTurmas(turmas);
+  }, [turmas]);
+
+  // Group turmas by status using dynamic columns with optimistic updates
   const groupedTurmas = columns.reduce((acc, column) => {
     if (column.status === 'transformar_treinamento') {
       // For now, this custom column will be empty until we have metadata to distinguish
       // turmas that should be in this column vs regular 'encerrada' turmas
       acc[column.status] = [];
     } else {
-      acc[column.status] = turmas.filter(turma => turma.status === column.status);
+      acc[column.status] = optimisticTurmas.filter(turma => turma.status === column.status);
     }
     return acc;
   }, {} as Record<string, Turma[]>);
@@ -66,9 +72,19 @@ export const TurmaKanbanBoard = ({
       return;
     }
     
+    const originalStatus = draggedTurma.status;
+    const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
+    
+    // Optimistic update - immediately update UI
+    setOptimisticTurmas(prev => 
+      prev.map(turma => 
+        turma.id === draggedTurma.id 
+          ? { ...turma, status: turmaStatus }
+          : turma
+      )
+    );
+    
     try {
-      const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
-      
       await updateTurma.mutateAsync({
         id: draggedTurma.id,
         status: turmaStatus,
@@ -84,6 +100,16 @@ export const TurmaKanbanBoard = ({
       });
     } catch (error) {
       console.error('Error updating turma status:', error);
+      
+      // Rollback optimistic update on error
+      setOptimisticTurmas(prev => 
+        prev.map(turma => 
+          turma.id === draggedTurma.id 
+            ? { ...turma, status: originalStatus }
+            : turma
+        )
+      );
+      
       toast({
         title: "Erro ao mover turma",
         description: "Não foi possível atualizar o status da turma.",
