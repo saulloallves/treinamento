@@ -2,7 +2,7 @@
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import Sidebar from "@/components/Sidebar";
+import ModernSidebar from "@/components/ModernSidebar";
 import BottomNavigation from "@/components/mobile/BottomNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
@@ -29,7 +29,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
       {/* Mostrar sidebar para admins/professores mesmo no mobile */}
       {(shouldShowSidebar || !(isMobile && showBottomNav)) && (
-        <Sidebar showInMobile={shouldShowSidebar || !showBottomNav} />
+        <ModernSidebar showInMobile={shouldShowSidebar || !showBottomNav} />
       )}
       
       <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
