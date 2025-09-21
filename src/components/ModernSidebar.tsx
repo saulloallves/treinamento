@@ -336,11 +336,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           isActive 
             ? "bg-blue-50 text-blue-700 shadow-sm" 
             : "text-slate-700 hover:text-slate-900"
-        } ${
-          isSubItem 
-            ? 'ml-7 pl-4 gap-3 px-3 py-2' 
-            : isCollapsed && !isMobile 
-              ? 'justify-center px-2 py-2 mx-1' 
+        } ${isSubItem ? 'ml-7 pl-4 gap-3 px-3 py-2' : ''} ${
+          isCollapsed && !isMobile && !isSubItem 
+            ? 'w-12 h-12 justify-center mx-auto' 
+            : isSubItem 
+              ? '' 
               : 'gap-3 px-3 py-2'
         }`}
       >
@@ -349,7 +349,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
         )}
         
-        <div className={`shrink-0 flex items-center justify-center ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'}`}>
+        <div className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} flex items-center justify-center shrink-0`}>
           <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} transition-colors`} />
         </div>
         {(!isCollapsed || isMobile) && (
