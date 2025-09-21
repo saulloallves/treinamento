@@ -530,9 +530,14 @@ const LessonsList = () => {
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 !border-blue-500 !text-blue-600 hover:!bg-blue-50 hover:!text-blue-700"
+                            style={{ 
+                              color: '#3B82F6 !important',
+                              borderColor: '#3B82F6 !important',
+                              backgroundColor: 'transparent'
+                            }}
+                            className="h-9 px-3"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
                           </Button>
                           <Button 
                             variant="outline" 
@@ -630,9 +635,14 @@ const LessonsList = () => {
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 !border-blue-500 !text-blue-600 hover:!bg-blue-50 hover:!text-blue-700"
+                                style={{ 
+                                  color: '#3B82F6 !important',
+                                  borderColor: '#3B82F6 !important',
+                                  backgroundColor: 'transparent'
+                                }}
+                                className="h-9 px-3"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
                               </Button>
                               <Button 
                                 variant="outline" 
