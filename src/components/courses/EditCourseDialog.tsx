@@ -45,10 +45,16 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
   }, [course]);
 
   useEffect(() => {
-    if (courseAccess.length > 0) {
-      setSelectedPositions(courseAccess.map(access => access.position_code));
-    } else {
-      setSelectedPositions([]);
+    if (courseAccess && courseAccess.length > 0) {
+      const positions = courseAccess.map(access => access.position_code);
+      setSelectedPositions(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(positions)) {
+          return positions;
+        }
+        return prev;
+      });
+    } else if (courseAccess && courseAccess.length === 0) {
+      setSelectedPositions(prev => prev.length > 0 ? [] : prev);
     }
   }, [courseAccess]);
 

@@ -94,8 +94,11 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         filteredLessons = lessons.filter((lesson: any) => {
           if (lesson.status !== 'Ativo') return false;
           
-          // If no zoom_start_time, show in upcoming (needs scheduling)
-          if (!lesson.zoom_start_time) return true;
+          // If no zoom_start_time, show in upcoming only if it's not recorded (video_url empty/null)
+          if (!lesson.zoom_start_time) {
+            // Show streaming lessons without date (need scheduling)
+            return !lesson.video_url || lesson.video_url.trim() === '';
+          }
           
           // Check if lesson date is in the future
           const now = new Date();
@@ -110,8 +113,10 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
           // Archive inactive lessons
           if (lesson.status !== 'Ativo') return true;
           
-          // If no zoom_start_time, don't archive (needs scheduling)
-          if (!lesson.zoom_start_time) return false;
+          // If no zoom_start_time but has video_url, it's a recorded lesson - archive it
+          if (!lesson.zoom_start_time) {
+            return lesson.video_url && lesson.video_url.trim() !== '';
+          }
           
           // Check if lesson has passed
           const now = new Date();
