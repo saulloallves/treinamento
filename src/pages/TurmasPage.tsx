@@ -6,13 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
-import { ModernTurmaCard } from "@/components/modern/ModernTurmaCard";
 import { DashboardStats } from "@/components/modern/DashboardStats";
 import { TurmaDetailsDialog } from "@/components/turmas/TurmaDetailsDialog";
 import { CreateTurmaDialog } from "@/components/turmas/CreateTurmaDialog";
 import { EditTurmaDialog } from "@/components/turmas/EditTurmaDialog";
 import { EnrollStudentDialog } from "@/components/turmas/EnrollStudentDialog";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
+import { TurmaKanbanBoard } from "@/components/turmas/TurmaKanbanBoard";
 import FloatingActionButton from "@/components/mobile/FloatingActionButton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -37,7 +36,7 @@ const TurmasPage = () => {
   // Filter only live courses
   const liveCourses = courses.filter(course => course.tipo === 'ao_vivo');
 
-  // Filter turmas based on search and filters
+  // Filter turmas based on search and filters (for Kanban we show all status)
   const filteredTurmas = allTurmas.filter(turma => {
     const matchesSearch = !searchTerm || 
       (turma.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,20 +47,7 @@ const TurmasPage = () => {
       turma.responsavel_user_id === professorFilter ||
       turma.responsavel_user?.name?.toLowerCase().includes(professorFilter.toLowerCase());
     
-    // Status filter logic
-    let matchesStatus;
-    if (statusFilter === "todos") {
-      // Default view: show only active turmas (exclude 'encerrada')
-      matchesStatus = turma.status !== 'encerrada';
-    } else if (statusFilter === "encerrada") {
-      // Archive view: show only archived turmas
-      matchesStatus = turma.status === 'encerrada';
-    } else {
-      // Specific status filter
-      matchesStatus = turma.status === statusFilter;
-    }
-    
-    return matchesSearch && matchesCourse && matchesStatus && matchesProfessor;
+    return matchesSearch && matchesCourse && matchesProfessor;
   });
 
   // Get unique professors for filter
@@ -140,27 +126,20 @@ const TurmasPage = () => {
         {/* Dashboard Stats */}
         <DashboardStats />
 
-        {/* Filters Section */}
+        {/* Kanban Board Section */}  
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Filter className="w-4 h-4" />
-            Filtros e Busca
+            Painel Visual - Kanban
           </div>
           
-          {/* Status Filters */}
-          <TurmaStatusFilters 
-            statusFilter={statusFilter}
-            onStatusChange={setStatusFilter}
-          />
-          
-          {/* Other Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Buscar turma</label>
+          {/* Quick Filters */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Nome ou código da turma..."
+                  placeholder="Buscar turma..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -168,62 +147,49 @@ const TurmasPage = () => {
               </div>
             </div>
             
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Curso</label>
-              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os cursos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os cursos</SelectItem>
-                  {liveCourses.map(course => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Todos os cursos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os cursos</SelectItem>
+                {liveCourses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Professor</label>
-              <Select value={professorFilter} onValueChange={setProfessorFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os professores" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os professores</SelectItem>
-                  {professors.map(professor => (
-                    <SelectItem key={professor.id} value={professor.id}>
-                      {professor.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={professorFilter} onValueChange={setProfessorFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Todos os professores" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os professores</SelectItem>
+                {professors.map(professor => (
+                  <SelectItem key={professor.id} value={professor.id}>
+                    {professor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="text-sm text-muted-foreground">
-          {filteredTurmas.length} turma{filteredTurmas.length !== 1 ? 's' : ''} encontrada{filteredTurmas.length !== 1 ? 's' : ''}
-        </div>
-
-        {/* Content */}
-        {filteredTurmas.length === 0 ? (
+        {/* Kanban Board */}
+        {allTurmas.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-muted/20 rounded-full flex items-center justify-center">
               <Users className="w-8 h-8 text-muted-foreground/50" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              {allTurmas.length === 0 ? "Nenhuma turma encontrada" : "Nenhuma turma corresponde aos filtros"}
+              Nenhuma turma encontrada
             </h3>
             <p className="text-muted-foreground max-w-md mb-4">
-              {allTurmas.length === 0 
-                ? liveCourses.length > 0 
-                  ? "Crie a primeira turma para começar!"
-                  : "Crie primeiro um curso 'Ao Vivo' para poder criar turmas."
-                : "Tente ajustar os filtros para encontrar turmas."
+              {liveCourses.length > 0 
+                ? "Crie a primeira turma para começar!"
+                : "Crie primeiro um curso 'Ao Vivo' para poder criar turmas."
               }
             </p>
             {liveCourses.length > 0 && (
@@ -234,21 +200,13 @@ const TurmasPage = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-animation">
-            {filteredTurmas.map((turma) => {
-              const course = courses.find(c => c.id === turma.course_id);
-              return (
-                <ModernTurmaCard
-                  key={turma.id}
-                  turma={turma}
-                  course={course}
-                  onViewDetails={handleViewTurmaDetails}
-                  onEnrollStudent={handleEnrollStudent}
-                  onEditTurma={handleEditTurma}
-                />
-              );
-            })}
-          </div>
+          <TurmaKanbanBoard
+            turmas={filteredTurmas}
+            courses={courses}
+            onViewDetails={handleViewTurmaDetails}
+            onEnrollStudent={handleEnrollStudent}
+            onEditTurma={handleEditTurma}
+          />
         )}
 
         {/* Mobile FAB */}
