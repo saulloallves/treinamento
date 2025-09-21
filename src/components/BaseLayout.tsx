@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getSelectedProfile } from "@/lib/profile";
+import { useState, useEffect } from "react";
 
 interface BaseLayoutProps {
   title: string;
@@ -21,6 +22,35 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
   
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sidebar-collapsed') === 'true';
+    }
+    return false;
+  });
+
+  // Listen for localStorage changes to update layout
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setSidebarCollapsed(localStorage.getItem('sidebar-collapsed') === 'true');
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for direct localStorage changes in the same tab
+    const interval = setInterval(() => {
+      const collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+      if (collapsed !== sidebarCollapsed) {
+        setSidebarCollapsed(collapsed);
+      }
+    }, 100);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [sidebarCollapsed]);
+  
   // Determinar se deve mostrar sidebar baseado no perfil selecionado
   const selectedProfile = getSelectedProfile();
   const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
@@ -32,7 +62,13 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         <ModernSidebar showInMobile={shouldShowSidebar || !showBottomNav} />
       )}
       
-      <div className={`flex-1 min-w-0 flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
+      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${
+        !isMobile 
+          ? sidebarCollapsed 
+            ? 'ml-16' 
+            : 'ml-64' 
+          : ''
+      }`}>
         {/* Header responsivo */}
         <header className="bg-background border-b border-border px-3 md:px-8 py-3 md:py-6 relative z-10">
           <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>

@@ -20,7 +20,9 @@ import {
   ChevronDown,
   Target,
   ClipboardCheck,
-  Video
+  Video,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
@@ -32,6 +34,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ModernSidebarProps {
   showInMobile?: boolean;
@@ -43,6 +46,12 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sidebar-collapsed') === 'true';
+    }
+    return false;
+  });
   const userInteracting = useRef(false);
   
   // Initialize expanded groups based on current route
@@ -62,9 +71,18 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const { data: currentUser } = useCurrentUser();
   const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
-  // Reset active group when navigating to a different route
+  // Toggle sidebar collapsed state
+  const toggleCollapsed = useCallback(() => {
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    localStorage.setItem('sidebar-collapsed', newCollapsedState.toString());
+  }, [isCollapsed]);
+  
+  // Reset active group when navigating to a different route, but preserve expanded groups
   useEffect(() => {
-    setActiveGroup(null);
+    if (!userInteracting.current) {
+      setActiveGroup(null);
+    }
   }, [location.pathname]);
   
   // Determinar qual menu mostrar baseado na preferência do usuário
@@ -248,19 +266,22 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.path;
     
-    return (
+    const menuItem = (
       <Link
         key={item.path}
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
-          setActiveGroup(null);
+          // Don't reset activeGroup when clicking submenu items to prevent accordion shake
+          if (!isSubItem) {
+            setActiveGroup(null);
+          }
         }}
         className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
             ? "bg-blue-50 text-blue-700 shadow-sm" 
             : "text-slate-700 hover:text-slate-900"
-        } ${isSubItem ? 'ml-7 pl-4' : ''}`}
+        } ${isSubItem ? 'ml-7 pl-4' : ''} ${isCollapsed && !isMobile ? 'justify-center px-2' : ''}`}
       >
         {/* Active indicator bar */}
         {isActive && !isSubItem && (
@@ -270,16 +291,34 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         <div className={`shrink-0 ${isSubItem ? 'w-4 h-4' : 'w-5 h-5'}`}>
           <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} transition-colors`} />
         </div>
-        <span className="font-medium truncate">{item.name || item.label}</span>
+        {(!isCollapsed || isMobile) && (
+          <span className="font-medium truncate">{item.name || item.label}</span>
+        )}
       </Link>
     );
-  }, [location.pathname, isMobile]);
+
+    // Wrap with tooltip if collapsed and not mobile
+    if (isCollapsed && !isMobile && !isSubItem) {
+      return (
+        <Tooltip key={item.path}>
+          <TooltipTrigger asChild>
+            {menuItem}
+          </TooltipTrigger>
+          <TooltipContent side="right" className="ml-2">
+            {item.name || item.label}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return menuItem;
+  }, [location.pathname, isMobile, isCollapsed]);
 
   const renderGroupButton = useCallback((item: any) => {
     const isExpanded = expandedGroups[item.id];
     const hasActiveChild = isGroupActive(item);
     
-    return (
+    const groupButton = (
       <button
         type="button"
         onClick={() => toggleGroup(item.id)}
@@ -287,22 +326,42 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           hasActiveChild
             ? 'bg-slate-100/50 text-slate-900'
             : 'text-slate-700 hover:text-slate-900'
-        }`}
+        } ${isCollapsed && !isMobile ? 'justify-center px-2' : ''}`}
       >
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 shrink-0">
             <item.icon className="w-5 h-5 transition-colors" />
           </div>
-          <span className="font-medium truncate">{item.name}</span>
+          {(!isCollapsed || isMobile) && (
+            <span className="font-medium truncate">{item.name}</span>
+          )}
         </div>
-        <ChevronDown 
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-            isExpanded ? 'rotate-0' : '-rotate-90'
-          }`} 
-        />
+        {(!isCollapsed || isMobile) && (
+          <ChevronDown 
+            className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+              isExpanded ? 'rotate-0' : '-rotate-90'
+            }`} 
+          />
+        )}
       </button>
     );
-  }, [expandedGroups, isGroupActive, toggleGroup]);
+
+    // Wrap with tooltip if collapsed and not mobile
+    if (isCollapsed && !isMobile) {
+      return (
+        <Tooltip key={item.id}>
+          <TooltipTrigger asChild>
+            {groupButton}
+          </TooltipTrigger>
+          <TooltipContent side="right" className="ml-2">
+            {item.name}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return groupButton;
+  }, [expandedGroups, isGroupActive, toggleGroup, isCollapsed, isMobile]);
 
   const renderMenu = useCallback((menuStructure: any[]) => {
     return menuStructure.map((item) => {
@@ -316,21 +375,24 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         <div key={item.id} className="space-y-1">
           {renderGroupButton(item)}
           
-          <div 
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isExpanded 
-                ? 'max-h-96 opacity-100 animate-accordion-down' 
-                : 'max-h-0 opacity-0 animate-accordion-up'
-            }`}
-          >
-            <div className="space-y-0.5 pt-1">
-              {item.items?.map((subItem: any) => renderMenuItem(subItem, true))}
+          {/* Hide submenu when collapsed */}
+          {(!isCollapsed || isMobile) && (
+            <div 
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isExpanded 
+                  ? 'max-h-96 opacity-100 animate-accordion-down' 
+                  : 'max-h-0 opacity-0 animate-accordion-up'
+              }`}
+            >
+              <div className="space-y-0.5 pt-1">
+                {item.items?.map((subItem: any) => renderMenuItem(subItem, true))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       );
     });
-  }, [expandedGroups, renderMenuItem, renderGroupButton]);
+  }, [expandedGroups, renderMenuItem, renderGroupButton, isCollapsed, isMobile]);
 
   const renderStudentMenu = useCallback(() => {
     return studentMenuItems.map((item, index) => {
@@ -446,52 +508,74 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   }
 
   return (
-    <div className="w-64 bg-white fixed top-0 left-0 z-40 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm">
-      {/* Header da sidebar */}
-      <div className="p-6 border-b border-slate-200/60">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-            <GraduationCap className="w-6 h-6 text-white" />
+    <TooltipProvider>
+      <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white fixed top-0 left-0 z-40 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}>
+        {/* Header da sidebar */}
+        <div className="p-6 border-b border-slate-200/60 relative">
+          {/* Toggle button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleCollapsed}
+            className="absolute top-4 right-3 h-8 w-8 hover:bg-slate-100 z-10"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+          
+          <div className={`flex items-center gap-3 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <GraduationCap className="w-6 h-6 text-white" />
+            </div>
+            {!isCollapsed && (
+              <div>
+                <h1 className="text-lg font-semibold text-slate-900">
+                  Cresci e Perdi
+                </h1>
+                <p className="text-xs text-slate-500">
+                  Sistema de Treinamentos
+                </p>
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">
-              Cresci e Perdi
-            </h1>
-            <p className="text-xs text-slate-500">
-              Sistema de Treinamentos
-            </p>
+        </div>
+
+        {/* Menu de navegação */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto sidebar-scroll" style={{ scrollbarGutter: 'stable' }}>
+          {shouldShowAdminMenu 
+            ? renderMenu(adminMenuStructure) 
+            : shouldShowProfessorMenu 
+            ? renderMenu(professorMenuStructure) 
+            : renderStudentMenu()}
+        </nav>
+
+        {/* Footer da sidebar */}
+        <div className="p-4 border-t border-slate-200/60">
+          <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200 ${
+            isCollapsed ? 'justify-center' : ''
+          }`}>
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+              <span className="text-sm font-medium text-white">
+                {user?.email?.[0]?.toUpperCase() || 'U'}
+              </span>
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 truncate">
+                  {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                </p>
+                <p className="text-xs text-slate-500 truncate">
+                  {user?.email ?? ''}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Menu de navegação */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto sidebar-scroll" style={{ scrollbarGutter: 'stable' }}>
-        {shouldShowAdminMenu 
-          ? renderMenu(adminMenuStructure) 
-          : shouldShowProfessorMenu 
-          ? renderMenu(professorMenuStructure) 
-          : renderStudentMenu()}
-      </nav>
-
-      {/* Footer da sidebar */}
-      <div className="p-4 border-t border-slate-200/60">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-            <span className="text-sm font-medium text-white">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-900 truncate">
-              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
-            </p>
-            <p className="text-xs text-slate-500 truncate">
-              {user?.email ?? ''}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
