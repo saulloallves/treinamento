@@ -157,14 +157,14 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
                 id="zoom_start_time"
                 type="datetime-local"
                 value={formData.zoom_start_time ? 
-                  new Date(new Date(formData.zoom_start_time).getTime() - new Date(formData.zoom_start_time).getTimezoneOffset() * 60000)
-                    .toISOString().slice(0, 16) : ""}
+                  new Date(formData.zoom_start_time).toISOString().slice(0, 16) : ""}
                 onChange={(e) => {
+                  console.log('Campo datetime-local alterado:', e.target.value);
                   if (e.target.value) {
-                    // Convert local datetime back to UTC
-                    const localDate = new Date(e.target.value);
-                    const utcDate = new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
-                    setFormData({ ...formData, zoom_start_time: utcDate.toISOString() });
+                    // Cria um Date object a partir do valor datetime-local
+                    const selectedDate = new Date(e.target.value);
+                    console.log('Data selecionada convertida:', selectedDate.toISOString());
+                    setFormData({ ...formData, zoom_start_time: selectedDate.toISOString() });
                   } else {
                     setFormData({ ...formData, zoom_start_time: null });
                   }
