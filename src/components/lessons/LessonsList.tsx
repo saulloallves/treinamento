@@ -525,17 +525,20 @@ const LessonsList = () => {
                               Ver Vídeo
                             </Button>
                           )}
-                          <button
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 rounded-md border-2 bg-white hover:bg-blue-50 disabled:opacity-50"
                             style={{ 
-                              borderColor: '#3B82F6',
-                              color: '#3B82F6'
+                              color: '#3B82F6 !important',
+                              borderColor: '#3B82F6 !important',
+                              backgroundColor: 'transparent'
                             }}
+                            className="h-9 px-3"
                           >
                             <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                          </button>
+                          </Button>
                           <Button 
                             variant="outline" 
                             size="sm"
@@ -627,17 +630,20 @@ const LessonsList = () => {
                                   Ver Vídeo
                                 </Button>
                               )}
-                              <button
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 rounded-md border-2 bg-white hover:bg-blue-50 disabled:opacity-50"
                                 style={{ 
-                                  borderColor: '#3B82F6',
-                                  color: '#3B82F6'
+                                  color: '#3B82F6 !important',
+                                  borderColor: '#3B82F6 !important',
+                                  backgroundColor: 'transparent'
                                 }}
+                                className="h-9 px-3"
                               >
                                 <Edit className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                              </button>
+                              </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm"
