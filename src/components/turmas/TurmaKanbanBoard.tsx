@@ -39,9 +39,9 @@ export const TurmaKanbanBoard = ({
   // Group turmas by status using dynamic columns with optimistic updates
   const groupedTurmas = columns.reduce((acc, column) => {
     if (column.status === 'transformar_treinamento') {
-      // For now, this custom column will be empty until we have metadata to distinguish
-      // turmas that should be in this column vs regular 'encerrada' turmas
-      acc[column.status] = [];
+      // This column shows 'encerrada' turmas that have been moved here
+      // For now, we'll show all 'encerrada' turmas here until we add metadata
+      acc[column.status] = optimisticTurmas.filter(turma => turma.status === 'encerrada');
     } else {
       acc[column.status] = optimisticTurmas.filter(turma => turma.status === column.status);
     }
@@ -67,13 +67,29 @@ export const TurmaKanbanBoard = ({
   };
 
   const handleDrop = async (targetStatus: string) => {
-    if (!draggedTurma || draggedTurma.status === targetStatus) {
+    if (!draggedTurma) {
       setDraggedTurma(null);
       return;
     }
     
+    console.log('Drop initiated:', {
+      draggedTurma: draggedTurma.name,
+      currentStatus: draggedTurma.status,
+      targetStatus,
+      mappedStatus: mapKanbanStatusToTurmaStatus(targetStatus)
+    });
+    
     const originalStatus = draggedTurma.status;
     const turmaStatus = mapKanbanStatusToTurmaStatus(targetStatus);
+    
+    // Skip if already in correct status (compare mapped statuses)
+    if (originalStatus === turmaStatus && targetStatus !== 'transformar_treinamento') {
+      console.log('Turma already in correct status, skipping update');
+      setDraggedTurma(null);
+      return;
+    }
+    
+    console.log('Applying optimistic update');
     
     // Optimistic update - immediately update UI
     setOptimisticTurmas(prev => 
@@ -85,6 +101,7 @@ export const TurmaKanbanBoard = ({
     );
     
     try {
+      console.log('Calling API update');
       await updateTurma.mutateAsync({
         id: draggedTurma.id,
         status: turmaStatus,
@@ -94,6 +111,7 @@ export const TurmaKanbanBoard = ({
         } : {})
       });
       
+      console.log('API update successful');
       toast({
         title: "Turma movida com sucesso!",
         description: `A turma foi movida para ${columns.find(c => c.status === targetStatus)?.title || targetStatus}.`,

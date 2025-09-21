@@ -55,8 +55,10 @@ export const TurmaKanbanCard = ({
   };
 
   const handleDragStart = (e: React.DragEvent) => {
+    console.log('Drag start for turma:', turma.name, 'status:', turma.status);
     onDragStart(turma);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData("text/plain", turma.id);
   };
 
   return (
