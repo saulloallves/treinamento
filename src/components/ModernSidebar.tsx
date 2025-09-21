@@ -94,7 +94,8 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
   }, [isCollapsed, isMobile]);
   
-  // Reset active group when navigating to a different route, but preserve expanded groups
+  // Only reset active group on navigation, don't touch expanded groups
+  // This prevents accordion shake when clicking submenu items
   useEffect(() => {
     if (!userInteracting.current) {
       setActiveGroup(null);
@@ -263,9 +264,10 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       [groupId]: !prev[groupId]
     }));
     setActiveGroup(groupId);
+    // Increased timeout to prevent race conditions
     setTimeout(() => {
       userInteracting.current = false;
-    }, 100);
+    }, 300);
   }, []);
 
   const isGroupActive = useCallback((group: any) => {
@@ -288,7 +290,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         to={item.path}
         onClick={() => {
           if (isMobile) setIsOpen(false);
-          // Prevent accordion shake: don't reset activeGroup when clicking submenu items
+          // Set interaction flag to prevent accordion shake on navigation
+          userInteracting.current = true;
+          setTimeout(() => {
+            userInteracting.current = false;
+          }, 300);
         }}
         className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
           isActive 
