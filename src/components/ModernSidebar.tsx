@@ -53,6 +53,8 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     return false;
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const isTogglingRef = useRef<boolean>(false);
+  const mountedRef = useRef<boolean>(true);
   
   // Simplified state management - use only sessionStorage, no route-based initialization
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
@@ -97,6 +99,14 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [isCollapsed, isMobile]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => 
@@ -253,22 +263,45 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     }
   ];
 
-  // Toggle group with optimized state management and debounce protection
-  const toggleGroup = useCallback((groupId: string) => {
-    setExpandedGroups(prev => {
-      const newState = {
-        ...prev,
-        [groupId]: !prev[groupId]
-      };
+  // Robust toggle function with duplicate prevention and StrictMode protection
+  const toggleGroup = useCallback((groupId: string, event?: React.MouseEvent) => {
+    // Prevent event bubbling and default behavior
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Protection against rapid double-clicks and StrictMode
+    if (isTogglingRef.current || !mountedRef.current) {
+      return;
+    }
+    
+    isTogglingRef.current = true;
+    
+    // Use requestAnimationFrame to ensure state update happens on next frame
+    requestAnimationFrame(() => {
+      setExpandedGroups(prev => {
+        const newState = {
+          ...prev,
+          [groupId]: !prev[groupId]
+        };
+        
+        // Persist to sessionStorage with error handling
+        try {
+          sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(newState));
+        } catch (error) {
+          console.warn('Failed to save sidebar state:', error);
+        }
+        
+        return newState;
+      });
       
-      // Persist to sessionStorage immediately
-      try {
-        sessionStorage.setItem('sidebar-expanded-groups', JSON.stringify(newState));
-      } catch (error) {
-        console.warn('Failed to save sidebar state:', error);
-      }
-      
-      return newState;
+      // Reset toggle protection after a short delay
+      setTimeout(() => {
+        if (mountedRef.current) {
+          isTogglingRef.current = false;
+        }
+      }, 100);
     });
   }, []);
 
@@ -331,14 +364,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     const groupButton = (
       <button
         type="button"
-        onClick={() => toggleGroup(item.id)}
-        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-all duration-200 hover:bg-slate-100/50 focus:outline-none ${
+        onClick={(event) => toggleGroup(item.id, event)}
+        onMouseDown={(e) => e.preventDefault()} // Prevent focus issues
+        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-all duration-200 hover:bg-slate-100/50 focus:outline-none select-none ${
           hasActiveChild
             ? 'bg-slate-100/50 text-slate-900'
             : 'text-slate-700 hover:text-slate-900'
         } ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pointer-events-none">
           <div className="w-5 h-5 shrink-0">
             <item.icon className="w-5 h-5 transition-colors" />
           </div>
@@ -348,7 +382,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </div>
         {(!isCollapsed || isMobile) && (
           <ChevronDown 
-            className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+            className={`h-4 w-4 shrink-0 transition-transform duration-200 pointer-events-none ${
               isExpanded ? 'rotate-0' : '-rotate-90'
             }`} 
           />
@@ -392,11 +426,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           {/* Hide submenu when collapsed */}
           {(!isCollapsed || isMobile) && (
             <div 
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              className={`overflow-hidden transition-all duration-200 ease-out ${
                 isExpanded 
-                  ? 'max-h-96 opacity-100 animate-accordion-down' 
-                  : 'max-h-0 opacity-0 animate-accordion-up'
+                  ? 'max-h-96 opacity-100' 
+                  : 'max-h-0 opacity-0'
               }`}
+              style={{
+                transitionProperty: 'max-height, opacity',
+                willChange: isExpanded !== expandedGroups[item.id] ? 'max-height, opacity' : 'auto'
+              }}
             >
               <div className="space-y-0.5 pt-1">
                 {item.items?.map((subItem: any) => (
