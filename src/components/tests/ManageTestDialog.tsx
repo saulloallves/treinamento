@@ -48,10 +48,9 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
       
       questions.forEach(q => {
         initialTexts[q.id] = q.question_text;
-        q.options?.forEach(opt => {
-          if (opt.id) {
-            initialOptionTexts[opt.id] = opt.option_text;
-          }
+        q.options?.forEach((opt, index) => {
+          const optionKey = opt.id || `temp-${q.id}-${index}`;
+          initialOptionTexts[optionKey] = opt.option_text;
         });
       });
       
@@ -97,11 +96,14 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
           opt.id === optionId ? { ...opt, option_text: newText } : opt
         ) || [];
         
+        console.log('Updating option:', { questionId, optionId, newText, updatedOptions });
+        
         try {
           await updateQuestion({
             id: questionId,
             options: updatedOptions
           });
+          console.log('Option updated successfully');
         } catch (error) {
           console.error('Error updating option:', error);
           // Revert local state on error
@@ -281,42 +283,60 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                           </div>
                         )}
 
-                        {question.question_type === 'multiple_choice' ? (
+                         {question.question_type === 'multiple_choice' ? (
                           <div className="space-y-3">
                             <Label>Alternativas (Sistema de Pontuação)</Label>
                             <div className="space-y-3">
-                              {question.options?.map((option, optionIndex) => (
-                                <div key={option.id || optionIndex} className="border rounded-lg p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <Label className="text-sm font-medium">
-                                      Alternativa {String.fromCharCode(65 + optionIndex)} - 
-                                      <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                                        option.score_value === 0 ? 'bg-red-100 text-red-800' :
-                                        option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-green-100 text-green-800'
-                                      }`}>
-                                        {option.score_value === 0 ? 'Errada (0 pts)' :
-                                         option.score_value === 1 ? 'Mediana (1 pt)' :
-                                         'Correta (2 pts)'}
-                                      </span>
-                                    </Label>
-                                  </div>
-                                  <Input
-                                    value={optionTexts[option.id || ''] || option.option_text || ""}
-                                    onChange={(e) => {
-                                      const newValue = e.target.value;
-                                      if (option.id) {
+                              {question.options?.map((option, optionIndex) => {
+                                const optionKey = option.id || `temp-${question.id}-${optionIndex}`;
+                                return (
+                                  <div key={optionKey} className="border rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <Label className="text-sm font-medium">
+                                        Alternativa {String.fromCharCode(65 + optionIndex)} - 
+                                        <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                                          option.score_value === 0 ? 'bg-red-100 text-red-800' :
+                                          option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                          'bg-green-100 text-green-800'
+                                        }`}>
+                                          {option.score_value === 0 ? 'Errada (0 pts)' :
+                                           option.score_value === 1 ? 'Mediana (1 pt)' :
+                                           'Correta (2 pts)'}
+                                        </span>
+                                      </Label>
+                                    </div>
+                                    <Input
+                                      value={
+                                        option.id 
+                                          ? (optionTexts[option.id] ?? option.option_text ?? "")
+                                          : (optionTexts[optionKey] ?? option.option_text ?? "")
+                                      }
+                                      onChange={(e) => {
+                                        const newValue = e.target.value;
+                                        const keyToUse = option.id || optionKey;
+                                        
+                                        console.log('Option text change:', {
+                                          questionId: question.id,
+                                          optionId: option.id,
+                                          optionKey,
+                                          keyToUse,
+                                          newValue
+                                        });
+                                        
                                         setOptionTexts(prev => ({
                                           ...prev,
-                                          [option.id!]: newValue
+                                          [keyToUse]: newValue
                                         }));
-                                        debouncedUpdateOption(question.id, option.id, newValue);
-                                      }
-                                    }}
-                                    placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
-                                  />
-                                </div>
-                              ))}
+                                        
+                                        if (option.id) {
+                                          debouncedUpdateOption(question.id, option.id, newValue);
+                                        }
+                                      }}
+                                      placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
+                                    />
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         ) : (
