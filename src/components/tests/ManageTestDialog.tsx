@@ -249,7 +249,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                           </Select>
                         </div>
 
-                        <div className="space-y-2">
+                         <div className="space-y-2">
                           <Label>Texto da Pergunta</Label>
                           <Textarea
                             value={questionTexts[question.id] || ""}
@@ -259,11 +259,26 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                                 ...prev,
                                 [question.id]: newValue
                               }));
-                              debouncedUpdateQuestion(question.id, { question_text: newValue });
                             }}
                             rows={2}
                             placeholder="Digite o texto da pergunta..."
                           />
+                          <div className="flex justify-end">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                const currentText = questionTexts[question.id];
+                                if (currentText && currentText !== question.question_text) {
+                                  debouncedUpdateQuestion(question.id, { question_text: currentText });
+                                  toast.success("Pergunta salva!");
+                                }
+                              }}
+                            >
+                              <Save className="h-4 w-4 mr-1" />
+                              Salvar Pergunta
+                            </Button>
+                          </div>
                         </div>
 
                         {question.image_urls && question.image_urls.length > 0 && (
@@ -283,7 +298,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                           </div>
                         )}
 
-                         {question.question_type === 'multiple_choice' ? (
+                        {question.question_type === 'multiple_choice' ? (
                           <div className="space-y-3">
                             <Label>Alternativas (Sistema de Pontuação)</Label>
                             <div className="space-y-3">
@@ -315,28 +330,46 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                                         const newValue = e.target.value;
                                         const keyToUse = option.id || optionKey;
                                         
-                                        console.log('Option text change:', {
-                                          questionId: question.id,
-                                          optionId: option.id,
-                                          optionKey,
-                                          keyToUse,
-                                          newValue
-                                        });
-                                        
                                         setOptionTexts(prev => ({
                                           ...prev,
                                           [keyToUse]: newValue
                                         }));
-                                        
-                                        if (option.id) {
-                                          debouncedUpdateOption(question.id, option.id, newValue);
-                                        }
                                       }}
                                       placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
                                     />
                                   </div>
                                 );
                               })}
+                            </div>
+                            <div className="flex justify-end">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={async () => {
+                                  try {
+                                    const updatedOptions = question.options?.map(opt => {
+                                      const optionKey = opt.id || `temp-${question.id}-${question.options?.indexOf(opt)}`;
+                                      const newText = optionTexts[optionKey];
+                                      return { 
+                                        ...opt, 
+                                        option_text: newText !== undefined ? newText : opt.option_text 
+                                      };
+                                    }) || [];
+                                    
+                                    await updateQuestion({
+                                      id: question.id,
+                                      options: updatedOptions
+                                    });
+                                    toast.success("Alternativas salvas!");
+                                  } catch (error) {
+                                    console.error('Error saving alternatives:', error);
+                                    toast.error("Erro ao salvar alternativas");
+                                  }
+                                }}
+                              >
+                                <Save className="h-4 w-4 mr-1" />
+                                Salvar Alternativas
+                              </Button>
                             </div>
                           </div>
                         ) : (

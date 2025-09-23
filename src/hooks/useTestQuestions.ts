@@ -106,16 +106,7 @@ export const useTestQuestions = (testId?: string | null) => {
       options, 
       ...updates 
     }: { id: string; options?: TestQuestionOption[] } & Partial<TestQuestion>) => {
-      // Update the question
-      const { data, error } = await supabase
-        .from("test_questions")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      
       // Update options if provided
       if (options) {
         // Delete existing options
@@ -133,13 +124,36 @@ export const useTestQuestions = (testId?: string | null) => {
             option_order: option.option_order
           }));
 
-          await supabase
+          const { error: optionsError } = await supabase
             .from("test_question_options")
             .insert(optionsToInsert);
+
+          if (optionsError) throw optionsError;
         }
       }
 
-      return data;
+      // Update the question only if there are other updates
+      if (Object.keys(updates).length > 0) {
+        const { data, error } = await supabase
+          .from("test_questions")
+          .update(updates)
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // If only updating options, return the question data
+      const { data: questionData, error: questionError } = await supabase
+        .from("test_questions")
+        .select()
+        .eq("id", id)
+        .single();
+
+      if (questionError) throw questionError;
+      return questionData;
     },
     onSuccess: () => {
       // Delay the invalidation to prevent UI flicker
