@@ -130,8 +130,20 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     }
 
     try {
-      console.log("Tentando atualizar teste com dados:", { id: testId, ...editedTest });
-      await updateTest({ id: testId, ...editedTest });
+      // Filtrar apenas os campos que pertencem à tabela tests
+      const testUpdateData = {
+        name: editedTest.name,
+        description: editedTest.description,
+        course_id: editedTest.course_id,
+        turma_id: editedTest.turma_id,
+        passing_percentage: editedTest.passing_percentage,
+        max_attempts: editedTest.max_attempts,
+        time_limit_minutes: editedTest.time_limit_minutes,
+        status: editedTest.status,
+      };
+      
+      console.log("Tentando atualizar teste com dados filtrados:", { id: testId, ...testUpdateData });
+      await updateTest({ id: testId, ...testUpdateData });
       toast.success(
         editedTest.status === 'active' 
           ? "Teste ativado com sucesso! Agora está disponível para os alunos." 

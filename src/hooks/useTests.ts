@@ -73,8 +73,6 @@ export const useTests = () => {
 
   const updateTest = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<Test>) => {
-      console.log("updateTest mutationFn - ID:", id, "Updates:", updates);
-      
       const { data, error } = await supabase
         .from("tests")
         .update(updates)
@@ -82,21 +80,12 @@ export const useTests = () => {
         .select()
         .single();
 
-      console.log("updateTest mutationFn - Response data:", data, "Error:", error);
-
-      if (error) {
-        console.error("Supabase update error:", error);
-        throw error;
-      }
+      if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      console.log("updateTest onSuccess - Data:", data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tests"] });
     },
-    onError: (error) => {
-      console.error("updateTest onError:", error);
-    }
   });
 
   const deleteTest = useMutation({
