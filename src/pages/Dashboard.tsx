@@ -28,12 +28,24 @@ const Dashboard = () => {
   const isMobile = useIsMobile();
   const { data, isLoading, refetch, error } = useDashboardStats();
   
+  console.log('🎯 Dashboard render - stats:', { data, isLoading, error });
+  
   if (error) {
+    console.error('❌ Dashboard stats error:', error);
     return <div className="p-6">
       <h1 className="page-title text-red-600">Erro no Dashboard</h1>
       <p className="description mt-2">{error.message}</p>
     </div>;
   }
+
+  if (isLoading) {
+    console.log('⏳ Dashboard loading...');
+    return <div className="p-6">
+      <h1 className="page-title">Carregando Dashboard...</h1>
+    </div>;
+  }
+
+  console.log('✅ Dashboard rendering content...');
 
   const formatNumber = (n: number | undefined) =>
     typeof n === "number" ? n.toLocaleString("pt-BR") : "0";

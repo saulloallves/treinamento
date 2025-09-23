@@ -22,6 +22,15 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
   
+  console.log('🎯 BaseLayout render:', { 
+    title, 
+    user: !!user, 
+    isMobile, 
+    isProfessor, 
+    isAdmin,
+    userId: user?.id
+  });
+  
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('sidebar-collapsed') === 'true';
