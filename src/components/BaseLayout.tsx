@@ -25,6 +25,20 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const selectedProfile = typeof window !== 'undefined' 
     ? localStorage.getItem('selected_profile') 
     : null;
+    
+  console.log('🔍 BaseLayout - User info:', {
+    userId: user?.id,
+    isAdmin,
+    isProfessor,
+    selectedProfile,
+    shouldShowSidebar: (() => {
+      if (selectedProfile === 'Aluno') return false;
+      if (selectedProfile === 'Admin' && isAdmin) return true;
+      if (selectedProfile === 'Professor' && isProfessor) return true;
+      if (!selectedProfile) return isAdmin || isProfessor;
+      return false;
+    })()
+  });
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {

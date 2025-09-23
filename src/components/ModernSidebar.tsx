@@ -115,16 +115,64 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     };
   }, []);
   
-  // Determinar qual menu mostrar baseado nas permissões do usuário
-  const shouldShowAdminMenu = useMemo(() => 
+  // Verificar a preferência de perfil do usuário
+  const selectedProfile = typeof window !== 'undefined' 
+    ? localStorage.getItem('selected_profile') 
+    : null;
+    
+  console.log('🔍 ModernSidebar - Menu determination:', {
+    userId: user?.id,
     isAdmin,
-    [isAdmin]
-  );
+    isProfessor,
+    selectedProfile
+  });
   
-  const shouldShowProfessorMenu = useMemo(() => 
-    isProfessor && !isAdmin,
-    [isProfessor, isAdmin]
-  );
+  // Determinar qual menu mostrar baseado na preferência do usuário
+  const shouldShowAdminMenu = useMemo(() => {
+    // Se usuário escolheu "Aluno", nunca mostrar menu admin
+    if (selectedProfile === 'Aluno') {
+      console.log('🔍 ModernSidebar - User chose Aluno, hiding admin menu');
+      return false;
+    }
+    
+    // Se escolheu "Admin" e é admin, mostrar
+    if (selectedProfile === 'Admin' && isAdmin) {
+      console.log('🔍 ModernSidebar - User chose Admin, showing admin menu');
+      return true;
+    }
+    
+    // Se não há preferência, usar lógica padrão
+    if (!selectedProfile && isAdmin) {
+      console.log('🔍 ModernSidebar - No preference, defaulting to admin menu');
+      return true;
+    }
+    
+    console.log('🔍 ModernSidebar - Not showing admin menu');
+    return false;
+  }, [isAdmin, selectedProfile]);
+  
+  const shouldShowProfessorMenu = useMemo(() => {
+    // Se usuário escolheu "Aluno", nunca mostrar menu professor
+    if (selectedProfile === 'Aluno') {
+      console.log('🔍 ModernSidebar - User chose Aluno, hiding professor menu');
+      return false;
+    }
+    
+    // Se escolheu "Professor" e é professor, mostrar
+    if (selectedProfile === 'Professor' && isProfessor) {
+      console.log('🔍 ModernSidebar - User chose Professor, showing professor menu');
+      return true;
+    }
+    
+    // Se não há preferência, usar lógica padrão (professor mas não admin)
+    if (!selectedProfile && isProfessor && !isAdmin) {
+      console.log('🔍 ModernSidebar - No preference, defaulting to professor menu');
+      return true;
+    }
+    
+    console.log('🔍 ModernSidebar - Not showing professor menu');
+    return false;
+  }, [isProfessor, isAdmin, selectedProfile]);
   
   // Menu para alunos
   const studentMenuItems = useMemo(() => {
@@ -566,14 +614,14 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900 truncate">
-                    {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
-                  </p>
-                  <p className="text-xs text-slate-500 truncate">
-                    {user?.email ?? ''}
-                  </p>
-                </div>
+                 <div className="flex-1 min-w-0">
+                   <p className="text-sm font-medium text-slate-900 truncate">
+                     {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                   </p>
+                   <p className="text-xs text-slate-500 truncate">
+                     {user?.email ?? ''}
+                   </p>
+                 </div>
               </div>
             </div>
           </div>
@@ -646,9 +694,9 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">
-                  {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
-                </p>
+                 <p className="text-sm font-medium text-slate-900 truncate">
+                   {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                 </p>
                 <p className="text-xs text-slate-500 truncate">
                   {user?.email ?? ''}
                 </p>

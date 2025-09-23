@@ -66,16 +66,49 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
     setActiveGroup(null);
   }, [location.pathname]);
   
-  // Determinar qual menu mostrar baseado nas permissões do usuário
-  const shouldShowAdminMenu = useMemo(() => 
-    isAdmin,
-    [isAdmin]
-  );
+  // Verificar a preferência de perfil do usuário
+  const selectedProfile = typeof window !== 'undefined' 
+    ? localStorage.getItem('selected_profile') 
+    : null;
   
-  const shouldShowProfessorMenu = useMemo(() => 
-    isProfessor && !isAdmin,
-    [isProfessor, isAdmin]
-  );
+  // Determinar qual menu mostrar baseado na preferência do usuário
+  const shouldShowAdminMenu = useMemo(() => {
+    // Se usuário escolheu "Aluno", nunca mostrar menu admin
+    if (selectedProfile === 'Aluno') {
+      return false;
+    }
+    
+    // Se escolheu "Admin" e é admin, mostrar
+    if (selectedProfile === 'Admin' && isAdmin) {
+      return true;
+    }
+    
+    // Se não há preferência, usar lógica padrão
+    if (!selectedProfile && isAdmin) {
+      return true;
+    }
+    
+    return false;
+  }, [isAdmin, selectedProfile]);
+  
+  const shouldShowProfessorMenu = useMemo(() => {
+    // Se usuário escolheu "Aluno", nunca mostrar menu professor
+    if (selectedProfile === 'Aluno') {
+      return false;
+    }
+    
+    // Se escolheu "Professor" e é professor, mostrar
+    if (selectedProfile === 'Professor' && isProfessor) {
+      return true;
+    }
+    
+    // Se não há preferência, usar lógica padrão (professor mas não admin)
+    if (!selectedProfile && isProfessor && !isAdmin) {
+      return true;
+    }
+    
+    return false;
+  }, [isProfessor, isAdmin, selectedProfile]);
   
   // Menu para alunos (inclui gestão de colaboradores para franqueados)
   const studentMenuItems = useMemo(() => {
@@ -447,7 +480,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
+              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
             </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
