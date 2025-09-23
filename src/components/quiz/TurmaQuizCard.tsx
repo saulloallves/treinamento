@@ -21,7 +21,7 @@ const TurmaQuizCard = ({ turma, onManageQuizzes }: TurmaQuizCardProps) => {
       case 'agendada': return 'bg-blue-500';
       case 'inscricoes_abertas': return 'bg-green-500';
       case 'inscricoes_encerradas': return 'bg-yellow-500';
-      case 'em_andamento': return 'bg-purple-500';
+      case 'em_andamento': return 'bg-blue-500';
       case 'encerrada': return 'bg-gray-500';
       case 'cancelada': return 'bg-red-500';
       default: return 'bg-gray-500';
