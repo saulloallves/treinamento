@@ -95,9 +95,9 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
-      {/* Mostrar sidebar para admins/professores mesmo no mobile */}
-      {(shouldShowSidebar || !(isMobile && showBottomNav)) && (
-        <ModernSidebar showInMobile={shouldShowSidebar || !showBottomNav} />
+      {/* Mostrar sidebar apenas quando shouldShowSidebar for true */}
+      {shouldShowSidebar && (
+        <ModernSidebar showInMobile={shouldShowSidebar} />
       )}
       
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${
@@ -109,7 +109,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
       }`}>
         {/* Header responsivo - sticky e sem border inferior */}
         <header className="bg-background sticky top-0 z-20 px-3 md:px-8 py-4 md:py-6">
-          <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : isMobile && !showBottomNav ? 'pl-12' : ''}`}>
+          <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl md:text-2xl font-semibold text-foreground mb-1 truncate">
                 {title}
