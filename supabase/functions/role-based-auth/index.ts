@@ -65,14 +65,13 @@ serve(async (req) => {
       if (selectedRole === 'admin') hasRole = true;
     }
 
-    // Check professor role
-    const { data: professorData } = await supabase
-      .from('professors')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
+    // Check professor role using the existing is_professor function
+    const { data: isProfessor, error: professorError } = await supabase
+      .rpc('is_professor', { _user: userId });
 
-    if (professorData) {
+    if (professorError) {
+      console.error('❌ Error checking professor status:', professorError);
+    } else if (isProfessor === true) {
       actualRoles.push('teacher');
       if (selectedRole === 'teacher') hasRole = true;
     }
