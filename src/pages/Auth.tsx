@@ -30,7 +30,25 @@ const Auth = () => {
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
     if (user && !authProcessing && !loading) {
-      navigate('/', { replace: true });
+      // Check role claim and redirect accordingly
+      const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
+      if (roleClaim) {
+        switch (roleClaim) {
+          case 'admin':
+            navigate('/dashboard', { replace: true });
+            break;
+          case 'teacher':
+            navigate('/professor', { replace: true });
+            break;
+          case 'student':
+            navigate('/aluno', { replace: true });
+            break;
+          default:
+            navigate('/', { replace: true });
+        }
+      } else {
+        navigate('/', { replace: true });
+      }
     }
   }, [user, authProcessing, loading, navigate]);
 

@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -33,20 +34,48 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
   
   // Check if user has the required role claim
   if (userRoleClaim !== requiredRole) {
-    console.log('RoleGuard: Access denied', { userRoleClaim, requiredRole, path: location.pathname });
+    // Only log once to prevent spam
+    if (Math.random() < 0.01) {
+      console.log('RoleGuard: Access denied', { userRoleClaim, requiredRole, path: location.pathname });
+    }
     
-    // Redirect based on the user's actual role claim
+    // Redirect based on the user's actual role claim, avoid loops
     switch (userRoleClaim) {
       case 'admin':
-        return <Navigate to="/dashboard" replace />;
+        if (location.pathname !== '/dashboard') {
+          return <Navigate to="/dashboard" replace />;
+        }
+        break;
       case 'teacher':
-        return <Navigate to="/professor" replace />;
+        if (location.pathname !== '/professor') {
+          return <Navigate to="/professor" replace />;
+        }
+        break;
       case 'student':
-        return <Navigate to="/aluno" replace />;
+        if (location.pathname !== '/aluno') {
+          return <Navigate to="/aluno" replace />;
+        }
+        break;
       default:
-        // If no valid role claim, redirect to auth
-        return <Navigate to="/auth" replace />;
+        // If no valid role claim, redirect to auth only if not already there
+        if (location.pathname !== '/auth') {
+          return <Navigate to="/auth" replace />;
+        }
     }
+    
+    // If we're already on the correct path for current role or auth, show access denied
+    if (userRoleClaim && location.pathname === '/auth') {
+      return <Navigate to="/auth" replace />;
+    }
+    
+    // Block access but don't redirect if already on target page
+    return <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-4">Acesso Negado</h2>
+        <p className="text-muted-foreground mb-4">Você não tem permissão para acessar esta página.</p>
+        <Button onClick={() => window.location.href = '/auth'}>Fazer Login</Button>
+      </div>
+    </div>;
   }
 
   return <>{children}</>;
