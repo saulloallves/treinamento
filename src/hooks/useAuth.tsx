@@ -241,74 +241,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLastAuthBlocked(null);
     
     try {
-      // Use role-based authentication edge function
-      if (selectedRole) {
-        console.log('🎯 Using role-based auth:', { email, selectedRole });
-        
-        const { data: roleAuthData, error: roleAuthError } = await supabase.functions.invoke('role-based-auth', {
-          body: { 
-            email, 
-            password, 
-            selectedRole: selectedRole === 'Aluno' ? 'student' : 
-                         selectedRole === 'Professor' ? 'teacher' : 'admin'
-          }
-        });
-
-        if (roleAuthError) {
-          console.error('❌ Role-based auth error:', roleAuthError);
-          toast.error("Erro no login", {
-            description: "Erro interno do sistema. Tente novamente.",
-          });
-          setAuthProcessing(false);
-          return { error: roleAuthError };
-        }
-
-        if (roleAuthData?.error) {
-          console.error('❌ Role auth failed:', roleAuthData.error);
-          if (roleAuthData.error === 'ROLE_NOT_GRANTED') {
-            toast.error("Acesso Negado", {
-              description: `Você não tem permissão para acessar como ${selectedRole}.`,
-            });
-          } else {
-            toast.error("Erro no login", {
-              description: roleAuthData.message || "Credenciais inválidas.",
-            });
-          }
-          setAuthProcessing(false);
-          return { error: { message: roleAuthData.error } };
-        }
-
-        if (roleAuthData?.success) {
-          console.log('✅ Role-based auth successful:', roleAuthData);
-          
-          // Store role claims in sessionStorage
-          const actAs = roleAuthData.actAs;
-          const roleName = actAs === 'student' ? 'Aluno' : 
-                          actAs === 'teacher' ? 'Professor' : 'Admin';
-          
-          sessionStorage.setItem('USER_ROLE_CLAIM', actAs);
-          sessionStorage.setItem('SELECTED_ROLE_NAME', roleName);
-          
-          console.log('✅ Role claims stored:', { actAs, roleName });
-          
-          toast.success("Login realizado com sucesso!", {
-            description: `Bem-vindo como ${roleName}!`,
-          });
-          
-          setAuthProcessing(false);
-          return { error: null };
-        }
-      }
-
-      // Fallback to standard auth (for cases without role selection)
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Primeiro, sempre fazer autenticação normal do Supabase
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
+      if (authError) {
         // Caso especial para o email do Alison - tentar resetar senha automaticamente
-        if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
+        if (authError.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
           try {
             console.log('Tentando resetar senha do Alison automaticamente...');
             const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
@@ -333,11 +274,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 });
                 setAuthProcessing(false);
                 return { error: null };
-              } else {
-                console.error('Erro no segundo login:', retryError);
               }
-            } else {
-              console.error('Erro no reset:', resetError || resetResult);
             }
           } catch (resetError) {
             console.error('Erro ao tentar resetar senha automaticamente:', resetError);
@@ -345,7 +282,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         // Verificar se é um admin que ainda não foi aprovado
-        if (error.message.includes('Email not confirmed')) {
+        if (authError.message.includes('Email not confirmed')) {
           try {
             const { data: adminData } = await supabase
               .from('admin_users')
@@ -364,12 +301,84 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         toast.error("Erro no login", {
-          description: error.message === "Invalid login credentials" 
+          description: authError.message === "Invalid login credentials" 
             ? "Email ou senha incorretos." 
-            : error.message,
+            : authError.message,
         });
-      } else if (data.user) {
-        // Standard auth success - handle approval checks
+        
+        setAuthProcessing(false);
+        return { error: authError };
+      }
+
+      // Autenticação básica bem-sucedida
+      console.log('✅ Basic auth successful');
+
+      if (data.user) {
+        // Verificar se um papel específico foi solicitado
+        if (selectedRole) {
+          console.log('🎯 Validating role access:', { selectedRole });
+          
+          try {
+            // Usar função SQL diretamente para validar papéis
+            const userId = data.user.id;
+            const [
+              { data: isAdminData },
+              { data: isProfessorData }, 
+              { data: enrollmentData }
+            ] = await Promise.all([
+              supabase.rpc('is_admin', { _user: userId }),
+              supabase.rpc('is_professor', { _user: userId }),
+              supabase.from('enrollments').select('id').eq('user_id', userId).limit(1).maybeSingle()
+            ]);
+
+            const hasAdminRole = isAdminData === true;
+            const hasProfessorRole = isProfessorData === true;
+            const hasStudentRole = !!enrollmentData;
+
+            console.log('User roles:', { hasAdminRole, hasProfessorRole, hasStudentRole });
+
+            // Verificar se o usuário tem o papel solicitado
+            let hasRequestedRole = false;
+            let actAs = '';
+            
+            if (selectedRole === 'Admin' && hasAdminRole) {
+              hasRequestedRole = true;
+              actAs = 'admin';
+            } else if (selectedRole === 'Professor' && hasProfessorRole) {
+              hasRequestedRole = true;
+              actAs = 'teacher';
+            } else if (selectedRole === 'Aluno' && hasStudentRole) {
+              hasRequestedRole = true;
+              actAs = 'student';
+            }
+
+            if (!hasRequestedRole) {
+              await supabase.auth.signOut();
+              toast.error("Acesso Negado", {
+                description: `Você não tem permissão para acessar como ${selectedRole}.`,
+              });
+              setAuthProcessing(false);
+              return { error: { message: 'ROLE_NOT_GRANTED' } };
+            }
+
+            // Armazenar papel no sessionStorage
+            sessionStorage.setItem('USER_ROLE_CLAIM', actAs);
+            sessionStorage.setItem('SELECTED_ROLE_NAME', selectedRole);
+            
+            console.log('✅ Role validation successful:', { actAs, selectedRole });
+            
+          } catch (roleError) {
+            console.error('❌ Role validation error:', roleError);
+            await supabase.auth.signOut();
+            toast.error("Erro no login", {
+              description: "Erro ao validar permissões. Tente novamente.",
+            });
+            setAuthProcessing(false);
+            return { error: roleError };
+          }
+        }
+
+        // Verificar profile e status do usuário
         try {
           await ensureProfile(data.user);
         } catch (profileError) {
@@ -427,43 +436,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // Verificar se é um admin pendente de aprovação
-        try {
-          const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
-          const { data: adminUser } = await supabase
-            .from('admin_users')
-            .select('status')
-            .eq('user_id', data.user.id)
-            .single();
+        if (!selectedRole) {
+          try {
+            const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
+            const { data: adminUser } = await supabase
+              .from('admin_users')
+              .select('status')
+              .eq('user_id', data.user.id)
+              .single();
 
-          if (adminUser && !isAdminApproved) {
-            await supabase.auth.signOut();
-            toast.error("Acesso Pendente de Aprovação", {
-              description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
-            });
-            setLastAuthBlocked('Admin pending approval');
-            setAuthProcessing(false);
-            return { error: { message: "Admin pending approval" } };
+            if (adminUser && !isAdminApproved) {
+              await supabase.auth.signOut();
+              toast.error("Acesso Pendente de Aprovação", {
+                description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+              });
+              setLastAuthBlocked('Admin pending approval');
+              setAuthProcessing(false);
+              return { error: { message: "Admin pending approval" } };
+            }
+          } catch (e) {
+            console.error('Error checking admin status:', e);
           }
-        } catch (e) {
-          console.error('Error checking admin status:', e);
         }
 
-        // Success without role selection
+        // Success
         toast.success("Login realizado com sucesso!", {
-          description: "Bem-vindo de volta!",
+          description: selectedRole ? `Bem-vindo como ${selectedRole}!` : "Bem-vindo de volta!",
         });
         setLastAuthBlocked(null);
       }
 
       setAuthProcessing(false);
-      return { error };
+      return { error: null };
     } catch (error) {
       console.error('❌ Sign in error:', error);
       toast.error("Erro no login", {
-        description: "Erro interno do sistema. Tente novamente.",
+        description: "Erro inesperado. Tente novamente.",
       });
       setAuthProcessing(false);
-      return { error: { message: 'Erro interno do sistema' } };
+      return { error };
     }
   };
 
