@@ -67,41 +67,61 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Verificar preferência do usuário na tela de login
-  const loginPreference = (() => {
+  // VERIFICAÇÃO CRÍTICA DA PREFERÊNCIA DO USUÁRIO
+  const getLoginPreference = () => {
     try {
-      return localStorage.getItem('login_preference');
+      // Prioriza sessionStorage sobre localStorage
+      return sessionStorage.getItem('CRITICAL_LOGIN_PREFERENCE') || 
+             localStorage.getItem('CRITICAL_LOGIN_PREFERENCE') ||
+             localStorage.getItem('login_preference');
     } catch {
       return null;
     }
-  })();
+  };
 
-  // Respeitar a escolha do usuário se ele tem a permissão correspondente
-  if (loginPreference === 'Aluno' && hasStudentProfile) {
-    console.log('RoleRedirect - User chose student login, redirecting to student area');
-    // Limpar a preferência após usar
+  const clearLoginPreference = () => {
     try {
+      sessionStorage.removeItem('CRITICAL_LOGIN_PREFERENCE');
+      localStorage.removeItem('CRITICAL_LOGIN_PREFERENCE');
       localStorage.removeItem('login_preference');
     } catch {}
+  };
+
+  const loginPreference = getLoginPreference();
+
+  console.log('🚨 CRITICAL LOGIN PREFERENCE CHECK:', {
+    preference: loginPreference,
+    isAdmin,
+    isProfessor, 
+    hasStudentProfile,
+    userEmail: user.email
+  });
+
+  // RESPOSTA OBRIGATÓRIA À ESCOLHA DO USUÁRIO - SEM EXCEÇÕES!
+  if (loginPreference === 'Aluno' && hasStudentProfile) {
+    console.log('🟢 EXECUTING STUDENT LOGIN - Redirecting to /aluno');
+    clearLoginPreference();
     return <Navigate to="/aluno" replace />;
   }
   
   if (loginPreference === 'Professor' && isProfessor) {
-    console.log('RoleRedirect - User chose professor login, redirecting to professor area');
-    // Limpar a preferência após usar
-    try {
-      localStorage.removeItem('login_preference');
-    } catch {}
+    console.log('🟡 EXECUTING PROFESSOR LOGIN - Redirecting to /professor');
+    clearLoginPreference();
     return <Navigate to="/professor" replace />;
   }
   
   if (loginPreference === 'Admin' && isAdmin) {
-    console.log('RoleRedirect - User chose admin login, redirecting to dashboard');
-    // Limpar a preferência após usar
-    try {
-      localStorage.removeItem('login_preference');
-    } catch {}
+    console.log('🔵 EXECUTING ADMIN LOGIN - Redirecting to /dashboard');
+    clearLoginPreference();
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Se chegou aqui com preferência mas sem permissão, mostrar erro crítico
+  if (loginPreference) {
+    console.error('🔴 CRITICAL ERROR: User selected', loginPreference, 'but lacks permission!');
+    console.error('Permissions:', { isAdmin, isProfessor, hasStudentProfile });
+    clearLoginPreference();
+    // Ainda redireciona para evitar loop, mas com aviso
   }
 
   // Se não há preferência ou a preferência não é válida, usar prioridade padrão

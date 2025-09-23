@@ -67,11 +67,13 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Armazenar preferência do usuário para redirecionamento
+    // Armazenar preferência CRÍTICA do usuário para redirecionamento
     try {
-      localStorage.setItem('login_preference', 'Admin');
+      sessionStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Admin');
+      localStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Admin');
+      console.log('🔵 ADMIN LOGIN SELECTED - Preference stored');
     } catch {
-      // Silent fail
+      console.error('Failed to store admin preference');
     }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
@@ -80,11 +82,13 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Armazenar preferência do usuário para redirecionamento
+    // Armazenar preferência CRÍTICA do usuário para redirecionamento
     try {
-      localStorage.setItem('login_preference', 'Aluno');
+      sessionStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Aluno');
+      localStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Aluno');
+      console.log('🟢 STUDENT LOGIN SELECTED - Preference stored');
     } catch {
-      // Silent fail
+      console.error('Failed to store student preference');
     }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
@@ -93,11 +97,13 @@ const Auth = () => {
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Armazenar preferência do usuário para redirecionamento
+    // Armazenar preferência CRÍTICA do usuário para redirecionamento
     try {
-      localStorage.setItem('login_preference', 'Professor');
+      sessionStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Professor');
+      localStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Professor');
+      console.log('🟡 PROFESSOR LOGIN SELECTED - Preference stored');
     } catch {
-      // Silent fail
+      console.error('Failed to store professor preference');
     }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
