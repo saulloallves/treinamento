@@ -125,42 +125,30 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => {
-    // Se usuário escolheu "Aluno", nunca mostrar menu admin
-    if (selectedProfile === 'Aluno') {
-      console.log('🔍 ModernSidebar - User chose Aluno, hiding admin menu');
-      return false;
-    }
-    
     // Se escolheu "Admin" e é admin, mostrar
     if (selectedProfile === 'Admin' && isAdmin) {
       console.log('🔍 ModernSidebar - User chose Admin, showing admin menu');
       return true;
     }
     
-    // Se não há preferência, usar lógica padrão
-    if (!selectedProfile && isAdmin) {
+    // Se não há preferência e é admin (e não professor), usar lógica padrão
+    if (!selectedProfile && isAdmin && !isProfessor) {
       console.log('🔍 ModernSidebar - No preference, defaulting to admin menu');
       return true;
     }
     
     console.log('🔍 ModernSidebar - Not showing admin menu');
     return false;
-  }, [isAdmin, selectedProfile]);
+  }, [isAdmin, isProfessor, selectedProfile]);
   
   const shouldShowProfessorMenu = useMemo(() => {
-    // Se usuário escolheu "Aluno", nunca mostrar menu professor
-    if (selectedProfile === 'Aluno') {
-      console.log('🔍 ModernSidebar - User chose Aluno, hiding professor menu');
-      return false;
-    }
-    
     // Se escolheu "Professor" e é professor, mostrar
     if (selectedProfile === 'Professor' && isProfessor) {
       console.log('🔍 ModernSidebar - User chose Professor, showing professor menu');
       return true;
     }
     
-    // Se não há preferência, usar lógica padrão (professor mas não admin)
+    // Se não há preferência e é professor (e não admin), usar lógica padrão
     if (!selectedProfile && isProfessor && !isAdmin) {
       console.log('🔍 ModernSidebar - No preference, defaulting to professor menu');
       return true;
@@ -169,6 +157,29 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     console.log('🔍 ModernSidebar - Not showing professor menu');
     return false;
   }, [isProfessor, isAdmin, selectedProfile]);
+
+  // Para alunos ou qualquer usuário que não seja admin/professor
+  const shouldShowStudentMenu = useMemo(() => {
+    // Se escolheu explicitamente "Aluno"
+    if (selectedProfile === 'Aluno') {
+      console.log('🔍 ModernSidebar - User chose Aluno, showing student menu');
+      return true;
+    }
+    
+    // Se não há preferência e não é admin nem professor
+    if (!selectedProfile && !isAdmin && !isProfessor) {
+      console.log('🔍 ModernSidebar - No preference and not admin/professor, showing student menu');
+      return true;
+    }
+    
+    // Se não está mostrando nem admin nem professor, mostrar aluno como fallback
+    if (!shouldShowAdminMenu && !shouldShowProfessorMenu) {
+      console.log('🔍 ModernSidebar - Fallback to student menu');
+      return true;
+    }
+    
+    return false;
+  }, [selectedProfile, isAdmin, isProfessor, shouldShowAdminMenu, shouldShowProfessorMenu]);
   
   // Menu para alunos
   const studentMenuItems = useMemo(() => {

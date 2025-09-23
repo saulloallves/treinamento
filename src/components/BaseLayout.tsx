@@ -59,39 +59,8 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
     };
   }, [sidebarCollapsed]);
   
-  // Determinar se deve mostrar sidebar baseado na preferência do usuário
-  const shouldShowSidebar = (() => {
-    console.log('🔍 BaseLayout - Determining sidebar visibility:', { selectedProfile, isAdmin, isProfessor });
-    
-    // Se o usuário escolheu "Aluno", não mostrar sidebar de admin/professor
-    if (selectedProfile === 'Aluno') {
-      console.log('🔍 BaseLayout - User chose Aluno, hiding sidebar');
-      return false;
-    }
-    
-    // Se escolheu Admin e é admin, mostrar
-    if (selectedProfile === 'Admin' && isAdmin) {
-      console.log('🔍 BaseLayout - User chose Admin and is admin, showing sidebar');
-      return true;
-    }
-    
-    // Se escolheu Professor e é professor, mostrar
-    if (selectedProfile === 'Professor' && isProfessor) {
-      console.log('🔍 BaseLayout - User chose Professor and is professor, showing sidebar');
-      return true;
-    }
-    
-    // Se não há preferência, usar lógica padrão
-    if (!selectedProfile) {
-      const result = isAdmin || isProfessor;
-      console.log('🔍 BaseLayout - No preference, using default logic:', result);
-      return result;
-    }
-    
-    // Por padrão, não mostrar se a preferência não combina
-    console.log('🔍 BaseLayout - Profile preference does not match permissions, hiding sidebar');
-    return false;
-  })();
+  // Sempre mostrar sidebar - o conteúdo será ajustado pela ModernSidebar
+  const shouldShowSidebar = true;
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
