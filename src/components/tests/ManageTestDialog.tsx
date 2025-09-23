@@ -130,6 +130,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     }
 
     try {
+      console.log("Tentando atualizar teste com dados:", { id: testId, ...editedTest });
       await updateTest({ id: testId, ...editedTest });
       toast.success(
         editedTest.status === 'active' 
@@ -138,6 +139,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
       );
       setIsEditing(false);
     } catch (error) {
+      console.error("Erro detalhado ao atualizar teste:", error);
       toast.error("Erro ao atualizar teste");
     }
   };
@@ -605,23 +607,23 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Máx. Tentativas</Label>
-                    {isEditing ? (
-                      <Input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={editedTest?.max_attempts || 1}
-                        onChange={(e) => setEditedTest(prev => ({ 
-                          ...prev, 
-                          max_attempts: parseInt(e.target.value) 
-                        }))}
-                      />
-                    ) : (
-                      <p className="text-sm font-medium">{test.max_attempts}</p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label>Máx. Tentativas</Label>
+                     {isEditing ? (
+                       <Input
+                         type="number"
+                         min="1"
+                         max="10"
+                         value={editedTest?.max_attempts || 1}
+                         onChange={(e) => setEditedTest(prev => ({ 
+                           ...prev, 
+                           max_attempts: parseInt(e.target.value) || 1
+                         }))}
+                       />
+                     ) : (
+                       <p className="text-sm font-medium">{test.max_attempts || 1}</p>
+                     )}
+                   </div>
 
                   <div className="space-y-2">
                     <Label>Tempo Limite</Label>
