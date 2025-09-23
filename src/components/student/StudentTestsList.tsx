@@ -33,15 +33,6 @@ const StudentTestsList = ({ turmaId }: StudentTestsListProps) => {
   }
 
   if (!tests || tests.length === 0) {
-    // Debug: Log para verificar se chegamos aqui
-    console.log("🔍 StudentTestsList: No tests found", { 
-      turmaId, 
-      tests, 
-      isLoading, 
-      error,
-      queryEnabled: !!turmaId || query.isSuccess 
-    });
-    
     return (
       <div className="text-center py-8 space-y-4">
         <div className="text-6xl">📚</div>

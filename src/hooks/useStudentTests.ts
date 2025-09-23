@@ -123,11 +123,8 @@ export const useStudentTurmaTests = (turmaId?: string) => {
     queryKey: ["student-turma-tests", turmaId, currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id || !turmaId) {
-        console.log("❌ useStudentTurmaTests: Missing currentUser.id or turmaId", { currentUser: currentUser?.id, turmaId });
         return [];
       }
-
-      console.log("🔍 useStudentTurmaTests: Starting query", { userId: currentUser.id, turmaId });
 
       // Verificar se o usuário está inscrito na turma
       const { data: enrollment, error: enrollmentError } = await supabase
@@ -137,17 +134,9 @@ export const useStudentTurmaTests = (turmaId?: string) => {
         .eq("turma_id", turmaId)
         .single();
 
-      if (enrollmentError) {
-        console.log("❌ useStudentTurmaTests: Enrollment error", enrollmentError);
-        throw enrollmentError;
-      }
-
-      if (!enrollment) {
-        console.log("❌ useStudentTurmaTests: User not enrolled in turma", { userId: currentUser.id, turmaId });
+      if (enrollmentError || !enrollment) {
         return [];
       }
-
-      console.log("✅ useStudentTurmaTests: User enrolled", enrollment);
 
       // Buscar testes ativos da turma
       const { data: tests, error: testsError } = await supabase
@@ -168,14 +157,7 @@ export const useStudentTurmaTests = (turmaId?: string) => {
         .eq("status", "active")
         .eq("turma_id", turmaId);
 
-      if (testsError) {
-        console.log("❌ useStudentTurmaTests: Tests error", testsError);
-        throw testsError;
-      }
-
-      console.log("🎯 useStudentTurmaTests: Found tests", { count: tests?.length, tests });
-
-      if (!tests || tests.length === 0) {
+      if (testsError || !tests || tests.length === 0) {
         return [];
       }
 
@@ -187,20 +169,16 @@ export const useStudentTurmaTests = (turmaId?: string) => {
         .eq("user_id", currentUser.id)
         .in("test_id", testIds);
 
-      console.log("📝 useStudentTurmaTests: Found submissions", { count: submissions?.length, submissions });
-
       // Combinar testes com suas submissions
       const testsWithSubmissions = tests.map(test => ({
         ...test,
         test_submissions: submissions?.filter(s => s.test_id === test.id) || []
       }));
 
-      console.log("✅ useStudentTurmaTests: Final result", testsWithSubmissions);
-
       return testsWithSubmissions as StudentTest[];
     },
     enabled: !!currentUser?.id && !!turmaId,
-    staleTime: 2 * 60 * 1000, // 2 minutos
+    staleTime: 30 * 1000, // 30 segundos - cache mais curto para ver mudanças rapidamente
   });
 };
 export const useStudentTest = (testId: string) => {
