@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, Image, Trash2, Save, X } from "lucide-react";
+import { Edit, Plus, Image, Trash2, Save, X, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   const [editedTest, setEditedTest] = useState<any>(null);
   const [questionTexts, setQuestionTexts] = useState<Record<string, string>>({});
   const [optionTexts, setOptionTexts] = useState<Record<string, string>>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const debounceRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
   const { data: tests, updateTest } = useTests();
@@ -65,6 +66,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     if (!open) {
       Object.values(debounceRefs.current).forEach(clearTimeout);
       debounceRefs.current = {};
+      setSelectedImage(null);
     }
   }, [open]);
 
@@ -275,13 +277,26 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                                   <img 
                                     src={url} 
                                     alt={`Imagem ${imgIndex + 1}`}
-                                    className="w-full h-24 object-cover rounded-md border shadow-sm hover:shadow-md transition-shadow"
+                                    className="w-full h-24 object-cover rounded-md border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                                    onClick={() => setSelectedImage(url)}
                                   />
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="absolute top-1 left-1 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 hover:bg-white"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedImage(url);
+                                    }}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="destructive"
                                     className="absolute top-1 right-1 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={async () => {
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
                                       try {
                                         const updatedImages = question.image_urls?.filter((_, index) => index !== imgIndex) || [];
                                         await updateQuestion({
@@ -673,6 +688,30 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Modal de visualização da imagem */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0">
+          <div className="relative w-full h-full flex items-center justify-center bg-black">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 right-4 z-10 text-white hover:text-gray-300 bg-black/50 hover:bg-black/70"
+              onClick={() => setSelectedImage(null)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            {selectedImage && (
+              <img
+                src={selectedImage}
+                alt="Visualização da imagem"
+                className="max-w-full max-h-full object-contain"
+                style={{ maxHeight: '85vh' }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
