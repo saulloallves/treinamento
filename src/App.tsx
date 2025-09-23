@@ -47,10 +47,8 @@ import StudentTestResult from "@/components/student/StudentTestResult";
 import StudentTurmaTests from "./pages/student/StudentTurmaTests";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminRoute from "@/components/AdminRoute";
+import RoleGuard from "@/components/RoleGuard";
 import RoleRedirect from "@/components/RoleRedirect";
-import ProfessorRoute from "@/components/ProfessorRoute";
 
 const queryClient = new QueryClient();
 
@@ -66,249 +64,249 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<RoleRedirect />} />
               <Route path="/dashboard" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <Index />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/courses" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <CoursesPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/lessons" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <LessonsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/turmas" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <TurmasPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/quiz" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <QuizPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/tests" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <TestsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/reports" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <ReportsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/enrollments" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <EnrollmentsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/attendance" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <AttendancePage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/progress" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <ProgressPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/certificates" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <CertificatesPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/whatsapp" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <WhatsAppPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/communication" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <CommunicationPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/users" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <UsersPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/professors" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <ProfessorsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/admins" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <AdminsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/units" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <UnitsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/settings" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <SettingsPage />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/professor" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <ProfessorDashboard />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/cursos" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <CoursesPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/turmas" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <TurmasPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/aulas" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <LessonsPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/inscricoes" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <EnrollmentsPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/presenca" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <AttendancePage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/progresso" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <ProgressPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/avaliacoes" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <QuizPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/tests" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <TestsPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/comunicacao" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <WhatsAppPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/disparos-automaticos" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <CommunicationPage />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/streaming" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <StreamingModule />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/professor/reports" element={
-                <ProfessorRoute>
+                <RoleGuard requiredRole="teacher">
                   <ProfessorReports />
-                </ProfessorRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentPortal />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/aulas" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentLessons />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/turma/:turmaId/aulas" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <TurmaLessons />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/quiz" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentQuiz />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/cursos" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentCourses />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/perfil" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentProfile />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/colaboradores" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <CollaboratorManagement />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/curso/:courseId" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentCourse />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/curso/:courseId/aulas" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentCourseSchedule />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/curso/:courseId/aulas-gravadas" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentLessons />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/testes" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentTests />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/teste/:testId" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentTest />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/teste/:testId/questoes" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentTestQuestions />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/teste/:testId/resultado" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentTestResult />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/aluno/turma/:turmaId/testes" element={
-                <ProtectedRoute requiredRole="Aluno">
+                <RoleGuard requiredRole="student">
                   <StudentTurmaTests />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/streaming" element={
-                <AdminRoute>
+                <RoleGuard requiredRole="admin">
                   <StreamingModule />
-                </AdminRoute>
+                </RoleGuard>
               } />
               <Route path="/aula-ao-vivo/:lessonId" element={
-                <ProtectedRoute>
+                <RoleGuard>
                   <StreamingTestRoom />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               <Route path="/streaming-demo" element={
-                <ProtectedRoute>
+                <RoleGuard>
                   <StreamingDemo />
-                </ProtectedRoute>
+                </RoleGuard>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
