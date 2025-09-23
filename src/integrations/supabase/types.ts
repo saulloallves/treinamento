@@ -1929,6 +1929,10 @@ export type Database = {
         Args: { _approval_id: string; _approve: boolean }
         Returns: undefined
       }
+      authenticate_with_role: {
+        Args: { p_email: string; p_password: string; p_role: string }
+        Returns: Json
+      }
       backfill_users_unit_code: {
         Args: Record<PropertyKey, never>
         Returns: undefined
