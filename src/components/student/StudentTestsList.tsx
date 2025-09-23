@@ -1,4 +1,4 @@
-import { useStudentTests } from "@/hooks/useStudentTests";
+import { useStudentTests, useStudentTurmaTests } from "@/hooks/useStudentTests";
 import StudentTestCard from "./StudentTestCard";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 
@@ -7,12 +7,12 @@ interface StudentTestsListProps {
 }
 
 const StudentTestsList = ({ turmaId }: StudentTestsListProps) => {
-  const { data: allTests, isLoading, error } = useStudentTests();
+  // Use hook específico para turma se turmaId for fornecido
+  const allTestsQuery = useStudentTests();
+  const turmaTestsQuery = useStudentTurmaTests(turmaId);
   
-  // Filtrar testes pela turma se turmaId for fornecido
-  const tests = turmaId 
-    ? allTests?.filter(test => test.turma_id === turmaId)
-    : allTests;
+  const query = turmaId ? turmaTestsQuery : allTestsQuery;
+  const { data: tests, isLoading, error } = query;
 
   if (isLoading) {
     return (
@@ -33,6 +33,15 @@ const StudentTestsList = ({ turmaId }: StudentTestsListProps) => {
   }
 
   if (!tests || tests.length === 0) {
+    // Debug: Log para verificar se chegamos aqui
+    console.log("🔍 StudentTestsList: No tests found", { 
+      turmaId, 
+      tests, 
+      isLoading, 
+      error,
+      queryEnabled: !!turmaId || query.isSuccess 
+    });
+    
     return (
       <div className="text-center py-8 space-y-4">
         <div className="text-6xl">📚</div>

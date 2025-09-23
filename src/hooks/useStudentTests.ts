@@ -116,6 +116,93 @@ export const useStudentTests = () => {
   });
 };
 
+export const useStudentTurmaTests = (turmaId?: string) => {
+  const { data: currentUser } = useCurrentUser();
+
+  return useQuery({
+    queryKey: ["student-turma-tests", turmaId, currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id || !turmaId) {
+        console.log("❌ useStudentTurmaTests: Missing currentUser.id or turmaId", { currentUser: currentUser?.id, turmaId });
+        return [];
+      }
+
+      console.log("🔍 useStudentTurmaTests: Starting query", { userId: currentUser.id, turmaId });
+
+      // Verificar se o usuário está inscrito na turma
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from("enrollments")
+        .select("id, turma_id")
+        .eq("user_id", currentUser.id)
+        .eq("turma_id", turmaId)
+        .single();
+
+      if (enrollmentError) {
+        console.log("❌ useStudentTurmaTests: Enrollment error", enrollmentError);
+        throw enrollmentError;
+      }
+
+      if (!enrollment) {
+        console.log("❌ useStudentTurmaTests: User not enrolled in turma", { userId: currentUser.id, turmaId });
+        return [];
+      }
+
+      console.log("✅ useStudentTurmaTests: User enrolled", enrollment);
+
+      // Buscar testes ativos da turma
+      const { data: tests, error: testsError } = await supabase
+        .from("tests")
+        .select(`
+          *,
+          courses:course_id (
+            id,
+            name,
+            cover_image_url
+          ),
+          turmas:turma_id (
+            id,
+            name,
+            code
+          )
+        `)
+        .eq("status", "active")
+        .eq("turma_id", turmaId);
+
+      if (testsError) {
+        console.log("❌ useStudentTurmaTests: Tests error", testsError);
+        throw testsError;
+      }
+
+      console.log("🎯 useStudentTurmaTests: Found tests", { count: tests?.length, tests });
+
+      if (!tests || tests.length === 0) {
+        return [];
+      }
+
+      // Buscar submissions do usuário para estes testes
+      const testIds = tests.map(t => t.id);
+      const { data: submissions } = await supabase
+        .from("test_submissions")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .in("test_id", testIds);
+
+      console.log("📝 useStudentTurmaTests: Found submissions", { count: submissions?.length, submissions });
+
+      // Combinar testes com suas submissions
+      const testsWithSubmissions = tests.map(test => ({
+        ...test,
+        test_submissions: submissions?.filter(s => s.test_id === test.id) || []
+      }));
+
+      console.log("✅ useStudentTurmaTests: Final result", testsWithSubmissions);
+
+      return testsWithSubmissions as StudentTest[];
+    },
+    enabled: !!currentUser?.id && !!turmaId,
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
+};
 export const useStudentTest = (testId: string) => {
   const { data: currentUser } = useCurrentUser();
 
