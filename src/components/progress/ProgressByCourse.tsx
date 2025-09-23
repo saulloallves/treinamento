@@ -16,7 +16,7 @@ interface ProgressGroup {
 const ProgressByCourse = () => {
   const [selectedGroup, setSelectedGroup] = useState<ProgressGroup | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("ativas");
 
   const { data: progressData, isLoading } = useQuery({
     queryKey: ["progress", "by-course"],
@@ -94,12 +94,12 @@ const ProgressByCourse = () => {
     // Filter by turma status
     const filteredProgressData = progressData.filter(progress => {
       const turmaStatus = progress.turmaStatus;
-      if (statusFilter === "todos") {
-        // Default view: show only active turmas (exclude 'encerrada')
-        return turmaStatus !== 'encerrada';
-      } else if (statusFilter === "encerrada") {
-        // Archive view: show only archived turmas
-        return turmaStatus === 'encerrada';
+      if (statusFilter === "ativas") {
+        // Default active view: show 'em_andamento' and 'agendada' only
+        return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
+      } else if (statusFilter === "arquivadas") {
+        // Archive view: show 'encerrada' and 'cancelada'
+        return turmaStatus === 'encerrada' || turmaStatus === 'cancelada';
       } else {
         // Specific status filter
         return turmaStatus === statusFilter;

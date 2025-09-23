@@ -10,7 +10,7 @@ import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const StudentTurmasList = () => {
   const { data: enrollments, isLoading, error } = useMyEnrollments();
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("ativas");
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -65,12 +65,12 @@ const StudentTurmasList = () => {
     if (!enrollment.turma_id) return false;
     
     const turmaStatus = enrollment.turma?.status;
-    if (statusFilter === "todos") {
-      // Default view: show only active turmas (exclude 'encerrada')
-      return turmaStatus !== 'encerrada';
-    } else if (statusFilter === "encerrada") {
-      // Archive view: show only archived turmas
-      return turmaStatus === 'encerrada';
+    if (statusFilter === "ativas") {
+      // Default active view: show 'em_andamento' and 'agendada' only
+      return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
+    } else if (statusFilter === "arquivadas") {
+      // Archive view: show 'encerrada' and 'cancelada'
+      return turmaStatus === 'encerrada' || turmaStatus === 'cancelada';
     } else {
       // Specific status filter
       return turmaStatus === statusFilter;

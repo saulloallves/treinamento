@@ -27,17 +27,17 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
       </Button>
       <Button
         size="sm"
-        variant={statusFilter === 'encerrada' ? 'default' : 'outline'}
-        onClick={() => onStatusChange('encerrada')}
+        variant={statusFilter === 'arquivadas' ? 'default' : 'outline'}
+        onClick={() => onStatusChange('arquivadas')}
         className="text-xs h-7"
       >
         📁 Turmas Arquivadas
       </Button>
-      {(statusFilter !== 'todos' && statusFilter !== 'all') && (
+      {statusFilter !== 'ativas' && (
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => onStatusChange('todos')}
+          onClick={() => onStatusChange('ativas')}
           className="text-xs h-7"
         >
           Limpar filtro

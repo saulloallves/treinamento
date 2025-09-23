@@ -16,7 +16,7 @@ interface TurmaTestsListProps {
 const TurmaTestsList = ({ onSelectTurma }: TurmaTestsListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("todos");
+  const [selectedStatus, setSelectedStatus] = useState("ativas");
 
   const { data: turmas = [], isLoading: turmasLoading } = useTurmas();
   const { data: courses = [] } = useCourses();
@@ -44,14 +44,14 @@ const TurmaTestsList = ({ onSelectTurma }: TurmaTestsListProps) => {
     
     const matchesCourse = !selectedCourse || selectedCourse === "all" || turma.course_id === selectedCourse;
     
-    // Status filter logic (same as TurmasPage)
+    // Updated status filter logic
     let matchesStatus;
-    if (selectedStatus === "todos" || selectedStatus === "all") {
-      // Default view: show only active turmas (exclude 'encerrada')
-      matchesStatus = turma.status !== 'encerrada';
-    } else if (selectedStatus === "encerrada") {
-      // Archive view: show only archived turmas
-      matchesStatus = turma.status === 'encerrada';
+    if (selectedStatus === "ativas") {
+      // Default active view: show 'em_andamento' and 'agendada' only
+      matchesStatus = turma.status === 'em_andamento' || turma.status === 'agendada';
+    } else if (selectedStatus === "arquivadas") {
+      // Archive view: show 'encerrada' and 'cancelada'
+      matchesStatus = turma.status === 'encerrada' || turma.status === 'cancelada';
     } else {
       // Specific status filter
       matchesStatus = turma.status === selectedStatus;

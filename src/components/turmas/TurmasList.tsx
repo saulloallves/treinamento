@@ -35,16 +35,16 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
   const concludeTurma = useConcludeTurma();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedTurmaId, setSelectedTurmaId] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statusFilter, setStatusFilter] = useState("ativas");
 
   // Filter turmas by status (same logic as other components)
   const filteredTurmas = turmas?.filter(turma => {
-    if (statusFilter === "todos") {
-      // Default view: show only active turmas (exclude 'encerrada')
-      return turma.status !== 'encerrada';
-    } else if (statusFilter === "encerrada") {
-      // Archive view: show only archived turmas
-      return turma.status === 'encerrada';
+    if (statusFilter === "ativas") {
+      // Default active view: show 'em_andamento' and 'agendada' only
+      return turma.status === 'em_andamento' || turma.status === 'agendada';
+    } else if (statusFilter === "arquivadas") {
+      // Archive view: show 'encerrada' and 'cancelada'
+      return turma.status === 'encerrada' || turma.status === 'cancelada';
     } else {
       // Specific status filter
       return turma.status === statusFilter;
