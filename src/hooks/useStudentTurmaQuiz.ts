@@ -24,7 +24,7 @@ export const useStudentTurmaQuiz = (turmaId?: string) => {
         return [];
       }
 
-      // Buscar quizzes da turma
+      // Buscar quizzes da turma (apenas ativos)
       const { data: quizzes, error: quizzesError } = await supabase
         .from("quiz")
         .select(`
@@ -44,6 +44,7 @@ export const useStudentTurmaQuiz = (turmaId?: string) => {
           )
         `)
         .eq("turma_id", turmaId)
+        .eq("status", "ativo")
         .order("quiz_name", { ascending: true })
         .order("order_index", { ascending: true });
 

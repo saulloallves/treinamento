@@ -65,6 +65,7 @@ const CreateQuizDialog = ({
     option_d: "",
     correct_answer: "",
     order_index: 0,
+    status: "rascunho",
   });
 
   // Filtrar aulas do curso selecionado
@@ -130,6 +131,7 @@ const CreateQuizDialog = ({
         option_d: "",
         correct_answer: "",
         order_index: 0,
+        status: "rascunho",
       });
     } catch (error) {
       toast({
@@ -219,6 +221,23 @@ const CreateQuizDialog = ({
               onChange={(e) => setFormData(prev => ({ ...prev, quiz_name: e.target.value }))}
               placeholder="Nome do quiz (opcional)"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status do Quiz</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rascunho">Rascunho</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="inativo">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
