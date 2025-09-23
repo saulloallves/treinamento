@@ -61,11 +61,11 @@ const StudentPortal = () => {
           {isLoading ? (
             <p>Carregando...</p>
           ) : (enrollments && enrollments.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {enrollments.map((enroll) => (
-              <Card key={enroll.id} className="overflow-hidden">
+              <Card key={enroll.id} className="overflow-hidden hover:shadow-md transition-shadow">
                 {enroll.course?.cover_image_url && (
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+                  <div className="aspect-video w-full overflow-hidden">
                     <img 
                       src={enroll.course.cover_image_url} 
                       alt={enroll.course.name || "Capa do curso"}
@@ -73,35 +73,30 @@ const StudentPortal = () => {
                     />
                   </div>
                 )}
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base leading-tight">{enroll.course?.name ?? "Curso"}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Status</span>
-                    <span className="font-medium">{enroll.status}</span>
+                <CardContent className="p-3 space-y-2">
+                  <div>
+                    <h3 className="font-semibold text-sm leading-tight line-clamp-2 mb-1">
+                      {enroll.course?.name ?? "Curso"}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs h-5 px-2">
+                        {enroll.course?.tipo === 'gravado' ? 'Gravado' : 'Ao Vivo'}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {enroll.status}
+                      </span>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Tipo</span>
-                    <Badge variant="secondary" className="text-xs h-5">
-                      {enroll.course?.tipo === 'gravado' ? 'Treinamento' : 'Curso'}
-                    </Badge>
-                  </div>
-                  
-                  {/* Informações da Turma */}
+                  {/* Informações da Turma - mais compacto */}
                   {enroll.turma && (
-                    <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3 text-muted-foreground" />
-                        <span className="font-medium truncate">
-                          {enroll.turma.name || enroll.turma.code || `Turma ${enroll.turma.id.slice(0, 8)}`}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
+                    <div className="bg-muted/30 p-2 rounded-md">
+                      <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-muted-foreground" />
-                          <span>{format(new Date(enroll.turma.completion_deadline), "dd/MM/yy", { locale: ptBR })}</span>
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs font-medium truncate">
+                            {enroll.turma.name || enroll.turma.code || `Turma ${enroll.turma.id.slice(0, 8)}`}
+                          </span>
                         </div>
                         <Badge variant={
                           enroll.turma.status === 'em_andamento' ? 'default' : 
@@ -109,42 +104,37 @@ const StudentPortal = () => {
                           enroll.turma.status === 'cancelada' ? 'destructive' : 'secondary'
                         } className="text-xs h-4 px-1">
                           {enroll.turma.status === 'agendada' ? 'Agendada' :
-                           enroll.turma.status === 'em_andamento' ? 'Em Andamento' :
+                           enroll.turma.status === 'em_andamento' ? 'Ativo' :
                            enroll.turma.status === 'encerrada' ? 'Encerrada' :
                            enroll.turma.status === 'cancelada' ? 'Cancelada' : enroll.turma.status}
                         </Badge>
                       </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Até {format(new Date(enroll.turma.completion_deadline), "dd/MM/yy", { locale: ptBR })}
+                        </span>
+                      </div>
                     </div>
                   )}
                   
+                  {/* Progresso - mais compacto */}
                   <div className="space-y-1">
-                    <Progress value={enroll.progress_percentage ?? 0} className="h-2" />
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Progresso</span>
-                      <span className="font-medium">{enroll.progress_percentage ?? 0}%</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Progresso</span>
+                      <span className="text-xs font-medium">{enroll.progress_percentage ?? 0}%</span>
                     </div>
+                    <Progress value={enroll.progress_percentage ?? 0} className="h-1.5" />
                   </div>
                   
-                  {/* Controle de acesso baseado no status da turma */}
-                  {enroll.turma?.status === 'encerrada' ? (
-                    <div className="text-center py-2">
-                      <p className="text-xs text-muted-foreground mb-1">Turma encerrada</p>
-                      <p className="text-xs text-muted-foreground">Acesso não disponível</p>
-                    </div>
-                  ) : enroll.turma?.status === 'cancelada' ? (
-                    <div className="text-center py-2">
-                      <p className="text-xs text-muted-foreground mb-1">Turma cancelada</p>
-                      <p className="text-xs text-muted-foreground">Acesso não disponível</p>
-                    </div>
-                  ) : (
-                    <Button asChild variant="outline" className="w-full h-8 text-xs">
-                      {enroll.course?.tipo === 'gravado' ? (
-                        <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Ver Aulas</Link>
-                      ) : (
-                        <Link to={`/aluno/curso/${enroll.course_id}`}>Marcar presença na aula</Link>
-                      )}
-                    </Button>
-                  )}
+                  {/* Botão de ação */}
+                  <Button asChild variant="default" size="sm" className="w-full h-7 text-xs">
+                    {enroll.course?.tipo === 'gravado' ? (
+                      <Link to={`/aluno/curso/${enroll.course_id}/aulas-gravadas`}>Assistir Aulas</Link>
+                    ) : (
+                      <Link to={`/aluno/curso/${enroll.course_id}`}>Acessar Curso</Link>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
             ))}
