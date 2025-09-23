@@ -67,6 +67,12 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Armazenar preferência do usuário para redirecionamento
+    try {
+      localStorage.setItem('login_preference', 'Admin');
+    } catch {
+      // Silent fail
+    }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -74,6 +80,12 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Armazenar preferência do usuário para redirecionamento
+    try {
+      localStorage.setItem('login_preference', 'Aluno');
+    } catch {
+      // Silent fail
+    }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -81,6 +93,12 @@ const Auth = () => {
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    // Armazenar preferência do usuário para redirecionamento
+    try {
+      localStorage.setItem('login_preference', 'Professor');
+    } catch {
+      // Silent fail
+    }
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };

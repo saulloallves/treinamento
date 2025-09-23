@@ -58,7 +58,44 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirecionamento direto baseado nas permissões
+  // Verificar preferência do usuário na tela de login
+  const loginPreference = (() => {
+    try {
+      return localStorage.getItem('login_preference');
+    } catch {
+      return null;
+    }
+  })();
+
+  // Respeitar a escolha do usuário se ele tem a permissão correspondente
+  if (loginPreference === 'Aluno' && hasStudentProfile) {
+    console.log('RoleRedirect - User chose student login, redirecting to student area');
+    // Limpar a preferência após usar
+    try {
+      localStorage.removeItem('login_preference');
+    } catch {}
+    return <Navigate to="/aluno" replace />;
+  }
+  
+  if (loginPreference === 'Professor' && isProfessor) {
+    console.log('RoleRedirect - User chose professor login, redirecting to professor area');
+    // Limpar a preferência após usar
+    try {
+      localStorage.removeItem('login_preference');
+    } catch {}
+    return <Navigate to="/professor" replace />;
+  }
+  
+  if (loginPreference === 'Admin' && isAdmin) {
+    console.log('RoleRedirect - User chose admin login, redirecting to dashboard');
+    // Limpar a preferência após usar
+    try {
+      localStorage.removeItem('login_preference');
+    } catch {}
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Se não há preferência ou a preferência não é válida, usar prioridade padrão
   // Prioridade: Admin > Professor > Aluno
   if (isAdmin) {
     console.log('RoleRedirect - User is admin, redirecting to dashboard');
