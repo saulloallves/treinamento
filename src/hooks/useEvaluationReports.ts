@@ -27,12 +27,37 @@ export interface StudentEvaluationData {
 export const useEvaluationReports = (filters?: {
   turmaId?: string;
   courseId?: string;
+  statusFilter?: string;
   startDate?: string;
   endDate?: string;
 }) => {
   return useQuery({
     queryKey: ["evaluation-reports", filters],
     queryFn: async () => {
+      // Primeiro, buscar turmas com base no filtro de status
+      const { data: turmasData, error: turmasError } = await supabase
+        .from("turmas")
+        .select("id, name, code, status, course_id, courses(name)");
+      
+      if (turmasError) throw turmasError;
+
+      // Filtrar turmas por status
+      let filteredTurmas = turmasData;
+      if (filters?.statusFilter) {
+        if (filters.statusFilter === "ativas") {
+          filteredTurmas = turmasData.filter(t => t.status === 'em_andamento' || t.status === 'agendada');
+        } else if (filters.statusFilter === "arquivadas") {
+          filteredTurmas = turmasData.filter(t => t.status === 'encerrada' || t.status === 'cancelada');
+        } else {
+          filteredTurmas = turmasData.filter(t => t.status === filters.statusFilter);
+        }
+      }
+
+      const turmaIds = filteredTurmas.map(t => t.id);
+      if (turmaIds.length === 0) {
+        return [];
+      }
+
       // Buscar dados de quiz por turma
       let quizQuery = supabase
         .from("quiz_responses")
@@ -46,9 +71,10 @@ export const useEvaluationReports = (filters?: {
             course_id,
             turma_id,
             course:courses(name),
-            turma:turmas(name, code)
+            turma:turmas(name, code, status)
           )
-        `);
+        `)
+        .in('quiz.turma_id', turmaIds);
 
       // Aplicar filtros
       if (filters?.turmaId) {
@@ -79,9 +105,10 @@ export const useEvaluationReports = (filters?: {
             course_id,
             turma_id,
             course:courses(name),
-            turma:turmas(name, code)
+            turma:turmas(name, code, status)
           )
-        `);
+        `)
+        .in('test.turma_id', turmaIds);
 
       // Aplicar filtros
       if (filters?.turmaId) {
@@ -109,25 +136,26 @@ export const useEvaluationReports = (filters?: {
       // Processar dados para criar relatórios por turma
       const turmaReports: Record<string, EvaluationReport> = {};
 
+      // Inicializar relatórios para todas as turmas filtradas
+      filteredTurmas.forEach(turma => {
+        turmaReports[turma.id] = {
+          turmaId: turma.id,
+          turmaName: turma.name || turma.code || 'Turma sem nome',
+          courseId: turma.course_id,
+          courseName: turma.courses?.name || 'Curso sem nome',
+          totalStudents: 0,
+          quizResponses: 0,
+          testSubmissions: 0,
+          avgQuizAccuracy: 0,
+          avgTestScore: 0,
+          participationRate: 0,
+        };
+      });
+
       // Processar dados de quiz
       (quizData || []).forEach((response: any) => {
         const turmaId = response.quiz?.turma_id;
-        if (!turmaId) return;
-
-        if (!turmaReports[turmaId]) {
-          turmaReports[turmaId] = {
-            turmaId,
-            turmaName: response.quiz.turma?.name || response.quiz.turma?.code || 'Turma sem nome',
-            courseId: response.quiz.course_id,
-            courseName: response.quiz.course?.name || 'Curso sem nome',
-            totalStudents: 0,
-            quizResponses: 0,
-            testSubmissions: 0,
-            avgQuizAccuracy: 0,
-            avgTestScore: 0,
-            participationRate: 0,
-          };
-        }
+        if (!turmaId || !turmaReports[turmaId]) return;
 
         turmaReports[turmaId].quizResponses++;
       });
@@ -135,22 +163,7 @@ export const useEvaluationReports = (filters?: {
       // Processar dados de testes
       (testData || []).forEach((submission: any) => {
         const turmaId = submission.test?.turma_id;
-        if (!turmaId) return;
-
-        if (!turmaReports[turmaId]) {
-          turmaReports[turmaId] = {
-            turmaId,
-            turmaName: submission.test.turma?.name || submission.test.turma?.code || 'Turma sem nome',
-            courseId: submission.test.course_id,
-            courseName: submission.test.course?.name || 'Curso sem nome',
-            totalStudents: 0,
-            quizResponses: 0,
-            testSubmissions: 0,
-            avgQuizAccuracy: 0,
-            avgTestScore: 0,
-            participationRate: 0,
-          };
-        }
+        if (!turmaId || !turmaReports[turmaId]) return;
 
         turmaReports[turmaId].testSubmissions++;
       });

@@ -20,6 +20,7 @@ interface EvaluationReportsProps {
   filters?: {
     turmaId?: string;
     courseId?: string;
+    statusFilter?: string;
     startDate?: string;
     endDate?: string;
   };
@@ -170,135 +171,84 @@ export const EvaluationReports = ({
           {detailed ? "Relatório Detalhado por Turma" : "Desempenho por Turma"}
         </h3>
         
-        {reports.map((report) => (
-          <Card key={report.turmaId} className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/50">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">{report.turmaName}</CardTitle>
-                  <CardDescription>{report.courseName}</CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {report.totalStudents} estudante{report.totalStudents !== 1 ? 's' : ''}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          {reports.map((report) => (
+            <Card key={report.turmaId} className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base truncate">{report.turmaName}</CardTitle>
+                    <CardDescription className="text-xs truncate">{report.courseName}</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="text-xs shrink-0">
+                    {report.totalStudents} aluno{report.totalStudents !== 1 ? 's' : ''}
                   </Badge>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedTurma({
-                        id: report.turmaId,
-                        name: report.turmaName,
-                        courseName: report.courseName
-                      });
-                    }}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver Detalhes
-                  </Button>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent
-              onClick={() => setSelectedTurma({
-                id: report.turmaId,
-                name: report.turmaName,
-                courseName: report.courseName
-              })}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              </CardHeader>
+              
+              <CardContent className="pt-0 space-y-3">
                 {/* Quiz Stats */}
-                <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium">Quiz</span>
+                    <MessageSquare className="h-3 w-3 text-green-600" />
+                    <span className="text-muted-foreground">Quiz</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{report.quizResponses}</div>
-                  <div className="text-sm text-muted-foreground">Respostas</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium">{report.avgQuizAccuracy}% precisão</div>
+                  <div className="text-right">
+                    <div className="font-medium text-foreground">{report.quizResponses}</div>
+                    <div className="text-xs text-muted-foreground">{report.avgQuizAccuracy}% precisão</div>
                   </div>
-                  <Progress value={report.avgQuizAccuracy} className="h-2" />
                 </div>
 
                 {/* Test Stats */}
-                <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <FileQuestion className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm font-medium">Testes</span>
+                    <FileQuestion className="h-3 w-3 text-purple-600" />
+                    <span className="text-muted-foreground">Testes</span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{report.testSubmissions}</div>
-                  <div className="text-sm text-muted-foreground">Submissões</div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium">{report.avgTestScore}% média</div>
-                  </div>
-                  <Progress value={report.avgTestScore} className="h-2" />
-                </div>
-
-                {/* Participation */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium">Participação</span>
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">{report.totalStudents}</div>
-                  <div className="text-sm text-muted-foreground">Estudantes ativos</div>
-                  <div className="text-sm text-muted-foreground">
-                    Total de avaliações: {report.quizResponses + report.testSubmissions}
+                  <div className="text-right">
+                    <div className="font-medium text-foreground">{report.testSubmissions}</div>
+                    <div className="text-xs text-muted-foreground">{report.avgTestScore}% média</div>
                   </div>
                 </div>
 
                 {/* Overall Performance */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm font-medium">Performance Geral</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-3 w-3 text-yellow-600" />
+                      <span className="text-muted-foreground">Performance</span>
+                    </div>
+                    <span className="font-medium text-foreground">
+                      {Math.round((report.avgQuizAccuracy + report.avgTestScore) / 2)}%
+                    </span>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {Math.round((report.avgQuizAccuracy + report.avgTestScore) / 2)}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">Média combinada</div>
                   <Progress 
                     value={Math.round((report.avgQuizAccuracy + report.avgTestScore) / 2)} 
-                    className="h-2" 
+                    className="h-1.5" 
                   />
                 </div>
-              </div>
 
-              {detailed && (
-                <div className="mt-6 pt-4 border-t">
-                  <h4 className="text-sm font-medium mb-3">Detalhes Adicionais</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Quiz - Total de perguntas respondidas:</span>
-                      <div className="font-medium">{report.quizResponses}</div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Testes - Total de submissões:</span>
-                      <div className="font-medium">{report.testSubmissions}</div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Engajamento:</span>
-                      <div className="font-medium">
-                        {report.totalStudents > 0 
-                          ? `${Math.round(((report.quizResponses + report.testSubmissions) / report.totalStudents) * 100) / 100} avaliações/estudante`
-                          : 'N/A'
-                        }
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Status da turma:</span>
-                      <Badge variant="outline" className="ml-2">
-                        {report.quizResponses > 0 || report.testSubmissions > 0 ? 'Ativa' : 'Sem atividade'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                {/* Action Button */}
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTurma({
+                      id: report.turmaId,
+                      name: report.turmaName,
+                      courseName: report.courseName
+                    });
+                  }}
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  Ver Detalhes
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
