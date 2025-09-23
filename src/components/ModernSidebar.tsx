@@ -550,25 +550,18 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     return null;
   }
 
-  // Se for mobile e não deveria mostrar menu admin nem professor, não renderizar nada
-  if (isMobile && !shouldShowAdminMenu && !shouldShowProfessorMenu) {
-    return null;
-  }
-
   if (isMobile) {
     return (
       <>
-        {/* Mobile Toggle Button - só mostrar se tiver menu para mostrar */}
-        {(shouldShowAdminMenu || shouldShowProfessorMenu) && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed top-4 left-4 z-50 md:hidden bg-white shadow-sm"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        )}
+        {/* Mobile Toggle Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50 md:hidden bg-white shadow-sm"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
 
         {/* Mobile Overlay */}
         {isOpen && (
@@ -578,11 +571,10 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           />
         )}
 
-        {/* Mobile Sidebar - só mostrar se tiver conteúdo apropriado */}
-        {(shouldShowAdminMenu || shouldShowProfessorMenu) && (
-          <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${
-            isOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}>
+        {/* Mobile Sidebar */}
+        <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
           <div className="h-full flex flex-col border-r border-slate-200/60 shadow-xl">
             {/* Header da sidebar */}
             <div className="p-6 border-b border-slate-200/60 mt-16">
@@ -630,19 +622,16 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
              </div>
            </div>
          </div>
-        )}
        </>
      );
    }
 
   return (
     <TooltipProvider>
-      {/* Só renderizar sidebar se deveria mostrar menu admin ou professor */}
-      {(shouldShowAdminMenu || shouldShowProfessorMenu) && (
-        <div 
-          ref={sidebarRef}
-          className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}
-        >
+      <div 
+        ref={sidebarRef}
+        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}
+      >
         {/* Header da sidebar */}
         <div className="p-6 border-b border-slate-200/60 relative">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -712,7 +701,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           </div>
         </div>
       </div>
-      )}
     </TooltipProvider>
   );
 };
