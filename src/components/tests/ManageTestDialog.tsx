@@ -25,6 +25,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   const [isEditing, setIsEditing] = useState(false);
   const [editedTest, setEditedTest] = useState<any>(null);
   const [questionTexts, setQuestionTexts] = useState<Record<string, string>>({});
+  const [optionTexts, setOptionTexts] = useState<Record<string, string>>({});
   const debounceRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
   const { data: tests, updateTest } = useTests();
@@ -43,22 +44,76 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   useEffect(() => {
     if (questions && open) {
       const initialTexts: Record<string, string> = {};
+      const initialOptionTexts: Record<string, string> = {};
+      
       questions.forEach(q => {
         initialTexts[q.id] = q.question_text;
+        q.options?.forEach(opt => {
+          if (opt.id) {
+            initialOptionTexts[opt.id] = opt.option_text;
+          }
+        });
       });
+      
       setQuestionTexts(initialTexts);
+      setOptionTexts(initialOptionTexts);
     }
   }, [questions, open]);
+
+  // Cleanup timeouts when dialog closes
+  useEffect(() => {
+    if (!open) {
+      Object.values(debounceRefs.current).forEach(clearTimeout);
+      debounceRefs.current = {};
+    }
+  }, [open]);
 
   const debouncedUpdateQuestion = useCallback((questionId: string, updates: any) => {
     if (debounceRefs.current[questionId]) {
       clearTimeout(debounceRefs.current[questionId]);
     }
     
-    debounceRefs.current[questionId] = setTimeout(() => {
-      updateQuestion({ id: questionId, ...updates });
-    }, 500);
+    debounceRefs.current[questionId] = setTimeout(async () => {
+      console.log('Updating question:', questionId, updates);
+      try {
+        await updateQuestion({ id: questionId, ...updates });
+        console.log('Question updated successfully');
+      } catch (error) {
+        console.error('Error updating question:', error);
+      }
+    }, 1000); // Increased debounce time
   }, [updateQuestion]);
+
+  const debouncedUpdateOption = useCallback((questionId: string, optionId: string, newText: string) => {
+    const debounceKey = `${questionId}-${optionId}`;
+    if (debounceRefs.current[debounceKey]) {
+      clearTimeout(debounceRefs.current[debounceKey]);
+    }
+    
+    debounceRefs.current[debounceKey] = setTimeout(async () => {
+      const question = questions?.find(q => q.id === questionId);
+      if (question) {
+        const updatedOptions = question.options?.map(opt => 
+          opt.id === optionId ? { ...opt, option_text: newText } : opt
+        ) || [];
+        
+        try {
+          await updateQuestion({
+            id: questionId,
+            options: updatedOptions
+          });
+        } catch (error) {
+          console.error('Error updating option:', error);
+          // Revert local state on error
+          setOptionTexts(prev => {
+            const newState = { ...prev };
+            delete newState[optionId];
+            return newState;
+          });
+        }
+      }
+    }, 1000); // Increased debounce time
+  }, [questions, updateQuestion]);
 
   const handleSaveTest = async () => {
     if (!testId || !editedTest) return;
@@ -195,7 +250,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                         <div className="space-y-2">
                           <Label>Texto da Pergunta</Label>
                           <Textarea
-                            value={questionTexts[question.id] || question.question_text}
+                            value={questionTexts[question.id] || ""}
                             onChange={(e) => {
                               const newValue = e.target.value;
                               setQuestionTexts(prev => ({
@@ -205,6 +260,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                               debouncedUpdateQuestion(question.id, { question_text: newValue });
                             }}
                             rows={2}
+                            placeholder="Digite o texto da pergunta..."
                           />
                         </div>
 
@@ -246,15 +302,16 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                                     </Label>
                                   </div>
                                   <Input
-                                    value={option.option_text}
+                                    value={optionTexts[option.id || ''] || option.option_text || ""}
                                     onChange={(e) => {
-                                      const updatedOptions = question.options?.map(opt => 
-                                        opt.id === option.id ? { ...opt, option_text: e.target.value } : opt
-                                      ) || [];
-                                      updateQuestion({
-                                        id: question.id,
-                                        options: updatedOptions
-                                      });
+                                      const newValue = e.target.value;
+                                      if (option.id) {
+                                        setOptionTexts(prev => ({
+                                          ...prev,
+                                          [option.id!]: newValue
+                                        }));
+                                        debouncedUpdateOption(question.id, option.id, newValue);
+                                      }
                                     }}
                                     placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
                                   />

@@ -142,7 +142,10 @@ export const useTestQuestions = (testId?: string | null) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["test-questions", testId] });
+      // Delay the invalidation to prevent UI flicker
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["test-questions", testId] });
+      }, 500);
     },
   });
 
