@@ -27,36 +27,28 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Redireciona após autenticar: apenas quando checagens terminarem
+  // Redirect after authentication only when all checks are complete
   useEffect(() => {
     if (user && !authProcessing && !loading) {
-      // Pequeno delay para garantir que sessionStorage seja atualizado
-      setTimeout(() => {
-        const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
-        console.log('🚀 Auth redirect - Role claim:', roleClaim);
-        
-        if (roleClaim) {
-          switch (roleClaim) {
-            case 'admin':
-              navigate('/dashboard', { replace: true });
-              break;
-            case 'teacher':
-              navigate('/professor', { replace: true });
-              break;
-            case 'student':
-              console.log('📱 Redirecting to /aluno');
-              navigate('/aluno', { replace: true });
-              break;
-            default:
-              // Se tem role claim inválido, redirecionar para home
-              navigate('/', { replace: true });
-          }
-        } else {
-          // Se NÃO tem role claim, redirecionar para home (RoleRedirect decidirá)
-          console.log('🏠 No role claim found, redirecting to home for role detection');
-          navigate('/', { replace: true });
+      const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
+      
+      if (roleClaim) {
+        switch (roleClaim) {
+          case 'admin':
+            navigate('/dashboard', { replace: true });
+            break;
+          case 'teacher':
+            navigate('/professor', { replace: true });
+            break;
+          case 'student':
+            navigate('/aluno', { replace: true });
+            break;
+          default:
+            navigate('/', { replace: true });
         }
-      }, 100);
+      } else {
+        navigate('/', { replace: true });
+      }
     }
   }, [user, authProcessing, loading, navigate]);
 
@@ -91,10 +83,9 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    // Set selected role before login
     try {
       sessionStorage.setItem('SELECTED_ROLE', 'Admin');
-      console.log('🔵 ADMIN ROLE SELECTED AND STORED');
     } catch (error) {
       console.error('Error storing admin role:', error);
     }
@@ -107,10 +98,9 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    // Set selected role before login
     try {
       sessionStorage.setItem('SELECTED_ROLE', 'Aluno');
-      console.log('🟢 STUDENT ROLE SELECTED AND STORED');
     } catch (error) {
       console.error('Error storing student role:', error);
     }
@@ -123,10 +113,9 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    // Set selected role before login
     try {
       sessionStorage.setItem('SELECTED_ROLE', 'Professor');
-      console.log('🟡 PROFESSOR ROLE SELECTED AND STORED');
     } catch (error) {
       console.error('Error storing professor role:', error);
     }

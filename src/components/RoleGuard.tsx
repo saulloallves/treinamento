@@ -14,8 +14,8 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
 
   if (loading || authProcessing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -29,22 +29,13 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
     return <>{children}</>;
   }
 
-  // Get the current user's role claim from sessionStorage - try both keys
-  const userRoleClaim = sessionStorage.getItem('USER_ROLE_CLAIM') || sessionStorage.getItem('SELECTED_ROLE');
+  // Get user role from sessionStorage
+  const userRoleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
   
-  // Map Portuguese roles to English roles for consistency
-  const roleMapping: Record<string, string> = {
-    'Admin': 'admin',
-    'Professor': 'teacher', 
-    'Aluno': 'student'
-  };
-  
-  const normalizedUserRole = userRoleClaim ? (roleMapping[userRoleClaim] || userRoleClaim) : null;
-  
-  // Check if user has the required role claim
-  if (normalizedUserRole !== requiredRole) {
-    // Redirect based on the user's actual role claim, avoid loops
-    switch (normalizedUserRole) {
+  // Check if user has the required role
+  if (userRoleClaim !== requiredRole) {
+    // Redirect to appropriate page based on role
+    switch (userRoleClaim) {
       case 'admin':
         if (location.pathname !== '/dashboard') {
           return <Navigate to="/dashboard" replace />;
@@ -61,20 +52,22 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
         }
         break;
       default:
-        // If no valid role claim, redirect to auth only if not already there
-        if (location.pathname !== '/auth') {
-          return <Navigate to="/auth" replace />;
+        // No valid role, redirect to home for role selection
+        if (location.pathname !== '/') {
+          return <Navigate to="/" replace />;
         }
     }
     
-    // Block access but don't redirect if already on target page
-    return <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-4">Acesso Negado</h2>
-        <p className="text-muted-foreground mb-4">Você não tem permissão para acessar esta página.</p>
-        <Button onClick={() => window.location.href = '/auth'}>Fazer Login</Button>
+    // If already on correct page but wrong role, show access denied
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Acesso Negado</h2>
+          <p className="text-muted-foreground mb-4">Você não tem permissão para acessar esta página.</p>
+          <Button onClick={() => window.location.href = '/'}>Voltar ao Início</Button>
+        </div>
       </div>
-    </div>;
+    );
   }
 
   return <>{children}</>;

@@ -40,11 +40,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [suppressAuthEvents, setSuppressAuthEvents] = useState(false);
 
   useEffect(() => {
-    console.log('Auth - Setting up listeners');
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth - State change:', { event, hasSession: !!session, hasUser: !!session?.user });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -54,7 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(() => {
             (async () => {
               try {
-                console.log('Auth - Ensuring profile for user:', session.user!.id);
                 await ensureProfile(session.user!);
                 await supabase.rpc('ensure_admin_bootstrap');
               } catch (e) {
@@ -67,9 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session
-    console.log('Auth - Checking existing session');
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Auth - Existing session:', { hasSession: !!session, hasUser: !!session?.user });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -77,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           (async () => {
             try {
-              console.log('Auth - Ensuring profile for existing user:', session.user!.id);
               await ensureProfile(session.user!);
               await supabase.rpc('ensure_admin_bootstrap');
             } catch (e) {
@@ -89,7 +83,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      console.log('Auth - Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, []);
@@ -172,7 +165,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // IMPORTANTE: Vincular automaticamente inscrições existentes com o mesmo email
       if (authUser.email) {
-        console.log('Vinculando inscrições existentes para:', authUser.email);
         const { data: linkedEnrollments, error: linkError } = await supabase
           .from('enrollments')
           .update({ user_id: authUser.id })
@@ -192,7 +184,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Se é um cadastro de admin, criar registro na tabela admin_users
       if (meta.user_type === 'Admin') {
-        console.log('Creating admin record for:', authUser.email);
         const adminRecord = {
           user_id: authUser.id,
           name: (meta.full_name as string) || (authUser.email as string),
@@ -311,12 +302,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Autenticação básica bem-sucedida
-      console.log('✅ Basic auth successful');
 
       if (data.user) {
         // Verificar se um papel específico foi solicitado
         if (selectedRole) {
-          console.log('🎯 Validating role access:', { selectedRole });
           
           try {
             // Usar função SQL diretamente para validar papéis
@@ -364,12 +353,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // Armazenar papel no sessionStorage
             sessionStorage.setItem('USER_ROLE_CLAIM', actAs);
             sessionStorage.setItem('SELECTED_ROLE_NAME', selectedRole);
-            
-            console.log('✅ Role validation successful:', { actAs, selectedRole });
-            console.log('✅ SessionStorage updated:', {
-              USER_ROLE_CLAIM: sessionStorage.getItem('USER_ROLE_CLAIM'),
-              SELECTED_ROLE_NAME: sessionStorage.getItem('SELECTED_ROLE_NAME')
-            });
             
           } catch (roleError) {
             console.error('❌ Role validation error:', roleError);
