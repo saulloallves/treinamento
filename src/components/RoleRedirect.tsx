@@ -79,20 +79,27 @@ const RoleRedirect = () => {
 
   // Redirecionar baseado na preferência do usuário, se existir
   if (selectedProfile) {
+    console.log('🎯 RoleRedirect - Processing selected profile:', selectedProfile);
+    
     if (selectedProfile === 'Admin' && isAdmin) {
       console.log('🎯 RoleRedirect - User chose Admin, redirecting to dashboard');
       return <Navigate to="/dashboard" replace />;
     }
+    
     if (selectedProfile === 'Professor' && isProfessor) {
       console.log('🎯 RoleRedirect - User chose Professor, redirecting to professor area');
       return <Navigate to="/professor" replace />;
     }
-    if (selectedProfile === 'Aluno' && hasStudentProfile) {
+    
+    if (selectedProfile === 'Aluno') {
+      // Para aluno, permitir acesso mesmo que seja admin/professor
+      // Qualquer usuário autenticado pode acessar como aluno
       console.log('🎯 RoleRedirect - User chose Aluno, redirecting to student area');
       return <Navigate to="/aluno" replace />;
     }
-    // Se a preferência não é válida para o usuário atual, limpar e continuar
-    console.log('🎯 RoleRedirect - Selected profile not valid for user, clearing preference');
+    
+    // Se a preferência não é válida, limpar e continuar
+    console.log('🎯 RoleRedirect - Selected profile not valid, clearing preference');
     try {
       localStorage.removeItem('selected_profile');
     } catch {
