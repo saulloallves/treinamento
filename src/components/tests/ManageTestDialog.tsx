@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Edit, Plus, Image, Trash2, Save } from "lucide-react";
+import { Edit, Plus, Image, Trash2, Save, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useTests } from "@/hooks/useTests";
 import { useTestQuestions } from "@/hooks/useTestQuestions";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ManageTestDialogProps {
   testId: string | null;
@@ -267,15 +268,35 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
 
                         {question.image_urls && question.image_urls.length > 0 && (
                           <div className="space-y-2">
-                            <Label>Imagens</Label>
-                            <div className="flex gap-2">
+                            <Label>Imagens da Pergunta</Label>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-muted/20 rounded-lg border">
                               {question.image_urls.map((url, imgIndex) => (
-                                <div key={imgIndex} className="relative">
+                                <div key={imgIndex} className="relative group">
                                   <img 
                                     src={url} 
                                     alt={`Imagem ${imgIndex + 1}`}
-                                    className="w-20 h-20 object-cover rounded border"
+                                    className="w-full h-24 object-cover rounded-md border shadow-sm hover:shadow-md transition-shadow"
                                   />
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="absolute top-1 right-1 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={async () => {
+                                      try {
+                                        const updatedImages = question.image_urls?.filter((_, index) => index !== imgIndex) || [];
+                                        await updateQuestion({
+                                          id: question.id,
+                                          image_urls: updatedImages
+                                        });
+                                        toast.success("Imagem removida!");
+                                      } catch (error) {
+                                        console.error('Erro ao remover imagem:', error);
+                                        toast.error("Erro ao remover imagem");
+                                      }
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               ))}
                             </div>
@@ -365,12 +386,47 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                               input.type = 'file';
                               input.accept = 'image/*';
                               input.multiple = true;
-                              input.onchange = (e) => {
+                              input.onchange = async (e) => {
                                 const files = (e.target as HTMLInputElement).files;
                                 if (files) {
-                                  // Here you would upload the files and get URLs
-                                  // For now, we'll just show a message
-                                  toast.success(`${files.length} imagem(ns) selecionada(s) - funcionalidade de upload será implementada`);
+                                  try {
+                                    const imageUrls: string[] = [];
+                                    
+                                    for (let i = 0; i < files.length; i++) {
+                                      const file = files[i];
+                                      const fileExt = file.name.split('.').pop();
+                                      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+                                      const filePath = `test-questions/${fileName}`;
+                                      
+                                      // Upload to Supabase Storage
+                                      const { data, error } = await supabase.storage
+                                        .from('test-images')
+                                        .upload(filePath, file);
+                                      
+                                      if (error) throw error;
+                                      
+                                      // Get public URL
+                                      const { data: { publicUrl } } = supabase.storage
+                                        .from('test-images')
+                                        .getPublicUrl(filePath);
+                                      
+                                      imageUrls.push(publicUrl);
+                                    }
+                                    
+                                    // Update question with new images
+                                    const currentImages = question.image_urls || [];
+                                    const updatedImages = [...currentImages, ...imageUrls];
+                                    
+                                    await updateQuestion({
+                                      id: question.id,
+                                      image_urls: updatedImages
+                                    });
+                                    
+                                    toast.success(`${files.length} imagem(ns) adicionada(s)!`);
+                                  } catch (error) {
+                                    console.error('Erro ao fazer upload:', error);
+                                    toast.error("Erro ao fazer upload da imagem");
+                                  }
                                 }
                               };
                               input.click();
