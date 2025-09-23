@@ -29,13 +29,22 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
     return <>{children}</>;
   }
 
-  // Get the current user's role claim from sessionStorage
-  const userRoleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
+  // Get the current user's role claim from sessionStorage - try both keys
+  const userRoleClaim = sessionStorage.getItem('USER_ROLE_CLAIM') || sessionStorage.getItem('SELECTED_ROLE');
+  
+  // Map Portuguese roles to English roles for consistency
+  const roleMapping: Record<string, string> = {
+    'Admin': 'admin',
+    'Professor': 'teacher', 
+    'Aluno': 'student'
+  };
+  
+  const normalizedUserRole = userRoleClaim ? (roleMapping[userRoleClaim] || userRoleClaim) : null;
   
   // Check if user has the required role claim
-  if (userRoleClaim !== requiredRole) {
+  if (normalizedUserRole !== requiredRole) {
     // Redirect based on the user's actual role claim, avoid loops
-    switch (userRoleClaim) {
+    switch (normalizedUserRole) {
       case 'admin':
         if (location.pathname !== '/dashboard') {
           return <Navigate to="/dashboard" replace />;
