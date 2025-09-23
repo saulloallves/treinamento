@@ -17,13 +17,22 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
-      const { data: studentData } = await supabase
-        .from('users')
-        .select('id, user_type, role')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Verificar se o usuário tem inscrições (enrollments) ou existe na tabela users
+      const [{ data: studentData }, { data: enrollmentData }] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, user_type, role')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+      ]);
         
-      setHasStudentProfile(!!studentData);
+      // Considera que tem perfil de estudante se existe na tabela users OU tem enrollments
+      setHasStudentProfile(!!studentData || (enrollmentData && enrollmentData.length > 0));
     };
     
     if (user?.id) {
