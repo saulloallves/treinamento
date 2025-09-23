@@ -9,7 +9,7 @@ import EditQuizDialog from "./EditQuizDialog";
 
 const QuizList = () => {
   const { toast } = useToast();
-  const { data: quizQuestions = [], isLoading, deleteQuestion } = useQuiz();
+  const { data: quizQuestions = [], isLoading, deleteQuestion, updateQuestion } = useQuiz();
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
 
   const handleDelete = async (id: string) => {
@@ -23,6 +23,26 @@ const QuizList = () => {
       toast({
         title: "Erro",
         description: "Erro ao excluir pergunta.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStatusToggle = async (question: any) => {
+    try {
+      const newStatus = question.status === 'ativo' ? 'rascunho' : 'ativo';
+      await updateQuestion.mutateAsync({
+        id: question.id,
+        status: newStatus,
+      });
+      toast({
+        title: "Status atualizado",
+        description: `Quiz ${newStatus === 'ativo' ? 'ativado' : 'desativado'} com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar status do quiz.",
         variant: "destructive",
       });
     }
@@ -51,6 +71,15 @@ const QuizList = () => {
                 <div className="flex gap-2">
                   <Badge variant="outline">{question.courses?.name || 'Curso não informado'}</Badge>
                   <Badge variant="secondary">{question.lessons?.title || 'Aula não informada'}</Badge>
+                  <Badge 
+                    variant={
+                      question.status === 'ativo' ? 'default' : 
+                      question.status === 'rascunho' ? 'secondary' : 'outline'
+                    }
+                  >
+                    {question.status === 'ativo' ? 'Ativo' : 
+                     question.status === 'rascunho' ? 'Rascunho' : 'Inativo'}
+                  </Badge>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -60,6 +89,13 @@ const QuizList = () => {
                   onClick={() => setEditingQuestion(question)}
                 >
                   <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={question.status === 'ativo' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleStatusToggle(question)}
+                >
+                  {question.status === 'ativo' ? 'Ativo' : 'Ativar'}
                 </Button>
                 <Button
                   variant="outline"

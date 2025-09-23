@@ -22,9 +22,11 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
   const { data: courses = [] } = useCourses();
   const { data: quizQuestions = [] } = useQuiz();
 
-  // Count quizzes per turma
+  // Count quizzes per turma (only active ones for display)
   const turmasWithQuizCount = turmas.map(turma => {
-    const quizCount = quizQuestions.filter(q => q.turma_id === turma.id).length;
+    const quizCount = quizQuestions.filter(q => 
+      q.turma_id === turma.id && q.status === 'ativo'
+    ).length;
     const course = courses.find(c => c.id === turma.course_id);
     return {
       ...turma,
