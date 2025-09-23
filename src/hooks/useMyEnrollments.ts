@@ -9,6 +9,7 @@ export interface MyEnrollmentCourse {
   generates_certificate?: boolean | null;
   tipo?: string | null;
   cover_image_url?: string | null;
+  status?: string | null;
 }
 
 export interface MyEnrollmentTurma {
@@ -62,7 +63,7 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
         if (courseIds.length > 0) {
           const { data: coursesData, error: coursesErr } = await supabase
             .from("courses")
-            .select("id, name, lessons_count, generates_certificate, tipo, cover_image_url")
+            .select("id, name, lessons_count, generates_certificate, tipo, cover_image_url, status")
             .in("id", courseIds);
           if (coursesErr) throw coursesErr;
           (coursesData ?? []).forEach((c) => {
@@ -128,14 +129,19 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           })
         );
 
-        // Filtrar apenas inscrições de turmas ativas (não encerradas ou canceladas)
+        // Filtrar inscrições válidas para o painel do aluno
         const activeEnrollments = enrichedEnrollments.filter(enrollment => {
-          // Se não tem turma, permite (cursos sem turma específica)
-          if (!enrollment.turma) return true;
+          // Não mostrar cursos em transformação para treinamento
+          if (enrollment.course?.status === 'transformar_treinamento') {
+            return false;
+          }
           
-          // Filtra turmas encerradas ou canceladas
+          // Se não tem turma, não permite (cursos devem ter turma)
+          if (!enrollment.turma) return false;
+          
+          // Mostrar apenas turmas em andamento
           const turmaStatus = enrollment.turma.status?.toLowerCase();
-          return turmaStatus !== 'encerrada' && turmaStatus !== 'cancelada';
+          return turmaStatus === 'em_andamento';
         });
 
         return activeEnrollments;
