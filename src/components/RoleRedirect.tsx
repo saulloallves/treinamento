@@ -3,15 +3,25 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const RoleRedirect = () => {
   const { user, loading } = useAuth();
+  const { selectedProfile } = useProfile();
   const { data: isAdmin = false, isLoading: checkingAdmin } = useIsAdmin(user?.id || undefined);
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
   const [hasStudentProfile, setHasStudentProfile] = useState(false);
+  
+  console.log('🎯 RoleRedirect - Current state:', {
+    selectedProfile,
+    isAdmin,
+    isProfessor,
+    hasStudentProfile,
+    loading: loading || checkingAdmin || checkingProfessor || loadingCurrentUser
+  });
   
   useEffect(() => {
     const checkStudentProfile = async () => {
@@ -46,36 +56,28 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Verificar se há uma preferência de perfil salva
-  let selectedProfile: string | null = null;
-  try {
-    selectedProfile = localStorage.getItem('selected_profile');
-  } catch {
-    // Silent fail
-  }
-
-  // Redirecionar baseado na preferência do usuário, se existir
+  // Redirecionar baseado na preferência do usuário usando o contexto
   if (selectedProfile) {
+    console.log('🎯 RoleRedirect - Processing selected profile:', selectedProfile);
+    
     if (selectedProfile === 'Admin' && isAdmin) {
+      console.log('🎯 RoleRedirect - Redirecting to admin dashboard');
       return <Navigate to="/dashboard" replace />;
     }
     
     if (selectedProfile === 'Professor' && isProfessor) {
+      console.log('🎯 RoleRedirect - Redirecting to professor area');
       return <Navigate to="/professor" replace />;
     }
     
     if (selectedProfile === 'Aluno') {
       // Para aluno, permitir acesso mesmo que seja admin/professor
       // Qualquer usuário autenticado pode acessar como aluno
+      console.log('🎯 RoleRedirect - Redirecting to student area');
       return <Navigate to="/aluno" replace />;
     }
     
-    // Se a preferência não é válida, limpar e continuar
-    try {
-      localStorage.removeItem('selected_profile');
-    } catch {
-      // Silent fail
-    }
+    console.log('🎯 RoleRedirect - Selected profile not valid for user permissions');
   }
 
   // Redirecionar baseado na hierarquia de permissões (fallback quando não há preferência)

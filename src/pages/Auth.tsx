@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 
 const Auth = () => {
   const { user, signIn, signUp, loading, authProcessing } = useAuth();
+  const { setSelectedProfile } = useProfile();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,15 +32,13 @@ const Auth = () => {
 
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
-    const selectedProfile = localStorage.getItem('selected_profile');
     console.log('🎯 Auth.tsx - Checking redirect:', { 
       user: !!user, 
       authProcessing, 
-      loading,
-      selectedProfile 
+      loading
     });
     if (user && !authProcessing && !loading) {
-      console.log('🎯 Auth.tsx - Redirecting to / with profile:', selectedProfile);
+      console.log('🎯 Auth.tsx - Redirecting to /');
       navigate('/', { replace: true });
     }
   }, [user, authProcessing, loading, navigate]);
@@ -73,13 +73,9 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference before signing in
-    try {
-      localStorage.setItem('selected_profile', 'Admin');
-      console.log('🎯 Auth - Set profile preference to Admin');
-    } catch {
-      // Silent fail
-    }
+    // Set profile preference using context
+    setSelectedProfile('Admin');
+    console.log('🎯 Auth - Set profile preference to Admin');
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -87,13 +83,9 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference before signing in
-    try {
-      localStorage.setItem('selected_profile', 'Aluno');
-      console.log('🎯 Auth - Set profile preference to Aluno');
-    } catch {
-      // Silent fail
-    }
+    // Set profile preference using context
+    setSelectedProfile('Aluno');
+    console.log('🎯 Auth - Set profile preference to Aluno');
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -101,13 +93,9 @@ const Auth = () => {
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference before signing in
-    try {
-      localStorage.setItem('selected_profile', 'Professor');
-      console.log('🎯 Auth - Set profile preference to Professor');
-    } catch {
-      // Silent fail
-    }
+    // Set profile preference using context
+    setSelectedProfile('Professor');
+    console.log('🎯 Auth - Set profile preference to Professor');
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };

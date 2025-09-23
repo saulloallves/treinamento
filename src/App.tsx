@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import LiveStream from "./pages/LiveStream";
@@ -62,7 +63,8 @@ const App = () => (
       <ErrorBoundary>
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
+            <ProfileProvider>
+              <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<RoleRedirect />} />
               <Route path="/dashboard" element={
@@ -313,6 +315,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </ProfileProvider>
           </AuthProvider>
         </BrowserRouter>
       </ErrorBoundary>

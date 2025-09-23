@@ -27,12 +27,13 @@ import {
 import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ModernSidebarProps {
@@ -42,6 +43,7 @@ interface ModernSidebarProps {
 const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { selectedProfile } = useProfile();
   const isMobile = useIsMobile();
   
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +77,12 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: isProfessor = false } = useIsProfessor(user?.id);  
   const { data: currentUser } = useCurrentUser();
+  console.log('🔍 ModernSidebar - Menu determination:', {
+    userId: user?.id,
+    isAdmin,
+    isProfessor,
+    selectedProfile
+  });
   
   // Toggle sidebar collapsed state
   const toggleCollapsed = useCallback(() => {
@@ -114,18 +122,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       mountedRef.current = false;
     };
   }, []);
-  
-  // Verificar a preferência de perfil do usuário
-  const selectedProfile = typeof window !== 'undefined' 
-    ? localStorage.getItem('selected_profile') 
-    : null;
-    
-  console.log('🔍 ModernSidebar - Menu determination:', {
-    userId: user?.id,
-    isAdmin,
-    isProfessor,
-    selectedProfile
-  });
   
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => {

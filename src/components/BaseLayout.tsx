@@ -1,6 +1,7 @@
 
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/contexts/ProfileContext";
 import { Button } from "@/components/ui/button";
 import ModernSidebar from "@/components/ModernSidebar";
 import BottomNavigation from "@/components/mobile/BottomNavigation";
@@ -17,27 +18,16 @@ interface BaseLayoutProps {
 
 const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) => {
   const { user, signOut } = useAuth();
+  const { selectedProfile } = useProfile();
   const isMobile = useIsMobile();
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
   
-  // Verificar a preferência de perfil do usuário
-  const selectedProfile = typeof window !== 'undefined' 
-    ? localStorage.getItem('selected_profile') 
-    : null;
-    
   console.log('🔍 BaseLayout - User info:', {
     userId: user?.id,
     isAdmin,
     isProfessor,
-    selectedProfile,
-    shouldShowSidebar: (() => {
-      if (selectedProfile === 'Aluno') return false;
-      if (selectedProfile === 'Admin' && isAdmin) return true;
-      if (selectedProfile === 'Professor' && isProfessor) return true;
-      if (!selectedProfile) return isAdmin || isProfessor;
-      return false;
-    })()
+    selectedProfile
   });
   
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -71,27 +61,35 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   
   // Determinar se deve mostrar sidebar baseado na preferência do usuário
   const shouldShowSidebar = (() => {
+    console.log('🔍 BaseLayout - Determining sidebar visibility:', { selectedProfile, isAdmin, isProfessor });
+    
     // Se o usuário escolheu "Aluno", não mostrar sidebar de admin/professor
     if (selectedProfile === 'Aluno') {
+      console.log('🔍 BaseLayout - User chose Aluno, hiding sidebar');
       return false;
     }
     
     // Se escolheu Admin e é admin, mostrar
     if (selectedProfile === 'Admin' && isAdmin) {
+      console.log('🔍 BaseLayout - User chose Admin and is admin, showing sidebar');
       return true;
     }
     
     // Se escolheu Professor e é professor, mostrar
     if (selectedProfile === 'Professor' && isProfessor) {
+      console.log('🔍 BaseLayout - User chose Professor and is professor, showing sidebar');
       return true;
     }
     
     // Se não há preferência, usar lógica padrão
     if (!selectedProfile) {
-      return isAdmin || isProfessor;
+      const result = isAdmin || isProfessor;
+      console.log('🔍 BaseLayout - No preference, using default logic:', result);
+      return result;
     }
     
     // Por padrão, não mostrar se a preferência não combina
+    console.log('🔍 BaseLayout - Profile preference does not match permissions, hiding sidebar');
     return false;
   })();
 

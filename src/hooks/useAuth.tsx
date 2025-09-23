@@ -472,6 +472,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // Clear profile preference on logout
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('selected_profile');
+      }
+      
       await supabase.auth.signOut();
     } catch (error) {
       console.warn('Logout error (ignored):', error);
@@ -479,13 +484,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Always clear local state even if Supabase logout fails
       setSession(null);
       setUser(null);
-      
-      // Limpar preferência de perfil ao fazer logout
-      try {
-        localStorage.removeItem('selected_profile');
-      } catch {
-        // Silent fail
-      }
       
       toast.success("Logout realizado", {
         description: "Até logo!",

@@ -26,6 +26,7 @@ import {
 import { RobotIcon } from "@/components/ui/robot-icon";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
@@ -40,6 +41,7 @@ interface SidebarProps {
 const Sidebar = ({ showInMobile = true }: SidebarProps) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { selectedProfile } = useProfile();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
@@ -65,11 +67,6 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
   useEffect(() => {
     setActiveGroup(null);
   }, [location.pathname]);
-  
-  // Verificar a preferência de perfil do usuário
-  const selectedProfile = typeof window !== 'undefined' 
-    ? localStorage.getItem('selected_profile') 
-    : null;
   
   // Determinar qual menu mostrar baseado na preferência do usuário
   const shouldShowAdminMenu = useMemo(() => {
