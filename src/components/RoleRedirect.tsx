@@ -17,6 +17,8 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
+      console.log('🔍 CHECKING STUDENT PROFILE FOR USER:', user.id, user.email);
+      
       // Verificar se o usuário tem inscrições (enrollments) ou existe na tabela users
       const [{ data: studentData }, { data: enrollmentData }] = await Promise.all([
         supabase
@@ -30,9 +32,17 @@ const RoleRedirect = () => {
           .eq('user_id', user.id)
           .limit(1)
       ]);
+      
+      console.log('🔍 STUDENT DATA CHECK:', {
+        studentData,
+        enrollmentData,
+        enrollmentCount: enrollmentData?.length || 0
+      });
         
       // Considera que tem perfil de estudante se existe na tabela users OU tem enrollments
-      setHasStudentProfile(!!studentData || (enrollmentData && enrollmentData.length > 0));
+      const hasStudent = !!studentData || (enrollmentData && enrollmentData.length > 0);
+      console.log('🔍 FINAL hasStudentProfile VALUE:', hasStudent);
+      setHasStudentProfile(hasStudent);
     };
     
     if (user?.id) {
@@ -94,8 +104,30 @@ const RoleRedirect = () => {
     isAdmin,
     isProfessor, 
     hasStudentProfile,
-    userEmail: user.email
+    userEmail: user.email,
+    userId: user.id,
+    sessionStorageValue: (() => {
+      try { return sessionStorage.getItem('CRITICAL_LOGIN_PREFERENCE'); } catch { return 'ERROR'; }
+    })(),
+    localStorageValue: (() => {
+      try { return localStorage.getItem('CRITICAL_LOGIN_PREFERENCE'); } catch { return 'ERROR'; }
+    })()
   });
+
+  // ADICIONAR DEBUGGING CRÍTICO
+  if (loginPreference) {
+    console.log('🔍 LOGIN PREFERENCE FOUND:', loginPreference);
+    console.log('🔍 CHECKING PERMISSIONS FOR PREFERENCE...');
+    
+    if (loginPreference === 'Aluno') {
+      console.log('🔍 Student preference - hasStudentProfile:', hasStudentProfile);
+      if (!hasStudentProfile) {
+        console.error('🔴 PROBLEM: User chose Aluno but hasStudentProfile is false!');
+      }
+    }
+  } else {
+    console.log('🔍 NO LOGIN PREFERENCE FOUND - this is the problem!');
+  }
 
   // RESPOSTA OBRIGATÓRIA À ESCOLHA DO USUÁRIO - SEM EXCEÇÕES!
   if (loginPreference === 'Aluno' && hasStudentProfile) {

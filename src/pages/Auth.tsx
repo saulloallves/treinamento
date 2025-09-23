@@ -82,14 +82,22 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    console.log('🟢 STUDENT LOGIN BUTTON CLICKED');
+    console.log('🟢 Email:', email);
+    
     // Armazenar preferência CRÍTICA do usuário para redirecionamento
     try {
       sessionStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Aluno');
       localStorage.setItem('CRITICAL_LOGIN_PREFERENCE', 'Aluno');
-      console.log('🟢 STUDENT LOGIN SELECTED - Preference stored');
-    } catch {
-      console.error('Failed to store student preference');
+      console.log('🟢 STUDENT PREFERENCE STORED:', {
+        sessionStorage: sessionStorage.getItem('CRITICAL_LOGIN_PREFERENCE'),
+        localStorage: localStorage.getItem('CRITICAL_LOGIN_PREFERENCE')
+      });
+    } catch (error) {
+      console.error('🔴 Failed to store student preference:', error);
     }
+    
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
