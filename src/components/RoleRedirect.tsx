@@ -17,12 +17,15 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
+      console.log('🎯 RoleRedirect - Checking student profile for user:', user.id);
+      
       const { data: studentData } = await supabase
         .from('users')
         .select('id, user_type, role')
         .eq('id', user.id)
         .maybeSingle();
         
+      console.log('🎯 RoleRedirect - Student data found:', studentData);
       setHasStudentProfile(!!studentData);
     };
     
@@ -62,27 +65,34 @@ const RoleRedirect = () => {
   let selectedProfile: string | null = null;
   try {
     selectedProfile = localStorage.getItem('selected_profile');
+    console.log('🎯 RoleRedirect - Retrieved profile preference:', selectedProfile);
   } catch {
-    // Silent fail
+    console.log('🎯 RoleRedirect - Could not access localStorage');
   }
 
-  console.log('RoleRedirect - Selected profile:', selectedProfile);
+  console.log('🎯 RoleRedirect - User permissions:', { 
+    isAdmin, 
+    isProfessor, 
+    hasStudentProfile,
+    selectedProfile 
+  });
 
   // Redirecionar baseado na preferência do usuário, se existir
   if (selectedProfile) {
     if (selectedProfile === 'Admin' && isAdmin) {
-      console.log('RoleRedirect - User chose Admin, redirecting to dashboard');
+      console.log('🎯 RoleRedirect - User chose Admin, redirecting to dashboard');
       return <Navigate to="/dashboard" replace />;
     }
     if (selectedProfile === 'Professor' && isProfessor) {
-      console.log('RoleRedirect - User chose Professor, redirecting to professor area');
+      console.log('🎯 RoleRedirect - User chose Professor, redirecting to professor area');
       return <Navigate to="/professor" replace />;
     }
     if (selectedProfile === 'Aluno' && hasStudentProfile) {
-      console.log('RoleRedirect - User chose Aluno, redirecting to student area');
+      console.log('🎯 RoleRedirect - User chose Aluno, redirecting to student area');
       return <Navigate to="/aluno" replace />;
     }
     // Se a preferência não é válida para o usuário atual, limpar e continuar
+    console.log('🎯 RoleRedirect - Selected profile not valid for user, clearing preference');
     try {
       localStorage.removeItem('selected_profile');
     } catch {

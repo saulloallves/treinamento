@@ -30,9 +30,15 @@ const Auth = () => {
 
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
-    console.log('Auth.tsx - Checking redirect:', { user: !!user, authProcessing, loading });
+    const selectedProfile = localStorage.getItem('selected_profile');
+    console.log('🎯 Auth.tsx - Checking redirect:', { 
+      user: !!user, 
+      authProcessing, 
+      loading,
+      selectedProfile 
+    });
     if (user && !authProcessing && !loading) {
-      console.log('Auth.tsx - Redirecting to /');
+      console.log('🎯 Auth.tsx - Redirecting to / with profile:', selectedProfile);
       navigate('/', { replace: true });
     }
   }, [user, authProcessing, loading, navigate]);
@@ -70,6 +76,7 @@ const Auth = () => {
     // Set profile preference before signing in
     try {
       localStorage.setItem('selected_profile', 'Admin');
+      console.log('🎯 Auth - Set profile preference to Admin');
     } catch {
       // Silent fail
     }
@@ -83,6 +90,7 @@ const Auth = () => {
     // Set profile preference before signing in
     try {
       localStorage.setItem('selected_profile', 'Aluno');
+      console.log('🎯 Auth - Set profile preference to Aluno');
     } catch {
       // Silent fail
     }
@@ -96,6 +104,7 @@ const Auth = () => {
     // Set profile preference before signing in
     try {
       localStorage.setItem('selected_profile', 'Professor');
+      console.log('🎯 Auth - Set profile preference to Professor');
     } catch {
       // Silent fail
     }
