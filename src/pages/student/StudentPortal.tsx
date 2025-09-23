@@ -21,7 +21,11 @@ const StudentPortal = () => {
 
   useEffect(() => {
     document.title = "Área do Aluno | Cresci e Perdi";
-    console.log('StudentPortal loaded successfully');
+    console.log('✅ StudentPortal loaded successfully');
+    console.log('🔍 Current role claims:', {
+      USER_ROLE_CLAIM: sessionStorage.getItem('USER_ROLE_CLAIM'),
+      SELECTED_ROLE_NAME: sessionStorage.getItem('SELECTED_ROLE_NAME')
+    });
   }, []);
 
   const handleRefresh = async () => {

@@ -12,6 +12,15 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
   const { user, loading, authProcessing } = useAuth();
   const location = useLocation();
 
+  console.log('🔍 RoleGuard check:', {
+    requiredRole,
+    path: location.pathname,
+    USER_ROLE_CLAIM: sessionStorage.getItem('USER_ROLE_CLAIM'),
+    user: !!user,
+    loading,
+    authProcessing
+  });
+
   if (loading || authProcessing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">

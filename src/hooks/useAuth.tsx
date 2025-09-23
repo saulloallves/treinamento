@@ -366,6 +366,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             sessionStorage.setItem('SELECTED_ROLE_NAME', selectedRole);
             
             console.log('✅ Role validation successful:', { actAs, selectedRole });
+            console.log('✅ SessionStorage updated:', {
+              USER_ROLE_CLAIM: sessionStorage.getItem('USER_ROLE_CLAIM'),
+              SELECTED_ROLE_NAME: sessionStorage.getItem('SELECTED_ROLE_NAME')
+            });
             
           } catch (roleError) {
             console.error('❌ Role validation error:', roleError);

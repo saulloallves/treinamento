@@ -30,25 +30,32 @@ const Auth = () => {
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
     if (user && !authProcessing && !loading) {
-      // Check role claim and redirect accordingly
-      const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
-      if (roleClaim) {
-        switch (roleClaim) {
-          case 'admin':
-            navigate('/dashboard', { replace: true });
-            break;
-          case 'teacher':
-            navigate('/professor', { replace: true });
-            break;
-          case 'student':
-            navigate('/aluno', { replace: true });
-            break;
-          default:
-            navigate('/', { replace: true });
+      // Small delay to ensure sessionStorage is updated
+      setTimeout(() => {
+        // Check role claim and redirect accordingly
+        const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
+        console.log('🚀 Auth redirect - Role claim:', roleClaim);
+        
+        if (roleClaim) {
+          switch (roleClaim) {
+            case 'admin':
+              navigate('/dashboard', { replace: true });
+              break;
+            case 'teacher':
+              navigate('/professor', { replace: true });
+              break;
+            case 'student':
+              console.log('📱 Redirecting to /aluno');
+              navigate('/aluno', { replace: true });
+              break;
+            default:
+              navigate('/', { replace: true });
+          }
+        } else {
+          console.log('❌ No role claim found, redirecting to /');
+          navigate('/', { replace: true });
         }
-      } else {
-        navigate('/', { replace: true });
-      }
+      }, 100); // Small delay to ensure sessionStorage is set
     }
   }, [user, authProcessing, loading, navigate]);
 
