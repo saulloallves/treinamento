@@ -32,7 +32,6 @@ import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -76,7 +75,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: isProfessor = false } = useIsProfessor(user?.id);  
   const { data: currentUser } = useCurrentUser();
-  const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
   // Toggle sidebar collapsed state
   const toggleCollapsed = useCallback(() => {
@@ -117,15 +115,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     };
   }, []);
   
-  // Determinar qual menu mostrar baseado na preferência do usuário
+  // Determinar qual menu mostrar baseado nas permissões do usuário
   const shouldShowAdminMenu = useMemo(() => 
-    selectedProfile === 'Admin' || (selectedProfile === null && isAdmin),
-    [selectedProfile, isAdmin]
+    isAdmin,
+    [isAdmin]
   );
   
   const shouldShowProfessorMenu = useMemo(() => 
-    selectedProfile === 'Professor' || (selectedProfile === null && isProfessor && !isAdmin),
-    [selectedProfile, isProfessor, isAdmin]
+    isProfessor && !isAdmin,
+    [isProfessor, isAdmin]
   );
   
   // Menu para alunos
@@ -570,7 +568,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-900 truncate">
-                    {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                    {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
                   </p>
                   <p className="text-xs text-slate-500 truncate">
                     {user?.email ?? ''}
@@ -649,7 +647,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-900 truncate">
-                  {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                  {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
                 </p>
                 <p className="text-xs text-slate-500 truncate">
                   {user?.email ?? ''}

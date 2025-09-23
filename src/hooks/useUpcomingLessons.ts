@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getSelectedProfile } from "@/lib/profile";
 
 export interface UpcomingLessonItem {
   id: string;
@@ -16,10 +15,8 @@ export interface UpcomingLessonItem {
 }
 
 export const useUpcomingLessons = () => {
-  const selectedProfile = getSelectedProfile();
-  
   return useQuery<UpcomingLessonItem[]>({
-    queryKey: ["upcoming_lessons", selectedProfile],
+    queryKey: ["upcoming_lessons"],
     queryFn: async () => {
       // 1) Obtém o usuário logado
       const { data: userResp, error: userErr } = await supabase.auth.getUser();
@@ -27,16 +24,13 @@ export const useUpcomingLessons = () => {
         return [];
       }
 
-      // 2) Verifica o perfil selecionado e se é admin
+      // 2) Verifica se é admin
       const { data: isAdminData } = await supabase.rpc('is_admin', { _user: userResp.user.id });
       const isAdmin = !!isAdminData;
-      const selectedProfile = getSelectedProfile();
       
-      // Se está logado como "Aluno", deve seguir regras de aluno mesmo sendo admin
-      const shouldActAsStudent = selectedProfile === 'Aluno' || !isAdmin;
-
+      // Se não é admin, deve seguir regras de aluno
       let enrolledCourseIds: string[] = [];
-      if (shouldActAsStudent) {
+      if (!isAdmin) {
         const { data: enrollmentsData } = await supabase
           .from('enrollments')
           .select('course_id')
@@ -44,9 +38,7 @@ export const useUpcomingLessons = () => {
         enrolledCourseIds = Array.from(new Set((enrollmentsData ?? []).map((e: any) => e.course_id).filter(Boolean)));
         
         console.log('useUpcomingLessons - Student mode:', { 
-          selectedProfile, 
           isAdmin, 
-          shouldActAsStudent, 
           enrolledCourseIds 
         });
         
@@ -61,7 +53,7 @@ export const useUpcomingLessons = () => {
         .eq('status', 'Ativo')
         .order('zoom_start_time', { ascending: true, nullsFirst: false });
 
-      if (shouldActAsStudent) {
+      if (!isAdmin) {
         lessonsQuery = lessonsQuery.in('course_id', enrolledCourseIds);
       }
 

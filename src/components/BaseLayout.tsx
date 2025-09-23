@@ -7,7 +7,6 @@ import BottomNavigation from "@/components/mobile/BottomNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { getSelectedProfile } from "@/lib/profile";
 import { useState, useEffect } from "react";
 
 interface BaseLayoutProps {
@@ -51,9 +50,8 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
     };
   }, [sidebarCollapsed]);
   
-  // Determinar se deve mostrar sidebar baseado no perfil selecionado
-  const selectedProfile = getSelectedProfile();
-  const shouldShowSidebar = selectedProfile === 'Admin' || selectedProfile === 'Professor' || isAdmin || isProfessor;
+  // Determinar se deve mostrar sidebar baseado em admin/professor
+  const shouldShowSidebar = isAdmin || isProfessor;
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">

@@ -31,7 +31,6 @@ import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { getSelectedProfile } from "@/lib/profile";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface SidebarProps {
@@ -61,22 +60,21 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: isProfessor = false } = useIsProfessor(user?.id);
   const { data: currentUser } = useCurrentUser();
-  const selectedProfile = useMemo(() => getSelectedProfile(), []);
   
   // Reset active group when navigating to a different route
   useEffect(() => {
     setActiveGroup(null);
   }, [location.pathname]);
   
-  // Determinar qual menu mostrar baseado na preferência do usuário
+  // Determinar qual menu mostrar baseado nas permissões do usuário
   const shouldShowAdminMenu = useMemo(() => 
-    selectedProfile === 'Admin' || (selectedProfile === null && isAdmin),
-    [selectedProfile, isAdmin]
+    isAdmin,
+    [isAdmin]
   );
   
   const shouldShowProfessorMenu = useMemo(() => 
-    selectedProfile === 'Professor' || (selectedProfile === null && isProfessor && !isAdmin),
-    [selectedProfile, isProfessor, isAdmin]
+    isProfessor && !isAdmin,
+    [isProfessor, isAdmin]
   );
   
   // Menu para alunos (inclui gestão de colaboradores para franqueados)
@@ -449,7 +447,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+              {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
             </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user?.email ?? ''}
@@ -497,7 +495,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-foreground">
-              {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+              {isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno'}
             </p>
             <p className="text-xs text-muted-foreground">
               {user?.email ?? ''}
