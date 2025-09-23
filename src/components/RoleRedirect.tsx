@@ -58,7 +58,39 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirecionar baseado na prioridade: Admin > Professor > Aluno
+  // Verificar se há uma preferência de perfil salva
+  let selectedProfile: string | null = null;
+  try {
+    selectedProfile = localStorage.getItem('selected_profile');
+  } catch {
+    // Silent fail
+  }
+
+  console.log('RoleRedirect - Selected profile:', selectedProfile);
+
+  // Redirecionar baseado na preferência do usuário, se existir
+  if (selectedProfile) {
+    if (selectedProfile === 'Admin' && isAdmin) {
+      console.log('RoleRedirect - User chose Admin, redirecting to dashboard');
+      return <Navigate to="/dashboard" replace />;
+    }
+    if (selectedProfile === 'Professor' && isProfessor) {
+      console.log('RoleRedirect - User chose Professor, redirecting to professor area');
+      return <Navigate to="/professor" replace />;
+    }
+    if (selectedProfile === 'Aluno' && hasStudentProfile) {
+      console.log('RoleRedirect - User chose Aluno, redirecting to student area');
+      return <Navigate to="/aluno" replace />;
+    }
+    // Se a preferência não é válida para o usuário atual, limpar e continuar
+    try {
+      localStorage.removeItem('selected_profile');
+    } catch {
+      // Silent fail
+    }
+  }
+
+  // Redirecionar baseado na hierarquia de permissões (fallback quando não há preferência)
   if (isAdmin) {
     console.log('RoleRedirect - Admin detected, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
