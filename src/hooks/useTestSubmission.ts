@@ -244,7 +244,7 @@ export const useTestSubmission = () => {
       .eq("test_id", testId)
       .eq("user_id", currentUser.id)
       .eq("status", "in_progress")
-      .order("created_at", { ascending: false })
+      .order("started_at", { ascending: false })
       .limit(1)
       .single();
 
