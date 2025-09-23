@@ -30,9 +30,8 @@ const Auth = () => {
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
     if (user && !authProcessing && !loading) {
-      // Small delay to ensure sessionStorage is updated
+      // Pequeno delay para garantir que sessionStorage seja atualizado
       setTimeout(() => {
-        // Check role claim and redirect accordingly
         const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
         console.log('🚀 Auth redirect - Role claim:', roleClaim);
         
@@ -49,13 +48,15 @@ const Auth = () => {
               navigate('/aluno', { replace: true });
               break;
             default:
+              // Se tem role claim inválido, redirecionar para home
               navigate('/', { replace: true });
           }
         } else {
-          console.log('❌ No role claim found, redirecting to /');
+          // Se NÃO tem role claim, redirecionar para home (RoleRedirect decidirá)
+          console.log('🏠 No role claim found, redirecting to home for role detection');
           navigate('/', { replace: true });
         }
-      }, 100); // Small delay to ensure sessionStorage is set
+      }, 100);
     }
   }, [user, authProcessing, loading, navigate]);
 

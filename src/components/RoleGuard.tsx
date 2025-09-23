@@ -12,15 +12,6 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
   const { user, loading, authProcessing } = useAuth();
   const location = useLocation();
 
-  console.log('🔍 RoleGuard check:', {
-    requiredRole,
-    path: location.pathname,
-    USER_ROLE_CLAIM: sessionStorage.getItem('USER_ROLE_CLAIM'),
-    user: !!user,
-    loading,
-    authProcessing
-  });
-
   if (loading || authProcessing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
@@ -43,11 +34,6 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
   
   // Check if user has the required role claim
   if (userRoleClaim !== requiredRole) {
-    // Only log once to prevent spam
-    if (Math.random() < 0.01) {
-      console.log('RoleGuard: Access denied', { userRoleClaim, requiredRole, path: location.pathname });
-    }
-    
     // Redirect based on the user's actual role claim, avoid loops
     switch (userRoleClaim) {
       case 'admin':
@@ -70,11 +56,6 @@ const RoleGuard = ({ children, requiredRole }: RoleGuardProps) => {
         if (location.pathname !== '/auth') {
           return <Navigate to="/auth" replace />;
         }
-    }
-    
-    // If we're already on the correct path for current role or auth, show access denied
-    if (userRoleClaim && location.pathname === '/auth') {
-      return <Navigate to="/auth" replace />;
     }
     
     // Block access but don't redirect if already on target page

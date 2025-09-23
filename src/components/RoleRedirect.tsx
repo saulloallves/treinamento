@@ -12,6 +12,7 @@ const RoleRedirect = () => {
   const { data: isProfessor = false, isLoading: checkingProfessor } = useIsProfessor(user?.id || undefined);
   const { data: currentUser, isLoading: loadingCurrentUser } = useCurrentUser();
   const [hasStudentProfile, setHasStudentProfile] = useState(false);
+  const [redirectExecuted, setRedirectExecuted] = useState(false);
   
   useEffect(() => {
     const checkStudentProfile = async () => {
@@ -40,6 +41,18 @@ const RoleRedirect = () => {
     }
   }, [user?.id]);
 
+  console.log('🏠 RoleRedirect check:', {
+    user: !!user,
+    loading,
+    checkingAdmin,
+    checkingProfessor,
+    loadingCurrentUser,
+    isAdmin,
+    isProfessor,
+    hasStudentProfile,
+    redirectExecuted
+  });
+
   if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -55,7 +68,19 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // SOLUÇÃO ABSOLUTA: Verificar a escolha do usuário PRIMEIRO
+  // Evitar múltiplos redirecionamentos
+  if (redirectExecuted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Redirecionando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // SOLUÇÃO: Verificar a escolha do usuário PRIMEIRO
   const selectedRole = (() => {
     try {
       return sessionStorage.getItem('SELECTED_ROLE');
@@ -66,9 +91,12 @@ const RoleRedirect = () => {
 
   // EXECUTAR A ESCOLHA DO USUÁRIO SEM QUESTIONAMENTO
   if (selectedRole) {
-    // Limpar imediatamente para evitar loops
+    console.log('🎯 Executing user role choice:', selectedRole);
+    
+    // Limpar imediatamente para evitar loops e marcar redirect como executado
     try {
       sessionStorage.removeItem('SELECTED_ROLE');
+      setRedirectExecuted(true);
     } catch {}
 
     // Redirecionar baseado APENAS na escolha
@@ -84,20 +112,27 @@ const RoleRedirect = () => {
   }
 
   // FALLBACK APENAS se não há escolha específica
+  console.log('📋 Using fallback role detection');
+  setRedirectExecuted(true);
+  
   // Prioridade: Admin > Professor > Aluno
   if (isAdmin) {
+    console.log('👑 Redirecting to admin dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
   if (isProfessor) {
+    console.log('👨‍🏫 Redirecting to professor dashboard');
     return <Navigate to="/professor" replace />;
   }
   
   if (hasStudentProfile) {
+    console.log('🎓 Redirecting to student portal');
     return <Navigate to="/aluno" replace />;
   }
 
   // Se não tem nenhum perfil válido, redirecionar para auth
+  console.log('❌ No valid profile found, redirecting to auth');
   return <Navigate to="/auth" replace />;
 };
 
