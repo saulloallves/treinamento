@@ -21,6 +21,11 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
   const { data: isProfessor } = useIsProfessor(user?.id);
   const { data: isAdmin } = useIsAdmin(user?.id);
   
+  // Verificar a preferência de perfil do usuário
+  const selectedProfile = typeof window !== 'undefined' 
+    ? localStorage.getItem('selected_profile') 
+    : null;
+  
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('sidebar-collapsed') === 'true';
@@ -50,8 +55,31 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
     };
   }, [sidebarCollapsed]);
   
-  // Determinar se deve mostrar sidebar baseado no papel do usuário
-  const shouldShowSidebar = isAdmin || isProfessor;
+  // Determinar se deve mostrar sidebar baseado na preferência do usuário
+  const shouldShowSidebar = (() => {
+    // Se o usuário escolheu "Aluno", não mostrar sidebar de admin/professor
+    if (selectedProfile === 'Aluno') {
+      return false;
+    }
+    
+    // Se escolheu Admin e é admin, mostrar
+    if (selectedProfile === 'Admin' && isAdmin) {
+      return true;
+    }
+    
+    // Se escolheu Professor e é professor, mostrar
+    if (selectedProfile === 'Professor' && isProfessor) {
+      return true;
+    }
+    
+    // Se não há preferência, usar lógica padrão
+    if (!selectedProfile) {
+      return isAdmin || isProfessor;
+    }
+    
+    // Por padrão, não mostrar se a preferência não combina
+    return false;
+  })();
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex bg-background w-full min-w-0 items-start">
@@ -61,7 +89,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
       )}
       
       <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${
-        !isMobile 
+        !isMobile && shouldShowSidebar
           ? sidebarCollapsed 
             ? 'ml-16' 
             : 'ml-64' 

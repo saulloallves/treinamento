@@ -17,15 +17,12 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
-      console.log('🎯 RoleRedirect - Checking student profile for user:', user.id);
-      
       const { data: studentData } = await supabase
         .from('users')
         .select('id, user_type, role')
         .eq('id', user.id)
         .maybeSingle();
         
-      console.log('🎯 RoleRedirect - Student data found:', studentData);
       setHasStudentProfile(!!studentData);
     };
     
@@ -34,17 +31,6 @@ const RoleRedirect = () => {
     }
   }, [user?.id]);
 
-  console.log('RoleRedirect:', { 
-    user: !!user, 
-    loading, 
-    isAdmin, 
-    isProfessor, 
-    hasStudentProfile,
-    checkingAdmin, 
-    checkingProfessor, 
-    loadingCurrentUser 
-  });
-  
   if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -57,7 +43,6 @@ const RoleRedirect = () => {
   }
 
   if (!user) {
-    console.log('RoleRedirect - No user, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
@@ -65,41 +50,27 @@ const RoleRedirect = () => {
   let selectedProfile: string | null = null;
   try {
     selectedProfile = localStorage.getItem('selected_profile');
-    console.log('🎯 RoleRedirect - Retrieved profile preference:', selectedProfile);
   } catch {
-    console.log('🎯 RoleRedirect - Could not access localStorage');
+    // Silent fail
   }
-
-  console.log('🎯 RoleRedirect - User permissions:', { 
-    isAdmin, 
-    isProfessor, 
-    hasStudentProfile,
-    selectedProfile 
-  });
 
   // Redirecionar baseado na preferência do usuário, se existir
   if (selectedProfile) {
-    console.log('🎯 RoleRedirect - Processing selected profile:', selectedProfile);
-    
     if (selectedProfile === 'Admin' && isAdmin) {
-      console.log('🎯 RoleRedirect - User chose Admin, redirecting to dashboard');
       return <Navigate to="/dashboard" replace />;
     }
     
     if (selectedProfile === 'Professor' && isProfessor) {
-      console.log('🎯 RoleRedirect - User chose Professor, redirecting to professor area');
       return <Navigate to="/professor" replace />;
     }
     
     if (selectedProfile === 'Aluno') {
       // Para aluno, permitir acesso mesmo que seja admin/professor
       // Qualquer usuário autenticado pode acessar como aluno
-      console.log('🎯 RoleRedirect - User chose Aluno, redirecting to student area');
       return <Navigate to="/aluno" replace />;
     }
     
     // Se a preferência não é válida, limpar e continuar
-    console.log('🎯 RoleRedirect - Selected profile not valid, clearing preference');
     try {
       localStorage.removeItem('selected_profile');
     } catch {
@@ -109,22 +80,18 @@ const RoleRedirect = () => {
 
   // Redirecionar baseado na hierarquia de permissões (fallback quando não há preferência)
   if (isAdmin) {
-    console.log('RoleRedirect - Admin detected, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
   if (isProfessor) {
-    console.log('RoleRedirect - Professor detected, redirecting to professor area');
     return <Navigate to="/professor" replace />;
   }
   
   if (hasStudentProfile) {
-    console.log('RoleRedirect - Student profile detected, redirecting to student area');
     return <Navigate to="/aluno" replace />;
   }
 
   // Se não conseguiu determinar o perfil, redirecionar para auth
-  console.log('RoleRedirect - Unable to determine user role, redirecting to auth');
   return <Navigate to="/auth" replace />;
 };
 
