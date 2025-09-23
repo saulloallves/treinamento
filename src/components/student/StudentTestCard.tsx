@@ -38,14 +38,14 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3">
         <CardTitle className="text-base leading-tight">{test.name}</CardTitle>
         {test.description && (
           <p className="text-xs text-muted-foreground line-clamp-2">{test.description}</p>
         )}
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex-1 flex flex-col space-y-3">
         {/* Status do Teste */}
         <div className="flex items-center justify-between">
           <Badge variant={getStatusColor()} className="text-xs">
@@ -79,7 +79,7 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
         </div>
 
         {/* Detalhes do Teste */}
-        <div className="space-y-1">
+        <div className="space-y-1 flex-1">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1">
               <Trophy className="w-3 h-3 text-muted-foreground" />
@@ -126,21 +126,23 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
           </div>
         )}
 
-        {/* Botão de Ação */}
-        <Button asChild variant="outline" className="w-full h-8 text-xs" 
-          disabled={attemptsRemaining === 0}>
-          <Link to={`/aluno/teste/${test.id}`}>
-            {latestSubmission?.status === 'in_progress' ? 'Continuar Teste' :
-             isCompleted && attemptsRemaining && attemptsRemaining > 0 ? 'Tentar Novamente' :
-             isCompleted ? 'Ver Resultado' : 'Iniciar Teste'}
-          </Link>
-        </Button>
+        {/* Botão de Ação - Sempre no final */}
+        <div className="mt-auto pt-2">
+          <Button asChild variant="outline" className="w-full h-8 text-xs" 
+            disabled={attemptsRemaining === 0}>
+            <Link to={`/aluno/teste/${test.id}`}>
+              {latestSubmission?.status === 'in_progress' ? 'Continuar Teste' :
+               isCompleted && attemptsRemaining && attemptsRemaining > 0 ? 'Tentar Novamente' :
+               isCompleted ? 'Ver Resultado' : 'Iniciar Teste'}
+            </Link>
+          </Button>
 
-        {attemptsRemaining === 0 && (
-          <p className="text-xs text-center text-muted-foreground">
-            Limite de tentativas atingido
-          </p>
-        )}
+          {attemptsRemaining === 0 && (
+            <p className="text-xs text-center text-muted-foreground mt-1">
+              Limite de tentativas atingido
+            </p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

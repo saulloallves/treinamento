@@ -1,6 +1,8 @@
 import { useStudentTests, useStudentTurmaTests } from "@/hooks/useStudentTests";
 import StudentTestCard from "./StudentTestCard";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
+import { Separator } from "@/components/ui/separator";
+import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 interface StudentTestsListProps {
   turmaId?: string;
@@ -49,11 +51,59 @@ const StudentTestsList = ({ turmaId }: StudentTestsListProps) => {
     );
   }
 
+  // Separar testes em respondidos e não respondidos
+  const completedTests = tests.filter(test => {
+    const hasSubmissions = test.test_submissions && test.test_submissions.length > 0;
+    const latestSubmission = hasSubmissions ? 
+      test.test_submissions!.sort((a, b) => b.attempt_number - a.attempt_number)[0] : null;
+    return latestSubmission?.status === 'completed';
+  });
+
+  const pendingTests = tests.filter(test => {
+    const hasSubmissions = test.test_submissions && test.test_submissions.length > 0;
+    const latestSubmission = hasSubmissions ? 
+      test.test_submissions!.sort((a, b) => b.attempt_number - a.attempt_number)[0] : null;
+    return !latestSubmission || latestSubmission.status !== 'completed';
+  });
+
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {tests.map((test) => (
-        <StudentTestCard key={test.id} test={test} />
-      ))}
+    <div className="space-y-6">
+      {/* Testes Pendentes */}
+      {pendingTests.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-orange-500" />
+            <h3 className="text-lg font-semibold">Testes Pendentes</h3>
+            <span className="text-sm text-muted-foreground">({pendingTests.length})</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {pendingTests.map((test) => (
+              <StudentTestCard key={test.id} test={test} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Separador */}
+      {pendingTests.length > 0 && completedTests.length > 0 && (
+        <Separator className="my-6" />
+      )}
+
+      {/* Testes Respondidos */}
+      {completedTests.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <h3 className="text-lg font-semibold">Testes Respondidos</h3>
+            <span className="text-sm text-muted-foreground">({completedTests.length})</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {completedTests.map((test) => (
+              <StudentTestCard key={test.id} test={test} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
