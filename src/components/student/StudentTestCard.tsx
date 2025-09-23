@@ -39,15 +39,6 @@ const StudentTestCard = ({ test }: StudentTestCardProps) => {
 
   return (
     <Card className="overflow-hidden">
-      {test.courses?.cover_image_url && (
-        <div className="aspect-[4/3] w-full overflow-hidden">
-          <img 
-            src={test.courses.cover_image_url} 
-            alt={test.courses.name || "Capa do curso"}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
       <CardHeader className="pb-2">
         <CardTitle className="text-base leading-tight">{test.name}</CardTitle>
         {test.description && (
