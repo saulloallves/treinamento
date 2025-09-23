@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -30,9 +29,7 @@ const Auth = () => {
 
   // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
-    console.log('Auth.tsx - Checking redirect:', { user: !!user, authProcessing, loading });
     if (user && !authProcessing && !loading) {
-      console.log('Auth.tsx - Redirecting to /');
       navigate('/', { replace: true });
     }
   }, [user, authProcessing, loading, navigate]);
@@ -67,7 +64,15 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('🔵 ADMIN LOGIN BUTTON CLICKED');
+    
+    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    try {
+      sessionStorage.setItem('SELECTED_ROLE', 'Admin');
+      console.log('🔵 ADMIN ROLE SELECTED AND STORED');
+    } catch (error) {
+      console.error('Error storing admin role:', error);
+    }
+    
     await signIn(email.trim().toLowerCase(), password, 'Admin');
     setIsLoading(false);
   };
@@ -75,7 +80,15 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('🟢 STUDENT LOGIN BUTTON CLICKED');
+    
+    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    try {
+      sessionStorage.setItem('SELECTED_ROLE', 'Aluno');
+      console.log('🟢 STUDENT ROLE SELECTED AND STORED');
+    } catch (error) {
+      console.error('Error storing student role:', error);
+    }
+    
     await signIn(email.trim().toLowerCase(), password, 'Aluno');
     setIsLoading(false);
   };
@@ -83,7 +96,15 @@ const Auth = () => {
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('🟡 PROFESSOR LOGIN BUTTON CLICKED');
+    
+    // DEFINIR ROLE ESCOLHIDO ANTES DO LOGIN
+    try {
+      sessionStorage.setItem('SELECTED_ROLE', 'Professor');
+      console.log('🟡 PROFESSOR ROLE SELECTED AND STORED');
+    } catch (error) {
+      console.error('Error storing professor role:', error);
+    }
+    
     await signIn(email.trim().toLowerCase(), password, 'Professor');
     setIsLoading(false);
   };
@@ -413,17 +434,12 @@ const Auth = () => {
                   >
                     {isLoading ? "Entrando..." : "Entrar como Admin"}
                   </Button>
-                  <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de admin aprovado.</p>
+                  <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de administrador aprovado.</p>
                 </form>
               </TabsContent>
-
             </Tabs>
           </CardContent>
         </Card>
-
-        <div className="text-center text-sm text-muted-foreground">
-          Ao continuar, você concorda com nossos termos de uso
-        </div>
       </div>
     </div>
   );

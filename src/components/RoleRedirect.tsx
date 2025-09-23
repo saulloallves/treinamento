@@ -17,8 +17,6 @@ const RoleRedirect = () => {
     const checkStudentProfile = async () => {
       if (!user?.id) return;
       
-      console.log('🔍 CHECKING STUDENT PROFILE FOR USER:', user.id, user.email);
-      
       // Verificar se o usuário tem inscrições (enrollments) ou existe na tabela users
       const [{ data: studentData }, { data: enrollmentData }] = await Promise.all([
         supabase
@@ -32,17 +30,9 @@ const RoleRedirect = () => {
           .eq('user_id', user.id)
           .limit(1)
       ]);
-      
-      console.log('🔍 STUDENT DATA CHECK:', {
-        studentData,
-        enrollmentData,
-        enrollmentCount: enrollmentData?.length || 0
-      });
         
       // Considera que tem perfil de estudante se existe na tabela users OU tem enrollments
-      const hasStudent = !!studentData || (enrollmentData && enrollmentData.length > 0);
-      console.log('🔍 FINAL hasStudentProfile VALUE:', hasStudent);
-      setHasStudentProfile(hasStudent);
+      setHasStudentProfile(!!studentData || (enrollmentData && enrollmentData.length > 0));
     };
     
     if (user?.id) {
@@ -50,17 +40,6 @@ const RoleRedirect = () => {
     }
   }, [user?.id]);
 
-  console.log('RoleRedirect:', { 
-    user: !!user, 
-    loading, 
-    isAdmin, 
-    isProfessor, 
-    hasStudentProfile,
-    checkingAdmin, 
-    checkingProfessor, 
-    loadingCurrentUser 
-  });
-  
   if (loading || checkingAdmin || checkingProfessor || loadingCurrentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -73,11 +52,10 @@ const RoleRedirect = () => {
   }
 
   if (!user) {
-    console.log('RoleRedirect - No user, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  // SOLUÇÃO DEFINITIVA: Ler o role selecionado DIRETAMENTE
+  // SOLUÇÃO ABSOLUTA: Verificar a escolha do usuário PRIMEIRO
   const selectedRole = (() => {
     try {
       return sessionStorage.getItem('SELECTED_ROLE');
@@ -86,47 +64,40 @@ const RoleRedirect = () => {
     }
   })();
 
-  console.log('🎯 SELECTED ROLE FROM SESSION:', selectedRole);
-  console.log('🎯 USER PERMISSIONS:', { isAdmin, isProfessor, hasStudentProfile });
+  // EXECUTAR A ESCOLHA DO USUÁRIO SEM QUESTIONAMENTO
+  if (selectedRole) {
+    // Limpar imediatamente para evitar loops
+    try {
+      sessionStorage.removeItem('SELECTED_ROLE');
+    } catch {}
 
-  // EXECUTAR ESCOLHA DO USUÁRIO SEM QUESTIONAMENTO
-  if (selectedRole === 'Aluno') {
-    console.log('🟢 REDIRECTING TO STUDENT AREA');
-    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
-    return <Navigate to="/aluno" replace />;
-  }
-  
-  if (selectedRole === 'Professor') {
-    console.log('🟡 REDIRECTING TO PROFESSOR AREA');
-    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
-    return <Navigate to="/professor" replace />;
-  }
-  
-  if (selectedRole === 'Admin') {
-    console.log('🔵 REDIRECTING TO ADMIN AREA');
-    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
-    return <Navigate to="/dashboard" replace />;
+    // Redirecionar baseado APENAS na escolha
+    if (selectedRole === 'Aluno') {
+      return <Navigate to="/aluno" replace />;
+    }
+    if (selectedRole === 'Professor') { 
+      return <Navigate to="/professor" replace />;
+    }
+    if (selectedRole === 'Admin') {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
-  // Se não há preferência ou a preferência não é válida, usar prioridade padrão
+  // FALLBACK APENAS se não há escolha específica
   // Prioridade: Admin > Professor > Aluno
   if (isAdmin) {
-    console.log('RoleRedirect - User is admin, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
   if (isProfessor) {
-    console.log('RoleRedirect - User is professor, redirecting to professor area');
     return <Navigate to="/professor" replace />;
   }
   
   if (hasStudentProfile) {
-    console.log('RoleRedirect - User is student, redirecting to student area');
     return <Navigate to="/aluno" replace />;
   }
 
   // Se não tem nenhum perfil válido, redirecionar para auth
-  console.log('RoleRedirect - No valid profile found, redirecting to auth');
   return <Navigate to="/auth" replace />;
 };
 
