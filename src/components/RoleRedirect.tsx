@@ -62,6 +62,23 @@ const RoleRedirect = () => {
   // Contar quantos perfis o usuário possui
   const profileCount = [isAdmin, isProfessor, hasStudentProfile].filter(Boolean).length;
   
+  // Se o usuário não é Admin nem Professor, mas tem um perfil na tabela users, é um Aluno
+  if (!isAdmin && !isProfessor && hasStudentProfile) {
+    console.log('RoleRedirect - Student only profile, redirecting to student area');
+    return <Navigate to="/aluno" replace />;
+  }
+  
+  // Se tem apenas um perfil, redirecionar diretamente
+  if (isAdmin && profileCount === 1) {
+    console.log('RoleRedirect - Single admin profile, redirecting to dashboard');
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  if (isProfessor && profileCount === 1) {
+    console.log('RoleRedirect - Single professor profile, redirecting to professor area');
+    return <Navigate to="/professor" replace />;
+  }
+  
   // Se o usuário tem múltiplos perfis, verificar se já selecionou um
   if (profileCount > 1) {
     const selectedProfile = getSelectedProfile();
@@ -80,22 +97,6 @@ const RoleRedirect = () => {
     if (selectedProfile === 'Aluno' && hasStudentProfile) {
       return <Navigate to="/aluno" replace />;
     }
-  }
-
-  // Se tem apenas um perfil, redirecionar diretamente
-  if (isAdmin && profileCount === 1) {
-    console.log('RoleRedirect - Single admin profile, redirecting to dashboard');
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  if (isProfessor && profileCount === 1) {
-    console.log('RoleRedirect - Single professor profile, redirecting to professor area');
-    return <Navigate to="/professor" replace />;
-  }
-  
-  if (hasStudentProfile && profileCount === 1) {
-    console.log('RoleRedirect - Single student profile, redirecting to student area');
-    return <Navigate to="/aluno" replace />;
   }
 
   // Se não conseguiu determinar o perfil, redirecionar para seleção de perfil
