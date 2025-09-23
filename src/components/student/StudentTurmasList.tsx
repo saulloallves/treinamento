@@ -8,7 +8,11 @@ import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { useState } from "react";
 import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
-const StudentTurmasList = () => {
+interface StudentTurmasListProps {
+  showQuizLink?: boolean;
+}
+
+const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => {
   const { data: enrollments, isLoading, error } = useMyEnrollments();
   const [statusFilter, setStatusFilter] = useState("ativas");
 
@@ -103,7 +107,10 @@ const StudentTurmasList = () => {
       {turmaEnrollments.map((enrollment) => (
         <Link 
           key={enrollment.id} 
-          to={`/aluno/turma/${enrollment.turma_id}/testes`}
+          to={showQuizLink 
+            ? `/aluno/turma/${enrollment.turma_id}/quiz`
+            : `/aluno/turma/${enrollment.turma_id}/testes`
+          }
           className="block"
         >
           <Card className="transition-all hover:shadow-md cursor-pointer group">
@@ -138,10 +145,19 @@ const StudentTurmasList = () => {
                 </div>
               )}
 
-              {/* Indicador de Testes */}
+              {/* Indicador de Testes ou Quizzes */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ClipboardList className="h-4 w-4" />
-                <span>Testes disponíveis</span>
+                {showQuizLink ? (
+                  <>
+                    <BookOpen className="h-4 w-4" />
+                    <span>Quizzes disponíveis</span>
+                  </>
+                ) : (
+                  <>
+                    <ClipboardList className="h-4 w-4" />
+                    <span>Testes disponíveis</span>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

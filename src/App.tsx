@@ -46,6 +46,7 @@ import StudentTest from "./pages/student/StudentTest";
 import StudentTestQuestions from "@/components/student/StudentTestQuestions";
 import StudentTestResult from "@/components/student/StudentTestResult";
 import StudentTurmaTests from "./pages/student/StudentTurmaTests";
+import StudentTurmaQuiz from "./pages/student/StudentTurmaQuiz";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -295,6 +296,11 @@ const App = () => (
               <Route path="/aluno/turma/:turmaId/testes" element={
                 <ProtectedRoute requiredRole="Aluno">
                   <StudentTurmaTests />
+                </ProtectedRoute>
+              } />
+              <Route path="/aluno/turma/:turmaId/quiz" element={
+                <ProtectedRoute requiredRole="Aluno">
+                  <StudentTurmaQuiz />
                 </ProtectedRoute>
               } />
               <Route path="/streaming" element={
