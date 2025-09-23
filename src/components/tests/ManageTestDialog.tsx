@@ -249,7 +249,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                           </Select>
                         </div>
 
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                           <Label>Texto da Pergunta</Label>
                           <Textarea
                             value={questionTexts[question.id] || ""}
@@ -263,22 +263,6 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                             rows={2}
                             placeholder="Digite o texto da pergunta..."
                           />
-                          <div className="flex justify-end">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => {
-                                const currentText = questionTexts[question.id];
-                                if (currentText && currentText !== question.question_text) {
-                                  debouncedUpdateQuestion(question.id, { question_text: currentText });
-                                  toast.success("Pergunta salva!");
-                                }
-                              }}
-                            >
-                              <Save className="h-4 w-4 mr-1" />
-                              Salvar Pergunta
-                            </Button>
-                          </div>
                         </div>
 
                         {question.image_urls && question.image_urls.length > 0 && (
@@ -341,36 +325,6 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                                 );
                               })}
                             </div>
-                            <div className="flex justify-end">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={async () => {
-                                  try {
-                                    const updatedOptions = question.options?.map(opt => {
-                                      const optionKey = opt.id || `temp-${question.id}-${question.options?.indexOf(opt)}`;
-                                      const newText = optionTexts[optionKey];
-                                      return { 
-                                        ...opt, 
-                                        option_text: newText !== undefined ? newText : opt.option_text 
-                                      };
-                                    }) || [];
-                                    
-                                    await updateQuestion({
-                                      id: question.id,
-                                      options: updatedOptions
-                                    });
-                                    toast.success("Alternativas salvas!");
-                                  } catch (error) {
-                                    console.error('Error saving alternatives:', error);
-                                    toast.error("Erro ao salvar alternativas");
-                                  }
-                                }}
-                              >
-                                <Save className="h-4 w-4 mr-1" />
-                                Salvar Alternativas
-                              </Button>
-                            </div>
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -424,6 +378,48 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                           >
                             <Image className="h-4 w-4 mr-1" />
                             Adicionar Imagem
+                          </Button>
+                          
+                          <Button 
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                // Prepare question text
+                                const currentText = questionTexts[question.id];
+                                const updates: any = {};
+                                
+                                if (currentText && currentText !== question.question_text) {
+                                  updates.question_text = currentText;
+                                }
+                                
+                                // Prepare options if it's multiple choice
+                                if (question.question_type === 'multiple_choice' && question.options) {
+                                  const updatedOptions = question.options.map(opt => {
+                                    const optionKey = opt.id || `temp-${question.id}-${question.options?.indexOf(opt)}`;
+                                    const newText = optionTexts[optionKey];
+                                    return { 
+                                      ...opt, 
+                                      option_text: newText !== undefined ? newText : opt.option_text 
+                                    };
+                                  });
+                                  updates.options = updatedOptions;
+                                }
+                                
+                                // Update question with all changes
+                                await updateQuestion({
+                                  id: question.id,
+                                  ...updates
+                                });
+                                
+                                toast.success("Pergunta salva com sucesso!");
+                              } catch (error) {
+                                console.error('Error saving question:', error);
+                                toast.error("Erro ao salvar pergunta");
+                              }
+                            }}
+                          >
+                            <Save className="h-4 w-4 mr-1" />
+                            Salvar Pergunta
                           </Button>
                         </div>
                       </CardContent>
