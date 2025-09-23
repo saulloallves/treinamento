@@ -18,7 +18,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { getSelectedProfile } from '@/lib/profile';
 
 interface NavItem {
   label: string;
@@ -81,15 +80,14 @@ const BottomNavigation = () => {
     { label: 'Perfil', href: '/aluno/perfil', icon: Users }
   ];
 
-  // Determine which navigation to show based on selected profile
-  const selectedProfile = getSelectedProfile();
+  // Determine which navigation to show based on user roles
   let navigationItems: NavItem[] = [];
 
-  if (selectedProfile === 'Admin') {
+  if (isAdmin) {
     navigationItems = adminItems;
-  } else if (selectedProfile === 'Professor') {
+  } else if (isProfessor) {
     navigationItems = professorItems;
-  } else if (selectedProfile === 'Aluno') {
+  } else {
     // Para alunos, determinar o tipo baseado no user_type e role
     const isFranchisee = currentUser?.role === 'Franqueado';
     const isCollaborator = currentUser?.user_type === 'Colaborador';

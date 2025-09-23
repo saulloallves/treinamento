@@ -47,7 +47,6 @@ import StudentTestResult from "@/components/student/StudentTestResult";
 import StudentTurmaTests from "./pages/student/StudentTurmaTests";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
-import ProfileSelection from "./pages/ProfileSelection";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
@@ -66,11 +65,6 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<RoleRedirect />} />
-              <Route path="/perfil" element={
-                <ProtectedRoute>
-                  <ProfileSelection />
-                </ProtectedRoute>
-              } />
               <Route path="/dashboard" element={
                 <AdminRoute>
                   <Index />
