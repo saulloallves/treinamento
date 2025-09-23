@@ -240,186 +240,231 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAuthProcessing(true);
     setLastAuthBlocked(null);
     
-    // Armazenar o role selecionado ANTES da autenticação
-    if (selectedRole) {
-      try {
-        sessionStorage.setItem('SELECTED_ROLE', selectedRole);
-        console.log('🎯 ROLE SELECTED BEFORE AUTH:', selectedRole);
-      } catch {}
-    }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      // Caso especial para o email do Alison - tentar resetar senha automaticamente
-      if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
-        try {
-          console.log('Tentando resetar senha do Alison automaticamente...');
-          const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
-            body: { email }
-          });
-
-          if (!resetError && resetResult?.success) {
-            console.log('Reset de senha realizado com sucesso, tentando login novamente...');
-            
-            // Aguardar um momento para garantir que a senha foi atualizada
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Tentar logar novamente com a senha padrão
-            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-              email,
-              password: 'Trocar01',
-            });
-
-            if (!retryError && retryData.user) {
-              toast.success("Login realizado com sucesso!", {
-                description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
-              });
-              setAuthProcessing(false);
-              return { error: null };
-            } else {
-              console.error('Erro no segundo login:', retryError);
-            }
-          } else {
-            console.error('Erro no reset:', resetError || resetResult);
+    try {
+      // Use role-based authentication edge function
+      if (selectedRole) {
+        console.log('🎯 Using role-based auth:', { email, selectedRole });
+        
+        const { data: roleAuthData, error: roleAuthError } = await supabase.functions.invoke('role-based-auth', {
+          body: { 
+            email, 
+            password, 
+            selectedRole: selectedRole === 'Aluno' ? 'student' : 
+                         selectedRole === 'Professor' ? 'teacher' : 'admin'
           }
-        } catch (resetError) {
-          console.error('Erro ao tentar resetar senha automaticamente:', resetError);
+        });
+
+        if (roleAuthError) {
+          console.error('❌ Role-based auth error:', roleAuthError);
+          toast.error("Erro no login", {
+            description: "Erro interno do sistema. Tente novamente.",
+          });
+          setAuthProcessing(false);
+          return { error: roleAuthError };
+        }
+
+        if (roleAuthData?.error) {
+          console.error('❌ Role auth failed:', roleAuthData.error);
+          if (roleAuthData.error === 'ROLE_NOT_GRANTED') {
+            toast.error("Acesso Negado", {
+              description: `Você não tem permissão para acessar como ${selectedRole}.`,
+            });
+          } else {
+            toast.error("Erro no login", {
+              description: roleAuthData.message || "Credenciais inválidas.",
+            });
+          }
+          setAuthProcessing(false);
+          return { error: { message: roleAuthData.error } };
+        }
+
+        if (roleAuthData?.success) {
+          console.log('✅ Role-based auth successful:', roleAuthData);
+          
+          // Store role claims in sessionStorage
+          const actAs = roleAuthData.actAs;
+          const roleName = actAs === 'student' ? 'Aluno' : 
+                          actAs === 'teacher' ? 'Professor' : 'Admin';
+          
+          sessionStorage.setItem('USER_ROLE_CLAIM', actAs);
+          sessionStorage.setItem('SELECTED_ROLE_NAME', roleName);
+          
+          console.log('✅ Role claims stored:', { actAs, roleName });
+          
+          toast.success("Login realizado com sucesso!", {
+            description: `Bem-vindo como ${roleName}!`,
+          });
+          
+          setAuthProcessing(false);
+          return { error: null };
         }
       }
-      // Verificar se é um admin que ainda não foi aprovado
-      if (error.message.includes('Email not confirmed')) {
-        // Verificar se o usuário tem um registro de admin pendente
+
+      // Fallback to standard auth (for cases without role selection)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Caso especial para o email do Alison - tentar resetar senha automaticamente
+        if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
+          try {
+            console.log('Tentando resetar senha do Alison automaticamente...');
+            const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
+              body: { email }
+            });
+
+            if (!resetError && resetResult?.success) {
+              console.log('Reset de senha realizado com sucesso, tentando login novamente...');
+              
+              // Aguardar um momento para garantir que a senha foi atualizada
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              // Tentar logar novamente com a senha padrão
+              const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+                email,
+                password: 'Trocar01',
+              });
+
+              if (!retryError && retryData.user) {
+                toast.success("Login realizado com sucesso!", {
+                  description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
+                });
+                setAuthProcessing(false);
+                return { error: null };
+              } else {
+                console.error('Erro no segundo login:', retryError);
+              }
+            } else {
+              console.error('Erro no reset:', resetError || resetResult);
+            }
+          } catch (resetError) {
+            console.error('Erro ao tentar resetar senha automaticamente:', resetError);
+          }
+        }
+        
+        // Verificar se é um admin que ainda não foi aprovado
+        if (error.message.includes('Email not confirmed')) {
+          try {
+            const { data: adminData } = await supabase
+              .from('admin_users')
+              .select('status')
+              .eq('email', email)
+              .single();
+            
+            if (adminData?.status === 'pending') {
+              toast.error("Aprovação pendente", {
+                description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
+              });
+            }
+          } catch (adminCheckError) {
+            console.error('Error checking admin status:', adminCheckError);
+          }
+        }
+        
+        toast.error("Erro no login", {
+          description: error.message === "Invalid login credentials" 
+            ? "Email ou senha incorretos." 
+            : error.message,
+        });
+      } else if (data.user) {
+        // Standard auth success - handle approval checks
         try {
-          const { data: adminData } = await supabase
-            .from('admin_users')
-            .select('status')
-            .eq('email', email)
+          await ensureProfile(data.user);
+        } catch (profileError) {
+          console.error('Error ensuring profile:', profileError);
+        }
+
+        // Verificar status do usuário (aprovação, ativo, etc.)
+        try {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('approval_status, role, active')
+            .eq('id', data.user.id)
             .single();
           
-          if (adminData?.status === 'pending') {
-            toast.error("Aprovação pendente", {
-              description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
+          // Verificar se o usuário foi pausado (inactive)
+          if (userData && userData.active === false) {
+            await supabase.auth.signOut();
+            toast.error("Acesso suspenso", {
+              description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
             });
+            setLastAuthBlocked('Account suspended');
+            setAuthProcessing(false);
+            return { error: { message: "Account suspended" } };
           }
-        } catch (adminCheckError) {
-          console.error('Error checking admin status:', adminCheckError);
+          
+          if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
+            await supabase.auth.signOut();
+            toast.error("Cadastro em análise", {
+              description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
+            });
+            setLastAuthBlocked('Cadastro em análise');
+            setAuthProcessing(false);
+            return { error: { message: "Cadastro em análise" } };
+          } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
+            await supabase.auth.signOut();
+            toast.error("Acesso negado", {
+              description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
+            });
+            setLastAuthBlocked('Access denied');
+            setAuthProcessing(false);
+            return { error: { message: "Access denied" } };
+          }
+        } catch (userCheckError) {
+          console.error('Error checking user approval status:', userCheckError);
+          
+          if (userCheckError.code === 'PGRST116') {
+            await supabase.auth.signOut();
+            toast.error("Cadastro incompleto", {
+              description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
+            });
+            setLastAuthBlocked('Incomplete registration');
+            setAuthProcessing(false);
+            return { error: { message: "Incomplete registration" } };
+          }
         }
+
+        // Verificar se é um admin pendente de aprovação
+        try {
+          const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
+          const { data: adminUser } = await supabase
+            .from('admin_users')
+            .select('status')
+            .eq('user_id', data.user.id)
+            .single();
+
+          if (adminUser && !isAdminApproved) {
+            await supabase.auth.signOut();
+            toast.error("Acesso Pendente de Aprovação", {
+              description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+            });
+            setLastAuthBlocked('Admin pending approval');
+            setAuthProcessing(false);
+            return { error: { message: "Admin pending approval" } };
+          }
+        } catch (e) {
+          console.error('Error checking admin status:', e);
+        }
+
+        // Success without role selection
+        toast.success("Login realizado com sucesso!", {
+          description: "Bem-vindo de volta!",
+        });
+        setLastAuthBlocked(null);
       }
-      
+
+      setAuthProcessing(false);
+      return { error };
+    } catch (error) {
+      console.error('❌ Sign in error:', error);
       toast.error("Erro no login", {
-        description: error.message === "Invalid login credentials" 
-          ? "Email ou senha incorretos." 
-          : error.message,
+        description: "Erro interno do sistema. Tente novamente.",
       });
-    } else if (data.user) {
-      // Ensure profile exists before checking approval status
-      try {
-        await ensureProfile(data.user);
-      } catch (profileError) {
-        console.error('Error ensuring profile:', profileError);
-      }
-
-      // Verificar status do usuário (aprovação, ativo, etc.)
-      try {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('approval_status, role, active')
-          .eq('id', data.user.id)
-          .single();
-        
-        // Verificar se o usuário foi pausado (inactive)
-        if (userData && userData.active === false) {
-          // Fazer logout imediatamente
-          await supabase.auth.signOut();
-          
-          toast.error("Acesso suspenso", {
-            description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
-          });
-          
-          setLastAuthBlocked('Account suspended');
-          setAuthProcessing(false);
-          return { error: { message: "Account suspended" } };
-        }
-        
-        if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
-          // Fazer logout imediatamente
-          await supabase.auth.signOut();
-          
-          toast.error("Cadastro em análise", {
-            description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
-          });
-          
-          setLastAuthBlocked('Cadastro em análise');
-          setAuthProcessing(false);
-          return { error: { message: "Cadastro em análise" } };
-        } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
-          // Fazer logout imediatamente
-          await supabase.auth.signOut();
-          
-          toast.error("Acesso negado", {
-            description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
-          });
-          
-          setLastAuthBlocked('Access denied');
-          setAuthProcessing(false);
-          return { error: { message: "Access denied" } };
-        }
-      } catch (userCheckError) {
-        console.error('Error checking user approval status:', userCheckError);
-        
-        // If user doesn't exist in users table but exists in auth, show incomplete registration message
-        if (userCheckError.code === 'PGRST116') {
-          await supabase.auth.signOut();
-          
-          toast.error("Cadastro incompleto", {
-            description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
-          });
-          
-          setLastAuthBlocked('Incomplete registration');
-          setAuthProcessing(false);
-          return { error: { message: "Incomplete registration" } };
-        }
-      }
-
-      // Verificar se é um admin pendente de aprovação
-      try {
-        // Verificar usando a função is_admin do banco
-        const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
-        
-        // Verificar se tem registro de admin pendente
-        const { data: adminUser } = await supabase
-          .from('admin_users')
-          .select('status')
-          .eq('user_id', data.user.id)
-          .single();
-
-        // Se tem registro de admin mas não foi aprovado, bloquear acesso
-        if (adminUser && !isAdminApproved) {
-          await supabase.auth.signOut();
-          toast.error("Acesso Pendente de Aprovação", {
-            description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
-          });
-          setLastAuthBlocked('Admin pending approval');
-          setAuthProcessing(false);
-          return { error: { message: "Admin pending approval" } };
-        }
-      } catch (e) {
-        console.error('Error checking admin status:', e);
-        // Se não conseguir verificar, continua com o login normal
-      }
-
-      toast.success("Login realizado com sucesso!", {
-        description: "Bem-vindo de volta!",
-      });
-      setLastAuthBlocked(null);
+      setAuthProcessing(false);
+      return { error: { message: 'Erro interno do sistema' } };
     }
-
-    setAuthProcessing(false);
-    return { error };
   };
 
   const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string; role?: 'Franqueado' | 'Colaborador'; position?: string }) => {
@@ -490,6 +535,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setUser(null);
       clearSelectedProfile();
+      
+      // Clear role claims from sessionStorage
+      try {
+        sessionStorage.removeItem('USER_ROLE_CLAIM');
+        sessionStorage.removeItem('SELECTED_ROLE_NAME');
+        sessionStorage.removeItem('SELECTED_ROLE');
+        console.log('✅ Role claims cleared from sessionStorage');
+      } catch {}
+      
       toast.success("Logout realizado", {
         description: "Até logo!",
       });
