@@ -13,7 +13,7 @@ interface AuthContextType {
   authProcessing: boolean;
   // Last blocking reason (e.g., pending approval). Null when not blocked
   lastAuthBlocked: string | null;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, selectedRole?: string) => Promise<{ error: any }>;
   signUp: (
     email: string, 
     password: string, 
@@ -236,9 +236,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, selectedRole?: string) => {
     setAuthProcessing(true);
     setLastAuthBlocked(null);
+    
+    // Armazenar o role selecionado ANTES da autenticação
+    if (selectedRole) {
+      try {
+        sessionStorage.setItem('SELECTED_ROLE', selectedRole);
+        console.log('🎯 ROLE SELECTED BEFORE AUTH:', selectedRole);
+      } catch {}
+    }
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,

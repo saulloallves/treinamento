@@ -77,83 +77,35 @@ const RoleRedirect = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // VERIFICAÇÃO CRÍTICA DA PREFERÊNCIA DO USUÁRIO
-  const getLoginPreference = () => {
+  // SOLUÇÃO DEFINITIVA: Ler o role selecionado DIRETAMENTE
+  const selectedRole = (() => {
     try {
-      // Prioriza sessionStorage sobre localStorage
-      return sessionStorage.getItem('CRITICAL_LOGIN_PREFERENCE') || 
-             localStorage.getItem('CRITICAL_LOGIN_PREFERENCE') ||
-             localStorage.getItem('login_preference');
+      return sessionStorage.getItem('SELECTED_ROLE');
     } catch {
       return null;
     }
-  };
+  })();
 
-  const clearLoginPreference = () => {
-    try {
-      sessionStorage.removeItem('CRITICAL_LOGIN_PREFERENCE');
-      localStorage.removeItem('CRITICAL_LOGIN_PREFERENCE');
-      localStorage.removeItem('login_preference');
-    } catch {}
-  };
+  console.log('🎯 SELECTED ROLE FROM SESSION:', selectedRole);
+  console.log('🎯 USER PERMISSIONS:', { isAdmin, isProfessor, hasStudentProfile });
 
-  const loginPreference = getLoginPreference();
-
-  console.log('🚨 CRITICAL LOGIN PREFERENCE CHECK:', {
-    preference: loginPreference,
-    isAdmin,
-    isProfessor, 
-    hasStudentProfile,
-    userEmail: user.email,
-    userId: user.id,
-    sessionStorageValue: (() => {
-      try { return sessionStorage.getItem('CRITICAL_LOGIN_PREFERENCE'); } catch { return 'ERROR'; }
-    })(),
-    localStorageValue: (() => {
-      try { return localStorage.getItem('CRITICAL_LOGIN_PREFERENCE'); } catch { return 'ERROR'; }
-    })()
-  });
-
-  // ADICIONAR DEBUGGING CRÍTICO
-  if (loginPreference) {
-    console.log('🔍 LOGIN PREFERENCE FOUND:', loginPreference);
-    console.log('🔍 CHECKING PERMISSIONS FOR PREFERENCE...');
-    
-    if (loginPreference === 'Aluno') {
-      console.log('🔍 Student preference - hasStudentProfile:', hasStudentProfile);
-      if (!hasStudentProfile) {
-        console.error('🔴 PROBLEM: User chose Aluno but hasStudentProfile is false!');
-      }
-    }
-  } else {
-    console.log('🔍 NO LOGIN PREFERENCE FOUND - this is the problem!');
-  }
-
-  // RESPOSTA OBRIGATÓRIA À ESCOLHA DO USUÁRIO - SEM EXCEÇÕES!
-  if (loginPreference === 'Aluno' && hasStudentProfile) {
-    console.log('🟢 EXECUTING STUDENT LOGIN - Redirecting to /aluno');
-    clearLoginPreference();
+  // EXECUTAR ESCOLHA DO USUÁRIO SEM QUESTIONAMENTO
+  if (selectedRole === 'Aluno') {
+    console.log('🟢 REDIRECTING TO STUDENT AREA');
+    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
     return <Navigate to="/aluno" replace />;
   }
   
-  if (loginPreference === 'Professor' && isProfessor) {
-    console.log('🟡 EXECUTING PROFESSOR LOGIN - Redirecting to /professor');
-    clearLoginPreference();
+  if (selectedRole === 'Professor') {
+    console.log('🟡 REDIRECTING TO PROFESSOR AREA');
+    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
     return <Navigate to="/professor" replace />;
   }
   
-  if (loginPreference === 'Admin' && isAdmin) {
-    console.log('🔵 EXECUTING ADMIN LOGIN - Redirecting to /dashboard');
-    clearLoginPreference();
+  if (selectedRole === 'Admin') {
+    console.log('🔵 REDIRECTING TO ADMIN AREA');
+    try { sessionStorage.removeItem('SELECTED_ROLE'); } catch {}
     return <Navigate to="/dashboard" replace />;
-  }
-
-  // Se chegou aqui com preferência mas sem permissão, mostrar erro crítico
-  if (loginPreference) {
-    console.error('🔴 CRITICAL ERROR: User selected', loginPreference, 'but lacks permission!');
-    console.error('Permissions:', { isAdmin, isProfessor, hasStudentProfile });
-    clearLoginPreference();
-    // Ainda redireciona para evitar loop, mas com aviso
   }
 
   // Se não há preferência ou a preferência não é válida, usar prioridade padrão
