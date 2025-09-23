@@ -170,11 +170,8 @@ export const useProfessorUpcomingLessons = () => {
               turmaName: turma.name || turma.code || 'Turma',
               courseName: lesson.courses?.name || 'Curso',
               scheduledAt: lesson.zoom_start_time,
-              formattedDate: lesson.zoom_start_time.slice(8, 10) + ' de ' + 
-                (['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
-                  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
-                  [parseInt(lesson.zoom_start_time.slice(5, 7)) - 1]),
-              formattedTime: lesson.zoom_start_time.slice(11, 16),
+              formattedDate: format(new Date(lesson.zoom_start_time), "dd 'de' MMMM", { locale: ptBR }),
+              formattedTime: format(new Date(lesson.zoom_start_time), "HH:mm", { locale: ptBR }),
               expectedParticipants,
               joinUrl: lesson.zoom_join_url,
               startUrl: lesson.zoom_start_url,

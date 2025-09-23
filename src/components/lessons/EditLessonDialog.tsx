@@ -149,31 +149,6 @@ const EditLessonDialog = ({ lesson, open, onOpenChange }: EditLessonDialogProps)
             />
           </div>
 
-          {/* Campo data/hora para aulas de streaming (sem video_url ou streaming interno) */}
-          {(!formData.video_url) && (
-            <div className="grid gap-2">
-              <Label htmlFor="zoom_start_time">Data e Hora da Aula</Label>
-              <Input
-                id="zoom_start_time"
-                type="datetime-local"
-                value={formData.zoom_start_time ? 
-                  formData.zoom_start_time.slice(0, 16) : ""}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    // Salva como timestamp local sem conversão de timezone
-                    const localTimestamp = e.target.value + ':00';
-                    setFormData({ ...formData, zoom_start_time: localTimestamp });
-                  } else {
-                    setFormData({ ...formData, zoom_start_time: null });
-                  }
-                }}
-              />
-              <p className="text-sm text-muted-foreground">
-                Data e hora em que a aula será realizada (para arquivamento automático)
-              </p>
-            </div>
-          )}
-
           <div className="grid gap-2">
             <Label htmlFor="content">Conteúdo</Label>
             <Input

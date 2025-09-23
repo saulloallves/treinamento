@@ -18,12 +18,6 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBounda
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("UI error captured:", error, errorInfo);
-    // Show user-friendly toast notification
-    if (typeof window !== 'undefined' && (window as any).toast) {
-      (window as any).toast.error("Ops! Algo deu errado.", {
-        description: "Recarregue a página ou tente novamente mais tarde.",
-      });
-    }
   }
 
   handleReload = () => {

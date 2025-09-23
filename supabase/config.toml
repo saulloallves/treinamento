@@ -64,6 +64,3 @@ verify_jwt = false
 
 [functions.whatsapp-scheduler]
 verify_jwt = false
-
-[functions.role-based-auth]
-verify_jwt = false

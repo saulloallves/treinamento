@@ -31,10 +31,6 @@ const LessonsList = () => {
   const { data: courses = [] } = useCourses();
   const deleteLessonMutation = useDeleteLesson();
 
-  // Get both upcoming and archived lessons separately for correct counts
-  const { data: upcomingLessons = [] } = useLessons('upcoming');
-  const { data: archivedLessons = [] } = useLessons('archived');
-
   const handleEditLesson = (lesson: Lesson) => {
     setEditingLesson(lesson);
     setIsEditDialogOpen(true);
@@ -170,7 +166,7 @@ const LessonsList = () => {
             value="upcoming-all"
             onClick={() => handleTabChange('upcoming', 'upcoming-all')}
           >
-            Próximas Aulas ({upcomingLessons.length})
+            Próximas Aulas ({lessonsFilter === 'upcoming' ? filteredLessons.length : 0})
           </TabsTrigger>
           <TabsTrigger 
             value="upcoming-by-course"
@@ -182,7 +178,7 @@ const LessonsList = () => {
             value="archived-all"
             onClick={() => handleTabChange('archived', 'archived-all')}
           >
-            Aulas Arquivadas ({archivedLessons.length})
+            Aulas Arquivadas ({lessonsFilter === 'archived' ? filteredLessons.length : 0})
           </TabsTrigger>
           <TabsTrigger 
             value="archived-by-course"
@@ -245,7 +241,7 @@ const LessonsList = () => {
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-brand-blue" />
                                 <span>
-                                  {lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}
+                                  {format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                 </span>
                               </div>
                             )}
@@ -383,7 +379,7 @@ const LessonsList = () => {
                                 {lesson.zoom_start_time && (
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-4 h-4 text-brand-blue" />
-                                    <span>{lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}</span>
+                                    <span>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                   </div>
                                 )}
                               </div>
@@ -481,7 +477,7 @@ const LessonsList = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                Finalizado
+                                Arquivada
                               </span>
                             </div>
                           </div>
@@ -497,7 +493,7 @@ const LessonsList = () => {
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-brand-blue" />
                                 <span>
-                                  {lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}
+                                  {format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                                 </span>
                               </div>
                             )}
@@ -513,20 +509,24 @@ const LessonsList = () => {
                         
                         {/* Actions Section */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <Button
-                            size="sm"
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 h-9 border-0"
-                            onClick={() => lesson.video_url && window.open(lesson.video_url, "_blank", "noopener,noreferrer")}
-                          >
-                            <Video className="w-4 h-4 mr-1" />
-                            Finalizado
-                          </Button>
+                          {lesson.video_url && (
+                            <Button
+                              size="sm"
+                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                              onClick={() =>
+                                window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                              }
+                            >
+                              <Video className="w-4 h-4 mr-1" />
+                              Ver Vídeo
+                            </Button>
+                          )}
                           <Button 
                             variant="outline" 
                             size="sm" 
                             onClick={() => handleEditLesson(lesson)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 border-blue-500 text-blue-500 hover:bg-blue-50"
+                            className="h-9 px-3"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -535,7 +535,7 @@ const LessonsList = () => {
                             size="sm"
                             onClick={() => handleDeleteLesson(lesson.id)}
                             disabled={deleteLessonMutation.isPending}
-                            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-gray-300"
+                            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -589,7 +589,7 @@ const LessonsList = () => {
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                   <span className="px-2 py-1 text-xs rounded-md bg-gray-100 text-gray-600 font-medium">
-                                    Finalizado
+                                    Arquivada
                                   </span>
                                 </div>
                               </div>
@@ -602,27 +602,31 @@ const LessonsList = () => {
                                 {lesson.zoom_start_time && (
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-4 h-4 text-brand-blue" />
-                                    <span>{lesson.zoom_start_time.slice(8, 10)}/{lesson.zoom_start_time.slice(5, 7)}/{lesson.zoom_start_time.slice(0, 4)} às {lesson.zoom_start_time.slice(11, 16)}</span>
+                                    <span>{format(new Date(lesson.zoom_start_time), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
                                   </div>
                                 )}
                               </div>
                             </div>
                             
                             <div className="flex items-center gap-2 shrink-0">
-                              <Button
-                                size="sm"
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 h-9 border-0"
-                                onClick={() => lesson.video_url && window.open(lesson.video_url, "_blank", "noopener,noreferrer")}
-                              >
-                                <Video className="w-4 h-4 mr-1" />
-                                Finalizado
-                              </Button>
+                              {lesson.video_url && (
+                                <Button
+                                  size="sm"
+                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                  onClick={() =>
+                                    window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                                  }
+                                >
+                                  <Video className="w-4 h-4 mr-1" />
+                                  Ver Vídeo
+                                </Button>
+                              )}
                               <Button 
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleEditLesson(lesson)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 border-blue-500 text-blue-500 hover:bg-blue-50"
+                                className="h-9 px-3"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -631,7 +635,7 @@ const LessonsList = () => {
                                 size="sm"
                                 onClick={() => handleDeleteLesson(lesson.id)}
                                 disabled={deleteLessonMutation.isPending}
-                                className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-gray-300"
+                                className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

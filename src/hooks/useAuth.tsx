@@ -13,7 +13,7 @@ interface AuthContextType {
   authProcessing: boolean;
   // Last blocking reason (e.g., pending approval). Null when not blocked
   lastAuthBlocked: string | null;
-  signIn: (email: string, password: string, selectedRole?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (
     email: string, 
     password: string, 
@@ -40,9 +40,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [suppressAuthEvents, setSuppressAuthEvents] = useState(false);
 
   useEffect(() => {
+    console.log('Auth - Setting up listeners');
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth - State change:', { event, hasSession: !!session, hasUser: !!session?.user });
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -52,6 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(() => {
             (async () => {
               try {
+                console.log('Auth - Ensuring profile for user:', session.user!.id);
                 await ensureProfile(session.user!);
                 await supabase.rpc('ensure_admin_bootstrap');
               } catch (e) {
@@ -64,7 +67,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session
+    console.log('Auth - Checking existing session');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Auth - Existing session:', { hasSession: !!session, hasUser: !!session?.user });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -72,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           (async () => {
             try {
+              console.log('Auth - Ensuring profile for existing user:', session.user!.id);
               await ensureProfile(session.user!);
               await supabase.rpc('ensure_admin_bootstrap');
             } catch (e) {
@@ -83,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
+      console.log('Auth - Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, []);
@@ -165,6 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // IMPORTANTE: Vincular automaticamente inscrições existentes com o mesmo email
       if (authUser.email) {
+        console.log('Vinculando inscrições existentes para:', authUser.email);
         const { data: linkedEnrollments, error: linkError } = await supabase
           .from('enrollments')
           .update({ user_id: authUser.id })
@@ -184,6 +192,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Se é um cadastro de admin, criar registro na tabela admin_users
       if (meta.user_type === 'Admin') {
+        console.log('Creating admin record for:', authUser.email);
         const adminRecord = {
           user_id: authUser.id,
           name: (meta.full_name as string) || (authUser.email as string),
@@ -227,242 +236,181 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string, selectedRole?: string) => {
+  const signIn = async (email: string, password: string) => {
     setAuthProcessing(true);
     setLastAuthBlocked(null);
-    
-    try {
-      // Primeiro, sempre fazer autenticação normal do Supabase
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (authError) {
-        // Caso especial para o email do Alison - tentar resetar senha automaticamente
-        if (authError.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
-          try {
-            console.log('Tentando resetar senha do Alison automaticamente...');
-            const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
-              body: { email }
+    if (error) {
+      // Caso especial para o email do Alison - tentar resetar senha automaticamente
+      if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
+        try {
+          console.log('Tentando resetar senha do Alison automaticamente...');
+          const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
+            body: { email }
+          });
+
+          if (!resetError && resetResult?.success) {
+            console.log('Reset de senha realizado com sucesso, tentando login novamente...');
+            
+            // Aguardar um momento para garantir que a senha foi atualizada
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Tentar logar novamente com a senha padrão
+            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+              email,
+              password: 'Trocar01',
             });
 
-            if (!resetError && resetResult?.success) {
-              console.log('Reset de senha realizado com sucesso, tentando login novamente...');
-              
-              // Aguardar um momento para garantir que a senha foi atualizada
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              // Tentar logar novamente com a senha padrão
-              const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-                email,
-                password: 'Trocar01',
-              });
-
-              if (!retryError && retryData.user) {
-                toast.success("Login realizado com sucesso!", {
-                  description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
-                });
-                setAuthProcessing(false);
-                return { error: null };
-              }
-            }
-          } catch (resetError) {
-            console.error('Erro ao tentar resetar senha automaticamente:', resetError);
-          }
-        }
-        
-        // Verificar se é um admin que ainda não foi aprovado
-        if (authError.message.includes('Email not confirmed')) {
-          try {
-            const { data: adminData } = await supabase
-              .from('admin_users')
-              .select('status')
-              .eq('email', email)
-              .single();
-            
-            if (adminData?.status === 'pending') {
-              toast.error("Aprovação pendente", {
-                description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
-              });
-            }
-          } catch (adminCheckError) {
-            console.error('Error checking admin status:', adminCheckError);
-          }
-        }
-        
-        toast.error("Erro no login", {
-          description: authError.message === "Invalid login credentials" 
-            ? "Email ou senha incorretos." 
-            : authError.message,
-        });
-        
-        setAuthProcessing(false);
-        return { error: authError };
-      }
-
-      // Autenticação básica bem-sucedida
-
-      if (data.user) {
-        // Verificar se um papel específico foi solicitado
-        if (selectedRole) {
-          
-          try {
-            // Usar função SQL diretamente para validar papéis
-            const userId = data.user.id;
-            const [
-              { data: isAdminData },
-              { data: isProfessorData }, 
-              { data: enrollmentData }
-            ] = await Promise.all([
-              supabase.rpc('is_admin', { _user: userId }),
-              supabase.rpc('is_professor', { _user: userId }),
-              supabase.from('enrollments').select('id').eq('user_id', userId).limit(1).maybeSingle()
-            ]);
-
-            const hasAdminRole = isAdminData === true;
-            const hasProfessorRole = isProfessorData === true;
-            const hasStudentRole = !!enrollmentData;
-
-            console.log('User roles:', { hasAdminRole, hasProfessorRole, hasStudentRole });
-
-            // Verificar se o usuário tem o papel solicitado
-            let hasRequestedRole = false;
-            let actAs = '';
-            
-            if (selectedRole === 'Admin' && hasAdminRole) {
-              hasRequestedRole = true;
-              actAs = 'admin';
-            } else if (selectedRole === 'Professor' && hasProfessorRole) {
-              hasRequestedRole = true;
-              actAs = 'teacher';
-            } else if (selectedRole === 'Aluno' && hasStudentRole) {
-              hasRequestedRole = true;
-              actAs = 'student';
-            }
-
-            if (!hasRequestedRole) {
-              await supabase.auth.signOut();
-              toast.error("Acesso Negado", {
-                description: `Você não tem permissão para acessar como ${selectedRole}.`,
+            if (!retryError && retryData.user) {
+              toast.success("Login realizado com sucesso!", {
+                description: "Conta configurada automaticamente. Recomendamos alterar sua senha.",
               });
               setAuthProcessing(false);
-              return { error: { message: 'ROLE_NOT_GRANTED' } };
+              return { error: null };
+            } else {
+              console.error('Erro no segundo login:', retryError);
             }
-
-            // Armazenar papel no sessionStorage
-            sessionStorage.setItem('USER_ROLE_CLAIM', actAs);
-            sessionStorage.setItem('SELECTED_ROLE_NAME', selectedRole);
-            
-          } catch (roleError) {
-            console.error('❌ Role validation error:', roleError);
-            await supabase.auth.signOut();
-            toast.error("Erro no login", {
-              description: "Erro ao validar permissões. Tente novamente.",
-            });
-            setAuthProcessing(false);
-            return { error: roleError };
+          } else {
+            console.error('Erro no reset:', resetError || resetResult);
           }
+        } catch (resetError) {
+          console.error('Erro ao tentar resetar senha automaticamente:', resetError);
         }
-
-        // Verificar profile e status do usuário
+      }
+      // Verificar se é um admin que ainda não foi aprovado
+      if (error.message.includes('Email not confirmed')) {
+        // Verificar se o usuário tem um registro de admin pendente
         try {
-          await ensureProfile(data.user);
-        } catch (profileError) {
-          console.error('Error ensuring profile:', profileError);
-        }
-
-        // Verificar status do usuário (aprovação, ativo, etc.)
-        try {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('approval_status, role, active')
-            .eq('id', data.user.id)
+          const { data: adminData } = await supabase
+            .from('admin_users')
+            .select('status')
+            .eq('email', email)
             .single();
           
-          // Verificar se o usuário foi pausado (inactive)
-          if (userData && userData.active === false) {
-            await supabase.auth.signOut();
-            toast.error("Acesso suspenso", {
-              description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
+          if (adminData?.status === 'pending') {
+            toast.error("Aprovação pendente", {
+              description: "Seu cadastro de admin está pendente de aprovação. Aguarde a aprovação de um administrador.",
             });
-            setLastAuthBlocked('Account suspended');
-            setAuthProcessing(false);
-            return { error: { message: "Account suspended" } };
           }
-          
-          if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
-            await supabase.auth.signOut();
-            toast.error("Cadastro em análise", {
-              description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
-            });
-            setLastAuthBlocked('Cadastro em análise');
-            setAuthProcessing(false);
-            return { error: { message: "Cadastro em análise" } };
-          } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
-            await supabase.auth.signOut();
-            toast.error("Acesso negado", {
-              description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
-            });
-            setLastAuthBlocked('Access denied');
-            setAuthProcessing(false);
-            return { error: { message: "Access denied" } };
-          }
-        } catch (userCheckError) {
-          console.error('Error checking user approval status:', userCheckError);
-          
-          if (userCheckError.code === 'PGRST116') {
-            await supabase.auth.signOut();
-            toast.error("Cadastro incompleto", {
-              description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
-            });
-            setLastAuthBlocked('Incomplete registration');
-            setAuthProcessing(false);
-            return { error: { message: "Incomplete registration" } };
-          }
+        } catch (adminCheckError) {
+          console.error('Error checking admin status:', adminCheckError);
         }
-
-        // Verificar se é um admin pendente de aprovação
-        if (!selectedRole) {
-          try {
-            const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
-            const { data: adminUser } = await supabase
-              .from('admin_users')
-              .select('status')
-              .eq('user_id', data.user.id)
-              .single();
-
-            if (adminUser && !isAdminApproved) {
-              await supabase.auth.signOut();
-              toast.error("Acesso Pendente de Aprovação", {
-                description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
-              });
-              setLastAuthBlocked('Admin pending approval');
-              setAuthProcessing(false);
-              return { error: { message: "Admin pending approval" } };
-            }
-          } catch (e) {
-            console.error('Error checking admin status:', e);
-          }
-        }
-
-        // Success
-        toast.success("Login realizado com sucesso!", {
-          description: selectedRole ? `Bem-vindo como ${selectedRole}!` : "Bem-vindo de volta!",
-        });
-        setLastAuthBlocked(null);
+      }
+      
+      toast.error("Erro no login", {
+        description: error.message === "Invalid login credentials" 
+          ? "Email ou senha incorretos." 
+          : error.message,
+      });
+    } else if (data.user) {
+      // Ensure profile exists before checking approval status
+      try {
+        await ensureProfile(data.user);
+      } catch (profileError) {
+        console.error('Error ensuring profile:', profileError);
       }
 
-      setAuthProcessing(false);
-      return { error: null };
-    } catch (error) {
-      console.error('❌ Sign in error:', error);
-      toast.error("Erro no login", {
-        description: "Erro inesperado. Tente novamente.",
+      // Verificar status do usuário (aprovação, ativo, etc.)
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('approval_status, role, active')
+          .eq('id', data.user.id)
+          .single();
+        
+        // Verificar se o usuário foi pausado (inactive)
+        if (userData && userData.active === false) {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast.error("Acesso suspenso", {
+            description: "Sua conta foi pausada pelo administrador. Entre em contato para mais informações.",
+          });
+          
+          setLastAuthBlocked('Account suspended');
+          setAuthProcessing(false);
+          return { error: { message: "Account suspended" } };
+        }
+        
+        if (userData?.role === 'Colaborador' && userData?.approval_status === 'pendente') {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast.error("Cadastro em análise", {
+            description: "Seu cadastro como colaborador está em análise pelo franqueado da unidade. Aguarde a aprovação para acessar o sistema.",
+          });
+          
+          setLastAuthBlocked('Cadastro em análise');
+          setAuthProcessing(false);
+          return { error: { message: "Cadastro em análise" } };
+        } else if (userData?.role === 'Colaborador' && userData?.approval_status === 'rejeitado') {
+          // Fazer logout imediatamente
+          await supabase.auth.signOut();
+          
+          toast.error("Acesso negado", {
+            description: "Seu cadastro como colaborador foi rejeitado pelo franqueado da unidade.",
+          });
+          
+          setLastAuthBlocked('Access denied');
+          setAuthProcessing(false);
+          return { error: { message: "Access denied" } };
+        }
+      } catch (userCheckError) {
+        console.error('Error checking user approval status:', userCheckError);
+        
+        // If user doesn't exist in users table but exists in auth, show incomplete registration message
+        if (userCheckError.code === 'PGRST116') {
+          await supabase.auth.signOut();
+          
+          toast.error("Cadastro incompleto", {
+            description: "Seu cadastro não foi finalizado corretamente. Entre em contato com o suporte.",
+          });
+          
+          setLastAuthBlocked('Incomplete registration');
+          setAuthProcessing(false);
+          return { error: { message: "Incomplete registration" } };
+        }
+      }
+
+      // Verificar se é um admin pendente de aprovação
+      try {
+        // Verificar usando a função is_admin do banco
+        const { data: isAdminApproved } = await supabase.rpc('is_admin', { _user: data.user.id });
+        
+        // Verificar se tem registro de admin pendente
+        const { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('status')
+          .eq('user_id', data.user.id)
+          .single();
+
+        // Se tem registro de admin mas não foi aprovado, bloquear acesso
+        if (adminUser && !isAdminApproved) {
+          await supabase.auth.signOut();
+          toast.error("Acesso Pendente de Aprovação", {
+            description: "Seu cadastro de admin está aguardando aprovação por um administrador. Você receberá uma notificação quando for aprovado.",
+          });
+          setLastAuthBlocked('Admin pending approval');
+          setAuthProcessing(false);
+          return { error: { message: "Admin pending approval" } };
+        }
+      } catch (e) {
+        console.error('Error checking admin status:', e);
+        // Se não conseguir verificar, continua com o login normal
+      }
+
+      toast.success("Login realizado com sucesso!", {
+        description: "Bem-vindo de volta!",
       });
-      setAuthProcessing(false);
-      return { error };
+      setLastAuthBlocked(null);
     }
+
+    setAuthProcessing(false);
+    return { error };
   };
 
   const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string; role?: 'Franqueado' | 'Colaborador'; position?: string }) => {
@@ -533,15 +481,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setUser(null);
       clearSelectedProfile();
-      
-      // Clear role claims from sessionStorage
-      try {
-        sessionStorage.removeItem('USER_ROLE_CLAIM');
-        sessionStorage.removeItem('SELECTED_ROLE_NAME');
-        sessionStorage.removeItem('SELECTED_ROLE');
-        console.log('✅ Role claims cleared from sessionStorage');
-      } catch {}
-      
       toast.success("Logout realizado", {
         description: "Até logo!",
       });

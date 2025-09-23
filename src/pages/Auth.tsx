@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -27,28 +28,12 @@ const Auth = () => {
 
   const navigate = useNavigate();
 
-  // Redirect after authentication only when all checks are complete
+  // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
+    console.log('Auth.tsx - Checking redirect:', { user: !!user, authProcessing, loading });
     if (user && !authProcessing && !loading) {
-      const roleClaim = sessionStorage.getItem('USER_ROLE_CLAIM');
-      
-      if (roleClaim) {
-        switch (roleClaim) {
-          case 'admin':
-            navigate('/dashboard', { replace: true });
-            break;
-          case 'teacher':
-            navigate('/professor', { replace: true });
-            break;
-          case 'student':
-            navigate('/aluno', { replace: true });
-            break;
-          default:
-            navigate('/', { replace: true });
-        }
-      } else {
-        navigate('/', { replace: true });
-      }
+      console.log('Auth.tsx - Redirecting to /');
+      navigate('/', { replace: true });
     }
   }, [user, authProcessing, loading, navigate]);
 
@@ -82,45 +67,39 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Set selected role before login
+    // Set profile preference before signing in
     try {
-      sessionStorage.setItem('SELECTED_ROLE', 'Admin');
-    } catch (error) {
-      console.error('Error storing admin role:', error);
+      localStorage.setItem('selected_profile', 'Admin');
+    } catch {
+      // Silent fail
     }
-    
-    await signIn(email.trim().toLowerCase(), password, 'Admin');
+    await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
 
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Set selected role before login
+    // Set profile preference before signing in
     try {
-      sessionStorage.setItem('SELECTED_ROLE', 'Aluno');
-    } catch (error) {
-      console.error('Error storing student role:', error);
+      localStorage.setItem('selected_profile', 'Aluno');
+    } catch {
+      // Silent fail
     }
-    
-    await signIn(email.trim().toLowerCase(), password, 'Aluno');
+    await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
 
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Set selected role before login
+    // Set profile preference before signing in
     try {
-      sessionStorage.setItem('SELECTED_ROLE', 'Professor');
-    } catch (error) {
-      console.error('Error storing professor role:', error);
+      localStorage.setItem('selected_profile', 'Professor');
+    } catch {
+      // Silent fail
     }
-    
-    await signIn(email.trim().toLowerCase(), password, 'Professor');
+    await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
 
@@ -449,12 +428,17 @@ const Auth = () => {
                   >
                     {isLoading ? "Entrando..." : "Entrar como Admin"}
                   </Button>
-                  <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de administrador aprovado.</p>
+                  <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de admin aprovado.</p>
                 </form>
               </TabsContent>
+
             </Tabs>
           </CardContent>
         </Card>
+
+        <div className="text-center text-sm text-muted-foreground">
+          Ao continuar, você concorda com nossos termos de uso
+        </div>
       </div>
     </div>
   );
