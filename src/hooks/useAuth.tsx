@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { clearSelectedProfile } from "@/lib/profile";
 
 interface AuthContextType {
   user: User | null;
@@ -479,6 +480,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Always clear local state even if Supabase logout fails
       setSession(null);
       setUser(null);
+      clearSelectedProfile();
       toast.success("Logout realizado", {
         description: "Até logo!",
       });

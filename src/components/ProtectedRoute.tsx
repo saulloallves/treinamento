@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { getAutoDetectedProfile, setSelectedProfile, getSelectedProfile } from '@/lib/profile';
+import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -49,20 +51,41 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   // Approval status checking is now handled in useAuth.signIn
   // This prevents the "trembling" effect from multiple components checking the same thing
 
-  // Check for profile selection if user has multiple profiles - removed profile selection
+  // Check for profile selection if user has multiple profiles
+  const profileCount = [isAdmin, isProfessor, !!currentUser].filter(Boolean).length;
+  const selectedProfile = getSelectedProfile();
+  
+  // If user has multiple profiles but no selection, redirect to profile selection
+  if (profileCount > 1 && !selectedProfile) {
+    return <Navigate to="/perfil" replace />;
+  }
+  
+  // If user has single profile, auto-detect and set it
+  if (profileCount === 1 && !selectedProfile) {
+    const autoProfile = getAutoDetectedProfile(isAdmin, isProfessor);
+    if (autoProfile) {
+      setSelectedProfile(autoProfile);
+    }
+  }
   
   console.log('ProtectedRoute Debug:', {
     requiredRole,
+    selectedProfile,
     isAdmin,
     isProfessor,
     userId: user.id
   });
   
-  // Role-based access control
+  // Role-based access control with profile selection respect
   if (requiredRole) {
     if (requiredRole === 'Admin') {
       if (!isAdmin) {
         return <Navigate to="/aluno" replace />;
+      }
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Admin') {
+        if (selectedProfile === 'Professor') return <Navigate to="/professor" replace />;
+        if (selectedProfile === 'Aluno') return <Navigate to="/aluno" replace />;
       }
     }
     
@@ -70,11 +93,21 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       if (!isProfessor && !isAdmin) {
         return <Navigate to="/aluno" replace />;
       }
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Professor' && selectedProfile !== 'Admin') {
+        if (selectedProfile === 'Aluno') return <Navigate to="/aluno" replace />;
+        if (isAdmin) return <Navigate to="/dashboard" replace />;
+      }
     }
     
     if (requiredRole === 'Aluno') {
       if (!currentUser && !isAdmin && !isProfessor) {
         return <Navigate to="/auth" replace />;
+      }
+      // If user selected a different profile, redirect accordingly
+      if (selectedProfile && selectedProfile !== 'Aluno') {
+        if (selectedProfile === 'Admin' && isAdmin) return <Navigate to="/dashboard" replace />;
+        if (selectedProfile === 'Professor' && isProfessor) return <Navigate to="/professor" replace />;
       }
     }
   }

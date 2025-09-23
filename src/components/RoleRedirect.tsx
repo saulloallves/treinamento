@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getSelectedProfile } from "@/lib/profile";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -61,25 +62,45 @@ const RoleRedirect = () => {
   // Contar quantos perfis o usuário possui
   const profileCount = [isAdmin, isProfessor, hasStudentProfile].filter(Boolean).length;
   
-  // Prioridade: Admin > Professor > Aluno
-  if (isAdmin) {
-    console.log('RoleRedirect - Admin user, redirecting to dashboard');
+  // Se o usuário tem múltiplos perfis, verificar se já selecionou um
+  if (profileCount > 1) {
+    const selectedProfile = getSelectedProfile();
+    if (!selectedProfile) {
+      console.log('RoleRedirect - Multiple profiles, no selection, redirecting to profile selection');
+      return <Navigate to="/perfil" replace />;
+    }
+    
+    // Redirecionar baseado no perfil selecionado
+    if (selectedProfile === 'Admin' && isAdmin) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    if (selectedProfile === 'Professor' && isProfessor) {
+      return <Navigate to="/professor" replace />;
+    }
+    if (selectedProfile === 'Aluno' && hasStudentProfile) {
+      return <Navigate to="/aluno" replace />;
+    }
+  }
+
+  // Se tem apenas um perfil, redirecionar diretamente
+  if (isAdmin && profileCount === 1) {
+    console.log('RoleRedirect - Single admin profile, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
-  if (isProfessor) {
-    console.log('RoleRedirect - Professor user, redirecting to professor area');
+  if (isProfessor && profileCount === 1) {
+    console.log('RoleRedirect - Single professor profile, redirecting to professor area');
     return <Navigate to="/professor" replace />;
   }
   
-  if (hasStudentProfile) {
-    console.log('RoleRedirect - Student user, redirecting to student area');
+  if (hasStudentProfile && profileCount === 1) {
+    console.log('RoleRedirect - Single student profile, redirecting to student area');
     return <Navigate to="/aluno" replace />;
   }
 
-  // Se não conseguiu determinar o perfil, redirecionar para auth
-  console.log('RoleRedirect - Unable to determine user role, redirecting to auth');
-  return <Navigate to="/auth" replace />;
+  // Se não conseguiu determinar o perfil, redirecionar para seleção de perfil
+  console.log('RoleRedirect - Unable to determine user role, redirecting to profile selection');
+  return <Navigate to="/perfil" replace />;
 };
 
 export default RoleRedirect;
