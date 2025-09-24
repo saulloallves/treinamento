@@ -64,17 +64,31 @@ const StudentCourse = () => {
   const lessonsQuery = useQuery({
     queryKey: ["lessons", courseId],
     queryFn: async () => {
-      const nowIso = new Date().toISOString();
+      const now = new Date();
       
       const { data, error } = await supabase
         .from("lessons")
-        .select("id, title, description, order_index, zoom_start_time")
+        .select("id, title, description, order_index, zoom_start_time, duration_minutes")
         .eq("course_id", courseId)
-        .or(`zoom_start_time.is.null,zoom_start_time.gte.${nowIso}`)
+        .not('zoom_start_time', 'is', null) // Only lessons with scheduled time
         .order("order_index", { ascending: true });
 
       if (error) throw error;
-      return data ?? [];
+      
+      // Filter lessons that are within the 24-hour attendance window after completion
+      const availableLessons = (data ?? []).filter(lesson => {
+        if (!lesson.zoom_start_time) return false;
+        
+        const lessonStart = new Date(lesson.zoom_start_time);
+        const lessonDuration = lesson.duration_minutes || 60; // Default 60 minutes
+        const lessonEnd = new Date(lessonStart.getTime() + lessonDuration * 60000);
+        const attendanceDeadline = new Date(lessonEnd.getTime() + 24 * 60 * 60 * 1000); // 24 hours after lesson ends
+        
+        // Show lesson only if current time is between lesson end and 24h after lesson end
+        return now >= lessonEnd && now <= attendanceDeadline;
+      });
+      
+      return availableLessons;
     },
     enabled: !!courseId && !!enrollmentQuery.data,
   });
