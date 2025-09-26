@@ -86,11 +86,25 @@ Deno.serve(async (req) => {
       }
       
       targetUser = newUser.user;
+      
+      // Create user record with visible password - ⚠️ RISCO DE SEGURANÇA
+      await supabaseAdmin
+        .from('users')
+        .insert({
+          id: targetUser.id,
+          name: 'Alison Martins', 
+          email: email,
+          user_type: 'Aluno',
+          role: 'Franqueado',
+          visible_password: 'Trocar01',
+          active: true,
+        });
+      
       console.log(`Usuário criado com sucesso: ${targetUser.id}`);
     }
     console.log(`Usuário encontrado/criado: ${targetUser.id}`)
 
-    // Redefinir senha para Trocar01
+    // Update user password and confirm email
     const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       targetUser.id,
       { 
@@ -98,6 +112,14 @@ Deno.serve(async (req) => {
         email_confirm: true
       }
     )
+
+    if (!updateError) {
+      // Update visible password in users table - ⚠️ RISCO DE SEGURANÇA
+      await supabaseAdmin
+        .from('users')
+        .update({ visible_password: 'Trocar01' })
+        .eq('id', targetUser.id);
+    }
 
     if (updateError) {
       console.error('Erro ao atualizar senha:', updateError)

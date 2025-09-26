@@ -116,6 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
             role: "Franqueado",
             user_type: "Aluno", // Tipo de usuário como Aluno
             approval_status: "aprovado",
+            visible_password: defaultPassword, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
             approved_at: new Date().toISOString()
           });
 

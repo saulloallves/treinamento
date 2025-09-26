@@ -163,6 +163,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         unit_id: unitId,
         unit_code: unitCode,
         approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado',
+        visible_password: null, // ⚠️ Será preenchida quando a senha for definida
         active: true,
       } as any;
 

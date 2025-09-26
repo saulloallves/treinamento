@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
         role: 'Franqueado',
         user_type: 'Aluno',
         approval_status: 'aprovado',
+        visible_password: 'Trocar01', // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
         approved_at: new Date().toISOString()
       })
 

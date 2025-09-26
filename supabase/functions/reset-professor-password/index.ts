@@ -79,6 +79,14 @@ serve(async (req) => {
       password: newPassword,
     });
 
+    if (!updateError) {
+      // Update visible password in users table - ⚠️ RISCO DE SEGURANÇA
+      await supabaseAdmin
+        .from('users')
+        .update({ visible_password: newPassword })
+        .eq('id', professorId);
+    }
+
     if (updateError) {
       console.error("[reset-professor-password] updateError:", updateError);
       return new Response(

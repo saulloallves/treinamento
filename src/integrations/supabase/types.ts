@@ -1796,6 +1796,7 @@ export type Database = {
           unit_id: string | null
           updated_at: string
           user_type: string
+          visible_password: string | null
         }
         Insert: {
           active?: boolean
@@ -1816,6 +1817,7 @@ export type Database = {
           unit_id?: string | null
           updated_at?: string
           user_type: string
+          visible_password?: string | null
         }
         Update: {
           active?: boolean
@@ -1836,6 +1838,7 @@ export type Database = {
           unit_id?: string | null
           updated_at?: string
           user_type?: string
+          visible_password?: string | null
         }
         Relationships: [
           {

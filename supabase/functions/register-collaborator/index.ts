@@ -88,6 +88,7 @@ serve(async (req) => {
         unit_code: collaboratorData.unitCode,
         position: collaboratorData.position,
         approval_status: 'pendente',
+        visible_password: collaboratorData.password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
         active: true,
       }, {
         onConflict: 'id'

@@ -104,7 +104,9 @@ serve(async (req) => {
       authUserId = existingUserByEmail.id;
 
       // Atualiza a senha no Auth (best-effort)
-      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, { password });
+      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, { 
+        password: password || 'TrocarSenha123'
+      });
       if (passwordUpdateError) {
         console.warn("[create-professor] Password update warning:", passwordUpdateError);
       }
@@ -126,6 +128,7 @@ serve(async (req) => {
             phone,
             position,
             user_type: "Professor",
+            visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
             active: true,
             updated_at: new Date().toISOString(),
           })
@@ -197,6 +200,7 @@ serve(async (req) => {
           phone,
           position,
           user_type: "Professor",
+          visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
           active: true,
         })
         .select()
@@ -207,7 +211,15 @@ serve(async (req) => {
         // Se já existir, tenta atualizar (idempotência)
         const { data: updatedProfile, error: updateErr2 } = await supabaseAdmin
           .from("users")
-          .update({ name, phone, position, user_type: "Professor", active: true, updated_at: new Date().toISOString() })
+          .update({ 
+            name, 
+            phone, 
+            position, 
+            user_type: "Professor", 
+            visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
+            active: true, 
+            updated_at: new Date().toISOString() 
+          })
           .eq("id", authUserId)
           .select()
           .maybeSingle();
