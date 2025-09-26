@@ -391,7 +391,7 @@ async function handleCursos(request: Request, path: string[]) {
 
     const result = enrollments?.map((e, index) => {
       const courseInfo = e.courses
-      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
+      const totalLessons = Math.max(0, Number(courseInfo?.[0]?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
       const calculatedProgress = totalLessons > 0
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
@@ -480,7 +480,7 @@ async function handleCursos(request: Request, path: string[]) {
 
     const result = enrollments?.map((e, index) => {
       const courseInfo = e.courses
-      const totalLessons = Math.max(0, Number(courseInfo?.lessons_count || 0))
+      const totalLessons = Math.max(0, Number(courseInfo?.[0]?.lessons_count || 0))
       const attended = countsByEnrollment.get(e.id) || 0
       const calculatedProgress = totalLessons > 0
         ? Math.max(0, Math.min(100, Math.floor((attended * 100) / totalLessons)))
@@ -495,7 +495,7 @@ async function handleCursos(request: Request, path: string[]) {
         course_number: `Curso ${courseNum}`,
         progress_percentage: calculatedProgress,
         course: courseInfo,
-        [dynamicDisplayName]: courseInfo?.name || 'Sem nome' // Propriedade dinâmica
+        [dynamicDisplayName]: courseInfo?.[0]?.name || 'Sem nome' // Propriedade dinâmica
       }
     }) || []
 
@@ -969,15 +969,15 @@ async function handlePresencas(request: Request, path: string[]) {
             console.log('=== DEBUG: Enrollment tem user_id, buscando usuário:', enrollment.user_id)
             const { data: linkedUser, error: linkedError } = await supabaseAdmin
               .from('users')
-              .select('id')
+              .select('id, email, name')
               .eq('id', enrollment.user_id)
               .maybeSingle()
             
             console.log('=== DEBUG: Resultado da busca do usuário linkado:', { linkedUser, linkedError })
             
             if (linkedUser) {
-              foundUser = linkedUser
-              console.log('=== DEBUG: Usuário encontrado via enrollment linkado:', foundUser.id)
+              foundUser = { id: linkedUser.id, email: linkedUser.email || '', name: linkedUser.name || '' }
+              console.log('=== DEBUG: Usuário encontrado via enrollment linkado:', foundUser?.id)
             }
           } else {
             // Se enrollment não tem user_id, criar usuário automaticamente
@@ -990,7 +990,7 @@ async function handlePresencas(request: Request, path: string[]) {
                 user_type: 'Aluno',
                 active: true
               })
-              .select('id')
+              .select('id, email, name')
               .single()
             
             console.log('=== DEBUG: Resultado da criação do usuário:', { newUser, createError })
@@ -1002,7 +1002,7 @@ async function handlePresencas(request: Request, path: string[]) {
                 .update({ user_id: newUser.id })
                 .eq('student_email', enrollment.student_email)
               
-              foundUser = newUser
+              foundUser = { id: newUser.id, email: newUser.email || '', name: newUser.name || '' }
               console.log('=== DEBUG: Usuário criado e linkado:', newUser.id)
             } else {
               console.error('=== DEBUG: Erro ao criar usuário:', createError)
@@ -1752,7 +1752,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error' 
+      error: (error as Error).message || 'Internal server error' 
     }), { 
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

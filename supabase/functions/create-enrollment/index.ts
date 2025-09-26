@@ -123,6 +123,6 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ ok: true, enrollment: inserted }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e) {
     console.error('create-enrollment error:', e)
-    return new Response(JSON.stringify({ error: 'Internal error', details: String(e?.message || e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: 'Internal error', details: String((e as any)?.message || e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

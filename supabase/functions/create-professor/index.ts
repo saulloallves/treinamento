@@ -104,7 +104,7 @@ serve(async (req) => {
       authUserId = existingUserByEmail.id;
 
       // Atualiza a senha no Auth (best-effort)
-      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, { 
+      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId!, { 
         password: password || 'TrocarSenha123'
       });
       if (passwordUpdateError) {

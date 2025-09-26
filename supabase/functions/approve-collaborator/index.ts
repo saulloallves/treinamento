@@ -142,7 +142,7 @@ serve(async (req) => {
         <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
           <h2 style="color: #e74c3c;">❌ Erro interno</h2>
           <p>Ocorreu um erro ao processar a solicitação. Tente novamente.</p>
-          <p style="font-size: 12px; color: #666;">${error.message}</p>
+          <p style="font-size: 12px; color: #666;">${(error as Error).message}</p>
         </body>
       </html>`,
       { 
