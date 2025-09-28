@@ -808,6 +808,33 @@ export type Database = {
           },
         ]
       }
+      password_sync_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          new_password: string
+          processed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          new_password: string
+          processed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          new_password?: string
+          processed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       professor_permissions: {
         Row: {
           can_edit: boolean

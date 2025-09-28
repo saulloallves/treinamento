@@ -1,8 +1,14 @@
 
 import BaseLayout from "@/components/BaseLayout";
 import SystemSettingsForm from "@/components/settings/SystemSettingsForm";
+import { PasswordSyncQueue } from "@/components/admin/PasswordSyncQueue";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useAuth } from "@/hooks/useAuth";
 
 const SettingsPage = () => {
+  const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin(user?.id);
+
   return (
     <BaseLayout title="Configurações do Sistema">
       <div className="space-y-6">
@@ -14,6 +20,8 @@ const SettingsPage = () => {
         </div>
         
         <SystemSettingsForm />
+        
+        {isAdmin && <PasswordSyncQueue />}
       </div>
     </BaseLayout>
   );
