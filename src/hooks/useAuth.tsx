@@ -147,20 +147,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Se já existe, atualizar dados (caso seja um signup repetido com novos dados)
       if (existing?.id) {
-        // Converter unit_code string para array unit_codes
+        const unitCodeStr: string | undefined = meta.unit_code;
         let unitCodesArray: string[] | null = null;
-        const unitCode: string | undefined = meta.unit_code;
         
-        if (unitCode) {
+        if (unitCodeStr) {
           if (meta.role === 'Franqueado') {
-            unitCodesArray = unitCode.split(',').map(code => code.trim()).filter(code => code.length > 0);
+            unitCodesArray = unitCodeStr.split(',').map(code => code.trim()).filter(code => code.length > 0);
           } else {
-            unitCodesArray = [unitCode.trim()];
+            unitCodesArray = [unitCodeStr.trim()];
           }
         }
         
         // Atualizar dados se houver novos metadados
-        if (meta.phone || meta.cpf || unitCodesArray) {
+        if (meta.phone || meta.cpf || unitCodesArray || meta.full_name || meta.role) {
           const updateData: any = { updated_at: new Date().toISOString() };
           
           if (meta.phone) updateData.phone = meta.phone;
@@ -179,7 +178,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         return; // Profile already exists and updated if needed
       }
-
 
       const unitCode: string | undefined = meta.unit_code;
       
