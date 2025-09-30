@@ -15,6 +15,7 @@ export interface Unidade {
   fase_loja?: string;
   etapa_loja?: string;
   modelo_loja?: string;
+  grupo_colaborador?: string;
   created_at?: string;
   hasAccount?: boolean;
 }

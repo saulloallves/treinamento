@@ -9,6 +9,7 @@ interface FranchiseeData {
   email: string;
   name: string;
   phone?: string;
+  password: string;
   unitCode: string;
   unitName: string;
 }
@@ -24,7 +25,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { email, name, phone, unitCode, unitName }: FranchiseeData = await req.json()
+    const { email, name, phone, password, unitCode, unitName }: FranchiseeData = await req.json()
 
     // Verificar se já existe usuário com este email
     const { data: existingUser } = await supabaseAdmin
@@ -46,12 +47,26 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Validar senha
+    if (!password || password.length < 6) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Senha deve ter no mínimo 6 caracteres' 
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     let authUser;
       
     // Criar novo usuário no auth
     const { data: newAuth, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password: 'Trocar01',
+      password: password,
       email_confirm: true,
       user_metadata: {
         name,
@@ -80,7 +95,7 @@ Deno.serve(async (req) => {
         role: 'Franqueado',
         user_type: 'Aluno',
         approval_status: 'aprovado',
-        visible_password: 'Trocar01', // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
+        visible_password: password,
         approved_at: new Date().toISOString()
       })
 

@@ -17,6 +17,7 @@ interface CreateFranchiseeDialogProps {
 const CreateFranchiseeDialog = ({ unidade, open, onOpenChange }: CreateFranchiseeDialogProps) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const createFranchiseeMutation = useCreateFranchisee();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,11 +33,17 @@ const CreateFranchiseeDialog = ({ unidade, open, onOpenChange }: CreateFranchise
       return;
     }
 
+    if (!password.trim() || password.length < 6) {
+      toast.error("Senha é obrigatória e deve ter no mínimo 6 caracteres");
+      return;
+    }
+
     try {
       await createFranchiseeMutation.mutateAsync({
         email: unidade.email,
         name: name.trim(),
         phone: phone.trim(),
+        password: password.trim(),
         unitCode: unidade.codigo_grupo?.toString() || "",
         unitName: unidade.grupo || ""
       });
@@ -45,6 +52,7 @@ const CreateFranchiseeDialog = ({ unidade, open, onOpenChange }: CreateFranchise
       onOpenChange(false);
       setName("");
       setPhone("");
+      setPassword("");
     } catch (error) {
       console.error("Erro ao criar franqueado:", error);
     }
@@ -102,6 +110,22 @@ const CreateFranchiseeDialog = ({ unidade, open, onOpenChange }: CreateFranchise
               onChange={(e) => setPhone(e.target.value)}
               placeholder="(11) 99999-9999"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Senha *</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              required
+              minLength={6}
+            />
+            <p className="text-xs text-muted-foreground">
+              Esta senha será salva e o franqueado poderá usá-la para fazer login no sistema
+            </p>
           </div>
 
           <DialogFooter>

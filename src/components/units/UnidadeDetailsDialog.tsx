@@ -212,6 +212,22 @@ const UnidadeDetailsDialog = ({
                   {unidade.fase_loja || "N/A"}
                 </Badge>
               </div>
+              
+              <div>
+                <span className="text-sm font-medium">Grupo de Colaboradores:</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge
+                    variant={unidade.grupo_colaborador ? "default" : "secondary"}
+                  >
+                    {unidade.grupo_colaborador ? "Criado" : "Não criado"}
+                  </Badge>
+                  {unidade.grupo_colaborador && (
+                    <span className="text-xs text-muted-foreground">
+                      ID: {unidade.grupo_colaborador}
+                    </span>
+                  )}
+                </div>
+              </div>
 
               {unidade.created_at && (
                 <div className="flex items-center gap-2 text-sm">

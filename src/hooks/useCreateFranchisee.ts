@@ -6,6 +6,7 @@ interface CreateFranchiseeData {
   email: string;
   name: string;
   phone?: string;
+  password: string;
   unitCode: string;
   unitName: string;
 }
@@ -21,6 +22,7 @@ export const useCreateFranchisee = () => {
           email: data.email,
           name: data.name,
           phone: data.phone,
+          password: data.password,
           unitCode: data.unitCode,
           unitName: data.unitName
         }
@@ -41,7 +43,7 @@ export const useCreateFranchisee = () => {
       queryClient.invalidateQueries({ queryKey: ["unidade-colaborators"] });
       queryClient.invalidateQueries({ queryKey: ["unidades"] });
       toast.success("Franqueado criado com sucesso!", {
-        description: "Senha padrão definida: Trocar01"
+        description: "Login criado com a senha definida"
       });
     },
     onError: (error: Error) => {
