@@ -22,6 +22,8 @@ interface AuthContextType {
       unitCode?: string;
       role?: 'Franqueado' | 'Colaborador';
       position?: string;
+      phone?: string;
+      cpf?: string;
     }
   ) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
