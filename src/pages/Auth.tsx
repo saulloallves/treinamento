@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 
 
 const Auth = () => {
-  const { user, signIn, signUp, loading, authProcessing } = useAuth();
+  const { user, signIn, signUp, loading, authProcessing, sendPasswordViaWhatsApp } = useAuth();
   const { setSelectedProfile } = useProfile();
   
   const [email, setEmail] = useState('');
@@ -32,6 +32,8 @@ const Auth = () => {
   const [franchiseeCpf, setFranchiseeCpf] = useState('');
   const [unitCodes, setUnitCodes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [studentPhone, setStudentPhone] = useState('');
+  const [isSendingPassword, setIsSendingPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -91,8 +93,21 @@ const Auth = () => {
     // Set profile preference using context
     setSelectedProfile('Aluno');
     console.log('🎯 Auth - Set profile preference to Aluno');
-    await signIn(email.trim().toLowerCase(), password);
+    // Usar telefone ou email para login
+    const loginIdentifier = studentPhone.trim() || email.trim().toLowerCase();
+    await signIn(loginIdentifier, password);
     setIsLoading(false);
+  };
+  
+  const handleSendPassword = async () => {
+    if (!studentPhone.trim()) {
+      toast.error("Por favor, informe o número de telefone");
+      return;
+    }
+    
+    setIsSendingPassword(true);
+    await sendPasswordViaWhatsApp(studentPhone);
+    setIsSendingPassword(false);
   };
 
   const handleProfessorSignIn = async (e: React.FormEvent) => {
@@ -277,14 +292,28 @@ const Auth = () => {
               <TabsContent value="login-student">
                 <form onSubmit={handleStudentSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
+                    <Label htmlFor="studentPhone" className="text-foreground font-medium">Telefone</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="studentPhone"
+                      type="tel"
+                      placeholder="(11) 99999-9999"
+                      value={studentPhone}
+                      onChange={(e) => {
+                        const cleaned = e.target.value.replace(/\D/g, '');
+                        let formatted = cleaned;
+                        if (cleaned.length > 10) {
+                          formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                        } else if (cleaned.length > 6) {
+                          formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                        } else if (cleaned.length > 2) {
+                          formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                        } else if (cleaned.length > 0) {
+                          formatted = cleaned.replace(/^(\d*)/, '($1');
+                        }
+                        setStudentPhone(formatted);
+                      }}
                       required
+                      maxLength={15}
                     />
                   </div>
                   <div className="space-y-2">
@@ -298,13 +327,23 @@ const Auth = () => {
                       required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit" 
+                      className="flex-1" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Entrando..." : "Entrar"}
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={handleSendPassword}
+                      disabled={isSendingPassword || !studentPhone.trim()}
+                    >
+                      {isSendingPassword ? "Enviando..." : "Receber Senha"}
+                    </Button>
+                  </div>
                 </form>
               </TabsContent>
 

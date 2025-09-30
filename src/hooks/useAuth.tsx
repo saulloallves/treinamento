@@ -12,7 +12,7 @@ interface AuthContextType {
   authProcessing: boolean;
   // Last blocking reason (e.g., pending approval). Null when not blocked
   lastAuthBlocked: string | null;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (emailOrPhone: string, password: string) => Promise<{ error: any }>;
   signUp: (
     email: string, 
     password: string, 
@@ -26,6 +26,7 @@ interface AuthContextType {
       cpf?: string;
     }
   ) => Promise<{ error: any }>;
+  sendPasswordViaWhatsApp: (phone: string) => Promise<{ error: any; success?: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -238,21 +239,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (emailOrPhone: string, password: string) => {
     setAuthProcessing(true);
     setLastAuthBlocked(null);
+    
+    let loginEmail = emailOrPhone;
+    
+    // Se não parece ser um email, tratar como telefone
+    if (!emailOrPhone.includes('@')) {
+      // Limpar telefone
+      const cleanPhone = emailOrPhone.replace(/\D/g, '');
+      
+      // Buscar email do usuário pelo telefone
+      try {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('email')
+          .eq('phone', cleanPhone)
+          .eq('active', true)
+          .maybeSingle();
+          
+        if (userError || !userData?.email) {
+          toast.error("Erro no login", {
+            description: "Telefone não encontrado ou usuário inativo.",
+          });
+          setAuthProcessing(false);
+          return { error: { message: "Phone not found" } };
+        }
+        
+        loginEmail = userData.email;
+      } catch (phoneError) {
+        console.error('Error finding user by phone:', phoneError);
+        toast.error("Erro no login", {
+          description: "Não foi possível encontrar o usuário com este telefone.",
+        });
+        setAuthProcessing(false);
+        return { error: phoneError };
+      }
+    }
+    
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
 
     if (error) {
       // Caso especial para o email do Alison - tentar resetar senha automaticamente
-      if (error.message === "Invalid login credentials" && email === 'alison.martins@crescieperdi.com.br') {
+      if (error.message === "Invalid login credentials" && loginEmail === 'alison.martins@crescieperdi.com.br') {
         try {
           console.log('Tentando resetar senha do Alison automaticamente...');
           const { data: resetResult, error: resetError } = await supabase.functions.invoke('reset-franchisee-password', {
-            body: { email }
+            body: { email: loginEmail }
           });
 
           if (!resetError && resetResult?.success) {
@@ -263,7 +300,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             // Tentar logar novamente com a senha padrão
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-              email,
+              email: loginEmail,
               password: 'Trocar01',
             });
 
@@ -290,7 +327,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const { data: adminData } = await supabase
             .from('admin_users')
             .select('status')
-            .eq('email', email)
+            .eq('email', loginEmail)
             .single();
           
           if (adminData?.status === 'pending') {
@@ -475,6 +512,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
+  const sendPasswordViaWhatsApp = async (phone: string) => {
+    try {
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      const { data, error } = await supabase.functions.invoke('send-password-whatsapp', {
+        body: { phone: cleanPhone }
+      });
+      
+      if (error) {
+        toast.error("Erro ao enviar senha", {
+          description: error.message || "Não foi possível enviar a senha via WhatsApp.",
+        });
+        return { error, success: false };
+      }
+      
+      if (data?.success) {
+        toast.success("Senha enviada!", {
+          description: "Sua senha foi enviada para o WhatsApp cadastrado.",
+        });
+        return { error: null, success: true };
+      } else {
+        toast.error("Erro ao enviar senha", {
+          description: data?.error || "Não foi possível enviar a senha via WhatsApp.",
+        });
+        return { error: data?.error, success: false };
+      }
+    } catch (err) {
+      console.error('Error sending password via WhatsApp:', err);
+      toast.error("Erro ao enviar senha", {
+        description: "Ocorreu um erro inesperado.",
+      });
+      return { error: err, success: false };
+    }
+  };
+
   const signOut = async () => {
     try {
       // Clear profile preference on logout
@@ -507,6 +579,7 @@ const value = {
   signIn,
   signUp,
   signOut,
+  sendPasswordViaWhatsApp,
 };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
