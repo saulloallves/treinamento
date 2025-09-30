@@ -99,13 +99,13 @@ export const useApproveCollaborator = () => {
         // Get unit details
         const { data: unit } = await supabase
           .from('unidades')
-          .select('codigo_grupo, grupo, grupo_colaborador')
-          .eq('codigo_grupo', parseInt(approval.unit_code))
+          .select('id, grupo, id_grupo_colab')
+          .eq('id', approval.unit_code)
           .single();
 
         if (!unit) return { approvalId, approve };
 
-        let grupoColaborador = unit.grupo_colaborador;
+        let grupoColaborador = unit.id_grupo_colab;
 
         // Verificar se já existe um grupo de colaboradores para esta unidade
         if (!grupoColaborador || grupoColaborador === '') {
