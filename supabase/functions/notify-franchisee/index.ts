@@ -103,10 +103,13 @@ serve(async (req) => {
         `Atenciosamente,\n` +
         `Equipe Cresci e Perdi – Sistema de Treinamentos`
 
+      const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN')
+      
       const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/send-text`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Client-Token': zapiClientToken || ''
         },
         body: JSON.stringify({
           phone: franchiseeData.phone.replace(/[^\d]/g, ''),

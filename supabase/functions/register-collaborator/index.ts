@@ -113,6 +113,8 @@ serve(async (req) => {
       body: {
         collaboratorId: userId,
         collaboratorName: collaboratorData.name,
+        collaboratorEmail: collaboratorData.email,
+        collaboratorPosition: collaboratorData.position,
         unitCode: collaboratorData.unitCode
       }
     });
