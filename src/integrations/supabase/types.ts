@@ -1649,6 +1649,7 @@ export type Database = {
           func_sab: string | null
           func_seg_sex: string | null
           grupo: string | null
+          grupo_colaborador: string | null
           has_parking: string | null
           has_partner_parking: string | null
           id: string | null
@@ -1694,6 +1695,7 @@ export type Database = {
           func_sab?: string | null
           func_seg_sex?: string | null
           grupo?: string | null
+          grupo_colaborador?: string | null
           has_parking?: string | null
           has_partner_parking?: string | null
           id?: string | null
@@ -1739,6 +1741,7 @@ export type Database = {
           func_sab?: string | null
           func_seg_sex?: string | null
           grupo?: string | null
+          grupo_colaborador?: string | null
           has_parking?: string | null
           has_partner_parking?: string | null
           id?: string | null
