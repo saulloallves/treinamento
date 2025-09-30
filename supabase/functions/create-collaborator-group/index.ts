@@ -43,17 +43,24 @@ serve(async (req) => {
       .not('phone', 'is', null)
       .single()
 
-    if (!franchisee?.phone) {
-      throw new Error('Franchisee phone not found. Cannot create group without initial participant.')
+    // Número padrão que sempre será adicionado aos grupos
+    const defaultPhone = '5511940477721'
+    
+    // Lista de participantes: sempre inclui o número padrão
+    const participants = [defaultPhone]
+    
+    // Adiciona o franqueado se tiver telefone
+    if (franchisee?.phone) {
+      const cleanPhone = franchisee.phone.replace(/\D/g, '')
+      const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
+      if (fullPhone !== defaultPhone) {
+        participants.push(fullPhone)
+      }
     }
-
-    // Limpar e formatar telefone
-    const cleanPhone = franchisee.phone.replace(/\D/g, '')
-    const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
 
     const groupName = `COLAB ${grupo}`
     
-    console.log('Creating WhatsApp group:', groupName, 'with participant:', fullPhone)
+    console.log('Creating WhatsApp group:', groupName, 'with participants:', participants)
 
     const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/create-group`, {
       method: 'POST',
@@ -63,7 +70,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         groupName: groupName,
-        phone: [fullPhone]
+        phone: participants
       }),
     })
 
