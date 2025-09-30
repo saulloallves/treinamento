@@ -297,6 +297,8 @@ export const useCreateCollaborator = () => {
         body: {
           collaboratorId: userId,
           collaboratorName: collaboratorData.name,
+          collaboratorEmail: collaboratorData.email,
+          collaboratorPosition: collaboratorData.position,
           unitCode: collaboratorData.unitCode
         }
       });

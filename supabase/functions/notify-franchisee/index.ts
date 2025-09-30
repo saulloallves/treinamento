@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { collaboratorId, collaboratorName, unitCode } = await req.json()
+    const { collaboratorId, collaboratorName, collaboratorEmail, collaboratorPosition, unitCode } = await req.json()
     
-    console.log('Received notification request:', { collaboratorId, collaboratorName, unitCode })
+    console.log('Received notification request:', { collaboratorId, collaboratorName, collaboratorEmail, collaboratorPosition, unitCode })
 
     // Get environment variables
     const zapiToken = Deno.env.get('ZAPI_TOKEN')
@@ -85,16 +85,23 @@ serve(async (req) => {
 
     // Send WhatsApp notification if franchisee has phone
     if (franchiseeData.phone) {
-      const approveUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/approve-collaborator?token=${approval.approval_token}&approve=true`
-      const rejectUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/approve-collaborator?token=${approval.approval_token}&approve=false`
+      // Format date as DD/MM/YYYY
+      const cadastroDate = new Date()
+      const formattedDate = cadastroDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
 
-      const message = `🔔 *Nova solicitação de cadastro*\n\n` +
-        `*Colaborador:* ${collaboratorName}\n` +
-        `*Unidade:* ${unitCode}\n\n` +
-        `Para aprovar ou rejeitar:\n\n` +
-        `✅ Aprovar: ${approveUrl}\n` +
-        `❌ Rejeitar: ${rejectUrl}\n\n` +
-        `_Esta mensagem foi enviada automaticamente pelo sistema de treinamentos._`
+      const message = `Olá *${franchiseeData.name}*,\n\n` +
+        `Um novo colaborador foi cadastrado no sistema e está aguardando sua aprovação:\n\n` +
+        `👤 *Nome:* ${collaboratorName}\n` +
+        `💼 *Cargo:* ${collaboratorPosition || 'Não informado'}\n` +
+        `📧 *E-mail:* ${collaboratorEmail}\n` +
+        `📅 *Data de cadastro:* ${formattedDate}\n\n` +
+        `Por favor, acesse o painel para revisar as informações e aprovar o cadastro.\n\n` +
+        `Atenciosamente,\n` +
+        `Equipe Cresci e Perdi – Sistema de Treinamentos`
 
       const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/send-text`, {
         method: 'POST',
