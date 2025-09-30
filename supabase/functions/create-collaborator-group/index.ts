@@ -21,8 +21,9 @@ serve(async (req) => {
 
     const zapiToken = Deno.env.get('ZAPI_TOKEN')
     const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
+    const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN')
     
-    if (!zapiToken || !zapiInstanceId) {
+    if (!zapiToken || !zapiInstanceId || !zapiClientToken) {
       throw new Error('ZAPI credentials not configured')
     }
 
@@ -40,6 +41,7 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Client-Token': zapiClientToken
       },
       body: JSON.stringify({
         groupName: groupName
