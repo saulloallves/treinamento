@@ -1,20 +1,84 @@
 import { useMemo, useState } from "react";
-import { useEnrollments } from "@/hooks/useEnrollments";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { EnrollmentTurmaCard } from "./EnrollmentTurmaCard";
 import { TurmaEnrollmentsDialog } from "./TurmaEnrollmentsDialog";
 import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const EnrollmentsByCourse = () => {
-  const { data: enrollments = [], isLoading } = useEnrollments();
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ativas");
 
+  // Fetch all turmas and their enrollments
+  const { data: turmasData, isLoading } = useQuery({
+    queryKey: ["turmas-with-enrollments"],
+    queryFn: async () => {
+      // First fetch all turmas
+      const { data: turmas, error: turmasError } = await supabase
+        .from("turmas")
+        .select(`
+          id,
+          name,
+          code,
+          status,
+          course_id,
+          responsavel_name,
+          courses(id, name)
+        `)
+        .order("created_at", { ascending: false });
+        
+      if (turmasError) throw turmasError;
+
+      // Then fetch all enrollments
+      const { data: enrollments, error: enrollmentsError } = await supabase
+        .from("enrollments")
+        .select(`
+          *,
+          courses(name, tipo, lessons_count),
+          turmas(id, name, code, status, responsavel_name)
+        `)
+        .order("created_at", { ascending: false });
+        
+      if (enrollmentsError) throw enrollmentsError;
+
+      // Map enrollments by turma
+      const enrollmentsByTurma = new Map<string, any[]>();
+      (enrollments ?? []).forEach((enrollment) => {
+        const turmaId = enrollment.turma_id;
+        if (turmaId) {
+          if (!enrollmentsByTurma.has(turmaId)) {
+            enrollmentsByTurma.set(turmaId, []);
+          }
+          enrollmentsByTurma.get(turmaId)!.push(enrollment);
+        }
+      });
+
+      // Combine turmas with their enrollments
+      return (turmas ?? []).map((turma) => {
+        const course = turma.courses;
+        const turmaEnrollments = enrollmentsByTurma.get(turma.id) || [];
+        
+        return {
+          turmaId: turma.id,
+          courseId: course?.id,
+          courseName: course?.name ?? "—",
+          turmaName: turma.name || turma.code || "Turma não definida",
+          turmaStatus: turma.status,
+          professorName: turma.responsavel_name || "Professor não definido",
+          enrollments: turmaEnrollments
+        };
+      });
+    }
+  });
+
   const grouped = useMemo(() => {
-    // First filter enrollments by turma status
-    const filteredEnrollments = enrollments.filter(enrollment => {
-      const turmaStatus = enrollment.turmas?.status;
+    if (!turmasData) return [];
+
+    // Filter turmas by status
+    const filteredTurmas = turmasData.filter(turmaData => {
+      const turmaStatus = turmaData.turmaStatus;
       if (statusFilter === "ativas") {
         // Default active view: show 'em_andamento' and 'agendada' only
         return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
@@ -27,36 +91,15 @@ const EnrollmentsByCourse = () => {
       }
     });
 
-    const map = new Map<string, { 
-      name: string; 
-      turmaName: string;
-      professorName: string;
-      courseName: string;
-      items: typeof enrollments 
-    }>();
-    
-    for (const e of filteredEnrollments) {
-      const key = `${e.course_id}-${e.turma_id}` || "sem-turma";
-      const courseName = (e.courses?.name || "Sem curso").trim();
-      const turmaName = e.turmas?.name || e.turmas?.code || "Turma não definida";
-      const professorName = e.turmas?.responsavel_name || "Professor não definido";
-      const name = `${courseName} - ${turmaName}`;
-      
-      if (!map.has(key)) {
-        map.set(key, { 
-          name, 
-          turmaName,
-          professorName,
-          courseName,
-          items: [] as any 
-        });
-      }
-      map.get(key)!.items.push(e);
-    }
-    return Array.from(map.entries())
-      .map(([id, g]) => ({ id, ...g }))
-      .sort((a, b) => a.courseName.localeCompare(b.courseName));
-  }, [enrollments, statusFilter]);
+    return filteredTurmas.map((turmaData) => ({
+      id: `${turmaData.courseId}-${turmaData.turmaId}`,
+      name: `${turmaData.courseName} - ${turmaData.turmaName}`,
+      turmaName: turmaData.turmaName,
+      professorName: turmaData.professorName,
+      courseName: turmaData.courseName,
+      items: turmaData.enrollments
+    })).sort((a, b) => a.courseName.localeCompare(b.courseName));
+  }, [turmasData, statusFilter]);
 
   const handleCardClick = (group: any) => {
     setSelectedGroup(group);
@@ -71,10 +114,10 @@ const EnrollmentsByCourse = () => {
     );
   }
 
-  if (!enrollments.length) {
+  if (grouped.length === 0) {
     return (
       <Card className="p-6">
-        <p className="text-muted-foreground">Nenhuma inscrição encontrada.</p>
+        <p className="text-muted-foreground">Nenhuma turma ativa encontrada.</p>
       </Card>
     );
   }

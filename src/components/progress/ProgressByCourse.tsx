@@ -18,10 +18,27 @@ const ProgressByCourse = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ativas");
 
-  const { data: progressData, isLoading } = useQuery({
-    queryKey: ["progress", "by-course"],
+  const { data: turmasData, isLoading } = useQuery({
+    queryKey: ["turmas-with-progress"],
     queryFn: async () => {
-      const { data: enrollments, error } = await supabase
+      // First fetch all turmas
+      const { data: turmas, error: turmasError } = await supabase
+        .from("turmas")
+        .select(`
+          id,
+          name,
+          code,
+          status,
+          course_id,
+          responsavel_name,
+          courses(id, name, tipo, lessons_count)
+        `)
+        .order("created_at", { ascending: false });
+        
+      if (turmasError) throw turmasError;
+
+      // Then fetch all enrollments with progress
+      const { data: enrollments, error: enrollmentsError } = await supabase
         .from("enrollments")
         .select(`
           id,
@@ -37,7 +54,7 @@ const ProgressByCourse = () => {
         `)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (enrollmentsError) throw enrollmentsError;
       
       // Calculate real progress based on course type
       const enrichedEnrollments = await Promise.all(
@@ -83,17 +100,42 @@ const ProgressByCourse = () => {
           };
         })
       );
-      
-      return enrichedEnrollments;
+
+      // Map enrollments by turma
+      const enrollmentsByTurma = new Map<string, any[]>();
+      enrichedEnrollments.forEach((enrollment) => {
+        const turmaId = enrollment.turma_id;
+        if (turmaId) {
+          if (!enrollmentsByTurma.has(turmaId)) {
+            enrollmentsByTurma.set(turmaId, []);
+          }
+          enrollmentsByTurma.get(turmaId)!.push(enrollment);
+        }
+      });
+
+      // Combine turmas with their progress data
+      return (turmas ?? []).map((turma) => {
+        const course = turma.courses;
+        const turmaEnrollments = enrollmentsByTurma.get(turma.id) || [];
+        
+        return {
+          turmaId: turma.id,
+          courseId: course?.id,
+          courseName: course?.name ?? "—",
+          turmaName: turma.name || turma.code || "Turma não definida",
+          turmaStatus: turma.status,
+          enrollments: turmaEnrollments
+        };
+      });
     },
   });
 
   const groupedProgress = useMemo(() => {
-    if (!progressData) return [];
+    if (!turmasData) return [];
 
-    // Filter by turma status
-    const filteredProgressData = progressData.filter(progress => {
-      const turmaStatus = progress.turmaStatus;
+    // Filter turmas by status
+    const filteredTurmas = turmasData.filter(turmaData => {
+      const turmaStatus = turmaData.turmaStatus;
       if (statusFilter === "ativas") {
         // Default active view: show 'em_andamento' and 'agendada' only
         return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
@@ -106,28 +148,14 @@ const ProgressByCourse = () => {
       }
     });
 
-    const groups = new Map<string, ProgressGroup>();
-
-    filteredProgressData.forEach((progress) => {
-      const key = `${progress.course_id}-${progress.turma_id}`;
-      
-      if (!groups.has(key)) {
-        groups.set(key, {
-          id: key,
-          name: key,
-          turmaName: progress.turmaName,
-          courseName: progress.courseName,
-          items: []
-        });
-      }
-      
-      groups.get(key)!.items.push(progress);
-    });
-
-    return Array.from(groups.values()).sort((a, b) => 
-      a.courseName.localeCompare(b.courseName)
-    );
-  }, [progressData, statusFilter]);
+    return filteredTurmas.map((turmaData) => ({
+      id: `${turmaData.courseId}-${turmaData.turmaId}`,
+      name: `${turmaData.courseId}-${turmaData.turmaId}`,
+      turmaName: turmaData.turmaName,
+      courseName: turmaData.courseName,
+      items: turmaData.enrollments
+    })).sort((a, b) => a.courseName.localeCompare(b.courseName));
+  }, [turmasData, statusFilter]);
 
   const handleCardClick = (group: ProgressGroup) => {
     setSelectedGroup(group);
