@@ -33,16 +33,6 @@ const TurmaStatusFilters = ({ statusFilter, onStatusChange, className = "" }: Tu
       >
         📁 Turmas Arquivadas
       </Button>
-      {statusFilter !== 'ativas' && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onStatusChange('ativas')}
-          className="text-xs h-7"
-        >
-          Limpar filtro
-        </Button>
-      )}
     </div>
   );
 };
