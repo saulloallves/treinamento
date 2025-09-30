@@ -142,9 +142,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', authUser.id)
         .maybeSingle();
       if (existErr) throw existErr;
-      if (existing?.id) return; // already exists
-
+      
       const meta = authUser.user_metadata || {} as any;
+      
+      // Se já existe, atualizar dados (caso seja um signup repetido com novos dados)
+      if (existing?.id) {
+        // Converter unit_code string para array unit_codes
+        let unitCodesArray: string[] | null = null;
+        const unitCode: string | undefined = meta.unit_code;
+        
+        if (unitCode) {
+          if (meta.role === 'Franqueado') {
+            unitCodesArray = unitCode.split(',').map(code => code.trim()).filter(code => code.length > 0);
+          } else {
+            unitCodesArray = [unitCode.trim()];
+          }
+        }
+        
+        // Atualizar dados se houver novos metadados
+        if (meta.phone || meta.cpf || unitCodesArray) {
+          const updateData: any = { updated_at: new Date().toISOString() };
+          
+          if (meta.phone) updateData.phone = meta.phone;
+          if (meta.cpf) updateData.cpf = meta.cpf;
+          if (unitCodesArray) {
+            updateData.unit_codes = unitCodesArray;
+            updateData.unit_code = unitCodesArray[0];
+          }
+          if (meta.full_name) updateData.name = meta.full_name;
+          if (meta.role) updateData.role = meta.role;
+          
+          await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', authUser.id);
+        }
+        return; // Profile already exists and updated if needed
+      }
+
+
       const unitCode: string | undefined = meta.unit_code;
       
       // Converter unit_code string para array unit_codes
