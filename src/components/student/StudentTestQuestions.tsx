@@ -86,7 +86,8 @@ const StudentTestQuestions = () => {
     };
 
     initializeTest();
-  }, [test?.id, getCurrentSubmission, startTest, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [test?.id]);
 
   const handleResponseChange = useCallback(async (questionId: string, optionId: string) => {
     // Atualizar UI imediatamente
