@@ -28,6 +28,9 @@ const Auth = () => {
   const [position, setPosition] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [cpf, setCpf] = useState('');
+  const [franchiseeWhatsapp, setFranchiseeWhatsapp] = useState('');
+  const [franchiseeCpf, setFranchiseeCpf] = useState('');
+  const [unitCodes, setUnitCodes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -142,13 +145,55 @@ const Auth = () => {
           throw new Error(data?.error || 'Erro desconhecido');
         }
       } else {
+        // Franqueado signup - validate additional fields
+        if (!franchiseeWhatsapp.trim()) {
+          toast.error('Por favor, informe o WhatsApp');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!franchiseeCpf.trim()) {
+          toast.error('Por favor, informe o CPF');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!unitCodes.trim()) {
+          toast.error('Por favor, informe ao menos um código de unidade');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Validate CPF format (11 digits)
+        const cleanFranchiseeCpf = franchiseeCpf.replace(/\D/g, '');
+        if (cleanFranchiseeCpf.length !== 11) {
+          toast.error('Por favor, informe um CPF válido');
+          setIsLoading(false);
+          return;
+        }
+
+        // Validate WhatsApp format (10 or 11 digits)
+        const cleanFranchiseeWhatsapp = franchiseeWhatsapp.replace(/\D/g, '');
+        if (cleanFranchiseeWhatsapp.length < 10 || cleanFranchiseeWhatsapp.length > 11) {
+          toast.error('Por favor, informe um WhatsApp válido');
+          setIsLoading(false);
+          return;
+        }
+        
         // Para franqueados, use o fluxo padrão
         await signUp(email, password, fullName, { 
           userType: 'Aluno', 
-          unitCode, 
+          unitCode: unitCodes,
           role: userRole,
+          phone: cleanFranchiseeWhatsapp,
+          cpf: cleanFranchiseeCpf,
           position: undefined
         });
+        
+        // Clear franchisee-specific fields
+        setFranchiseeWhatsapp('');
+        setFranchiseeCpf('');
+        setUnitCodes('');
       }
     } catch (error: any) {
       console.error('Error during signup:', error);
@@ -278,17 +323,90 @@ const Auth = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
-                    <Input
-                      id="unitCode"
-                      type="text"
-                      placeholder="Ex.: ABC123"
-                      value={unitCode}
-                      onChange={(e) => setUnitCode(e.target.value)}
-                      required
-                    />
-                  </div>
+                  {userRole === 'Colaborador' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
+                      <Input
+                        id="unitCode"
+                        type="text"
+                        placeholder="Ex.: ABC123"
+                        value={unitCode}
+                        onChange={(e) => setUnitCode(e.target.value)}
+                        required
+                      />
+                    </div>
+                  )}
+                  
+                  {userRole === 'Franqueado' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="unitCodes" className="text-foreground font-medium">Código da Unidade *</Label>
+                        <Input
+                          id="unitCodes"
+                          type="text"
+                          placeholder="Ex.: ABC123, DEF456, GHI789"
+                          value={unitCodes}
+                          onChange={(e) => setUnitCodes(e.target.value)}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Se tiver mais de uma unidade, separe os códigos por vírgula
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="franchiseeWhatsapp" className="text-foreground font-medium">WhatsApp *</Label>
+                        <Input
+                          id="franchiseeWhatsapp"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={franchiseeWhatsapp}
+                          onChange={(e) => {
+                            const cleaned = e.target.value.replace(/\D/g, '');
+                            let formatted = cleaned;
+                            if (cleaned.length > 10) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                            } else if (cleaned.length > 6) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                            } else if (cleaned.length > 2) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                            } else if (cleaned.length > 0) {
+                              formatted = cleaned.replace(/^(\d*)/, '($1');
+                            }
+                            setFranchiseeWhatsapp(formatted);
+                          }}
+                          required
+                          maxLength={15}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="franchiseeCpf" className="text-foreground font-medium">CPF *</Label>
+                        <Input
+                          id="franchiseeCpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={franchiseeCpf}
+                          onChange={(e) => {
+                            const cleaned = e.target.value.replace(/\D/g, '');
+                            let formatted = cleaned;
+                            if (cleaned.length > 9) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+                            } else if (cleaned.length > 6) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                            } else if (cleaned.length > 3) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
+                            } else {
+                              formatted = cleaned;
+                            }
+                            setFranchiseeCpf(formatted);
+                          }}
+                          required
+                          maxLength={14}
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {userRole === 'Colaborador' && (
                     <div className="space-y-2">

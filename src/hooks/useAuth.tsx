@@ -413,7 +413,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string; role?: 'Franqueado' | 'Colaborador'; position?: string }) => {
+  const signUp = async (email: string, password: string, fullName: string, options?: { userType?: 'Aluno' | 'Admin'; unitCode?: string; role?: 'Franqueado' | 'Colaborador'; position?: string; phone?: string; cpf?: string }) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -427,6 +427,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           role: options?.role,
           position: options?.position,
           unit_code: options?.unitCode,
+          phone: options?.phone,
+          cpf: options?.cpf,
         }
       },
     });
