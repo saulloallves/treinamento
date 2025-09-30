@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.add-collaborator-to-group]
 verify_jwt = false
+
+[functions.remove-collaborator-from-group]
+verify_jwt = false

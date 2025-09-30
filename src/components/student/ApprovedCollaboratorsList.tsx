@@ -116,6 +116,31 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
 
   const removeCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
+      // Buscar dados do colaborador antes de remover
+      const { data: collaborator } = await supabase
+        .from('users')
+        .select('phone, name, unit_code')
+        .eq('id', collaboratorId)
+        .single();
+
+      // Buscar o grupo de colaboradores da unidade
+      if (collaborator && collaborator.phone && unitInfo?.grupo_colaborador) {
+        try {
+          console.log('Removendo colaborador do grupo WhatsApp...');
+          await supabase.functions.invoke('remove-collaborator-from-group', {
+            body: {
+              groupId: unitInfo.grupo_colaborador,
+              phone: collaborator.phone,
+              name: collaborator.name
+            }
+          });
+          console.log('Colaborador removido do grupo WhatsApp com sucesso!');
+        } catch (error) {
+          console.warn('Erro ao remover do grupo WhatsApp (não bloqueante):', error);
+        }
+      }
+
+      // Remover do banco de dados
       const { error } = await supabase
         .from('users')
         .delete()
