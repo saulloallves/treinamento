@@ -196,7 +196,7 @@ const Auth = () => {
         }
         
         // Para franqueados, use o fluxo padrão
-        await signUp(email, password, fullName, { 
+        const result = await signUp(email, password, fullName, { 
           userType: 'Aluno', 
           unitCode: unitCodes,
           role: userRole,
@@ -205,15 +205,29 @@ const Auth = () => {
           position: undefined
         });
         
-        // Clear franchisee-specific fields
-        setFranchiseeWhatsapp('');
-        setFranchiseeCpf('');
-        setUnitCodes('');
+        // Se não houver erro, limpar campos
+        if (!result.error) {
+          setFranchiseeWhatsapp('');
+          setFranchiseeCpf('');
+          setUnitCodes('');
+          setFullName('');
+          setEmail('');
+          setPassword('');
+        }
       }
     } catch (error: any) {
       console.error('Error during signup:', error);
-      toast.error("Erro no cadastro", {
-        description: error.message || "Ocorreu um erro inesperado. Tente novamente.",
+      
+      // Capturar erro de código de unidade inválido
+      let errorMessage = error.message || "Ocorreu um erro inesperado. Tente novamente.";
+      if (errorMessage.includes('Código(s) de unidade inválido(s)') || 
+          errorMessage.includes('violates check constraint') ||
+          errorMessage.includes('unit_codes')) {
+        errorMessage = "Código de unidade inválido. Por favor, verifique os códigos informados e tente novamente.";
+      }
+      
+      toast.error("Cadastro não aprovado", {
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);

@@ -146,12 +146,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const meta = authUser.user_metadata || {} as any;
       const unitCode: string | undefined = meta.unit_code;
-      let unitId: string | null = null;
+      
+      // Converter unit_code string para array unit_codes
+      let unitCodesArray: string[] | null = null;
       if (unitCode) {
+        // Se for franqueado, pode ter múltiplos códigos separados por vírgula
+        if (meta.role === 'Franqueado') {
+          unitCodesArray = unitCode.split(',').map(code => code.trim()).filter(code => code.length > 0);
+        } else {
+          // Para colaborador, é só um código
+          unitCodesArray = [unitCode.trim()];
+        }
+      }
+      
+      let unitId: string | null = null;
+      if (unitCode && meta.role !== 'Franqueado') {
         const { data: unit, error: unitErr } = await supabase
           .from('units')
           .select('id')
-          .eq('code', unitCode)
+          .eq('code', unitCode.trim())
           .maybeSingle();
         if (!unitErr && unit?.id) unitId = unit.id as string;
       }
@@ -164,7 +177,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: (meta.role as string) || null,
         position: (meta.position as string) || null,
         unit_id: unitId,
-        unit_code: unitCode,
+        unit_code: unitCodesArray && unitCodesArray.length > 0 ? unitCodesArray[0] : null,
+        unit_codes: unitCodesArray,
+        phone: (meta.phone as string) || null,
+        cpf: (meta.cpf as string) || null,
         approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado',
         visible_password: null, // ⚠️ Será preenchida quando a senha for definida
         active: true,
