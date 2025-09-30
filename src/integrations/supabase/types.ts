@@ -2007,6 +2007,10 @@ export type Database = {
         Args: { p_turma_id: string; p_user_id: string }
         Returns: undefined
       }
+      get_email_by_phone: {
+        Args: { p_phone: string }
+        Returns: string
+      }
       get_franchisee_position: {
         Args: { p_unit_code: string }
         Returns: string
