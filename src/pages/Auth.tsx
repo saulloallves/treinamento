@@ -26,6 +26,8 @@ const Auth = () => {
   const [unitCode, setUnitCode] = useState('');
   const [userRole, setUserRole] = useState<'Franqueado' | 'Colaborador'>('Colaborador');
   const [position, setPosition] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [cpf, setCpf] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -113,7 +115,9 @@ const Auth = () => {
             email: email.trim().toLowerCase(),
             password,
             unitCode,
-            position
+            position,
+            whatsapp,
+            cpf
           }
         });
 
@@ -132,6 +136,8 @@ const Auth = () => {
           setPassword('');
           setUnitCode('');
           setPosition('');
+          setWhatsapp('');
+          setCpf('');
         } else {
           throw new Error(data?.error || 'Erro desconhecido');
         }
@@ -302,6 +308,66 @@ const Auth = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+                  
+                  {userRole === 'Colaborador' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
+                        <Input
+                          id="whatsapp"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={whatsapp}
+                          onChange={(e) => {
+                            // Remove tudo que não é número
+                            const cleaned = e.target.value.replace(/\D/g, '');
+                            // Aplica máscara (XX) XXXXX-XXXX
+                            let formatted = cleaned;
+                            if (cleaned.length > 10) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+                            } else if (cleaned.length > 6) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                            } else if (cleaned.length > 2) {
+                              formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                            } else if (cleaned.length > 0) {
+                              formatted = cleaned.replace(/^(\d*)/, '($1');
+                            }
+                            setWhatsapp(formatted);
+                          }}
+                          required
+                          maxLength={15}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
+                        <Input
+                          id="cpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={cpf}
+                          onChange={(e) => {
+                            // Remove tudo que não é número
+                            const cleaned = e.target.value.replace(/\D/g, '');
+                            // Aplica máscara XXX.XXX.XXX-XX
+                            let formatted = cleaned;
+                            if (cleaned.length > 9) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+                            } else if (cleaned.length > 6) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                            } else if (cleaned.length > 3) {
+                              formatted = cleaned.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
+                            } else {
+                              formatted = cleaned;
+                            }
+                            setCpf(formatted);
+                          }}
+                          required
+                          maxLength={14}
+                        />
+                      </div>
+                    </>
                   )}
                   
                   <div className="space-y-2">

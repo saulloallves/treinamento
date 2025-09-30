@@ -12,6 +12,8 @@ interface CollaboratorData {
   password: string;
   unitCode: string;
   position: string;
+  whatsapp?: string;
+  cpf?: string;
 }
 
 serve(async (req) => {
@@ -77,6 +79,9 @@ serve(async (req) => {
     }
 
     // 3. Upsert user record in public.users with 'pendente' status
+    // Clean phone number - remove all non-digit characters
+    const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
+    
     const { error: userError } = await supabaseAdmin
       .from('users')
       .upsert({
@@ -87,8 +92,10 @@ serve(async (req) => {
         role: 'Colaborador',
         unit_code: collaboratorData.unitCode,
         position: collaboratorData.position,
+        phone: cleanPhone || null,
+        cpf: collaboratorData.cpf || null,
         approval_status: 'pendente',
-        visible_password: collaboratorData.password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
+        visible_password: collaboratorData.password,
         active: true,
       }, {
         onConflict: 'id'
