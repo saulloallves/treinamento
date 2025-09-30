@@ -33,9 +33,27 @@ serve(async (req) => {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Buscar telefone do franqueado para adicionar como participante inicial
+    const { data: franchisee } = await supabase
+      .from('users')
+      .select('phone')
+      .eq('unit_code', unit_code)
+      .eq('role', 'Franqueado')
+      .eq('active', true)
+      .not('phone', 'is', null)
+      .single()
+
+    if (!franchisee?.phone) {
+      throw new Error('Franchisee phone not found. Cannot create group without initial participant.')
+    }
+
+    // Limpar e formatar telefone
+    const cleanPhone = franchisee.phone.replace(/\D/g, '')
+    const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
+
     const groupName = `COLAB ${grupo}`
     
-    console.log('Creating WhatsApp group:', groupName)
+    console.log('Creating WhatsApp group:', groupName, 'with participant:', fullPhone)
 
     const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/create-group`, {
       method: 'POST',
@@ -44,7 +62,8 @@ serve(async (req) => {
         'Client-Token': zapiClientToken
       },
       body: JSON.stringify({
-        groupName: groupName
+        groupName: groupName,
+        phone: [fullPhone]
       }),
     })
 
