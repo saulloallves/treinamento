@@ -299,15 +299,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!emailOrPhone.includes('@')) {
       // Limpar telefone
       const cleanPhone = emailOrPhone.replace(/\D/g, '');
+      console.log('🔍 Login - Telefone digitado:', emailOrPhone);
+      console.log('🔍 Login - Telefone limpo:', cleanPhone);
       
       // Buscar email do usuário pelo telefone
       try {
         const { data: userData, error: userError } = await supabase
           .from('users')
-          .select('email')
+          .select('email, phone')
           .eq('phone', cleanPhone)
           .eq('active', true)
           .maybeSingle();
+        
+        console.log('🔍 Login - Resultado da busca:', { userData, userError });
           
         if (userError || !userData?.email) {
           toast.error("Erro no login", {
@@ -317,9 +321,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return { error: { message: "Phone not found" } };
         }
         
+        console.log('✅ Login - Email encontrado:', userData.email);
         loginEmail = userData.email;
       } catch (phoneError) {
-        console.error('Error finding user by phone:', phoneError);
+        console.error('❌ Error finding user by phone:', phoneError);
         toast.error("Erro no login", {
           description: "Não foi possível encontrar o usuário com este telefone.",
         });
