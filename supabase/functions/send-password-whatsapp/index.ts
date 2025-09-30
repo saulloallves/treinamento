@@ -82,7 +82,7 @@ serve(async (req) => {
 
 Aqui estão os seus dados de acesso:
 
-🔑 *Senha:* Clique no botão abaixo para copiar
+🔑 *Senha:* ${userData.visible_password}
 📱 *Login:* Utilize o *seu número* de telefone cadastrado.
 
 Agora é só acessar a plataforma, fazer login e aproveitar todo o conteúdo que preparamos para você.`;
