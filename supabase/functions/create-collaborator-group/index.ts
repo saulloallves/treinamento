@@ -101,6 +101,56 @@ serve(async (req) => {
       throw new Error('Failed to get group ID from ZAPI response')
     }
 
+    // Promover número padrão a administrador do grupo
+    try {
+      const promoteResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/promote-participant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Token': zapiClientToken
+        },
+        body: JSON.stringify({
+          groupId: groupId,
+          phone: defaultPhone
+        }),
+      })
+      
+      if (!promoteResponse.ok) {
+        console.error('Failed to promote admin, but group was created:', await promoteResponse.text())
+      } else {
+        console.log('Successfully promoted default phone to admin')
+      }
+    } catch (promoteError) {
+      console.error('Error promoting to admin:', promoteError)
+      // Não lançar erro aqui - grupo já foi criado com sucesso
+    }
+
+    // Definir foto do grupo
+    try {
+      const imageUrl = 'https://tctkacgbhqvkqovctrzf.supabase.co/storage/v1/object/public/course-covers/grupo-colaborador-avatar.png'
+      
+      const photoResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/change-group-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Token': zapiClientToken
+        },
+        body: JSON.stringify({
+          groupId: groupId,
+          image: imageUrl
+        }),
+      })
+      
+      if (!photoResponse.ok) {
+        console.error('Failed to set group photo, but group was created:', await photoResponse.text())
+      } else {
+        console.log('Successfully set group photo')
+      }
+    } catch (photoError) {
+      console.error('Error setting group photo:', photoError)
+      // Não lançar erro aqui - grupo já foi criado com sucesso
+    }
+
     const { error: updateError } = await supabase
       .from('unidades')
       .update({ grupo_colaborador: groupId })
