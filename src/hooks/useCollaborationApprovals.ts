@@ -107,8 +107,9 @@ export const useApproveCollaborator = () => {
 
         let grupoColaborador = unit.grupo_colaborador;
 
-        // Create collaborator group if it doesn't exist
+        // Verificar se já existe um grupo de colaboradores para esta unidade
         if (!grupoColaborador || grupoColaborador === '') {
+          console.log(`Grupo de colaboradores não existe para unidade ${approval.unit_code}. Criando novo grupo...`);
           try {
             const { data: groupData } = await supabase.functions.invoke('create-collaborator-group', {
               body: {
@@ -119,13 +120,16 @@ export const useApproveCollaborator = () => {
 
             if (groupData?.groupId) {
               grupoColaborador = groupData.groupId;
+              console.log(`Grupo criado com sucesso! ID: ${grupoColaborador}`);
             }
           } catch (error) {
             console.error('Error creating collaborator group:', error);
           }
+        } else {
+          console.log(`Grupo de colaboradores já existe para unidade ${approval.unit_code}. Usando grupo existente: ${grupoColaborador}`);
         }
 
-        // Add all approved collaborators to the group
+        // Adicionar todos os colaboradores aprovados ao grupo (incluindo o novo aprovado)
         if (grupoColaborador && grupoColaborador !== '') {
           const { data: collaborators } = await supabase
             .from('users')
@@ -137,8 +141,10 @@ export const useApproveCollaborator = () => {
             .not('phone', 'is', null);
 
           if (collaborators && collaborators.length > 0) {
+            console.log(`Adicionando ${collaborators.length} colaborador(es) ao grupo ${grupoColaborador}`);
             for (const collaborator of collaborators) {
               try {
+                console.log(`Adicionando colaborador ${collaborator.name} (${collaborator.phone}) ao grupo...`);
                 await supabase.functions.invoke('add-collaborator-to-group', {
                   body: {
                     groupId: grupoColaborador,
@@ -146,8 +152,9 @@ export const useApproveCollaborator = () => {
                     name: collaborator.name
                   }
                 });
+                console.log(`✅ Colaborador ${collaborator.name} adicionado com sucesso ao grupo!`);
               } catch (error) {
-                console.error(`Error adding collaborator ${collaborator.name} to group:`, error);
+                console.error(`❌ Erro ao adicionar colaborador ${collaborator.name} ao grupo:`, error);
               }
             }
           }
