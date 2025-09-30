@@ -78,21 +78,30 @@ serve(async (req) => {
     // Formatar telefone para formato internacional (55XXXXXXXXXXX)
     const internationalPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
 
-    const message = `Olá ${userData.name}!\n\nSua senha de acesso ao Sistema de Treinamentos Cresci e Perdi é:\n\n*${userData.visible_password}*\n\nUse seu número de telefone e esta senha para fazer login.\n\nCresci e Perdi - Sistema de Treinamentos`;
+    const message = `*Sistema de Treinamentos Cresci e Perdi!* 🎯
+
+Aqui estão os seus dados de acesso:
+
+🔑 *Senha:* Clique no botão abaixo para copiar
+📱 *Login:* Utilize o *seu número* de telefone cadastrado.
+
+Agora é só acessar a plataforma, fazer login e aproveitar todo o conteúdo que preparamos para você.`;
 
     console.log('Enviando WhatsApp para:', internationalPhone);
 
     const whatsappResponse = await fetch(
-      `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/send-text`,
+      `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/send-button-otp`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(zapiClientToken ? { 'client-token': zapiClientToken } : {})
+          ...(zapiClientToken ? { 'Client-Token': zapiClientToken } : {})
         },
         body: JSON.stringify({
           phone: internationalPhone,
           message: message,
+          code: userData.visible_password,
+          buttonText: "Copiar Senha"
         }),
       }
     );
