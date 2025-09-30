@@ -3,11 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Calendar, Pause, Play, Trash2 } from "lucide-react";
+import { Users, UserCheck, Calendar, Pause, Play, Trash2, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { toast } from "sonner";
+import { useCreateCollaboratorGroup } from "@/hooks/useCollaborationApprovals";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +41,23 @@ interface ApprovedCollaboratorsListProps {
 
 const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: ApprovedCollaboratorsListProps) => {
   const queryClient = useQueryClient();
+  const createGroupMutation = useCreateCollaboratorGroup();
+  
+  // Query para buscar info da unidade
+  const { data: unitInfo } = useQuery({
+    queryKey: ['unit-info', unitCode],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('unidades')
+        .select('codigo_grupo, grupo, grupo_colaborador')
+        .eq('codigo_grupo', parseInt(unitCode))
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!unitCode,
+  });
   
   const { data: collaborators = [], isLoading } = useQuery({
     queryKey: ['approved-collaborators', unitCode],
@@ -114,6 +133,18 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
     }
   });
 
+  const handleCreateGroup = () => {
+    if (unitInfo?.grupo) {
+      createGroupMutation.mutate({
+        unitCode: unitCode,
+        grupo: unitInfo.grupo
+      });
+    }
+  };
+
+  const hasGroup = unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== '';
+  const showCreateGroupButton = !hasGroup && collaborators.length > 0;
+
   if (isLoading) {
     return (
       <Card>
@@ -158,6 +189,33 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
         </div>
       </CardHeader>
       <CardContent>
+        {showCreateGroupButton && (
+          <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
+            <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="ml-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
+                    Grupo de Colaboradores não criado
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Clique no botão ao lado para criar o grupo no WhatsApp e adicionar automaticamente todos os colaboradores aprovados.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleCreateGroup}
+                  disabled={createGroupMutation.isPending}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white shrink-0"
+                >
+                  <MessageCircle className="h-3 w-3 mr-2" />
+                  {createGroupMutation.isPending ? "Criando..." : "Criar Grupo"}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {collaborators.length === 0 ? (
           <p className="text-muted-foreground">
             Nenhum colaborador aprovado encontrado.

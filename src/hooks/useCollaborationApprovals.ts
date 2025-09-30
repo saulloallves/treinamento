@@ -320,3 +320,39 @@ export const useCreateCollaborator = () => {
     },
   });
 };
+
+// Hook para criar grupo de colaboradores manualmente
+export const useCreateCollaboratorGroup = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ unitCode, grupo }: { unitCode: string; grupo: string }) => {
+      const { data, error } = await supabase.functions.invoke('create-collaborator-group', {
+        body: {
+          unit_code: unitCode,
+          grupo: grupo
+        }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['unit-info'] });
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      
+      toast({
+        title: "Grupo criado com sucesso!",
+        description: `Grupo ${data.groupName} criado no WhatsApp.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao criar grupo",
+        description: error.message || "Ocorreu um erro ao criar o grupo no WhatsApp.",
+        variant: "destructive",
+      });
+    },
+  });
+};
