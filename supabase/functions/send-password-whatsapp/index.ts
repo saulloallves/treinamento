@@ -95,7 +95,7 @@ Agora é só acessar a plataforma, fazer login e aproveitar todo o conteúdo que
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(zapiClientToken ? { 'Client-Token': zapiClientToken } : {})
+          'Client-Token': zapiClientToken
         },
         body: JSON.stringify({
           phone: internationalPhone,
