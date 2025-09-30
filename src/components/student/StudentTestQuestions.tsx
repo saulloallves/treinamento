@@ -30,6 +30,8 @@ const StudentTestQuestions = () => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isSavingResponse, setIsSavingResponse] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -52,9 +54,10 @@ const StudentTestQuestions = () => {
     const initializeTest = async () => {
       if (!test?.id) return;
 
+      setIsInitializing(true);
       try {
         // Verificar se já existe submission em andamento
-      const currentSubmission = await getCurrentSubmission(test.id);
+        const currentSubmission = await getCurrentSubmission(test.id);
         
         if (currentSubmission) {
           setSubmissionId(currentSubmission.id);
@@ -77,22 +80,35 @@ const StudentTestQuestions = () => {
         console.error("Error initializing test:", error);
         toast.error("Erro ao inicializar teste");
         navigate(`/aluno/teste/${test.id}`);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
     initializeTest();
-  }, [test?.id]);
+  }, [test?.id, getCurrentSubmission, startTest, navigate]);
 
   const handleResponseChange = useCallback(async (questionId: string, optionId: string) => {
+    // Atualizar UI imediatamente
     setResponses(prev => ({ ...prev, [questionId]: optionId }));
     
-    if (submissionId) {
-      try {
-        await saveResponse({ submissionId, questionId, optionId });
-      } catch (error) {
-        console.error("Error saving response:", error);
-        toast.error("Erro ao salvar resposta");
-      }
+    if (!submissionId) return;
+
+    // Salvar no backend de forma assíncrona sem bloquear UI
+    setIsSavingResponse(true);
+    try {
+      await saveResponse({ submissionId, questionId, optionId });
+    } catch (error) {
+      console.error("Error saving response:", error);
+      // Reverter resposta em caso de erro
+      setResponses(prev => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+      toast.error("Erro ao salvar resposta. Tente novamente.");
+    } finally {
+      setIsSavingResponse(false);
     }
   }, [submissionId, saveResponse]);
 
@@ -124,7 +140,7 @@ const StudentTestQuestions = () => {
 
   const currentQuestion = test?.test_questions?.[currentQuestionIndex];
 
-  if (isLoading || submissionLoading) {
+  if (isLoading || isInitializing) {
     return (
       <BaseLayout title="Carregando...">
         <div className="max-w-4xl mx-auto">
@@ -217,15 +233,20 @@ const StudentTestQuestions = () => {
               <RadioGroup
                 value={responses[currentQuestion.id] || ""}
                 onValueChange={(value) => handleResponseChange(currentQuestion.id, value)}
+                disabled={isSavingResponse}
               >
                 {currentQuestion.test_question_options
                   ?.sort((a, b) => a.option_order - b.option_order)
                   .map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option.id} id={option.id} />
+                    <div key={option.id} className="flex items-center space-x-2 py-1">
+                      <RadioGroupItem 
+                        value={option.id} 
+                        id={option.id}
+                        disabled={isSavingResponse}
+                      />
                       <Label 
                         htmlFor={option.id} 
-                        className="flex-1 cursor-pointer p-2 rounded hover:bg-muted/50"
+                        className="flex-1 cursor-pointer p-3 rounded hover:bg-muted/50 transition-colors"
                       >
                         {option.option_text}
                       </Label>

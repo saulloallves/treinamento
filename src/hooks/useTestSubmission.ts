@@ -245,11 +245,14 @@ export const useTestSubmission = () => {
       .eq("user_id", currentUser.id)
       .eq("status", "in_progress")
       .order("started_at", { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
-    return data;
+    if (error) {
+      console.error("Error fetching current submission:", error);
+      return null;
+    }
+    
+    return data?.[0] || null;
   };
 
   return {
