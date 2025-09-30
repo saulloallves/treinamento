@@ -74,13 +74,23 @@ serve(async (req) => {
       }),
     })
 
+    const responseText = await zapiResponse.text()
+    console.log('ZAPI response status:', zapiResponse.status)
+    console.log('ZAPI response text:', responseText)
+
     if (!zapiResponse.ok) {
-      const errorText = await zapiResponse.text()
-      console.error('ZAPI error response:', errorText)
-      throw new Error(`Failed to create WhatsApp group: ${errorText}`)
+      console.error('ZAPI error response:', responseText)
+      throw new Error(`Failed to create WhatsApp group: ${responseText}`)
     }
 
-    const zapiResult = await zapiResponse.json()
+    let zapiResult
+    try {
+      zapiResult = JSON.parse(responseText)
+    } catch (e) {
+      console.error('Failed to parse ZAPI response:', responseText)
+      throw new Error(`Invalid JSON response from ZAPI: ${responseText}`)
+    }
+    
     console.log('ZAPI group creation response:', zapiResult)
 
     const groupId = zapiResult.phone || zapiResult.groupId || zapiResult.id
