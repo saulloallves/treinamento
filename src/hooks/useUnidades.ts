@@ -32,7 +32,7 @@ export const useUnidades = () => {
           .order("grupo", { ascending: true }),
         supabase
           .from("users")
-          .select("unit_code")
+          .select("unit_code, unit_codes")
           .eq("role", "Franqueado")
       ]);
 
@@ -44,10 +44,20 @@ export const useUnidades = () => {
         console.warn("Erro ao buscar franqueados:", franqueadosResult.error.message);
       }
 
-      // Criar Set para busca otimizada de unit_codes
-      const franqueadosUnitCodes = new Set(
-        (franqueadosResult.data || []).map(f => f.unit_code)
-      );
+      // Criar Set para busca otimizada de unit_codes (incluindo arrays)
+      const franqueadosUnitCodes = new Set<string>();
+      (franqueadosResult.data || []).forEach(f => {
+        // Adicionar unit_code individual
+        if (f.unit_code) {
+          franqueadosUnitCodes.add(f.unit_code);
+        }
+        // Adicionar todos os códigos do array unit_codes
+        if (f.unit_codes && Array.isArray(f.unit_codes)) {
+          f.unit_codes.forEach(code => {
+            if (code) franqueadosUnitCodes.add(code);
+          });
+        }
+      });
 
       // Mapear unidades com informação se tem conta criada
       const unidadesComStatus = (unidadesResult.data || []).map(unidade => ({

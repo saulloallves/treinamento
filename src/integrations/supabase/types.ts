@@ -1823,6 +1823,7 @@ export type Database = {
           position: string | null
           role: Database["public"]["Enums"]["user_role_type"] | null
           unit_code: string | null
+          unit_codes: string[] | null
           unit_id: string | null
           updated_at: string
           user_type: string
@@ -1844,6 +1845,7 @@ export type Database = {
           position?: string | null
           role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
+          unit_codes?: string[] | null
           unit_id?: string | null
           updated_at?: string
           user_type: string
@@ -1865,6 +1867,7 @@ export type Database = {
           position?: string | null
           role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
+          unit_codes?: string[] | null
           unit_id?: string | null
           updated_at?: string
           user_type?: string
@@ -2004,6 +2007,10 @@ export type Database = {
       get_franchisee_position: {
         Args: { p_unit_code: string }
         Returns: string
+      }
+      get_franchisee_unit_codes: {
+        Args: { _franchisee_id: string }
+        Returns: string[]
       }
       get_pending_admin_approvals: {
         Args: Record<PropertyKey, never>

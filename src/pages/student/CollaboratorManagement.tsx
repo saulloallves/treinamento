@@ -6,13 +6,13 @@ import ApprovedCollaboratorsList from "@/components/student/ApprovedCollaborator
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useUnitCollaborationApprovals } from "@/hooks/useCollaborationApprovals";
+import { useFranchiseeApprovals } from "@/hooks/useFranchiseeApprovals";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 const CollaboratorManagement = () => {
   const { data: currentUser, isLoading } = useCurrentUser();
-  const { refetch: refetchApprovals, isRefetching } = useUnitCollaborationApprovals(currentUser?.unit_code || "");
+  const { refetch: refetchApprovals, isRefetching } = useFranchiseeApprovals();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -21,12 +21,13 @@ const CollaboratorManagement = () => {
 
   const handleRefresh = async () => {
     try {
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-approvals'] });
+      await queryClient.invalidateQueries({ queryKey: ['franchisee-approval-count'] });
       if (currentUser?.unit_code) {
-        await queryClient.invalidateQueries({ queryKey: ['unit-collaboration-approvals', currentUser.unit_code] });
         await queryClient.invalidateQueries({ queryKey: ['approved-collaborators', currentUser.unit_code] });
-        await refetchApprovals();
-        toast.success("Dados atualizados com sucesso!");
       }
+      await refetchApprovals();
+      toast.success("Dados atualizados com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar dados");
     }
@@ -43,18 +44,23 @@ const CollaboratorManagement = () => {
   }
 
   // Verificar se o usuário tem permissão para acessar esta página
-  if (!currentUser || currentUser.role !== 'Franqueado' || !currentUser.unit_code) {
+  if (!currentUser || currentUser.role !== 'Franqueado') {
     return (
       <BaseLayout title="Gestão de Colaboradores">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Este módulo está disponível apenas para franqueados com código de unidade válido.
+            Este módulo está disponível apenas para franqueados.
           </AlertDescription>
         </Alert>
       </BaseLayout>
     );
   }
+
+  // Montar mensagem com os códigos de unidade
+  const unitCodesDisplay = currentUser.unit_codes && currentUser.unit_codes.length > 0 
+    ? currentUser.unit_codes.join(', ')
+    : currentUser.unit_code || 'N/A';
 
   return (
     <BaseLayout title="Gestão de Colaboradores">
@@ -70,8 +76,8 @@ const CollaboratorManagement = () => {
                 Gestão de Colaboradores
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
-                Gerencie colaboradores da unidade{" "}
-                <span className="font-medium text-primary break-all">{currentUser.unit_code}</span>
+                Gerencie colaboradores das unidades:{" "}
+                <span className="font-medium text-primary break-all">{unitCodesDisplay}</span>
               </p>
             </div>
           </div>
@@ -86,7 +92,6 @@ const CollaboratorManagement = () => {
           />
           
           <FranchiseeCollaboratorApprovals 
-            unitCode={currentUser.unit_code}
             onRefresh={handleRefresh}
             isRefreshing={isRefetching}
           />
@@ -109,11 +114,7 @@ const CollaboratorManagement = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs sm:text-sm text-foreground leading-relaxed">
-                      <strong>Cadastro automático:</strong> Quando um colaborador se cadastra usando o código{" "}
-                      <span className="inline-block mx-1 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded font-mono break-all">
-                        {currentUser.unit_code}
-                      </span>{" "}
-                      uma solicitação é criada automaticamente.
+                      <strong>Cadastro automático:</strong> Quando um colaborador se cadastra usando um dos seus códigos de unidade, uma solicitação é criada automaticamente para você aprovar.
                     </p>
                   </div>
                 </div>

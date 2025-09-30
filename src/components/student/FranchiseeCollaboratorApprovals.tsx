@@ -1,21 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useUnitCollaborationApprovals, useApproveCollaborator } from "@/hooks/useCollaborationApprovals";
-import { useAuth } from "@/hooks/useAuth";
+import { useFranchiseeApprovals } from "@/hooks/useFranchiseeApprovals";
+import { useApproveCollaborator } from "@/hooks/useCollaborationApprovals";
 import { Users, Clock, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { RefreshButton } from "@/components/ui/refresh-button";
 
 interface FranchiseeCollaboratorApprovalsProps {
-  unitCode: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
 
-const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: FranchiseeCollaboratorApprovalsProps) => {
-  const { data: approvals = [], isLoading } = useUnitCollaborationApprovals(unitCode);
+const FranchiseeCollaboratorApprovals = ({ onRefresh, isRefreshing }: FranchiseeCollaboratorApprovalsProps) => {
+  const { data: approvals = [], isLoading } = useFranchiseeApprovals();
   const approveCollaborator = useApproveCollaborator();
 
   const handleApprove = async (approvalId: string, approve: boolean) => {
@@ -84,7 +83,7 @@ const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: 
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Solicitações pendentes
+            Solicitações pendentes de todas as unidades
             <Badge variant="secondary">{approvals.length}</Badge>
           </CardTitle>
           {onRefresh && (
@@ -110,6 +109,9 @@ const FranchiseeCollaboratorApprovals = ({ unitCode, onRefresh, isRefreshing }: 
                 <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800 shrink-0">
                   <Clock className="h-3 w-3 mr-1" />
                   {approval.collaborator_role}
+                </Badge>
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  Unidade: {approval.unit_code}
                 </Badge>
               </div>
               

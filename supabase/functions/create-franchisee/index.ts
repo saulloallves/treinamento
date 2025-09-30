@@ -10,7 +10,7 @@ interface FranchiseeData {
   name: string;
   phone?: string;
   password: string;
-  unitCode: string;
+  unitCode: string | string[]; // Pode ser string única ou array
   unitName: string;
 }
 
@@ -26,6 +26,10 @@ Deno.serve(async (req) => {
     )
 
     const { email, name, phone, password, unitCode, unitName }: FranchiseeData = await req.json()
+
+    // Converter unitCode para array se não for
+    const unitCodes = Array.isArray(unitCode) ? unitCode : [unitCode];
+    const firstUnitCode = unitCodes[0]; // Para compatibilidade com unit_code antigo
 
     // Verificar se já existe usuário com este email
     const { data: existingUser } = await supabaseAdmin
@@ -71,7 +75,8 @@ Deno.serve(async (req) => {
       user_metadata: {
         name,
         phone,
-        unit_code: unitCode,
+        unit_code: firstUnitCode,
+        unit_codes: unitCodes,
         role: 'Franqueado',
         user_type: 'Aluno'
       }
@@ -91,7 +96,8 @@ Deno.serve(async (req) => {
         email,
         name,
         phone,
-        unit_code: unitCode,
+        unit_code: firstUnitCode, // Mantém compatibilidade
+        unit_codes: unitCodes, // Array de códigos
         role: 'Franqueado',
         user_type: 'Aluno',
         approval_status: 'aprovado',
