@@ -69,8 +69,9 @@ serve(async (req) => {
         'Client-Token': zapiClientToken
       },
       body: JSON.stringify({
+        autoInvite: true,
         groupName: groupName,
-        phone: participants
+        phones: participants
       }),
     })
 
