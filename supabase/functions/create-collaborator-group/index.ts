@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,7 +15,10 @@ serve(async (req) => {
     
     console.log('Creating collaborator group:', { unit_code, grupo })
 
-    // Get environment variables
+    if (!grupo) {
+      throw new Error('Grupo is required')
+    }
+
     const zapiToken = Deno.env.get('ZAPI_TOKEN')
     const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
     
@@ -24,86 +26,59 @@ serve(async (req) => {
       throw new Error('ZAPI credentials not configured')
     }
 
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Verificar se já existe grupo_colaborador
-    const { data: unidade, error: unidadeError } = await supabase
-      .from('unidades')
-      .select('grupo_colaborador, grupo')
-      .eq('codigo_grupo', unit_code)
-      .single()
-
-    if (unidadeError) {
-      console.error('Error fetching unidade:', unidadeError)
-      throw unidadeError
-    }
-
-    // Se já existe grupo, não criar novamente
-    if (unidade.grupo_colaborador && unidade.grupo_colaborador !== '') {
-      console.log('Collaborator group already exists:', unidade.grupo_colaborador)
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'Grupo de colaboradores já existe',
-          groupId: unidade.grupo_colaborador 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
-    }
-
-    // Nome do grupo: COLAB + valor da coluna grupo
-    const groupName = `COLAB${grupo || unit_code}`
+    const groupName = `COLAB ${grupo}`
     
     console.log('Creating WhatsApp group:', groupName)
 
-    // Criar grupo no WhatsApp via ZAPI
-    const zapiResponse = await fetch(
-      `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/create-group`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupName: groupName,
-          participants: [] // Grupo começa vazio, participantes serão adicionados depois
-        }),
-      }
-    )
+    const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/create-group`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        groupName: groupName
+      }),
+    })
 
-    const zapiResult = await zapiResponse.json()
-    console.log('ZAPI create group response:', zapiResult)
-
-    if (!zapiResult.id) {
-      throw new Error('Failed to create WhatsApp group: ' + JSON.stringify(zapiResult))
+    if (!zapiResponse.ok) {
+      const errorText = await zapiResponse.text()
+      console.error('ZAPI error response:', errorText)
+      throw new Error(`Failed to create WhatsApp group: ${errorText}`)
     }
 
-    // Atualizar a coluna grupo_colaborador na tabela unidades
+    const zapiResult = await zapiResponse.json()
+    console.log('ZAPI group creation response:', zapiResult)
+
+    const groupId = zapiResult.phone || zapiResult.groupId || zapiResult.id
+    
+    if (!groupId) {
+      console.error('No group ID in ZAPI response:', zapiResult)
+      throw new Error('Failed to get group ID from ZAPI response')
+    }
+
     const { error: updateError } = await supabase
       .from('unidades')
-      .update({ grupo_colaborador: zapiResult.id })
+      .update({ grupo_colaborador: groupId })
       .eq('codigo_grupo', unit_code)
 
     if (updateError) {
-      console.error('Error updating unidade:', updateError)
-      throw updateError
+      console.error('Error updating unidades:', updateError)
+      throw new Error(`Failed to update unidades: ${updateError.message}`)
     }
 
-    console.log('Collaborator group created and saved:', zapiResult.id)
+    console.log(`Group created successfully. ID: ${groupId}, Name: ${groupName}`)
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Grupo de colaboradores criado com sucesso',
-        groupId: zapiResult.id,
+        groupId: groupId,
         groupName: groupName
       }),
       { 

@@ -64,3 +64,6 @@ verify_jwt = false
 
 [functions.whatsapp-scheduler]
 verify_jwt = false
+
+[functions.create-collaborator-group]
+verify_jwt = false
