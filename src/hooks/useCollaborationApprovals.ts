@@ -77,12 +77,83 @@ export const useApproveCollaborator = () => {
 
   return useMutation({
     mutationFn: async ({ approvalId, approve }: { approvalId: string, approve: boolean }) => {
-      const { error } = await supabase.rpc('approve_collaborator', {
+      // First, approve/reject in database
+      const { error: approveError } = await supabase.rpc('approve_collaborator', {
         _approval_id: approvalId,
         _approve: approve
       });
 
-      if (error) throw error;
+      if (approveError) throw approveError;
+
+      // If approved, handle WhatsApp group management
+      if (approve) {
+        // Get approval details
+        const { data: approval } = await supabase
+          .from('collaboration_approvals')
+          .select('unit_code, collaborator_id')
+          .eq('id', approvalId)
+          .single();
+
+        if (!approval) return { approvalId, approve };
+
+        // Get unit details
+        const { data: unit } = await supabase
+          .from('unidades')
+          .select('codigo_grupo, grupo, grupo_colaborador')
+          .eq('codigo_grupo', parseInt(approval.unit_code))
+          .single();
+
+        if (!unit) return { approvalId, approve };
+
+        let grupoColaborador = unit.grupo_colaborador;
+
+        // Create collaborator group if it doesn't exist
+        if (!grupoColaborador || grupoColaborador === '') {
+          try {
+            const { data: groupData } = await supabase.functions.invoke('create-collaborator-group', {
+              body: {
+                unit_code: approval.unit_code,
+                grupo: unit.grupo
+              }
+            });
+
+            if (groupData?.groupId) {
+              grupoColaborador = groupData.groupId;
+            }
+          } catch (error) {
+            console.error('Error creating collaborator group:', error);
+          }
+        }
+
+        // Add all approved collaborators to the group
+        if (grupoColaborador && grupoColaborador !== '') {
+          const { data: collaborators } = await supabase
+            .from('users')
+            .select('phone, name')
+            .eq('unit_code', approval.unit_code)
+            .eq('role', 'Colaborador')
+            .eq('approval_status', 'aprovado')
+            .eq('active', true)
+            .not('phone', 'is', null);
+
+          if (collaborators && collaborators.length > 0) {
+            for (const collaborator of collaborators) {
+              try {
+                await supabase.functions.invoke('add-collaborator-to-group', {
+                  body: {
+                    groupId: grupoColaborador,
+                    phone: collaborator.phone,
+                    name: collaborator.name
+                  }
+                });
+              } catch (error) {
+                console.error(`Error adding collaborator ${collaborator.name} to group:`, error);
+              }
+            }
+          }
+        }
+      }
+
       return { approvalId, approve };
     },
     onSuccess: (result, variables) => {
