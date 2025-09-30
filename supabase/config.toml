@@ -73,3 +73,6 @@ verify_jwt = false
 
 [functions.update-franchisee]
 verify_jwt = false
+
+[functions.add-collaborator-to-group]
+verify_jwt = false
