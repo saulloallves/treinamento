@@ -77,7 +77,7 @@ const CertificatesList = () => {
           student_name,
           course_id,
           turma_id,
-          turmas(id, name, code, responsavel_name)
+          turmas(id, name, code, responsavel_name, status)
         `)
         .in("id", ids);
       if (error) { console.error('enrollments for certs query error', error); return []; }
@@ -109,6 +109,7 @@ const CertificatesList = () => {
         courseName: course?.name ?? "—",
         courseId: c.course_id ?? enr?.course_id,
         turmaName: turma?.name || turma?.code || "Turma não definida",
+        turmaStatus: turma?.status,
         professorName: turma?.responsavel_name || "Professor não definido",
         generatedAt: c.generated_at,
         status: c.status,
@@ -118,9 +119,11 @@ const CertificatesList = () => {
 
     const q = searchTerm.trim().toLowerCase();
     const filtered = enriched.filter((r) => {
+      // Filtrar apenas turmas em andamento ou agendadas
+      const isActiveTurma = r.turmaStatus === 'em_andamento' || r.turmaStatus === 'agendada';
       const matchesSearch = !q || r.studentName.toLowerCase().includes(q);
       const matchesCourse = selectedCourse === "todos" || r.courseName === selectedCourse;
-      return matchesSearch && matchesCourse;
+      return isActiveTurma && matchesSearch && matchesCourse;
     });
 
     // Group by turma and course
