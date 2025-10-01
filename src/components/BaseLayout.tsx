@@ -80,12 +80,9 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         <header className="bg-background sticky top-0 z-20 px-3 md:px-8 py-4 md:py-6">
           <div className={`w-full flex justify-between items-center ${isMobile && shouldShowSidebar ? 'pl-12' : ''}`}>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl md:text-2xl font-semibold text-foreground mb-1 truncate">
+              <h1 className="text-xl md:text-2xl font-semibold text-foreground truncate">
                 {title}
               </h1>
-              <p className="text-xs md:text-sm text-muted-foreground truncate">
-                Bem-vindo, {user?.user_metadata?.full_name || user?.email}!
-              </p>
             </div>
             <Button 
               onClick={signOut}
