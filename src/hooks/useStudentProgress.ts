@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useIsProfessor } from '@/hooks/useIsProfessor';
 
 export interface StudentProgress {
   id: string;
@@ -19,6 +21,8 @@ export const useStudentProgress = (courseId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: isAdmin = false } = useIsAdmin(user?.id);
+  const { data: isProfessor = false } = useIsProfessor(user?.id);
 
   // Buscar ou criar matrícula para o usuário neste curso
   const ensureEnrollment = async () => {
@@ -134,6 +138,12 @@ export const useStudentProgress = (courseId: string) => {
       watchTimeMinutes?: number;
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
+      
+      // Admins e professores não têm progresso de aula
+      if (isAdmin || isProfessor) {
+        console.log('⏭️ Admin/Professor - progresso não será salvo');
+        return null;
+      }
 
       // Garantir que existe matrícula para o usuário
       const enrollmentId = await ensureEnrollment();
@@ -218,6 +228,12 @@ export const useStudentProgress = (courseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['student-progress', courseId, user?.id] });
     },
     onError: (error: any) => {
+      // Não mostrar erro para admins e professores
+      if (isAdmin || isProfessor) {
+        console.log('⏭️ Admin/Professor - erro de progresso ignorado');
+        return;
+      }
+      
       console.error('Error updating student progress:', error);
       toast({
         title: "Erro ao salvar progresso",
