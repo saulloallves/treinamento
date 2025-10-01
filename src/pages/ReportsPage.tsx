@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, Filter, Download, FileText } from "lucide-react";
+import { BarChart3, Filter } from "lucide-react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,31 +31,16 @@ const ReportsPage = () => {
     }
   }) || [];
 
-  const handleExport = (format: 'pdf' | 'excel') => {
-    // TODO: Implementar exportação
-    console.log(`Exportando relatório em ${format}`);
-  };
-
   return (
-    <BaseLayout title="">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Relatórios de Avaliações</h1>
-            <p className="text-muted-foreground">
-              Análise completa do desempenho em quizzes e testes avaliativos
-            </p>
+    <BaseLayout title="Relatórios de Avaliações">
+      <div className="space-y-8">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-6 h-6 text-primary" />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleExport('excel')} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Excel
-            </Button>
-            <Button variant="outline" onClick={() => handleExport('pdf')} className="gap-2">
-              <Download className="h-4 w-4" />
-              PDF
-            </Button>
+          <div>
+            <p className="text-muted-foreground">Análise completa do desempenho em quizzes e testes avaliativos</p>
           </div>
         </div>
 
