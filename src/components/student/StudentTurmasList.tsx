@@ -1,11 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Users, Calendar, BookOpen, ChevronRight, ClipboardList } from "lucide-react";
+import { Users, Calendar, ChevronRight } from "lucide-react";
 import { useMyEnrollments } from "@/hooks/useMyEnrollments";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
-import { useState } from "react";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface StudentTurmasListProps {
   showQuizLink?: boolean;
@@ -13,7 +11,6 @@ interface StudentTurmasListProps {
 
 const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => {
   const { data: enrollments, isLoading, error } = useMyEnrollments();
-  const [statusFilter, setStatusFilter] = useState("ativas");
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -63,21 +60,12 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
     );
   }
 
-  // Filtrar apenas inscrições que têm turma_id e aplicar filtro de status
+  // Filtrar apenas inscrições que têm turma_id - mostrar apenas turmas ativas para alunos
   const turmaEnrollments = enrollments?.filter(enrollment => {
     if (!enrollment.turma_id) return false;
-    
     const turmaStatus = enrollment.turma?.status;
-    if (statusFilter === "ativas") {
-      // Default active view: show 'em_andamento' and 'agendada' only
-      return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
-    } else if (statusFilter === "arquivadas") {
-      // Archive view: show 'encerrada' and 'cancelada'
-      return turmaStatus === 'encerrada' || turmaStatus === 'cancelada';
-    } else {
-      // Specific status filter
-      return turmaStatus === statusFilter;
-    }
+    // Alunos veem apenas turmas em andamento e agendadas
+    return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
   }) || [];
 
   if (turmaEnrollments.length === 0) {
@@ -95,14 +83,7 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
   }
 
   return (
-    <div className="space-y-6">
-      {/* Quick Status Filters */}
-      <TurmaStatusFilters 
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-      />
-
-      <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
       {turmaEnrollments.map((enrollment) => (
         <Link 
           key={enrollment.id} 
@@ -147,7 +128,6 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
           </Card>
         </Link>
       ))}
-      </div>
     </div>
   );
 };
