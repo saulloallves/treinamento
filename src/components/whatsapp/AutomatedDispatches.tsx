@@ -295,7 +295,7 @@ const AutomatedDispatches = () => {
 
             {/* Lessons List */}
             <div className="space-y-4">
-            {lessons.map((lesson) => {
+              {lessons.map((lesson) => {
                 const dispatch2h = getDispatchForLesson(lesson.id, '2_hours_before');
                 const dispatch30m = getDispatchForLesson(lesson.id, '30_minutes_before');
                 const isSelected = selectedLessons.includes(lesson.id);

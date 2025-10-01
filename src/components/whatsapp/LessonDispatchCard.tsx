@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,6 +33,19 @@ export const LessonDispatchCard = ({
 }: LessonDispatchCardProps) => {
   const [customMessage2h, setCustomMessage2h] = useState(dispatch2h?.message_template || '');
   const [customMessage30m, setCustomMessage30m] = useState(dispatch30m?.message_template || '');
+
+  // Update local state when dispatches change
+  useEffect(() => {
+    if (dispatch2h?.message_template) {
+      setCustomMessage2h(dispatch2h.message_template);
+    }
+  }, [dispatch2h?.message_template]);
+
+  useEffect(() => {
+    if (dispatch30m?.message_template) {
+      setCustomMessage30m(dispatch30m.message_template);
+    }
+  }, [dispatch30m?.message_template]);
 
   const handleMessageChange = (type: '2_hours_before' | '30_minutes_before', message: string) => {
     if (type === '2_hours_before') {
