@@ -6,7 +6,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -19,13 +18,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { MapPin, Phone, Mail, Calendar, Users, Edit, Trash2, UserPlus, UserCog } from "lucide-react";
+import { MapPin, Phone, Mail, Calendar, Users, Edit, Trash2, UserCog } from "lucide-react";
 import { Unidade, useUnidadeCollaborators, useDeleteUnidade } from "@/hooks/useUnidades";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import CreateFranchiseeDialog from "./CreateFranchiseeDialog";
 import EditUserAccessDialog from "./EditUserAccessDialog";
 import UnitCollaborationApprovals from "./UnitCollaborationApprovals";
 import { useUnitApprovalCount } from "@/hooks/useCollaborationApprovals";
@@ -43,7 +41,6 @@ const UnidadeDetailsDialog = ({
   onOpenChange,
   onEdit,
 }: UnidadeDetailsDialogProps) => {
-  const [createFranchiseeOpen, setCreateFranchiseeOpen] = useState(false);
   const [editFranchiseeOpen, setEditFranchiseeOpen] = useState(false);
   const { data: colaboradores = [] } = useUnidadeCollaborators(
     unidade?.codigo_grupo || 0
@@ -121,28 +118,15 @@ const UnidadeDetailsDialog = ({
                 </Button>
               )}
 
-              {unidade.hasUsers ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditFranchiseeOpen(true)}
-                  className="flex items-center gap-2 text-primary hover:text-primary"
-                >
-                  <UserCog className="h-4 w-4" />
-                  Editar Acessos
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCreateFranchiseeOpen(true)}
-                  className="flex items-center gap-2 text-primary hover:text-primary"
-                  disabled={!unidade.email}
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Criar Franqueado
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditFranchiseeOpen(true)}
+                className="flex items-center gap-2 text-primary hover:text-primary"
+              >
+                <UserCog className="h-4 w-4" />
+                Editar Acessos
+              </Button>
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -369,12 +353,6 @@ const UnidadeDetailsDialog = ({
           </Card>
         </div>
       </DialogContent>
-
-      <CreateFranchiseeDialog
-        unidade={unidade}
-        open={createFranchiseeOpen}
-        onOpenChange={setCreateFranchiseeOpen}
-      />
 
       <EditUserAccessDialog
         unidade={unidade}
