@@ -585,6 +585,42 @@ export type Database = {
         }
         Relationships: []
       }
+      kanban_columns: {
+        Row: {
+          color: string
+          created_at: string | null
+          header_color: string
+          id: string
+          is_default: boolean | null
+          order: number
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          header_color: string
+          id: string
+          is_default?: boolean | null
+          order: number
+          status: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          header_color?: string
+          id?: string
+          is_default?: boolean | null
+          order?: number
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lesson_sessions: {
         Row: {
           created_at: string | null
