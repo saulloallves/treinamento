@@ -15,10 +15,8 @@ import {
   FileText
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/contexts/ProfileContext';
 
 interface NavItem {
   label: string;
@@ -32,26 +30,19 @@ interface NavItem {
 const BottomNavigation = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { user } = useAuth();
-  const { data: isAdmin = false, isLoading: isLoadingAdmin } = useIsAdmin(user?.id);
-  const { data: isProfessor = false, isLoading: isLoadingProfessor } = useIsProfessor(user?.id);
+  const { selectedProfile } = useProfile();
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
 
-  // Wait for all data to load before showing menu
-  const isLoading = isLoadingAdmin || isLoadingProfessor || isLoadingUser;
-
   // Debug log
-  console.log('🔍 BottomNavigation - User roles:', {
-    userId: user?.id,
-    isAdmin,
-    isProfessor,
+  console.log('🔍 BottomNavigation - Profile selection:', {
+    selectedProfile,
     userType: currentUser?.user_type,
     role: currentUser?.role,
-    isLoading
+    isLoadingUser
   });
 
   if (!isMobile) return null;
-  if (isLoading) return null;
+  if (isLoadingUser) return null;
 
   const adminItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', icon: Home },
@@ -96,15 +87,16 @@ const BottomNavigation = () => {
     { label: 'Perfil', href: '/aluno/perfil', icon: Users }
   ];
 
-  // Determine which navigation to show based on user roles
+  // Determine which navigation to show based on selected profile
   let navigationItems: NavItem[] = [];
 
-  if (isAdmin) {
+  if (selectedProfile === 'Admin') {
     navigationItems = adminItems;
-  } else if (isProfessor) {
+  } else if (selectedProfile === 'Professor') {
     navigationItems = professorItems;
   } else {
-    // Para alunos, determinar o tipo baseado no user_type e role
+    // Para perfil de Aluno ou quando não há perfil selecionado
+    // Determinar o tipo baseado no user_type e role
     const isFranchisee = currentUser?.role === 'Franqueado';
     const isCollaborator = currentUser?.user_type === 'Colaborador';
     
