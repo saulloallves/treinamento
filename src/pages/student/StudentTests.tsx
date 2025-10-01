@@ -25,20 +25,12 @@ const StudentTests = () => {
           <h2 className="text-2xl font-semibold">Testes Avaliativos</h2>
         </div>
 
-        {/* Info cards - melhorado para mobile */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-4 py-3">
-            <Users className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-sm font-medium">
-              {turmaEnrollments.length} {turmaEnrollments.length === 1 ? 'turma' : 'turmas'}
-            </span>
-          </div>
-          <div className="flex items-start gap-2 bg-muted/50 rounded-lg px-4 py-3 flex-1">
-            <ClipboardList className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-            <span className="text-sm text-muted-foreground">
-              Selecione uma turma para ver os testes disponíveis
-            </span>
-          </div>
+        {/* Info card - contador de turmas */}
+        <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-4 py-3">
+          <Users className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-sm font-medium">
+            {turmaEnrollments.length} {turmaEnrollments.length === 1 ? 'turma' : 'turmas'}
+          </span>
         </div>
       </div>
 
