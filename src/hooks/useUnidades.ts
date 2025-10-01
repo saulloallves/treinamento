@@ -98,7 +98,7 @@ export const useUnidadeCollaborators = (codigo_grupo: number) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("id, name, email, role, approval_status, created_at")
+        .select("id, name, email, phone, role, approval_status, created_at")
         .eq("unit_code", codigo_grupo.toString())
         .order("created_at", { ascending: false });
 

@@ -45,7 +45,7 @@ const EditUserAccessDialog = ({ unidade, open, onOpenChange }: EditUserAccessDia
       setSelectedUserId(userId);
       setEmail(user.email || "");
       setName(user.name || "");
-      setPhone("");
+      setPhone(user.phone || "");
       setPassword("");
     }
   };
