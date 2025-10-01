@@ -8,14 +8,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PaginationCustom } from "@/components/ui/pagination-custom";
 import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWhatsAppDispatches";
-import { useCourses } from "@/hooks/useCourses";
-import { useLessons } from "@/hooks/useLessons";
 import { useEnrollments } from "@/hooks/useEnrollments";
+import { useTurmaLessonSessions } from "@/hooks/useTurmaLessonSessions";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const WhatsAppDispatch = () => {
-  const [selectedType, setSelectedType] = useState<'curso' | 'aula'>('curso');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedTurma, setSelectedTurma] = useState('');
+  const [selectedLesson, setSelectedLesson] = useState('');
   const [message, setMessage] = useState('');
   const [recipientMode, setRecipientMode] = useState<'all' | 'selected'>('all');
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
@@ -28,21 +29,31 @@ const WhatsAppDispatch = () => {
   const [scheduledTime, setScheduledTime] = useState('');
 
   const { data: dispatches = [], isLoading: loadingDispatches } = useWhatsAppDispatches();
-  const { data: courses = [] } = useCourses();
-  const { data: lessons = [] } = useLessons();
   const { data: enrollments = [] } = useEnrollments();
   const createDispatchMutation = useCreateWhatsAppDispatch();
 
-  const relevantEnrollments = useMemo(() => {
-    if (!selectedItem) return [] as typeof enrollments;
-    if (selectedType === 'curso') {
-      return enrollments.filter(e => e.course_id === selectedItem);
-    } else {
-      const lesson = lessons.find(l => l.id === selectedItem);
-      if (!lesson) return [] as typeof enrollments;
-      return enrollments.filter(e => e.course_id === lesson.course_id);
+  // Buscar turmas em andamento ou agendadas
+  const { data: turmas = [] } = useQuery({
+    queryKey: ['turmas-active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('turmas')
+        .select('id, name, code, course_id, courses(name)')
+        .in('status', ['em_andamento', 'agendada'])
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
     }
-  }, [selectedItem, selectedType, enrollments, lessons]);
+  });
+
+  // Buscar lesson sessions da turma selecionada
+  const { data: lessonSessions = [] } = useTurmaLessonSessions(selectedTurma || null);
+
+  const relevantEnrollments = useMemo(() => {
+    if (!selectedTurma) return [] as typeof enrollments;
+    return enrollments.filter(e => e.turma_id === selectedTurma);
+  }, [selectedTurma, enrollments]);
 
   const filteredRecipients = useMemo(() => {
     const q = recipientSearch.trim().toLowerCase();
@@ -58,7 +69,8 @@ const WhatsAppDispatch = () => {
     setSelectedRecipients([]);
     setRecipientMode('all');
     setRecipientSearch('');
-  }, [selectedItem, selectedType]);
+    setSelectedLesson('');
+  }, [selectedTurma]);
 
   // Reset visible list when history changes
   useEffect(() => {
@@ -68,7 +80,7 @@ const WhatsAppDispatch = () => {
   const recipientsCount = recipientMode === 'all' ? relevantEnrollments.length : selectedRecipients.length;
 
   const handleSendDispatch = async () => {
-    if (!selectedItem || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0)) {
+    if (!selectedTurma || !selectedLesson || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0)) {
       return;
     }
 
@@ -77,15 +89,8 @@ const WhatsAppDispatch = () => {
       return;
     }
 
-    let itemName = '';
-
-    if (selectedType === 'curso') {
-      const course = courses.find(c => c.id === selectedItem);
-      itemName = course?.name || '';
-    } else {
-      const lesson = lessons.find(l => l.id === selectedItem);
-      itemName = lesson?.title || '';
-    }
+    const session = lessonSessions.find(s => s.id === selectedLesson);
+    const lessonTitle = session?.lessons.title || '';
 
     // Create scheduled_at datetime if scheduled
     let scheduledAt = undefined;
@@ -95,9 +100,9 @@ const WhatsAppDispatch = () => {
 
     try {
       await createDispatchMutation.mutateAsync({
-        type: selectedType,
-        item_id: selectedItem,
-        item_name: itemName,
+        type: 'aula',
+        item_id: selectedLesson,
+        item_name: lessonTitle,
         message: message.trim(),
         recipient_mode: recipientMode,
         recipient_ids: recipientMode === 'selected' ? selectedRecipients : undefined,
@@ -106,7 +111,8 @@ const WhatsAppDispatch = () => {
       });
 
       // Reset form
-      setSelectedItem('');
+      setSelectedTurma('');
+      setSelectedLesson('');
       setMessage('');
       setSelectedRecipients([]);
       setRecipientMode('all');
@@ -137,9 +143,6 @@ const WhatsAppDispatch = () => {
     return Math.round((delivered / total) * 100);
   };
 
-  const availableItems = selectedType === 'curso' 
-    ? courses.filter(c => c.status === 'Ativo')
-    : lessons.filter(l => l.status === 'Ativo');
 
   return (
     <div className="w-full max-w-full sm:max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8 mx-auto">
@@ -153,42 +156,54 @@ const WhatsAppDispatch = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 px-4 sm:px-6">
-          {/* Tipo e Seleção - Stack em mobile */}
+          {/* Seleção de Turma e Aula */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Tipo de Disparo
+                Selecionar Turma
               </label>
               <select
-                value={selectedType}
-                onChange={(e) => {
-                  setSelectedType(e.target.value as 'curso' | 'aula');
-                  setSelectedItem('');
-                }}
+                value={selectedTurma}
+                onChange={(e) => setSelectedTurma(e.target.value)}
                 className="w-full px-3 py-2.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
-                <option value="curso">Curso</option>
-                <option value="aula">Aula</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Selecionar {selectedType === 'curso' ? 'Curso' : 'Aula'}
-              </label>
-              <select
-                value={selectedItem}
-                onChange={(e) => setSelectedItem(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              >
-                <option value="">Selecione...</option>
-                {availableItems.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {selectedType === 'curso' ? (item as any).name : (item as any).title}
+                <option value="">Selecione uma turma...</option>
+                {turmas.map((turma: any) => (
+                  <option key={turma.id} value={turma.id}>
+                    {turma.courses?.name} - {turma.name || turma.code}
                   </option>
                 ))}
               </select>
             </div>
+
+            {selectedTurma && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Selecionar Aula (Próximas)
+                </label>
+                <select
+                  value={selectedLesson}
+                  onChange={(e) => setSelectedLesson(e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  disabled={lessonSessions.length === 0}
+                >
+                  <option value="">
+                    {lessonSessions.length === 0 ? 'Nenhuma aula futura agendada' : 'Selecione uma aula...'}
+                  </option>
+                  {lessonSessions.map((session: any) => (
+                    <option key={session.id} value={session.id}>
+                      {session.lessons.title} - {new Date(session.scheduled_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Destinatários */}
@@ -208,7 +223,7 @@ const WhatsAppDispatch = () => {
                     className="mt-0.5 w-4 h-4 text-primary"
                   />
                   <span className="text-sm leading-5">
-                    Todos os {selectedType === 'curso' ? 'inscritos do curso' : 'inscritos do curso da aula'}
+                    Todos os inscritos da turma
                   </span>
                 </label>
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -224,7 +239,7 @@ const WhatsAppDispatch = () => {
                 </label>
               </div>
 
-              {recipientMode === 'selected' && selectedItem && (
+              {recipientMode === 'selected' && selectedTurma && (
                 <div className="space-y-3 border border-border rounded-lg p-4 bg-muted/30">
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Input
@@ -356,7 +371,7 @@ const WhatsAppDispatch = () => {
           </div>
 
           {/* Resumo de destinatários */}
-          {selectedItem && (
+          {selectedTurma && (
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
               <div className="flex items-center gap-2 text-sm text-foreground">
                 <Users className="w-4 h-4 text-primary" />
@@ -371,7 +386,8 @@ const WhatsAppDispatch = () => {
           <Button
             onClick={handleSendDispatch}
             disabled={
-              !selectedItem || 
+              !selectedTurma || 
+              !selectedLesson ||
               !message.trim() || 
               (recipientMode === 'selected' && selectedRecipients.length === 0) || 
               (isScheduled && (!scheduledDate || !scheduledTime)) || 
