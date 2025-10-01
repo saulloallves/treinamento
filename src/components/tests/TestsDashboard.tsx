@@ -75,13 +75,13 @@ export const TestsDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tendência</CardTitle>
+            <CardTitle className="text-sm font-medium">Testes Ativos</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">+5.2%</div>
+            <div className="text-2xl font-bold">{stats?.activeTests || 0}</div>
             <p className="text-xs text-muted-foreground">
-              vs. mês anterior
+              de {stats?.totalTests || 0} totais
             </p>
           </CardContent>
         </Card>
