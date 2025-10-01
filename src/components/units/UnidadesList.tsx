@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { CheckCircle, XCircle, Building2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, CheckCircle, XCircle } from "lucide-react";
 import { useUnidades, Unidade } from "@/hooks/useUnidades";
 import UnidadeCard from "./UnidadeCard";
 import UnidadeDetailsDialog from "./UnidadeDetailsDialog";
@@ -7,8 +9,6 @@ import EditUnidadeDialog from "./EditUnidadeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useQueryClient } from "@tanstack/react-query";
-import { PageFilters, EmptyState, MetricsGrid } from "@/components/layout";
-import type { MetricData } from "@/components/layout";
 
 const UnidadesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,51 +62,24 @@ const UnidadesList = () => {
   // Get unique fases for filter
   const uniqueFases = Array.from(new Set(unidades.map(u => u.fase_loja).filter(Boolean)));
 
-  // Metrics data
-  const metrics: MetricData[] = [
-    {
-      title: "Total de Unidades",
-      value: unidades.length,
-      icon: Building2,
-      changeType: "neutral"
-    },
-    {
-      title: "Com Usuários",
-      value: unidades.filter(u => u.hasUsers).length,
-      icon: CheckCircle,
-      changeType: "positive"
-    },
-    {
-      title: "Sem Usuários",
-      value: unidades.filter(u => !u.hasUsers).length,
-      icon: XCircle,
-      changeType: "negative"
-    },
-    {
-      title: "Exibindo",
-      value: filteredUnidades.length,
-      icon: Building2,
-      changeType: "neutral"
-    }
-  ];
-
   if (error) {
     return (
-      <EmptyState
-        icon={XCircle}
-        title="Erro ao carregar unidades"
-        description="Não foi possível carregar as unidades. Tente novamente."
-      />
+      <div className="text-center py-8">
+        <p className="text-destructive">Erro ao carregar unidades</p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Métricas */}
-      <MetricsGrid metrics={metrics} columns={4} />
-
-      {/* Refresh Button */}
-      <div className="flex justify-end">
+      {/* Header com estatísticas */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground">
+            Gerencie todas as unidades da rede
+          </p>
+        </div>
+        
         <RefreshButton
           onClick={handleRefresh}
           isRefreshing={isRefreshing}
@@ -115,35 +88,59 @@ const UnidadesList = () => {
       </div>
 
       {/* Filtros */}
-      <PageFilters
-        searchPlaceholder="Buscar por nome, cidade..."
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        filters={[
-          {
-            placeholder: "Filtrar por fase",
-            value: faseFilter,
-            options: [
-              { label: "Todas as fases", value: "all" },
-              ...uniqueFases.map(fase => ({
-                label: fase || "Desconhecido",
-                value: fase || "unknown"
-              }))
-            ],
-            onChange: setFaseFilter
-          },
-          {
-            placeholder: "Status de usuários",
-            value: usersFilter,
-            options: [
-              { label: "Todas as unidades", value: "all" },
-              { label: "Com usuários", value: "with_users" },
-              { label: "Sem usuários", value: "without_users" }
-            ],
-            onChange: setUsersFilter
-          }
-        ]}
-      />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Buscar por nome, cidade..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={faseFilter} onValueChange={setFaseFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Filtrar por fase" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as fases</SelectItem>
+            {uniqueFases.map((fase) => (
+              <SelectItem key={fase || 'unknown'} value={fase || 'unknown'}>
+                {fase}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={usersFilter} onValueChange={setUsersFilter}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Status de usuários" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as unidades</SelectItem>
+            <SelectItem value="with_users">Com usuários</SelectItem>
+            <SelectItem value="without_users">Sem usuários</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div>
+          Pág 1/58 • {filteredUnidades.length} unidades
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 text-green-600">
+            <CheckCircle className="h-3 w-3" />
+            <span>{unidades.filter(u => u.hasUsers).length} com usuários</span>
+          </div>
+          <div className="flex items-center gap-1 text-red-500">
+            <XCircle className="h-3 w-3" />
+            <span>{unidades.filter(u => !u.hasUsers).length} sem usuários</span>
+          </div>
+        </div>
+      </div>
 
       {/* Grid de unidades */}
       {isLoading ? (
@@ -167,11 +164,9 @@ const UnidadesList = () => {
       )}
 
       {filteredUnidades.length === 0 && !isLoading && (
-        <EmptyState
-          icon={Building2}
-          title="Nenhuma unidade encontrada"
-          description="Tente ajustar os filtros para encontrar unidades."
-        />
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Nenhuma unidade encontrada</p>
+        </div>
       )}
 
       {/* Dialog de detalhes */}
