@@ -52,7 +52,31 @@ const WhatsAppDispatch = () => {
 
   const relevantEnrollments = useMemo(() => {
     if (!selectedTurma) return [] as typeof enrollments;
-    return enrollments.filter(e => e.turma_id === selectedTurma);
+    
+    const turmaEnrollments = enrollments.filter(e => e.turma_id === selectedTurma);
+    
+    // Deduplicate by email/user_id and use the most recent/complete data
+    const uniqueEnrollments = turmaEnrollments.reduce((acc, enrollment) => {
+      const key = enrollment.user_id || enrollment.student_email;
+      const existing = acc.get(key);
+      
+      if (!existing) {
+        acc.set(key, enrollment);
+      } else {
+        // Prefer enrollment with user_id, then most recent updated_at
+        const shouldReplace = 
+          (!existing.user_id && enrollment.user_id) ||
+          (new Date(enrollment.updated_at) > new Date(existing.updated_at));
+        
+        if (shouldReplace) {
+          acc.set(key, enrollment);
+        }
+      }
+      
+      return acc;
+    }, new Map());
+    
+    return Array.from(uniqueEnrollments.values());
   }, [selectedTurma, enrollments]);
 
   const filteredRecipients = useMemo(() => {
