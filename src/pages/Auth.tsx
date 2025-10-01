@@ -18,7 +18,12 @@ import { toast } from 'sonner';
 
 const Auth = () => {
   const { user, signIn, signUp, loading, authProcessing, sendPasswordViaWhatsApp } = useAuth();
-  const { setSelectedProfile } = useProfile();
+  const { setSelectedProfile, clearProfile } = useProfile();
+  
+  // Clear any previous profile selection when Auth page loads
+  useEffect(() => {
+    clearProfile();
+  }, []);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

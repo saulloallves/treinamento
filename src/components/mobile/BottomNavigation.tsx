@@ -38,7 +38,8 @@ const BottomNavigation = () => {
     selectedProfile,
     userType: currentUser?.user_type,
     role: currentUser?.role,
-    isLoadingUser
+    isLoadingUser,
+    localStorage: typeof window !== 'undefined' ? localStorage.getItem('selected_profile') : null
   });
 
   if (!isMobile) return null;
@@ -90,21 +91,36 @@ const BottomNavigation = () => {
   // Determine which navigation to show based on selected profile
   let navigationItems: NavItem[] = [];
 
+  console.log('🔍 BottomNavigation - Determining menu for selectedProfile:', selectedProfile);
+
   if (selectedProfile === 'Admin') {
+    console.log('✅ BottomNavigation - Showing Admin menu');
     navigationItems = adminItems;
   } else if (selectedProfile === 'Professor') {
+    console.log('✅ BottomNavigation - Showing Professor menu');
     navigationItems = professorItems;
   } else {
+    console.log('✅ BottomNavigation - Showing Student menu for profile:', selectedProfile);
     // Para perfil de Aluno ou quando não há perfil selecionado
     // Determinar o tipo baseado no user_type e role
     const isFranchisee = currentUser?.role === 'Franqueado';
     const isCollaborator = currentUser?.user_type === 'Colaborador';
     
+    console.log('🔍 BottomNavigation - Student type check:', {
+      isFranchisee,
+      isCollaborator,
+      userType: currentUser?.user_type,
+      role: currentUser?.role
+    });
+    
     if (isFranchisee) {
+      console.log('✅ BottomNavigation - Showing Franchisee menu');
       navigationItems = franchiseeStudentItems;
     } else if (isCollaborator) {
+      console.log('✅ BottomNavigation - Showing Collaborator menu');
       navigationItems = collaboratorStudentItems;
     } else {
+      console.log('✅ BottomNavigation - Showing Regular student menu');
       navigationItems = regularStudentItems;
     }
   }
