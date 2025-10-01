@@ -31,11 +31,15 @@ interface NavItem {
 const BottomNavigation = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const isAdmin = useIsAdmin();
-  const isProfessor = useIsProfessor();
-  const { data: currentUser } = useCurrentUser();
+  const { data: isAdmin, isLoading: isLoadingAdmin } = useIsAdmin();
+  const { data: isProfessor, isLoading: isLoadingProfessor } = useIsProfessor();
+  const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
+
+  // Wait for all data to load before showing menu
+  const isLoading = isLoadingAdmin || isLoadingProfessor || isLoadingUser;
 
   if (!isMobile) return null;
+  if (isLoading) return null;
 
   const adminItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', icon: Home },
