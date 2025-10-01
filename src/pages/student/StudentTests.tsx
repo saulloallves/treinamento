@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import BaseLayout from "@/components/BaseLayout";
 import StudentTurmasList from "@/components/student/StudentTurmasList";
-import { Badge } from "@/components/ui/badge";
 import { Users, ClipboardList } from "lucide-react";
 import { useMyEnrollments } from "@/hooks/useMyEnrollments";
 
@@ -17,17 +16,29 @@ const StudentTests = () => {
 
   return (
     <BaseLayout title="Área do Aluno">
-      <div className="mb-6 space-y-2">
-        <h2 className="text-2xl font-semibold">Testes Avaliativos</h2>
+      <div className="mb-6 space-y-4">
+        {/* Header com ícone e título */}
         <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="text-sm gap-1">
-            <Users className="h-3 w-3" />
-            {turmaEnrollments.length} {turmaEnrollments.length === 1 ? 'turma' : 'turmas'}
-          </Badge>
-          <Badge variant="outline" className="text-sm gap-1">
-            <ClipboardList className="h-3 w-3" />
-            Selecione uma turma para ver os testes disponíveis
-          </Badge>
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+            <ClipboardList className="w-5 h-5 text-primary" />
+          </div>
+          <h2 className="text-2xl font-semibold">Testes Avaliativos</h2>
+        </div>
+
+        {/* Info cards - melhorado para mobile */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-4 py-3">
+            <Users className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-sm font-medium">
+              {turmaEnrollments.length} {turmaEnrollments.length === 1 ? 'turma' : 'turmas'}
+            </span>
+          </div>
+          <div className="flex items-start gap-2 bg-muted/50 rounded-lg px-4 py-3 flex-1">
+            <ClipboardList className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+            <span className="text-sm text-muted-foreground">
+              Selecione uma turma para ver os testes disponíveis
+            </span>
+          </div>
         </div>
       </div>
 

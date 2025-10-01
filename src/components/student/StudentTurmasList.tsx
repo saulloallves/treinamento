@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Users, Calendar, BookOpen, ChevronRight, ClipboardList } from "lucide-react";
 import { useMyEnrollments } from "@/hooks/useMyEnrollments";
@@ -103,7 +102,7 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
         onStatusChange={setStatusFilter}
       />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
       {turmaEnrollments.map((enrollment) => (
         <Link 
           key={enrollment.id} 
@@ -113,49 +112,49 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
           }
           className="block"
         >
-          <Card className="transition-all hover:shadow-md cursor-pointer group">
+          <Card className="transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer group h-full">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg font-semibold text-foreground">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <CardTitle className="text-base md:text-lg font-semibold text-foreground">
                     {enrollment.turma?.name || enrollment.turma?.code || `Turma ${enrollment.turma_id}`}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">
                     {enrollment.course?.name || 'Curso'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Badge 
                     variant="secondary" 
-                    className={`text-xs ${getStatusColor(enrollment.turma?.status || '')} text-white`}
+                    className={`text-xs ${getStatusColor(enrollment.turma?.status || '')} text-white whitespace-nowrap`}
                   >
                     {getStatusText(enrollment.turma?.status || '')}
                   </Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {/* Data de Conclusão */}
               {enrollment.turma?.completion_deadline && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4 shrink-0" />
                   <span>Prazo: {new Date(enrollment.turma.completion_deadline).toLocaleDateString('pt-BR')}</span>
                 </div>
               )}
 
               {/* Indicador de Testes ou Quizzes */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-primary bg-primary/5 rounded-md px-3 py-2">
                 {showQuizLink ? (
                   <>
-                    <BookOpen className="h-4 w-4" />
-                    <span>Quizzes disponíveis</span>
+                    <BookOpen className="h-4 w-4 shrink-0" />
+                    <span className="font-medium">Quizzes disponíveis</span>
                   </>
                 ) : (
                   <>
-                    <ClipboardList className="h-4 w-4" />
-                    <span>Testes disponíveis</span>
+                    <ClipboardList className="h-4 w-4 shrink-0" />
+                    <span className="font-medium">Testes disponíveis</span>
                   </>
                 )}
               </div>
