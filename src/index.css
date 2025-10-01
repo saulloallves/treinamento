@@ -218,6 +218,29 @@ html, body, #root {
     }
   }
 
+  /* Fade animations */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Smooth scrolling for sidebar */
   .sidebar-scroll {
     scrollbar-width: thin;
@@ -377,7 +400,218 @@ html, body, #root {
     @apply text-primary hover:text-primary/90 transition-colors duration-200;
   }
 
-  /* Design System Moderno - Compact */
+  /* =========================================== */
+  /* DESIGN SYSTEM PADRONIZADO - LAYOUT PAGES */
+  /* =========================================== */
+
+  /* Page Header - Cabeçalho padrão das páginas */
+  .page-header {
+    @apply mb-6 md:mb-8;
+  }
+
+  .page-icon-wrapper {
+    @apply w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0;
+    background: var(--gradient-primary);
+  }
+
+  .page-icon {
+    @apply w-5 h-5 md:w-6 md:h-6 text-white;
+  }
+
+  .page-title {
+    @apply text-xl md:text-2xl lg:text-3xl font-bold text-foreground tracking-tight;
+  }
+
+  .page-description {
+    @apply text-sm md:text-base text-muted-foreground mt-1;
+  }
+
+  /* Page Filters - Barra de filtros padrão */
+  .page-filters {
+    @apply flex flex-wrap gap-3 mb-6;
+  }
+
+  .filter-search-wrapper {
+    @apply flex-1 min-w-[200px] relative;
+  }
+
+  .filter-search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none;
+  }
+
+  .filter-search-input {
+    @apply pl-10 h-10 text-sm;
+  }
+
+  .filter-select {
+    @apply w-[180px] h-10 text-sm;
+  }
+
+  /* Page Section - Seções de conteúdo */
+  .page-section {
+    @apply mb-6 md:mb-8;
+  }
+
+  .section-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .section-icon {
+    @apply w-5 h-5 text-primary;
+  }
+
+  .section-title {
+    @apply text-lg md:text-xl font-semibold text-foreground;
+  }
+
+  .section-actions {
+    @apply flex items-center gap-2;
+  }
+
+  .section-content {
+    @apply space-y-4;
+  }
+
+  /* Empty State - Estados vazios */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 md:py-16 text-center px-4;
+  }
+
+  .empty-state-icon-wrapper {
+    @apply w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-6 rounded-full flex items-center justify-center;
+    background: linear-gradient(135deg, hsl(var(--muted)), hsl(var(--muted) / 0.5));
+  }
+
+  .empty-state-icon {
+    @apply w-8 h-8 md:w-10 md:h-10 text-muted-foreground;
+  }
+
+  .empty-state-title {
+    @apply text-lg md:text-xl font-semibold text-foreground mb-2;
+  }
+
+  .empty-state-description {
+    @apply text-sm md:text-base text-muted-foreground max-w-md mx-auto mb-6;
+  }
+
+  .empty-state-action {
+    @apply mt-2;
+  }
+
+  /* Metrics Grid - Grid de KPIs */
+  .metrics-grid {
+    @apply grid gap-4 md:gap-6 mb-6 md:mb-8;
+  }
+
+  .metric-card {
+    @apply bg-card border border-border rounded-xl p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in;
+  }
+
+  .metric-card-header {
+    @apply flex items-center justify-between mb-3;
+  }
+
+  .metric-icon-wrapper {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center shrink-0;
+    background: var(--gradient-primary);
+  }
+
+  .metric-icon {
+    @apply w-5 h-5 text-white;
+  }
+
+  .metric-title {
+    @apply text-sm font-medium text-muted-foreground;
+  }
+
+  .metric-value {
+    @apply text-2xl md:text-3xl font-bold text-foreground mb-1;
+  }
+
+  .metric-change {
+    @apply text-xs md:text-sm font-medium;
+  }
+
+  .metric-change-positive {
+    @apply text-green-600;
+  }
+
+  .metric-change-negative {
+    @apply text-red-600;
+  }
+
+  .metric-change-neutral {
+    @apply text-muted-foreground;
+  }
+
+  /* Standard Card - Cards padrão do sistema */
+  .standard-card {
+    @apply bg-card border border-border rounded-lg shadow-sm transition-all duration-200;
+  }
+
+  .standard-card-outlined {
+    @apply bg-card border-2 border-border rounded-lg transition-all duration-200;
+  }
+
+  .standard-card-elevated {
+    @apply bg-card border border-border rounded-lg shadow-md transition-all duration-200 hover:shadow-lg;
+  }
+
+  .standard-card-header {
+    @apply p-4 md:p-6 pb-3;
+  }
+
+  .standard-card-content {
+    @apply p-4 md:p-6 pt-0;
+  }
+
+  .standard-card-footer {
+    @apply p-4 md:p-6 pt-0 flex items-center gap-2;
+  }
+
+  /* Typography System */
+  .card-title {
+    @apply text-base md:text-lg font-semibold text-foreground;
+  }
+
+  .card-description {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  .card-label {
+    @apply text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide;
+  }
+
+  .card-value {
+    @apply text-sm md:text-base text-foreground font-medium;
+  }
+
+  /* Badge System */
+  .badge-status {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .badge-neutral {
+    @apply bg-gray-100 text-gray-800;
+  }
+
+  /* Design System Moderno - Compact (MANTIDO PARA COMPATIBILIDADE) */
   .modern-header {
     background: var(--gradient-header);
     @apply rounded-2xl p-6 mb-6;
