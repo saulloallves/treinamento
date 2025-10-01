@@ -615,20 +615,24 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
             {/* Footer da sidebar */}
             <div className="p-4 border-t border-slate-200/60">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200">
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+              <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200 ${
+                isCollapsed ? 'justify-center' : ''
+              }`}>
+                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
                   <span className="text-sm font-medium text-white">
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
-                 <div className="flex-1 min-w-0">
-                   <p className="text-sm font-medium text-slate-900 truncate">
-                     {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
-                   </p>
-                   <p className="text-xs text-slate-500 truncate">
-                     {user?.email ?? ''}
-                   </p>
-                 </div>
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">
+                      {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
+                    </p>
+                    <p className="text-xs text-slate-500 break-all">
+                      {user?.email ?? ''}
+                    </p>
+                  </div>
+                )}
               </div>
              </div>
            </div>
@@ -704,7 +708,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
                  <p className="text-sm font-medium text-slate-900 truncate">
                    {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
                  </p>
-                <p className="text-xs text-slate-500 truncate">
+                <p className="text-xs text-slate-500 break-all">
                   {user?.email ?? ''}
                 </p>
               </div>
