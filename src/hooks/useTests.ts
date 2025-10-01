@@ -41,13 +41,15 @@ export const useTests = () => {
             id,
             name,
             code,
-            course_id
+            course_id,
+            status
           ),
           courses:course_id (
             id,
             name
           )
         `)
+        .neq("turmas.status", "encerrada")
         .order("created_at", { ascending: false });
 
       if (error) throw error;

@@ -15,17 +15,31 @@ export const useTestStats = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["test-stats"],
     queryFn: async () => {
-      // Get basic test counts
+      // Get basic test counts - only from active turmas
       const { data: testsData, error: testsError } = await supabase
         .from("tests")
-        .select("status");
+        .select(`
+          status,
+          turma_id,
+          turmas!inner(status)
+        `)
+        .neq("turmas.status", "encerrada");
 
       if (testsError) throw testsError;
 
-      // Get submission stats
+      // Get submission stats - only from active turmas
       const { data: submissionsData, error: submissionsError } = await supabase
         .from("test_submissions")
-        .select("submitted_at, passed");
+        .select(`
+          submitted_at,
+          passed,
+          test_id,
+          tests!inner(
+            turma_id,
+            turmas!inner(status)
+          )
+        `)
+        .neq("tests.turmas.status", "encerrada");
 
       if (submissionsError) throw submissionsError;
 
