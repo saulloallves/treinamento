@@ -1,24 +1,19 @@
 
 import { useState, useMemo } from "react";
-import { Search, Download, RefreshCw, Award, Calendar, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Award } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import CertificatesListMobile from "./CertificatesListMobile";
+import CertificateTurmaCard from "./CertificateTurmaCard";
+import TurmaCertificatesDialog from "./TurmaCertificatesDialog";
 
 const CertificatesList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
+  const [selectedTurma, setSelectedTurma] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
 
   if (isMobile) {
@@ -112,6 +107,7 @@ const CertificatesList = () => {
         id: c.id,
         studentName: enr?.student_name ?? "—",
         courseName: course?.name ?? "—",
+        courseId: c.course_id ?? enr?.course_id,
         turmaName: turma?.name || turma?.code || "Turma não definida",
         professorName: turma?.responsavel_name || "Professor não definido",
         generatedAt: c.generated_at,
@@ -127,19 +123,20 @@ const CertificatesList = () => {
       return matchesSearch && matchesCourse;
     });
 
-    // Group by turma
+    // Group by turma and course
     const grouped = filtered.reduce((acc, cert) => {
-      const turmaKey = cert.turmaName;
-      if (!acc[turmaKey]) {
-        acc[turmaKey] = {
+      const key = `${cert.turmaName}-${cert.courseId}`;
+      if (!acc[key]) {
+        acc[key] = {
           turmaName: cert.turmaName,
+          courseName: cert.courseName,
           professorName: cert.professorName,
           certificates: []
         };
       }
-      acc[turmaKey].certificates.push(cert);
+      acc[key].certificates.push(cert);
       return acc;
-    }, {} as Record<string, { turmaName: string; professorName: string; certificates: any[] }>);
+    }, {} as Record<string, { turmaName: string; courseName: string; professorName: string; certificates: any[] }>);
 
     return Object.values(grouped).sort((a, b) => a.turmaName.localeCompare(b.turmaName));
   }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
@@ -210,92 +207,39 @@ const CertificatesList = () => {
         </div>
       </div>
 
-      {/* Lista de Certificados Agrupados por Turma */}
-      <div className="space-y-4">
+      {/* Grid de Cards de Turmas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {groupedByTurma.length === 0 ? (
-          <div className="card-clean p-8 text-center">
+          <div className="col-span-full card-clean p-8 text-center">
             <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">Nenhum certificado encontrado</p>
           </div>
         ) : (
-          groupedByTurma.map((group) => (
-            <div key={group.turmaName} className="card-clean overflow-hidden">
-              {/* Cabeçalho da Turma */}
-              <div className="bg-muted/50 px-6 py-4 border-b">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{group.turmaName}</h3>
-                    <p className="text-sm text-muted-foreground">Professor: {group.professorName}</p>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {group.certificates.length} certificado{group.certificates.length !== 1 ? 's' : ''}
-                  </div>
-                </div>
-              </div>
-
-              {/* Tabela de Certificados da Turma */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[200px]">Aluno</TableHead>
-                    <TableHead className="min-w-[180px]">Curso</TableHead>
-                    <TableHead className="w-[120px]">Data da Emissão</TableHead>
-                    <TableHead className="w-[80px]">Status</TableHead>
-                    <TableHead className="w-[120px]">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {group.certificates.map((cert) => (
-                    <TableRow key={cert.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-primary-foreground" />
-                          </div>
-                          <span className="font-medium truncate">{cert.studentName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Award className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-muted-foreground">{cert.courseName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-muted-foreground text-sm">
-                            {cert.generatedAt ? new Date(cert.generatedAt).toLocaleDateString('pt-BR') : '—'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                          String(cert.status).toLowerCase() === 'emitido' 
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                        }`}>
-                          {cert.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {cert.url && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={cert.url} target="_blank" rel="noopener noreferrer">
-                              <Download className="w-4 h-4 mr-2" />
-                              Baixar
-                            </a>
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+          groupedByTurma.map((group, index) => (
+            <CertificateTurmaCard
+              key={`${group.turmaName}-${index}`}
+              courseName={group.courseName}
+              turmaName={group.turmaName}
+              certificatesCount={group.certificates.length}
+              onClick={() => {
+                setSelectedTurma(group);
+                setDialogOpen(true);
+              }}
+            />
           ))
         )}
       </div>
+
+      {/* Dialog com Certificados da Turma */}
+      {selectedTurma && (
+        <TurmaCertificatesDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          turmaName={selectedTurma.turmaName}
+          professorName={selectedTurma.professorName}
+          certificates={selectedTurma.certificates}
+        />
+      )}
 
       {/* Estatísticas (reais) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
