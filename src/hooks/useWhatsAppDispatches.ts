@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface WhatsAppDispatch {
   id: string;
-  type: 'curso' | 'aula';
+  type: 'curso' | 'aula' | 'turma';
   item_id: string;
   item_name: string;
   recipients_count: number;
@@ -20,9 +20,10 @@ export interface WhatsAppDispatch {
 }
 
 export interface DispatchInput {
-  type: 'curso' | 'aula';
+  type: 'curso' | 'aula' | 'turma';
   item_id: string;
   item_name: string;
+  turma_id?: string;
   message: string;
   recipient_mode?: 'all' | 'selected';
   recipient_ids?: string[]; // enrollment ids when mode is 'selected'

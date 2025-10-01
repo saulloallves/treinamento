@@ -32,9 +32,10 @@ serve(async (req: Request) => {
     }
 
     const {
-      type,                // 'curso' | 'aula'
-      item_id,             // course id or lesson id
+      type,                // 'curso' | 'aula' | 'turma'
+      item_id,             // course id, lesson id, or turma id
       item_name,           // optional, for logging
+      turma_id,            // optional, turma id for filtering enrollments
       message,
       recipient_mode,      // 'all' | 'selected'
       recipient_ids = [],  // enrollment ids when mode === 'selected'
@@ -46,8 +47,9 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Campos obrigatórios: type, item_id, message' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Resolve course id
+    // Resolve course id and turma id
     let courseId: string | null = null
+    let resolvedTurmaId: string | null = turma_id || null
     let resolvedItemName: string | null = item_name || null
 
     if (type === 'curso') {
@@ -60,17 +62,28 @@ serve(async (req: Request) => {
       const { data: lesson } = await supabase.from('lessons').select('course_id, title').eq('id', item_id).maybeSingle()
       courseId = lesson?.course_id || null
       if (!resolvedItemName) resolvedItemName = lesson?.title || null
+    } else if (type === 'turma') {
+      resolvedTurmaId = item_id
+      const { data: turma } = await supabase.from('turmas').select('course_id, name').eq('id', item_id).maybeSingle()
+      courseId = turma?.course_id || null
+      if (!resolvedItemName) resolvedItemName = turma?.name || null
     }
 
     if (!courseId) {
       return new Response(JSON.stringify({ error: 'Curso não encontrado para o item informado.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Fetch enrollments for the course
-    const { data: enrollments, error: enrollErr } = await supabase
+    // Fetch enrollments - filter by turma if specified
+    let enrollmentsQuery = supabase
       .from('enrollments')
       .select('id, student_name, student_email, student_phone')
       .eq('course_id', courseId)
+    
+    if (resolvedTurmaId) {
+      enrollmentsQuery = enrollmentsQuery.eq('turma_id', resolvedTurmaId)
+    }
+
+    const { data: enrollments, error: enrollErr } = await enrollmentsQuery
 
     if (enrollErr) {
       return new Response(JSON.stringify({ error: enrollErr.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

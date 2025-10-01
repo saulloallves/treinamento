@@ -104,7 +104,7 @@ const WhatsAppDispatch = () => {
   const recipientsCount = recipientMode === 'all' ? relevantEnrollments.length : selectedRecipients.length;
 
   const handleSendDispatch = async () => {
-    if (!selectedTurma || !selectedLesson || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0)) {
+    if (!selectedTurma || !message.trim() || (recipientMode === 'selected' && selectedRecipients.length === 0)) {
       return;
     }
 
@@ -113,8 +113,23 @@ const WhatsAppDispatch = () => {
       return;
     }
 
-    const session = lessonSessions.find(s => s.id === selectedLesson);
-    const lessonTitle = session?.lessons.title || '';
+    // Get turma and lesson details
+    const turma = turmas.find(t => t.id === selectedTurma);
+    const turmaName = turma?.name || turma?.code || '';
+    
+    let dispatchType: 'curso' | 'aula' | 'turma' = 'turma';
+    let dispatchItemId = selectedTurma;
+    let dispatchItemName = turmaName;
+    
+    // If a lesson is selected, use it instead
+    if (selectedLesson) {
+      const session = lessonSessions.find(s => s.id === selectedLesson);
+      if (session) {
+        dispatchType = 'aula';
+        dispatchItemId = session.lesson_id;
+        dispatchItemName = session.lessons.title;
+      }
+    }
 
     // Create scheduled_at datetime if scheduled
     let scheduledAt = undefined;
@@ -124,9 +139,10 @@ const WhatsAppDispatch = () => {
 
     try {
       await createDispatchMutation.mutateAsync({
-        type: 'aula',
-        item_id: selectedLesson,
-        item_name: lessonTitle,
+        type: dispatchType,
+        item_id: dispatchItemId,
+        item_name: dispatchItemName,
+        turma_id: selectedTurma,
         message: message.trim(),
         recipient_mode: recipientMode,
         recipient_ids: recipientMode === 'selected' ? selectedRecipients : undefined,
@@ -203,16 +219,17 @@ const WhatsAppDispatch = () => {
             {selectedTurma && (
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Selecionar Aula (Próximas)
+                  Selecionar Aula (Opcional)
                 </label>
                 <select
                   value={selectedLesson}
                   onChange={(e) => setSelectedLesson(e.target.value)}
                   className="w-full px-3 py-2.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                  disabled={lessonSessions.length === 0}
                 >
                   <option value="">
-                    {lessonSessions.length === 0 ? 'Nenhuma aula futura agendada' : 'Selecione uma aula...'}
+                    {lessonSessions.length === 0 
+                      ? 'Nenhuma aula futura agendada - Enviar para toda a turma' 
+                      : 'Enviar para toda a turma (sem aula específica)'}
                   </option>
                   {lessonSessions.map((session: any) => (
                     <option key={session.id} value={session.id}>
@@ -411,7 +428,6 @@ const WhatsAppDispatch = () => {
             onClick={handleSendDispatch}
             disabled={
               !selectedTurma || 
-              !selectedLesson ||
               !message.trim() || 
               (recipientMode === 'selected' && selectedRecipients.length === 0) || 
               (isScheduled && (!scheduledDate || !scheduledTime)) || 
