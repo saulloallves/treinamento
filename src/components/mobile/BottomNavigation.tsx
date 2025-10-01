@@ -18,6 +18,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useIsProfessor } from '@/hooks/useIsProfessor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NavItem {
   label: string;
@@ -31,12 +32,23 @@ interface NavItem {
 const BottomNavigation = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
-  const { data: isAdmin, isLoading: isLoadingAdmin } = useIsAdmin();
-  const { data: isProfessor, isLoading: isLoadingProfessor } = useIsProfessor();
+  const { user } = useAuth();
+  const { data: isAdmin = false, isLoading: isLoadingAdmin } = useIsAdmin(user?.id);
+  const { data: isProfessor = false, isLoading: isLoadingProfessor } = useIsProfessor(user?.id);
   const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
 
   // Wait for all data to load before showing menu
   const isLoading = isLoadingAdmin || isLoadingProfessor || isLoadingUser;
+
+  // Debug log
+  console.log('🔍 BottomNavigation - User roles:', {
+    userId: user?.id,
+    isAdmin,
+    isProfessor,
+    userType: currentUser?.user_type,
+    role: currentUser?.role,
+    isLoading
+  });
 
   if (!isMobile) return null;
   if (isLoading) return null;
