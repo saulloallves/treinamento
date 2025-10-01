@@ -20,6 +20,29 @@ const CertificatesList = () => {
     return <CertificatesListMobile />;
   }
 
+  // Buscar todas as turmas em andamento e agendadas
+  const turmasQuery = useQuery({
+    queryKey: ["turmas", "active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("turmas")
+        .select(`
+          id,
+          name,
+          code,
+          status,
+          responsavel_name,
+          course_id,
+          courses(id, name)
+        `)
+        .in("status", ["em_andamento", "agendada"])
+        .order("name", { ascending: true });
+      if (error) { console.error('turmas query error', error); return []; }
+      return data ?? [];
+    },
+  });
+
+  // Buscar certificados
   const certsQuery = useQuery({
     queryKey: ["certificates", "all"],
     queryFn: async () => {
@@ -37,6 +60,18 @@ const CertificatesList = () => {
         `)
         .order("generated_at", { ascending: false });
       if (error) { console.error('certificates query error', error); return []; }
+      return data ?? [];
+    },
+  });
+
+  // Buscar enrollments para relacionar com certificados
+  const enrollmentsQuery = useQuery({
+    queryKey: ["enrollments", "for-certs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id, student_name, turma_id");
+      if (error) { console.error('enrollments query error', error); return []; }
       return data ?? [];
     },
   });
@@ -64,85 +99,71 @@ const CertificatesList = () => {
     },
   });
 
-  const enrollmentsForCertsQuery = useQuery({
-    queryKey: ["enrollments", "for-certs", certsQuery.data?.length ?? 0],
-    enabled: !!certsQuery.data,
-    queryFn: async () => {
-      const ids = Array.from(new Set((certsQuery.data ?? []).map((c: any) => c.enrollment_id).filter(Boolean)));
-      if (ids.length === 0) return [];
-      const { data, error } = await supabase
-        .from("enrollments")
-        .select(`
-          id,
-          student_name,
-          course_id,
-          turma_id,
-          turmas(id, name, code, responsavel_name, status)
-        `)
-        .in("id", ids);
-      if (error) { console.error('enrollments for certs query error', error); return []; }
-      return data ?? [];
-    },
-  });
-
-  const coursesMap = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const c of (coursesQuery.data ?? []) as any[]) m.set(c.id, c);
-    return m;
-  }, [coursesQuery.data]);
-
   const enrollmentsMap = useMemo(() => {
     const m = new Map<string, any>();
-    for (const e of (enrollmentsForCertsQuery.data ?? []) as any[]) m.set(e.id, e);
+    for (const e of (enrollmentsQuery.data ?? []) as any[]) m.set(e.id, e);
     return m;
-  }, [enrollmentsForCertsQuery.data]);
+  }, [enrollmentsQuery.data]);
 
   const groupedByTurma = useMemo(() => {
-    const all = (certsQuery.data ?? []) as any[];
-    const enriched = all.map((c) => {
-      const enr = enrollmentsMap.get(c.enrollment_id);
-      const course = coursesMap.get(c.course_id ?? enr?.course_id);
-      const turma = enr?.turmas;
+    const turmas = (turmasQuery.data ?? []) as any[];
+    const certificates = (certsQuery.data ?? []) as any[];
+    
+    // Criar mapa de certificados por turma
+    const certsByTurma = certificates.reduce((acc, cert) => {
+      const enr = enrollmentsMap.get(cert.enrollment_id);
+      if (!enr?.turma_id) return acc;
+      
+      if (!acc[enr.turma_id]) {
+        acc[enr.turma_id] = [];
+      }
+      
+      acc[enr.turma_id].push({
+        id: cert.id,
+        studentName: enr.student_name ?? "—",
+        courseName: "",
+        generatedAt: cert.generated_at,
+        status: cert.status,
+        url: cert.certificate_url as string | null,
+      });
+      
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Criar grupos de turmas com seus certificados
+    const grouped = turmas.map((turma) => {
+      const courseName = turma.courses?.name ?? "—";
+      const turmaName = turma.name || turma.code || "Turma não definida";
+      const professorName = turma.responsavel_name || "Professor não definido";
+      const turmaCerts = certsByTurma[turma.id] || [];
+      
+      // Adicionar courseName aos certificados
+      turmaCerts.forEach(cert => {
+        cert.courseName = courseName;
+      });
+      
       return {
-        id: c.id,
-        studentName: enr?.student_name ?? "—",
-        courseName: course?.name ?? "—",
-        courseId: c.course_id ?? enr?.course_id,
-        turmaName: turma?.name || turma?.code || "Turma não definida",
-        turmaStatus: turma?.status,
-        professorName: turma?.responsavel_name || "Professor não definido",
-        generatedAt: c.generated_at,
-        status: c.status,
-        url: c.certificate_url as string | null,
+        turmaId: turma.id,
+        turmaName,
+        courseName,
+        courseId: turma.course_id,
+        professorName,
+        certificates: turmaCerts
       };
     });
 
+    // Filtrar por busca e curso
     const q = searchTerm.trim().toLowerCase();
-    const filtered = enriched.filter((r) => {
-      // Filtrar apenas turmas em andamento ou agendadas
-      const isActiveTurma = r.turmaStatus === 'em_andamento' || r.turmaStatus === 'agendada';
-      const matchesSearch = !q || r.studentName.toLowerCase().includes(q);
-      const matchesCourse = selectedCourse === "todos" || r.courseName === selectedCourse;
-      return isActiveTurma && matchesSearch && matchesCourse;
+    const filtered = grouped.filter((group) => {
+      const matchesCourse = selectedCourse === "todos" || group.courseName === selectedCourse;
+      const matchesSearch = !q || group.certificates.some(cert => 
+        cert.studentName.toLowerCase().includes(q)
+      );
+      return matchesCourse && (!q || matchesSearch);
     });
 
-    // Group by turma and course
-    const grouped = filtered.reduce((acc, cert) => {
-      const key = `${cert.turmaName}-${cert.courseId}`;
-      if (!acc[key]) {
-        acc[key] = {
-          turmaName: cert.turmaName,
-          courseName: cert.courseName,
-          professorName: cert.professorName,
-          certificates: []
-        };
-      }
-      acc[key].certificates.push(cert);
-      return acc;
-    }, {} as Record<string, { turmaName: string; courseName: string; professorName: string; certificates: any[] }>);
-
-    return Object.values(grouped).sort((a, b) => a.turmaName.localeCompare(b.turmaName));
-  }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourse]);
+    return filtered.sort((a, b) => a.turmaName.localeCompare(b.turmaName));
+  }, [turmasQuery.data, certsQuery.data, enrollmentsMap, searchTerm, selectedCourse]);
 
   const totalCertificates = useMemo(() => {
     return groupedByTurma.reduce((total, group) => total + group.certificates.length, 0);
@@ -220,7 +241,7 @@ const CertificatesList = () => {
         ) : (
           groupedByTurma.map((group, index) => (
             <CertificateTurmaCard
-              key={`${group.turmaName}-${index}`}
+              key={group.turmaId}
               courseName={group.courseName}
               turmaName={group.turmaName}
               certificatesCount={group.certificates.length}
