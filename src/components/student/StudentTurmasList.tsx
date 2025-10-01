@@ -143,21 +143,6 @@ const StudentTurmasList = ({ showQuizLink = false }: StudentTurmasListProps) => 
                   <span>Prazo: {new Date(enrollment.turma.completion_deadline).toLocaleDateString('pt-BR')}</span>
                 </div>
               )}
-
-              {/* Indicador de Testes ou Quizzes */}
-              <div className="flex items-center gap-2 text-xs md:text-sm text-primary bg-primary/5 rounded-md px-3 py-2">
-                {showQuizLink ? (
-                  <>
-                    <BookOpen className="h-4 w-4 shrink-0" />
-                    <span className="font-medium">Quizzes disponíveis</span>
-                  </>
-                ) : (
-                  <>
-                    <ClipboardList className="h-4 w-4 shrink-0" />
-                    <span className="font-medium">Testes disponíveis</span>
-                  </>
-                )}
-              </div>
             </CardContent>
           </Card>
         </Link>
