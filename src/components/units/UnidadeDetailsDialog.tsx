@@ -26,7 +26,7 @@ import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import CreateFranchiseeDialog from "./CreateFranchiseeDialog";
-import EditFranchiseeDialog from "./EditFranchiseeDialog";
+import EditUserAccessDialog from "./EditUserAccessDialog";
 import UnitCollaborationApprovals from "./UnitCollaborationApprovals";
 import { useUnitApprovalCount } from "@/hooks/useCollaborationApprovals";
 
@@ -121,7 +121,7 @@ const UnidadeDetailsDialog = ({
                 </Button>
               )}
 
-              {unidade.hasAccount ? (
+              {unidade.hasUsers ? (
                 <Button
                   variant="outline"
                   size="sm"
@@ -129,7 +129,7 @@ const UnidadeDetailsDialog = ({
                   className="flex items-center gap-2 text-primary hover:text-primary"
                 >
                   <UserCog className="h-4 w-4" />
-                  Editar Franqueado
+                  Editar Acessos
                 </Button>
               ) : (
                 <Button
@@ -376,7 +376,7 @@ const UnidadeDetailsDialog = ({
         onOpenChange={setCreateFranchiseeOpen}
       />
 
-      <EditFranchiseeDialog
+      <EditUserAccessDialog
         unidade={unidade}
         open={editFranchiseeOpen}
         onOpenChange={setEditFranchiseeOpen}

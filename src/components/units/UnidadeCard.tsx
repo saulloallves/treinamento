@@ -47,17 +47,17 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
             </p>
           </div>
           
-          {/* Indicador de conta criada */}
+          {/* Indicador de usuários */}
           <div className="flex items-center gap-1 ml-2">
-            {unidade.hasAccount ? (
+            {unidade.hasUsers ? (
               <div className="flex items-center gap-1 text-green-600">
                 <CheckCircle className="h-4 w-4" />
-                <span className="text-xs font-medium">Conta criada</span>
+                <span className="text-xs font-medium">Com usuários</span>
               </div>
             ) : (
               <div className="flex items-center gap-1 text-red-500">
                 <XCircle className="h-4 w-4" />
-                <span className="text-xs font-medium">Sem conta</span>
+                <span className="text-xs font-medium">Sem usuários</span>
               </div>
             )}
           </div>

@@ -17,55 +17,55 @@ export interface Unidade {
   modelo_loja?: string;
   grupo_colaborador?: string;
   created_at?: string;
-  hasAccount?: boolean;
+  hasUsers?: boolean;
 }
 
 export const useUnidades = () => {
-  return useQuery<(Unidade & { hasAccount: boolean })[]>({
+  return useQuery<(Unidade & { hasUsers: boolean })[]>({
     queryKey: ["unidades"],
     queryFn: async () => {
-      // Buscar unidades e franqueados em paralelo para melhor performance
-      const [unidadesResult, franqueadosResult] = await Promise.all([
+      // Buscar unidades e usuários (franqueados e colaboradores) em paralelo
+      const [unidadesResult, usersResult] = await Promise.all([
         supabase
           .from("unidades")
           .select("*")
           .order("grupo", { ascending: true }),
         supabase
           .from("users")
-          .select("unit_code, unit_codes")
-          .eq("role", "Franqueado")
+          .select("unit_code, unit_codes, role")
+          .in("role", ["Franqueado", "Colaborador"])
       ]);
 
       if (unidadesResult.error) {
         throw new Error(`Erro ao buscar unidades: ${unidadesResult.error.message}`);
       }
 
-      if (franqueadosResult.error) {
-        console.warn("Erro ao buscar franqueados:", franqueadosResult.error.message);
+      if (usersResult.error) {
+        console.warn("Erro ao buscar usuários:", usersResult.error.message);
       }
 
       // Criar Set para busca otimizada de unit_codes (incluindo arrays)
-      const franqueadosUnitCodes = new Set<string>();
-      (franqueadosResult.data || []).forEach(f => {
+      const unitCodesWithUsers = new Set<string>();
+      (usersResult.data || []).forEach(user => {
         // Adicionar unit_code individual
-        if (f.unit_code) {
-          franqueadosUnitCodes.add(f.unit_code);
+        if (user.unit_code) {
+          unitCodesWithUsers.add(user.unit_code);
         }
-        // Adicionar todos os códigos do array unit_codes
-        if (f.unit_codes && Array.isArray(f.unit_codes)) {
-          f.unit_codes.forEach(code => {
-            if (code) franqueadosUnitCodes.add(code);
+        // Adicionar todos os códigos do array unit_codes (para franqueados multi-unidade)
+        if (user.unit_codes && Array.isArray(user.unit_codes)) {
+          user.unit_codes.forEach(code => {
+            if (code) unitCodesWithUsers.add(code);
           });
         }
       });
 
-      // Mapear unidades com informação se tem conta criada
+      // Mapear unidades com informação se tem usuários vinculados
       const unidadesComStatus = (unidadesResult.data || []).map(unidade => ({
         ...unidade,
-        hasAccount: franqueadosUnitCodes.has(unidade.codigo_grupo?.toString()) || false
+        hasUsers: unitCodesWithUsers.has(unidade.codigo_grupo?.toString()) || false
       }));
 
-      return unidadesComStatus as (Unidade & { hasAccount: boolean })[];
+      return unidadesComStatus as (Unidade & { hasUsers: boolean })[];
     },
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
     gcTime: 10 * 60 * 1000, // Manter cache por 10 minutos (era cacheTime)

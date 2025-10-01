@@ -19,7 +19,7 @@ const UnidadesList = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [bulkCreateOpen, setBulkCreateOpen] = useState(false);
   const [faseFilter, setFaseFilter] = useState("all");
-  const [accountFilter, setAccountFilter] = useState("all");
+  const [usersFilter, setUsersFilter] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const queryClient = useQueryClient();
@@ -34,12 +34,12 @@ const UnidadesList = () => {
     
     const matchesFase = faseFilter === "all" || unidade.fase_loja === faseFilter;
     
-    const matchesAccount = 
-      accountFilter === "all" || 
-      (accountFilter === "created" && unidade.hasAccount) ||
-      (accountFilter === "not_created" && !unidade.hasAccount);
+    const matchesUsers = 
+      usersFilter === "all" || 
+      (usersFilter === "with_users" && unidade.hasUsers) ||
+      (usersFilter === "without_users" && !unidade.hasUsers);
     
-    return matchesSearch && matchesFase && matchesAccount;
+    return matchesSearch && matchesFase && matchesUsers;
   });
 
   const handleViewDetails = (unidade: Unidade) => {
@@ -125,14 +125,14 @@ const UnidadesList = () => {
           </SelectContent>
         </Select>
 
-        <Select value={accountFilter} onValueChange={setAccountFilter}>
+        <Select value={usersFilter} onValueChange={setUsersFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Status da conta" />
+            <SelectValue placeholder="Status de usuários" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as contas</SelectItem>
-            <SelectItem value="created">Conta criada</SelectItem>
-            <SelectItem value="not_created">Conta não criada</SelectItem>
+            <SelectItem value="all">Todas as unidades</SelectItem>
+            <SelectItem value="with_users">Com usuários</SelectItem>
+            <SelectItem value="without_users">Sem usuários</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -145,11 +145,11 @@ const UnidadesList = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 text-green-600">
             <CheckCircle className="h-3 w-3" />
-            <span>{unidades.filter(u => u.hasAccount).length} com conta</span>
+            <span>{unidades.filter(u => u.hasUsers).length} com usuários</span>
           </div>
           <div className="flex items-center gap-1 text-red-500">
             <XCircle className="h-3 w-3" />
-            <span>{unidades.filter(u => !u.hasAccount).length} sem conta</span>
+            <span>{unidades.filter(u => !u.hasUsers).length} sem usuários</span>
           </div>
         </div>
       </div>

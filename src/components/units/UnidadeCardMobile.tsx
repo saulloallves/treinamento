@@ -37,9 +37,9 @@ const UnidadeCardMobile = ({ unidade, onViewDetails }: UnidadeCardMobileProps) =
             </p>
           </div>
           
-          {/* Status da conta */}
+          {/* Status de usuários */}
           <div className="flex shrink-0">
-            {unidade.hasAccount ? (
+            {unidade.hasUsers ? (
               <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
               <XCircle className="h-4 w-4 text-red-500" />
