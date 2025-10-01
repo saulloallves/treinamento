@@ -170,19 +170,36 @@ const CertificatesList = () => {
   }, [groupedByTurma]);
 
   const stats = useMemo(() => {
-    const total = (certsQuery.data ?? []).length;
+    // Contar apenas certificados das turmas ativas
+    const activeTurmaIds = (turmasQuery.data ?? []).map((t: any) => t.id);
+    const activeCerts = (certsQuery.data ?? []).filter((c: any) => {
+      const enr = enrollmentsMap.get(c.enrollment_id);
+      return enr && activeTurmaIds.includes(enr.turma_id);
+    });
+    
+    const total = activeCerts.length;
     const now = new Date();
-    const month = (certsQuery.data ?? []).filter((c: any) => {
+    const month = activeCerts.filter((c: any) => {
       const d = new Date(c.generated_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
-    const enr = (enrollmentsStatsQuery.data ?? []) as any[];
-    const totalEnr = enr.length || 0;
-    const completed = enr.filter((e) => (e.progress_percentage ?? 0) >= 100).length;
+    
+    // Taxa de conclusão baseada apenas em enrollments das turmas ativas
+    const activeEnrollments = (enrollmentsStatsQuery.data ?? []).filter((e: any) => {
+      const enrData = enrollmentsMap.get(e.id);
+      return enrData && activeTurmaIds.includes(enrData.turma_id);
+    });
+    
+    const totalEnr = activeEnrollments.length || 0;
+    const completed = activeEnrollments.filter((e: any) => (e.progress_percentage ?? 0) >= 100).length;
     const rate = totalEnr ? Math.round((completed / totalEnr) * 100) : 0;
-    const activeCourses = ((coursesQuery.data ?? []) as any[]).filter((c) => c.status === 'Ativo').length;
+    
+    // Cursos das turmas ativas
+    const activeCourseIds = new Set((turmasQuery.data ?? []).map((t: any) => t.course_id));
+    const activeCourses = activeCourseIds.size;
+    
     return { total, month, rate, activeCourses };
-  }, [certsQuery.data, enrollmentsStatsQuery.data, coursesQuery.data]);
+  }, [certsQuery.data, enrollmentsStatsQuery.data, turmasQuery.data, enrollmentsMap]);
 
   return (
     <div className="space-y-6">
