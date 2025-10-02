@@ -206,16 +206,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
             </Button>
             
             {/* Secondary actions in row */}
-            <div className="grid grid-cols-3 gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onViewStudents(course)}
-                className="h-7 px-2"
-                title="Ver Alunos"
-              >
-                <Users className="w-3 h-3" />
-              </Button>
+            <div className="grid grid-cols-2 gap-1">
               <Button
                 variant="ghost"
                 size="sm"

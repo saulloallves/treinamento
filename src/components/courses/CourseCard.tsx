@@ -230,16 +230,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             </Button>
             
             {/* Secondary actions */}
-            <div className="grid grid-cols-3 gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onViewStudents(course)}
-                className="h-7 px-2"
-                title="Ver Alunos"
-              >
-                <Users className="w-4 h-4" />
-              </Button>
+            <div className="grid grid-cols-2 gap-1">
               <Button
                 variant="ghost"
                 size="sm"
