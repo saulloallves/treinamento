@@ -188,24 +188,26 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         {/* Actions - Mobile optimized */}
         <div className="pt-2 mt-auto">
           <div className="space-y-1.5">
-            {/* Primary action button */}
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => {
-                if (course.tipo === 'gravado' && onViewRecordedCourses) {
-                  onViewRecordedCourses(course.id, course.name);
-                } else {
-                  onViewDetails(course);
-                }
-              }}
-              className="w-full h-8 text-sm font-medium"
-            >
-              <Eye className="w-3 h-3 mr-2" />
-              Detalhes
-            </Button>
+            {/* Details button only for treinamentos (gravado) */}
+            {course.tipo === 'gravado' && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  if (onViewRecordedCourses) {
+                    onViewRecordedCourses(course.id, course.name);
+                  } else {
+                    onViewDetails(course);
+                  }
+                }}
+                className="w-full h-8 text-sm font-medium"
+              >
+                <Eye className="w-3 h-3 mr-2" />
+                Detalhes
+              </Button>
+            )}
             
-            {/* Secondary actions in row */}
+            {/* Edit and Delete buttons - always visible */}
             <div className="grid grid-cols-2 gap-1">
               <Button
                 variant="ghost"
