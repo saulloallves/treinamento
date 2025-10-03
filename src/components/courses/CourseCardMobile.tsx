@@ -113,7 +113,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
       <CardContent className="p-1.5 flex-1 flex flex-col">
         {/* Title */}
         <div className="mb-1.5">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
             {course.name}
           </h3>
           

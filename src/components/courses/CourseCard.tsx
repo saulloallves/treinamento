@@ -136,7 +136,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       <CardContent className="flex-1 flex flex-col p-2">
         {/* Title */}
         <div className="mb-1.5">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
             {course.name}
           </h3>
           
