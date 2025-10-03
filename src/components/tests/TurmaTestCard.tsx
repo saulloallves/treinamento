@@ -31,10 +31,10 @@ const TurmaTestCard = ({ turma, onManageTests }: TurmaTestCardProps) => {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-border/50 hover:border-primary/30">
+    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-border/50 hover:border-primary/30 flex flex-col h-full">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 flex-1 min-w-0">
             <CardTitle className="text-base line-clamp-2 group-hover:text-primary transition-colors">
               {turma.name || `Turma ${turma.code}`}
             </CardTitle>
@@ -42,11 +42,13 @@ const TurmaTestCard = ({ turma, onManageTests }: TurmaTestCardProps) => {
               {turma.course?.name || 'Curso não definido'}
             </p>
           </div>
-          {getStatusBadge(turma.status)}
+          <div className="shrink-0">
+            {getStatusBadge(turma.status)}
+          </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4 flex-1">
         {/* Estatísticas dos testes */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
@@ -70,15 +72,15 @@ const TurmaTestCard = ({ turma, onManageTests }: TurmaTestCardProps) => {
         </div>
 
         {/* Informações da turma */}
-        <div className="space-y-2 text-sm">
+        <div className="space-y-2 text-sm min-h-[3rem]">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 shrink-0" />
             <span>{turma.enrollments_count || 0} alunos matriculados</span>
           </div>
           
           {turma.start_at && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4 shrink-0" />
               <span>Início: {formatDate(turma.start_at)}</span>
             </div>
           )}
@@ -87,7 +89,7 @@ const TurmaTestCard = ({ turma, onManageTests }: TurmaTestCardProps) => {
         {/* Botão de ação */}
         <Button 
           variant="outline" 
-          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors mt-auto"
           onClick={() => onManageTests(turma)}
         >
           <span>Gerenciar Testes</span>
