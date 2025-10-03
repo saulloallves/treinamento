@@ -87,7 +87,7 @@ const ProfessorsList = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
-            Professores ({professors.length})
+            Professores cadastrados
           </CardTitle>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
