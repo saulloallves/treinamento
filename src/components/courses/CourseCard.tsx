@@ -96,11 +96,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[280px]"
+      className="overflow-hidden flex flex-col group h-[240px]"
       variant="elevated"
     >
       {/* Compact Cover Area */}
-      <div className="relative h-14 shrink-0">
+      <div className="relative h-12 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -133,7 +133,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-2.5">
+      <CardContent className="flex-1 flex flex-col p-2">
         {/* Title */}
         <div className="mb-1.5">
           <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1">
