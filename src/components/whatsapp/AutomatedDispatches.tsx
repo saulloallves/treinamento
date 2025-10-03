@@ -180,14 +180,14 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="bg-muted/50 border rounded-lg p-3">
+              <div className="border-t pt-3 mt-1">
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-background px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-background px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-background px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground/70">
+                    <p className="font-normal mb-1">Variáveis disponíveis:</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
@@ -220,14 +220,14 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="bg-muted/50 border rounded-lg p-3">
+              <div className="border-t pt-3 mt-1">
                 <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-background px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-background px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-background px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground/70">
+                    <p className="font-normal mb-1">Variáveis disponíveis:</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
