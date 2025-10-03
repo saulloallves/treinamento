@@ -112,7 +112,6 @@ const UsersList = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-black">Alunos</h1>
-          <p className="text-brand-gray-dark">Gerencie colaboradores e franqueados</p>
         </div>
         <div className="flex gap-2">
           <CreateUserDialog 
