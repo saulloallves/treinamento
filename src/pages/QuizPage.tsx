@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ArrowLeft, BookCheck, Users, Calendar } from "lucide-react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Turma } from "@/hooks/useTurmas";
 import TurmaQuizList from "@/components/quiz/TurmaQuizList";
 import LessonQuizManager from "@/components/quiz/LessonQuizManager";
@@ -21,14 +20,17 @@ const QuizPage = () => {
   return (
     <BaseLayout title="Quiz">
       {!selectedTurma ? (
-        <div className="space-y-8">
-          {/* Header Section */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <BookCheck className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-muted-foreground">Gerencie quizzes e avaliações organizadas por turma</p>
+        <div className="space-y-6">
+          {/* Header Section - Compacto */}
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center shrink-0">
+                <BookCheck className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">Gestão de Quizzes</h2>
+                <p className="text-sm text-muted-foreground">Gerencie quizzes e avaliações organizadas por turma</p>
+              </div>
             </div>
           </div>
 
@@ -40,7 +42,7 @@ const QuizPage = () => {
           <Button 
             variant="ghost" 
             onClick={handleBack}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground p-0 h-auto mb-4"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground p-0 h-auto"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar para turmas
