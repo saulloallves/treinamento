@@ -96,24 +96,23 @@ const TurmasPage = () => {
   return (
     <BaseLayout title="Gerenciar Turmas">
       <div className="space-y-6">
-        {/* Header Moderno */}
-        <div className="modern-header">
+        {/* Header Compacto */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-border/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
-                <Users className="w-4 h-4 text-white" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="page-title mb-0">Gestão de Turmas</h1>
-                <p className="description text-xs">Gerencie as turmas dos cursos ao vivo</p>
+                <h1 className="text-lg font-semibold">Gestão de Turmas</h1>
+                <p className="text-xs text-muted-foreground">Gerencie as turmas dos cursos ao vivo</p>
               </div>
             </div>
             
-            {/* Desktop Create Button Moderno */}
+            {/* Desktop Create Button */}
             {!isMobile && (
               <Button 
                 onClick={() => setCreateDialogOpen(true)}
-                variant="modern"
                 size="sm"
                 className="h-8"
               >

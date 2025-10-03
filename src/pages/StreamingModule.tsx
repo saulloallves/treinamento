@@ -125,36 +125,28 @@ const StreamingModule = () => {
 
   return (
     <BaseLayout title="Módulo de Streaming">
-      <div className="space-y-8">
-        {/* Hero Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary/3 to-secondary/5 rounded-3xl p-8 border border-border/50">
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full border border-primary/20">
-                <Video className="h-4 w-4" />
-                Sistema de Streaming
+      <div className="space-y-6">
+        {/* Header Compacto */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <Video className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Módulo de Streaming
-                </h1>
-                <p className="text-lg text-muted-foreground mt-2 max-w-2xl">
-                  Crie e gerencie salas de streaming para testes e aulas ao vivo com qualidade profissional
-                </p>
+                <h1 className="text-lg font-semibold">Módulo de Streaming</h1>
+                <p className="text-xs text-muted-foreground">Gerencie salas de streaming e aulas ao vivo</p>
               </div>
             </div>
+            
             <Button 
               onClick={() => setCreateRoomDialog(true)} 
-              size="lg"
-              className="gap-2 px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              size="sm"
+              className="h-8"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="w-3 h-3 mr-1.5" />
               Nova Sala
             </Button>
-          </div>
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 w-64 h-64 opacity-20">
-            <div className="w-full h-full bg-gradient-to-bl from-primary/30 to-transparent rounded-full blur-3xl"></div>
           </div>
         </div>
 

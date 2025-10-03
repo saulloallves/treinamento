@@ -14,28 +14,32 @@ const CoursesPage = () => {
 
   return (
     <BaseLayout title="Gerenciar Cursos">
-      <div className="space-y-8">
-        {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-primary" />
+      <div className="space-y-6">
+        {/* Header Compacto */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background: 'var(--gradient-primary)'}}>
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold">Gestão de Cursos</h1>
+                <p className="text-xs text-muted-foreground">Gerencie os cursos de treinamento</p>
+              </div>
             </div>
-            <div>
-              <p className="description">Gerencie os cursos de treinamento do sistema</p>
-            </div>
+            
+            {/* Desktop Create Button */}
+            {!isMobile && (
+              <Button 
+                onClick={() => setCreateDialogOpen(true)}
+                size="sm"
+                className="h-8"
+              >
+                <Plus className="w-3 h-3 mr-1.5" />
+                Novo Curso
+              </Button>
+            )}
           </div>
-          
-          {/* Desktop Create Button */}
-          {!isMobile && (
-            <Button 
-              onClick={() => setCreateDialogOpen(true)}
-              className="h-11 px-6"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Novo Curso
-            </Button>
-          )}
         </div>
 
         <CoursesList onCreateCourse={() => setCreateDialogOpen(true)} />
