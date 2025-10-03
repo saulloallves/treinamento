@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Video, Users, Calendar, Clock, Play, Copy } from 'lucide-react';
+import { Plus, Video, Users, Calendar, Clock, Play, Copy, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -321,6 +321,24 @@ const StreamingModule = () => {
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
+
+                      <Button
+                        variant="outline"
+                        size="default"
+                        onClick={() => {
+                          const updatedRooms = rooms.filter(r => r.id !== room.id);
+                          setRooms(updatedRooms);
+                          localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+                          toast({
+                            title: "Sala excluída!",
+                            description: "A sala foi removida com sucesso"
+                          });
+                        }}
+                        title="Excluir sala"
+                        className="px-4 hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
 
                     {room.status === 'live' && (
@@ -339,53 +357,6 @@ const StreamingModule = () => {
             </div>
           )}
         </div>
-
-        {/* Features Info */}
-        <Card className="border-border/50 bg-gradient-to-br from-card to-muted/10 shadow-lg">
-          <CardHeader className="pb-6">
-            <div className="space-y-2">
-              <CardTitle className="text-2xl">Funcionalidades Disponíveis</CardTitle>
-              <CardDescription className="text-base">
-                Descubra todas as funcionalidades avançadas do nosso sistema de streaming
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="group text-center p-6 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-2xl border border-blue-500/20 hover:border-blue-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-blue-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-blue-500/20 transition-colors">
-                  <Video className="h-8 w-8 text-blue-600" />
-                </div>
-                <h4 className="font-semibold text-base mb-2">Vídeo HD</h4>
-                <p className="text-sm text-muted-foreground">Qualidade adaptável até 1080p</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-green-500/5 to-green-600/10 rounded-2xl border border-green-500/20 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-green-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-green-500/20 transition-colors">
-                  <Users className="h-8 w-8 text-green-600" />
-                </div>
-                <h4 className="font-semibold text-base mb-2">Múltiplos Usuários</h4>
-                <p className="text-sm text-muted-foreground">Participantes ilimitados</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-purple-500/5 to-purple-600/10 rounded-2xl border border-purple-500/20 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-purple-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-purple-500/20 transition-colors">
-                  <div className="h-8 w-8 flex items-center justify-center text-2xl">💬</div>
-                </div>
-                <h4 className="font-semibold text-base mb-2">Chat ao Vivo</h4>
-                <p className="text-sm text-muted-foreground">Mensagens em tempo real</p>
-              </div>
-              
-              <div className="group text-center p-6 bg-gradient-to-br from-orange-500/5 to-orange-600/10 rounded-2xl border border-orange-500/20 hover:border-orange-500/30 transition-all duration-300 hover:scale-105">
-                <div className="p-4 bg-orange-500/10 rounded-2xl w-fit mx-auto mb-4 group-hover:bg-orange-500/20 transition-colors">
-                  <div className="h-8 w-8 flex items-center justify-center text-2xl">📺</div>
-                </div>
-                <h4 className="font-semibold text-base mb-2">Compartilhar Tela</h4>
-                <p className="text-sm text-muted-foreground">Apresentações e demonstrações</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Create Room Dialog */}
