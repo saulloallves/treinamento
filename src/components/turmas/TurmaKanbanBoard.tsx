@@ -27,7 +27,7 @@ export const TurmaKanbanBoard = ({
   const [draggedTurma, setDraggedTurma] = useState<Turma | null>(null);
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [optimisticTurmas, setOptimisticTurmas] = useState<Turma[]>(turmas);
-  const { columns } = useKanbanColumns();
+  const { columns, loading } = useKanbanColumns();
   const updateTurma = useUpdateTurma();
   const { toast } = useToast();
 
@@ -113,6 +113,18 @@ const handleDrop = async (targetStatus: string) => {
   const gridCols = columns.length <= 3 ? 'md:grid-cols-3' : 
                    columns.length === 4 ? 'md:grid-cols-4' : 
                    'md:grid-cols-5';
+
+  // Show loading state while fetching column configuration
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando configuração...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="kanban-board space-y-6">
