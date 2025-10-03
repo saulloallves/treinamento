@@ -96,11 +96,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[360px]"
+      className="overflow-hidden flex flex-col group h-[280px]"
       variant="elevated"
     >
       {/* Compact Cover Area */}
-      <div className="relative h-20 shrink-0">
+      <div className="relative h-14 shrink-0">
         {course.cover_image_url ? (
           <img 
             src={course.cover_image_url} 
@@ -133,26 +133,26 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-3">
+      <CardContent className="flex-1 flex flex-col p-2.5">
         {/* Title */}
-        <div className="mb-2">
-          <h3 className="font-bold text-lg leading-tight line-clamp-2 text-foreground mb-1">
+        <div className="mb-1.5">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1">
             {course.name}
           </h3>
           
           {/* Themes - Compact */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-0.5">
             {course.theme.slice(0, 2).map((theme, index) => (
               <Badge 
                 key={index} 
                 variant="secondary" 
-                className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 text-muted-foreground"
+                className="text-[10px] px-1 py-0 h-auto bg-muted/50 text-muted-foreground"
               >
                 {theme}
               </Badge>
             ))}
             {course.theme.length > 2 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-auto bg-muted/50 text-muted-foreground">
+              <Badge variant="secondary" className="text-[10px] px-1 py-0 h-auto bg-muted/50 text-muted-foreground">
                 +{course.theme.length - 2}
               </Badge>
             )}
@@ -160,58 +160,55 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Course Info - More compact */}
-        <div className="space-y-2 flex-1">
-          <div className="flex items-center justify-between text-sm">
+        <div className="space-y-1 flex-1">
+          <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1 text-muted-foreground">
-              <BookOpen className="w-4 h-4 shrink-0" />
+              <BookOpen className="w-3 h-3 shrink-0" />
               <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
-            <span className="text-xs text-muted-foreground font-medium">
+            <span className="text-[10px] text-muted-foreground font-medium">
               {getCorrectPublicTargetLabel()}
             </span>
           </div>
 
           {course.instructor && (
-            <div className="text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground mb-1">
-                <Users className="w-4 h-4 shrink-0" />
-                <span>Instrutor:</span>
-              </div>
-              <div className="text-foreground font-medium truncate pl-5">{course.instructor}</div>
+            <div className="text-xs">
+              <span className="text-muted-foreground">Instrutor: </span>
+              <span className="text-foreground font-medium">{course.instructor}</span>
             </div>
           )}
 
           {/* Features & Status row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between text-[10px]">
+            <div className="flex items-center gap-2">
               {course.has_quiz && (
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-xs font-medium">Quiz</span>
+                <div className="flex items-center gap-0.5 text-muted-foreground">
+                  <FileText className="w-3 h-3" />
+                  <span className="font-medium">Quiz</span>
                 </div>
               )}
               {course.generates_certificate && (
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Award className="w-4 h-4" />
-                  <span className="text-xs font-medium">Certificado</span>
+                <div className="flex items-center gap-0.5 text-muted-foreground">
+                  <Award className="w-3 h-3" />
+                  <span className="font-medium">Certificado</span>
                 </div>
               )}
             </div>
             
             <div className="flex items-center gap-1">
-              <div className={`w-2 h-2 rounded-full ${
+              <div className={`w-1.5 h-1.5 rounded-full ${
                 course.status === 'Ativo' ? 'bg-green-500' : 
                 course.status === 'Inativo' ? 'bg-red-500' : 
                 'bg-yellow-500'
               }`} />
-              <span className="text-xs text-muted-foreground font-medium">{course.status}</span>
+              <span className="text-muted-foreground font-medium">{course.status}</span>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="pt-2 mt-auto">
-          <div className="space-y-2">
+        <div className="pt-1.5 mt-auto">
+          <div className="space-y-1">
             {/* Details button only for treinamentos (gravado) */}
             {course.tipo === 'gravado' && (
               <Button
@@ -224,9 +221,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                     onViewDetails(course);
                   }
                 }}
-                className="w-full h-8 font-medium"
+                className="w-full h-7 text-xs font-medium"
               >
-                <Eye className="w-4 h-4 mr-2" />
+                <Eye className="w-3 h-3 mr-1.5" />
                 Detalhes
               </Button>
             )}
@@ -237,19 +234,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-7 px-2"
+                className="h-6 px-2"
                 title="Editar"
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-3 h-3" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-7 px-2"
+                className="h-6 px-2"
                 title="Excluir"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3 h-3" />
               </Button>
             </div>
           </div>
