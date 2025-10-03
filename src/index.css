@@ -119,11 +119,11 @@ html, body, #root {
     --primary: 214 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 100% 97%;
+    --secondary: 214 20% 96%;
     --secondary-foreground: 0 0% 20%;
 
-    --muted: 214 100% 97%;
-    --muted-foreground: 0 0% 20%;
+    --muted: 220 13% 96%;
+    --muted-foreground: 0 0% 40%;
 
     --accent: 214 100% 50%;
     --accent-foreground: 0 0% 100%;
