@@ -385,10 +385,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     const menuItem = (
       <Link
         to={item.path}
-        onClick={() => {
+        onClick={(e) => {
+          // Prevent navigation if already on this route
+          if (isActive) {
+            e.preventDefault();
+            return;
+          }
           if (isMobile) setIsOpen(false);
         }}
-        className={`group relative flex items-center rounded-lg text-sm transition-all duration-200 hover:bg-slate-100/50 ${
+        className={`group relative flex items-center rounded-lg text-sm hover:bg-slate-100/50 ${
           isActive 
             ? "bg-blue-50 text-blue-700 shadow-sm" 
             : "text-slate-700 hover:text-slate-900"
@@ -406,7 +411,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         )}
         
         <div className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} flex items-center justify-center shrink-0`}>
-          <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} transition-colors`} />
+          <Icon className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'}`} />
         </div>
         {(!isCollapsed || isMobile) && (
           <span className="font-medium truncate">{item.name || item.label}</span>
@@ -440,7 +445,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         type="button"
         onClick={(event) => toggleGroup(item.id, event)}
         onMouseDown={(e) => e.preventDefault()} // Prevent focus issues
-        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-all duration-200 hover:bg-slate-100/50 focus:outline-none select-none ${
+        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100/50 focus:outline-none select-none ${
           hasActiveChild
             ? 'bg-slate-100/50 text-slate-900'
             : 'text-slate-700 hover:text-slate-900'
@@ -536,7 +541,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             onClick={() => {
               if (isMobile) setIsOpen(false);
             }}
-            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-200 hover:bg-slate-100/50 ${
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-slate-100/50 ${
               isActive 
                 ? "bg-blue-50 text-blue-700 shadow-sm" 
                 : "text-slate-700 hover:text-slate-900"
@@ -548,7 +553,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             )}
             
             <div className="w-5 h-5 shrink-0">
-              <Icon className="w-5 h-5 transition-colors" />
+              <Icon className="w-5 h-5" />
             </div>
             <span className="font-medium truncate">{item.label}</span>
           </Link>
