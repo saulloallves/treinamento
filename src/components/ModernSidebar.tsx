@@ -645,7 +645,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     <TooltipProvider>
       <div 
         ref={sidebarRef}
-        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm transition-all duration-300`}
+        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm`}
       >
         {/* Header da sidebar */}
         <div className="p-6 border-b border-slate-200/60 relative">
