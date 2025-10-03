@@ -69,7 +69,7 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
         <ModernSidebar showInMobile={shouldShowSidebar} />
       )}
       
-      <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${
+      <div className={`flex-1 min-w-0 flex flex-col ${
         !isMobile && shouldShowSidebar
           ? sidebarCollapsed 
             ? 'ml-16' 
