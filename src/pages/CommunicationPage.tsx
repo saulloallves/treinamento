@@ -45,8 +45,8 @@ const CommunicationPage = () => {
                 <span className="text-xs text-muted-foreground">aulas</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-semibold text-green-600">{activeDispatches}</span>
+                <Sparkles className="h-4 w-4 text-success" />
+                <span className="text-sm font-semibold text-success">{activeDispatches}</span>
                 <span className="text-xs text-muted-foreground">ativos</span>
               </div>
             </div>

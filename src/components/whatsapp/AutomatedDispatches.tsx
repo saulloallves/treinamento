@@ -142,8 +142,8 @@ const AutomatedDispatches = () => {
       {/* Seção de Mensagens Padrão */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-xl shadow-clean">
-            <MessageSquare className="h-5 w-5 text-primary-foreground" />
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+            <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground">Configurar Mensagens Padrão</h2>
@@ -155,10 +155,10 @@ const AutomatedDispatches = () => {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Card Mensagem 2 horas */}
-          <Card className="border shadow-clean">
+          <Card className="border">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg">
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
                   <Clock className="h-4 w-4 text-primary" />
                 </div>
                 <div>
@@ -180,14 +180,14 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="bg-secondary/50 border rounded-lg p-3">
+              <div className="bg-muted/50 border rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground">
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
+                    <p><code className="bg-background px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-background px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-background px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
@@ -195,10 +195,10 @@ const AutomatedDispatches = () => {
           </Card>
 
           {/* Card Mensagem 30 minutos */}
-          <Card className="border shadow-clean">
+          <Card className="border">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-secondary rounded-lg">
+                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
                   <Zap className="h-4 w-4 text-primary" />
                 </div>
                 <div>
@@ -220,14 +220,14 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="bg-secondary/50 border rounded-lg p-3">
+              <div className="bg-muted/50 border rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground">
                     <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-secondary px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
+                    <p><code className="bg-background px-1 rounded">{'{titulo}'}</code> - Nome da aula</p>
+                    <p><code className="bg-background px-1 rounded">{'{link}'}</code> - Link do Zoom</p>
+                    <p><code className="bg-background px-1 rounded">{'{horario}'}</code> - Horário da aula</p>
                   </div>
                 </div>
               </div>
@@ -237,11 +237,11 @@ const AutomatedDispatches = () => {
       </div>
 
       {/* Seção de Aulas */}
-      <Card className="border shadow-clean">
+      <Card className="border">
         <CardHeader className="bg-muted/30 border-b">
           <CardTitle className="flex items-center gap-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary rounded-xl shadow-clean">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
               <span className="text-xl">Gerenciar Aulas</span>
@@ -269,10 +269,10 @@ const AutomatedDispatches = () => {
 
         {totalItems === 0 ? (
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mb-6">
-              <AlertCircle className="h-10 w-10 text-gray-400" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-6">
+              <AlertCircle className="h-10 w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               {searchTerm || selectedCourse ? 'Nenhuma aula encontrada' : 'Nenhuma aula agendada'}
             </h3>
             <p className="text-muted-foreground max-w-md mx-auto">
