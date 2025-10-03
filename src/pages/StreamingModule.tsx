@@ -326,12 +326,20 @@ const StreamingModule = () => {
                         variant="outline"
                         size="default"
                         onClick={() => {
+                          // Remove room from state
                           const updatedRooms = rooms.filter(r => r.id !== room.id);
                           setRooms(updatedRooms);
-                          localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+                          
+                          // Update localStorage with the filtered rooms
+                          if (updatedRooms.length === 0) {
+                            localStorage.removeItem('streamingRooms');
+                          } else {
+                            localStorage.setItem('streamingRooms', JSON.stringify(updatedRooms));
+                          }
+                          
                           toast({
                             title: "Sala excluída!",
-                            description: "A sala foi removida com sucesso"
+                            description: `A sala "${room.name}" foi removida permanentemente`
                           });
                         }}
                         title="Excluir sala"
