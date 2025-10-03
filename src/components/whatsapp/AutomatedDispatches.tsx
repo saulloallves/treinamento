@@ -180,15 +180,9 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="border-t pt-3 mt-1">
-                <div className="flex items-start gap-2">
-                  <Info className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-muted-foreground/70">
-                    <p className="font-normal mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{horario}'}</code> - Horário da aula</p>
-                  </div>
+              <div className="border-t pt-2 mt-1">
+                <div className="text-[10px] text-muted-foreground/50 space-y-0.5">
+                  <p className="mb-1">Variáveis: <code className="bg-muted/30 px-1 rounded">{'{titulo}'}</code> <code className="bg-muted/30 px-1 rounded">{'{link}'}</code> <code className="bg-muted/30 px-1 rounded">{'{horario}'}</code></p>
                 </div>
               </div>
             </CardContent>
@@ -220,15 +214,9 @@ const AutomatedDispatches = () => {
                 className="min-h-[80px]"
                 rows={3}
               />
-              <div className="border-t pt-3 mt-1">
-                <div className="flex items-start gap-2">
-                  <Info className="h-3.5 w-3.5 text-muted-foreground/60 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-muted-foreground/70">
-                    <p className="font-normal mb-1">Variáveis disponíveis:</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{titulo}'}</code> - Nome da aula</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{link}'}</code> - Link do Zoom</p>
-                    <p><code className="bg-muted/50 px-1 py-0.5 rounded text-[11px]">{'{horario}'}</code> - Horário da aula</p>
-                  </div>
+              <div className="border-t pt-2 mt-1">
+                <div className="text-[10px] text-muted-foreground/50 space-y-0.5">
+                  <p className="mb-1">Variáveis: <code className="bg-muted/30 px-1 rounded">{'{titulo}'}</code> <code className="bg-muted/30 px-1 rounded">{'{link}'}</code> <code className="bg-muted/30 px-1 rounded">{'{horario}'}</code></p>
                 </div>
               </div>
             </CardContent>
