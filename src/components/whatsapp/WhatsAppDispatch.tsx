@@ -168,13 +168,13 @@ const WhatsAppDispatch = () => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'enviado':
-        return 'bg-green-100 text-green-700';
+        return 'bg-success/10 text-success border-success/20';
       case 'pendente':
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'erro':
-        return 'bg-red-100 text-red-700';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -516,7 +516,7 @@ const WhatsAppDispatch = () => {
                           
                           {/* Estatísticas em grid mobile-first */}
                           <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="bg-primary/5 p-3 rounded-lg text-center">
+                            <div className="bg-primary/10 p-3 rounded-lg text-center border border-primary/20">
                               <div className="flex items-center justify-center mb-1">
                                 <Users className="w-4 h-4 text-primary" />
                               </div>
@@ -526,24 +526,24 @@ const WhatsAppDispatch = () => {
                               <div className="text-xs text-muted-foreground font-medium">Total</div>
                             </div>
                             
-                            <div className="bg-green-50 p-3 rounded-lg text-center">
+                            <div className="bg-success/10 p-3 rounded-lg text-center border border-success/20">
                               <div className="flex items-center justify-center mb-1">
-                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                <CheckCircle className="w-4 h-4 text-success" />
                               </div>
-                              <div className="text-lg font-bold text-green-700">
+                              <div className="text-lg font-bold text-success">
                                 {dispatch.delivered_count}
                               </div>
-                              <div className="text-xs text-green-600 font-medium">Entregues</div>
+                              <div className="text-xs text-success/80 font-medium">Entregues</div>
                             </div>
                             
-                            <div className="bg-red-50 p-3 rounded-lg text-center">
+                            <div className="bg-destructive/10 p-3 rounded-lg text-center border border-destructive/20">
                               <div className="flex items-center justify-center mb-1">
-                                <XCircle className="w-4 h-4 text-red-600" />
+                                <XCircle className="w-4 h-4 text-destructive" />
                               </div>
-                              <div className="text-lg font-bold text-red-700">
+                              <div className="text-lg font-bold text-destructive">
                                 {dispatch.failed_count}
                               </div>
-                              <div className="text-xs text-red-600 font-medium">Falhas</div>
+                              <div className="text-xs text-destructive/80 font-medium">Falhas</div>
                             </div>
                           </div>
                           
@@ -555,9 +555,9 @@ const WhatsAppDispatch = () => {
                                 {getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%
                               </span>
                             </div>
-                            <div className="w-full bg-secondary rounded-full h-3 shadow-inner">
+                            <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                               <div 
-                                className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500 shadow-sm"
+                                className="bg-success h-3 rounded-full transition-all duration-500"
                                 style={{ 
                                   width: `${getDeliveryRate(dispatch.delivered_count, dispatch.recipients_count)}%` 
                                 }}
