@@ -1,5 +1,5 @@
 import { Calendar, Users, BookOpen, ArrowRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Turma } from "@/hooks/useTurmas";
@@ -16,100 +16,93 @@ interface TurmaQuizCardProps {
 }
 
 const TurmaQuizCard = ({ turma, onManageQuizzes }: TurmaQuizCardProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'agendada': return 'bg-blue-500';
-      case 'inscricoes_abertas': return 'bg-green-500';
-      case 'inscricoes_encerradas': return 'bg-yellow-500';
-      case 'em_andamento': return 'bg-blue-500';
-      case 'encerrada': return 'bg-gray-500';
-      case 'cancelada': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      agendada: { label: "Agendada", variant: "secondary" as const },
+      inscricoes_abertas: { label: "Inscrições Abertas", variant: "default" as const },
+      inscricoes_encerradas: { label: "Inscrições Encerradas", variant: "outline" as const },
+      em_andamento: { label: "Em Andamento", variant: "default" as const },
+      encerrada: { label: "Encerrada", variant: "outline" as const },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.agendada;
+    return <Badge variant={config.variant} className="text-xs">{config.label}</Badge>;
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'agendada': return 'Agendada';
-      case 'inscricoes_abertas': return 'Inscrições Abertas';
-      case 'inscricoes_encerradas': return 'Inscrições Encerradas';
-      case 'em_andamento': return 'Em Andamento';
-      case 'encerrada': return 'Encerrada';
-      case 'cancelada': return 'Cancelada';
-      default: return status;
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
-    <Card className="h-full flex flex-col group relative overflow-hidden transition-all duration-300 hover:shadow-lg border border-border/50 hover:border-primary/20 bg-card">
-      {/* Status indicator */}
-      <div className={`h-1 ${getStatusColor(turma.status)}`}></div>
-
-      <CardContent className="p-6 flex flex-col flex-1">
-        {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
-              {turma.name || `Turma ${turma.code}` || "Turma"}
-            </h3>
-            <Badge variant="secondary" className="text-xs shrink-0">
-              {getStatusText(turma.status)}
-            </Badge>
-          </div>
-          {turma.course && (
+    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-border/50 hover:border-primary/30 flex flex-col h-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 flex-1 min-w-0">
+            <CardTitle className="text-base line-clamp-2 group-hover:text-primary transition-colors">
+              {turma.name || `Turma ${turma.code}`}
+            </CardTitle>
             <p className="text-sm text-muted-foreground line-clamp-1">
-              {turma.course.name}
+              {turma.course?.name || 'Curso não definido'}
             </p>
+          </div>
+          <div className="shrink-0">
+            {getStatusBadge(turma.status)}
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="flex flex-col gap-4 flex-1">
+        {/* Estatísticas dos quizzes */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-500" />
+              <span className="text-xs text-muted-foreground">Inscritos</span>
+            </div>
+            <p className="text-lg font-semibold text-foreground">
+              {turma.enrollments_count || 0}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-green-500" />
+              <span className="text-xs text-muted-foreground">Quizzes</span>
+            </div>
+            <p className="text-lg font-semibold text-foreground">
+              {turma.quizCount || 0}
+            </p>
+          </div>
+        </div>
+
+        {/* Informações da turma */}
+        <div className="space-y-2 text-sm min-h-[3rem]">
+          {turma.responsavel_user?.name && (
+            <div className="flex items-start gap-2 text-muted-foreground">
+              <span className="font-medium shrink-0">Responsável:</span>
+              <span className="line-clamp-1">{turma.responsavel_user.name}</span>
+            </div>
+          )}
+          
+          {turma.start_at && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="w-4 h-4 shrink-0" />
+              <span>Início: {formatDate(turma.start_at)}</span>
+            </div>
           )}
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3 mb-4 flex-1">
-          <div className="text-center">
-            <div className="w-8 h-8 mx-auto mb-1 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4 text-primary" />
-            </div>
-            <div className="text-lg font-bold text-foreground">{turma.enrollments_count || 0}</div>
-            <div className="text-xs text-muted-foreground">inscritos</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="w-8 h-8 mx-auto mb-1 bg-secondary/10 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-secondary-foreground" />
-            </div>
-            <div className="text-lg font-bold text-foreground">{turma.quizCount || 0}</div>
-            <div className="text-xs text-muted-foreground">quizzes</div>
-          </div>
-
-          <div className="text-center">
-            <div className="w-8 h-8 mx-auto mb-1 bg-accent/10 rounded-lg flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-accent-foreground" />
-            </div>
-            <div className="text-sm font-medium text-foreground">
-              {turma.start_at ? new Date(turma.start_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--'}
-            </div>
-            <div className="text-xs text-muted-foreground">início</div>
-          </div>
-        </div>
-
-        {/* Responsável */}
-        {turma.responsavel_user && (
-          <div className="mb-4 p-2 bg-muted/30 rounded-md">
-            <p className="text-xs text-muted-foreground truncate">
-              <span className="font-medium">Responsável:</span> {turma.responsavel_user.name}
-            </p>
-          </div>
-        )}
-
-        {/* Action Button */}
-        <Button
+        {/* Botão de ação */}
+        <Button 
+          variant="outline" 
+          className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors mt-auto"
           onClick={() => onManageQuizzes(turma)}
-          className="w-full mt-auto"
-          size="sm"
         >
-          <BookOpen className="w-4 h-4 mr-2" />
-          Gerenciar Quizzes
-          <ArrowRight className="w-4 h-4 ml-1" />
+          <span>Gerenciar Quizzes</span>
+          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
         </Button>
       </CardContent>
     </Card>
