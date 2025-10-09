@@ -79,3 +79,12 @@ verify_jwt = false
 
 [functions.remove-collaborator-from-group]
 verify_jwt = false
+
+[functions.migrate-all-users]
+verify_jwt = false
+
+[functions.admin-send-recovery-emails]
+verify_jwt = false
+
+[functions.admin-import-users]
+verify_jwt = false

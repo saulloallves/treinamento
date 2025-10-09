@@ -71,6 +71,15 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				
+				// Brand colors
+				'brand': {
+					'blue': 'hsl(var(--brand-blue))',
+					'blue-light': 'hsl(var(--brand-blue-light))',
+					'black': 'hsl(var(--brand-black))',
+					'gray-dark': 'hsl(var(--brand-gray-dark))',
+					'white': 'hsl(var(--brand-white))',
+				},
+				
 				// Status colors
 				'status': {
 					'active': 'hsl(var(--status-active))',

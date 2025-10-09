@@ -20,7 +20,7 @@ export const useStudentProfile = (studentId: string | undefined, enabled: boolea
         const { data: unidade } = await supabase
           .from('unidades')
           .select('grupo')
-          .eq('codigo_grupo', user.unit_code)
+          .eq('codigo_grupo', parseInt(user.unit_code))
           .maybeSingle();
         
         if (unidade) {
