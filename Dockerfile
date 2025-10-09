@@ -1,19 +1,37 @@
-# Etapa 1: build da aplicação
-FROM node:18-alpine AS build
+# Estágio 1: Build da aplicação React
+# Usamos uma imagem Node.js para instalar dependências e construir o projeto.
+FROM node:20-alpine AS build
 
+# Define o diretório de trabalho dentro do container
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Copia os arquivos de manifesto de pacotes
+COPY package.json ./
+COPY bun.lockb ./
 
-COPY . ./
-RUN npm run build
+# Instala as dependências
+RUN bun install --frozen-lockfile
 
-# Etapa 2: Servir arquivos estáticos com nginx
+# Copia todo o código-fonte da aplicação
+COPY . .
+
+# Executa o build de produção, gerando a pasta 'dist'
+RUN bun run build
+
+# Estágio 2: Servidor de produção com Nginx
+# Usamos uma imagem Nginx leve para servir os arquivos estáticos.
 FROM nginx:stable-alpine
 
+# Copia a configuração customizada do Nginx para dentro do container.
+# Isso substitui a configuração padrão e adiciona a regra para SPAs (try_files).
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Copia os arquivos estáticos da pasta 'dist' (gerada no estágio de build)
+# para o diretório padrão do Nginx.
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Expõe a porta 80, que é a porta padrão do Nginx.
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# O comando padrão da imagem Nginx ('nginx -g "daemon off;"') será executado
+# para iniciar o servidor quando o container for iniciado.
