@@ -1,6 +1,5 @@
 import BaseLayout from "@/components/BaseLayout";
 import UnidadesList from "@/components/units/UnidadesList";
-import FranchiseeImporter from "@/components/units/FranchiseeImporter";
 import { Building2 } from "lucide-react";
 
 const UnitsPage = () => {
@@ -19,8 +18,6 @@ const UnitsPage = () => {
             </div>
           </div>
         </div>
-
-        <FranchiseeImporter />
 
         <UnidadesList />
       </div>
