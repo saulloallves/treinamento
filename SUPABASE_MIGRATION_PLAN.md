@@ -10,9 +10,99 @@ Este documento detalha o plano completo de migração do sistema de treinamentos
 
 ---
 
-## FASE 1: Preparação e Backup
+## FASE 1: Preparação e Foreign Data Wrapper (FDW)
 
-### 1.1 Backup Completo
+### 1.1 Configurar Foreign Data Wrapper (FDW)
+
+O FDW permite acessar o banco de origem diretamente do banco de destino via SQL, facilitando a migração e validação de dados.
+
+```sql
+-- 1. Criar extensão postgres_fdw no projeto DESTINO
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+
+-- 2. Criar servidor remoto apontando para o projeto ORIGEM
+CREATE SERVER src_branch_fdw
+  FOREIGN DATA WRAPPER postgres_fdw
+  OPTIONS (
+    host 'db.tctkacgbhqvkqovctrzf.supabase.co',
+    port '5432',
+    dbname 'postgres'
+  );
+
+-- 3. Criar mapeamento de usuário (usar service_role_key do projeto ORIGEM)
+CREATE USER MAPPING FOR postgres
+  SERVER src_branch_fdw
+  OPTIONS (
+    user 'postgres',
+    password 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdGthY2diaHF2a3FvdmN0cnpmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQ5MTE2MywiZXhwIjoyMDcwMDY3MTYzfQ.Qt8Lh0-OYqREb8ZqvZoaNLgMI30V_jEm30CkZq5pG8M'
+  );
+
+-- 4. Criar schemas para tabelas remotas
+CREATE SCHEMA IF NOT EXISTS remote_data;
+CREATE SCHEMA IF NOT EXISTS storage_remote;
+
+-- 5. Importar schema auth (apenas tabela users)
+IMPORT FOREIGN SCHEMA auth
+  LIMIT TO (users)
+  FROM SERVER src_branch_fdw
+  INTO remote_data;
+
+-- 6. Importar schema public (todas as tabelas)
+IMPORT FOREIGN SCHEMA public
+  FROM SERVER src_branch_fdw
+  INTO remote_data;
+
+-- 7. Importar schema storage (buckets, objects, migrations)
+IMPORT FOREIGN SCHEMA storage
+  LIMIT TO (buckets, objects, migrations)
+  FROM SERVER src_branch_fdw
+  INTO storage_remote;
+```
+
+### 1.2 Verificar Conexão FDW
+
+```sql
+-- Verificar tabelas importadas do remote_data
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'remote_data' 
+ORDER BY table_name;
+
+-- Contar registros em tabelas importantes
+SELECT 
+  'admin_users' as tabela, COUNT(*) as total FROM remote_data.admin_users
+UNION ALL
+SELECT 'users', COUNT(*) FROM remote_data.users
+UNION ALL
+SELECT 'courses', COUNT(*) FROM remote_data.courses
+UNION ALL
+SELECT 'turmas', COUNT(*) FROM remote_data.turmas
+UNION ALL
+SELECT 'enrollments', COUNT(*) FROM remote_data.enrollments
+UNION ALL
+SELECT 'lessons', COUNT(*) FROM remote_data.lessons
+UNION ALL
+SELECT 'attendance', COUNT(*) FROM remote_data.attendance
+UNION ALL
+SELECT 'quiz', COUNT(*) FROM remote_data.quiz
+UNION ALL
+SELECT 'tests', COUNT(*) FROM remote_data.tests;
+
+-- Verificar storage buckets
+SELECT 
+  rb.id AS bucket_id,
+  rb.name AS bucket_name,
+  COALESCE(o_origem.cnt, 0) AS objetos_origem
+FROM storage_remote.buckets rb
+LEFT JOIN (
+  SELECT bucket_id, COUNT(*) AS cnt
+  FROM storage_remote.objects
+  GROUP BY bucket_id
+) o_origem ON o_origem.bucket_id = rb.id
+ORDER BY rb.id;
+```
+
+### 1.3 Backup Completo (Redundância)
 ```bash
 # Backup do banco de dados
 pg_dump -h aws-0-sa-east-1.pooler.supabase.com \
@@ -35,7 +125,7 @@ pg_dump -h aws-0-sa-east-1.pooler.supabase.com \
   -f backup_critical_tables_$(date +%Y%m%d_%H%M%S).dump
 ```
 
-### 1.2 Documentação do Estado Atual
+### 1.4 Documentação do Estado Atual
 - [ ] Listar todas as tabelas e suas dependências
 - [ ] Documentar todas as functions existentes
 - [ ] Documentar todos os triggers ativos
@@ -43,7 +133,46 @@ pg_dump -h aws-0-sa-east-1.pooler.supabase.com \
 - [ ] Documentar Edge Functions e seus secrets
 - [ ] Mapear todos os storage buckets e suas políticas
 
-### 1.3 Inventário de Recursos
+### 1.5 Inventário de Recursos via FDW
+
+⚠️ **IMPORTANTE**: Todas as queries abaixo devem ser executadas no projeto DESTINO usando o schema remote_data.
+
+```sql
+-- Listar todas as tabelas remotas
+SELECT table_name 
+FROM information_schema.foreign_tables 
+WHERE foreign_table_schema = 'remote_data' 
+ORDER BY table_name;
+
+-- Contar registros em cada tabela remota
+DO $$
+DECLARE
+  r RECORD;
+  v_count BIGINT;
+BEGIN
+  FOR r IN 
+    SELECT table_name 
+    FROM information_schema.foreign_tables 
+    WHERE foreign_table_schema = 'remote_data'
+    ORDER BY table_name
+  LOOP
+    EXECUTE format('SELECT COUNT(*) FROM remote_data.%I', r.table_name) INTO v_count;
+    RAISE NOTICE 'Tabela: % | Registros: %', r.table_name, v_count;
+  END LOOP;
+END$$;
+
+-- Listar auth.users remotos
+SELECT 
+  id, 
+  email, 
+  created_at,
+  last_sign_in_at,
+  (raw_user_meta_data->>'user_type') as user_type,
+  (raw_user_meta_data->>'role') as role
+FROM remote_data.users
+ORDER BY created_at DESC
+LIMIT 10;
+```
 ```sql
 -- Listar todas as tabelas
 SELECT schemaname, tablename 
@@ -1433,21 +1562,179 @@ CREATE POLICY "Admins can manage unidades"
 
 ---
 
-## FASE 7: Storage Buckets
+## FASE 7: Storage Buckets e Migração via FDW
 
-### 7.1 Criar Buckets
+### 7.1 Criar e Migrar Buckets via FDW
+
 ```sql
--- Criar buckets no Supabase Dashboard ou via SQL
-INSERT INTO storage.buckets (id, name, public)
-VALUES 
-  ('course-videos', 'course-videos', true),
-  ('course-covers', 'course-covers', true),
-  ('test-images', 'test-images', true),
-  ('certificates', 'certificates', false),
-  ('user-avatars', 'user-avatars', true);
+-- IMPORTANTE: Preserve o id (bucket_id), pois storage.objects referencia por id
+INSERT INTO storage.buckets (
+  id, name, public, avif_autodetection, file_size_limit, 
+  allowed_mime_types, owner, created_at, updated_at, owner_id
+)
+SELECT 
+  rb.id, rb.name, rb.public, rb.avif_autodetection, rb.file_size_limit,
+  rb.allowed_mime_types, rb.owner, rb.created_at, rb.updated_at, rb.owner_id
+FROM storage_remote.buckets rb
+ON CONFLICT (id) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  avif_autodetection = EXCLUDED.avif_autodetection,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types,
+  owner = EXCLUDED.owner,
+  updated_at = EXCLUDED.updated_at,
+  owner_id = EXCLUDED.owner_id;
+
+-- Verificar buckets migrados
+SELECT id, name, public, file_size_limit FROM storage.buckets;
 ```
 
-### 7.2 Policies de Storage
+### 7.2 Migrar Metadados dos Objects via FDW
+
+```sql
+-- Migrar metadados dos objetos (os arquivos físicos devem ser copiados separadamente)
+INSERT INTO storage.objects (
+  id, bucket_id, name, owner, created_at, updated_at, last_accessed_at,
+  metadata, user_metadata, version, owner_id, level
+)
+SELECT
+  ro.id, ro.bucket_id, ro.name, ro.owner, ro.created_at, ro.updated_at, ro.last_accessed_at,
+  ro.metadata, ro.user_metadata, ro.version, ro.owner_id, ro.level
+FROM storage_remote.objects ro
+ON CONFLICT (id) DO UPDATE
+SET
+  bucket_id = EXCLUDED.bucket_id,
+  name = EXCLUDED.name,
+  owner = EXCLUDED.owner,
+  updated_at = EXCLUDED.updated_at,
+  last_accessed_at = EXCLUDED.last_accessed_at,
+  metadata = EXCLUDED.metadata,
+  user_metadata = EXCLUDED.user_metadata,
+  version = EXCLUDED.version,
+  owner_id = EXCLUDED.owner_id,
+  level = EXCLUDED.level;
+```
+
+### 7.3 Verificar Migração de Storage
+
+```sql
+-- Verificar contagem de buckets e objetos
+SELECT 
+  rb.id AS bucket_id,
+  rb.name AS bucket_name,
+  COALESCE(o_origem.cnt, 0) AS objetos_origem,
+  COALESCE(o_dest.cnt, 0) AS objetos_destino,
+  CASE 
+    WHEN COALESCE(o_origem.cnt, 0) = COALESCE(o_dest.cnt, 0) THEN '✅ OK'
+    ELSE '❌ DIVERGENTE'
+  END AS status
+FROM storage_remote.buckets rb
+LEFT JOIN (
+  SELECT bucket_id, COUNT(*) AS cnt
+  FROM storage_remote.objects
+  GROUP BY bucket_id
+) o_origem ON o_origem.bucket_id = rb.id
+LEFT JOIN (
+  SELECT bucket_id, COUNT(*) AS cnt
+  FROM storage.objects
+  GROUP BY bucket_id
+) o_dest ON o_dest.bucket_id = rb.id
+ORDER BY rb.id;
+```
+
+### 7.4 Copiar Arquivos Físicos
+
+⚠️ **ATENÇÃO**: A cópia física dos arquivos não pode ser feita via SQL/FDW.
+
+**Opções para copiar arquivos físicos:**
+
+1. **Via CLI Supabase** (recomendado para volumes grandes)
+2. **Via Script TypeScript** (usando SDK do Supabase - ver seção 7.5)
+3. **Manualmente via Dashboard** (apenas para testes pequenos)
+
+### 7.5 Script para Copiar Arquivos de Storage (TypeScript)
+
+```typescript
+// migrate-storage-files.ts
+import { createClient } from '@supabase/supabase-js'
+
+const ORIGEM_URL = 'https://tctkacgbhqvkqovctrzf.supabase.co'
+const ORIGEM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdGthY2diaHF2a3FvdmN0cnpmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQ5MTE2MywiZXhwIjoyMDcwMDY3MTYzfQ.Qt8Lh0-OYqREb8ZqvZoaNLgMI30V_jEm30CkZq5pG8M'
+
+const DESTINO_URL = 'https://NEW_PROJECT_ID.supabase.co'
+const DESTINO_KEY = 'YOUR_NEW_SERVICE_ROLE_KEY'
+
+const supabaseOrigem = createClient(ORIGEM_URL, ORIGEM_KEY)
+const supabaseDestino = createClient(DESTINO_URL, DESTINO_KEY)
+
+async function copyStorageFiles(bucketName: string) {
+  console.log(`🔄 Iniciando cópia de arquivos do bucket: ${bucketName}`)
+  
+  // Listar todos os arquivos do bucket de origem
+  const { data: files, error } = await supabaseOrigem
+    .storage
+    .from(bucketName)
+    .list('', { limit: 1000, sortBy: { column: 'name', order: 'asc' } })
+
+  if (error) {
+    console.error(`❌ Erro ao listar arquivos: ${error.message}`)
+    return
+  }
+
+  console.log(`📋 Encontrados ${files.length} arquivos`)
+
+  for (const file of files) {
+    try {
+      // Download do arquivo de origem
+      const { data: fileData, error: downloadError } = await supabaseOrigem
+        .storage
+        .from(bucketName)
+        .download(file.name)
+
+      if (downloadError) {
+        console.error(`❌ Erro ao baixar ${file.name}: ${downloadError.message}`)
+        continue
+      }
+
+      // Upload para destino
+      const { error: uploadError } = await supabaseDestino
+        .storage
+        .from(bucketName)
+        .upload(file.name, fileData, {
+          contentType: file.metadata?.mimetype,
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error(`❌ Erro ao fazer upload de ${file.name}: ${uploadError.message}`)
+      } else {
+        console.log(`✅ Arquivo copiado: ${file.name}`)
+      }
+    } catch (err) {
+      console.error(`❌ Erro ao processar ${file.name}:`, err)
+    }
+  }
+
+  console.log(`✅ Cópia concluída para o bucket: ${bucketName}`)
+}
+
+// Executar para todos os buckets
+async function main() {
+  const buckets = ['course-videos', 'course-covers', 'test-images']
+  
+  for (const bucket of buckets) {
+    await copyStorageFiles(bucket)
+  }
+  
+  console.log('🎉 Migração de storage concluída!')
+}
+
+main()
+```
+
+### 7.6 Policies de Storage
 ```sql
 -- course-videos: Admins e professores podem fazer upload
 CREATE POLICY "Admins and professors can upload course videos"
@@ -1638,37 +1925,63 @@ Deno.serve(async (req) => {
 
 ---
 
-## FASE 9: Migração de Dados
+## FASE 9: Migração de Dados via FDW
 
-### 9.1 Ordem de Migração (Respeitando Dependências)
+### 9.1 Estratégia de Migração
+
+Usar o Foreign Data Wrapper (FDW) configurado na Fase 1 para migrar dados diretamente via SQL, garantindo integridade referencial e preservação de IDs.
+
+### 9.2 Ordem de Migração (Respeitando Dependências)
+
+**Grupos de migração:**
+
+**Grupo 1 - Tabelas Base (sem dependências externas):**
 1. `unidades`
-2. `auth.users` (via Supabase Admin API)
-3. `users`
-4. `admin_users`
-5. `job_positions`
-6. `courses`
-7. `course_position_access`
-8. `turmas`
-9. `lessons`
-10. `enrollments`
-11. `attendance`
-12. `quizzes`
-13. `quiz_questions`
-14. `quiz_options`
-15. `quiz_attempts`
-16. `quiz_responses`
-17. `tests` (e tabelas relacionadas)
-18. `certificates`
-19. `professor_permissions`
-20. `professor_turma_permissions`
-21. `collaboration_approvals`
-22. `transformation_kanban`
-23. `live_sessions`
-24. `live_participants`
-25. `whatsapp_dispatches`
-26. `system_settings`
+2. `job_positions`
+3. `system_settings`
 
-### 9.2 Script de Migração de Usuários do Auth
+**Grupo 2 - Auth e Usuários:**
+4. `auth.users` (via script TypeScript - ver seção 9.3)
+5. `users` (vinculado a auth.users)
+6. `admin_users`
+
+**Grupo 3 - Cursos:**
+7. `courses`
+8. `course_position_access`
+9. `modules`
+
+**Grupo 4 - Turmas e Aulas:**
+10. `turmas`
+11. `lessons`
+12. `lesson_sessions`
+13. `recorded_lessons`
+
+**Grupo 5 - Inscrições e Progresso:**
+14. `enrollments`
+15. `attendance`
+16. `student_progress`
+
+**Grupo 6 - Avaliações:**
+17. `quiz`
+18. `quiz_responses`
+19. `tests`
+20. `test_questions`
+21. `test_question_options`
+22. `test_responses`
+23. `test_submissions`
+
+**Grupo 7 - Demais tabelas:**
+24. `certificates`
+25. `professor_permissions`
+26. `professor_turma_permissions`
+27. `collaboration_approvals`
+28. `transformation_kanban`
+29. `kanban_columns`
+30. `live_participants`
+31. `automated_lesson_dispatches`
+32. `password_sync_queue`
+
+### 9.3 Script de Migração de Usuários do Auth (TypeScript)
 ```typescript
 // migrate-auth-users.ts
 import { createClient } from '@supabase/supabase-js'

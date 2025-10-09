@@ -41,98 +41,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [lastAuthBlocked, setLastAuthBlocked] = useState<string | null>(null);
   const [suppressAuthEvents, setSuppressAuthEvents] = useState(false);
 
-  useEffect(() => {
-    console.log('Auth - Setting up listeners');
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth - State change:', { event, hasSession: !!session, hasUser: !!session?.user });
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Defer DB work to avoid deadlocks
-        if (session?.user) {
-          setTimeout(() => {
-            (async () => {
-              try {
-                console.log('Auth - Ensuring profile for user:', session.user!.id);
-                await ensureProfile(session.user!);
-                await supabase.rpc('ensure_admin_bootstrap');
-              } catch (e) {
-                console.error('Auth - Error in deferred work:', e);
-              }
-            })();
-          }, 0);
-        }
-      }
-    );
-
-    // Check for existing session
-    console.log('Auth - Checking existing session');
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Auth - Existing session:', { hasSession: !!session, hasUser: !!session?.user });
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      if (session?.user) {
-        setTimeout(() => {
-          (async () => {
-            try {
-              console.log('Auth - Ensuring profile for existing user:', session.user!.id);
-              await ensureProfile(session.user!);
-              await supabase.rpc('ensure_admin_bootstrap');
-            } catch (e) {
-              console.error('Auth - Error in existing session work:', e);
-            }
-          })();
-        }, 0);
-      }
-    });
-
-    return () => {
-      console.log('Auth - Cleaning up subscription');
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Extra resilience: try to rehydrate session on tab focus/visibility (helps after network blips)
-  useEffect(() => {
-    const hasToken = () => {
-      try {
-        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
-      } catch {
-        return false;
-      }
-    };
-
-    const rehydrate = () => {
-      if (!hasToken()) return;
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }).catch(() => {});
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        rehydrate();
-      }
-    };
-
-    const onFocus = () => {
-      rehydrate();
-    };
-
-    window.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('focus', onFocus);
-
-    return () => {
-      window.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('focus', onFocus);
-    };
-  }, []);
-
   // Ensure a row exists in public.users for this auth user
   const ensureProfile = async (authUser: User) => {
     try {
@@ -288,6 +196,98 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.warn('ensureProfile failed:', e);
     }
   };
+
+  useEffect(() => {
+    console.log('Auth - Setting up listeners');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth - State change:', { event, hasSession: !!session, hasUser: !!session?.user });
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+
+        // Defer DB work to avoid deadlocks
+        if (session?.user) {
+          setTimeout(() => {
+            (async () => {
+              try {
+                console.log('Auth - Ensuring profile for user:', session.user!.id);
+                await ensureProfile(session.user!);
+                await supabase.rpc('ensure_admin_bootstrap');
+              } catch (e) {
+                console.error('Auth - Error in deferred work:', e);
+              }
+            })();
+          }, 0);
+        }
+      }
+    );
+
+    // Check for existing session
+    console.log('Auth - Checking existing session');
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Auth - Existing session:', { hasSession: !!session, hasUser: !!session?.user });
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+      if (session?.user) {
+        setTimeout(() => {
+          (async () => {
+            try {
+              console.log('Auth - Ensuring profile for existing user:', session.user!.id);
+              await ensureProfile(session.user!);
+              await supabase.rpc('ensure_admin_bootstrap');
+            } catch (e) {
+              console.error('Auth - Error in existing session work:', e);
+            }
+          })();
+        }, 0);
+      }
+    });
+
+    return () => {
+      console.log('Auth - Cleaning up subscription');
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Extra resilience: try to rehydrate session on tab focus/visibility (helps after network blips)
+  useEffect(() => {
+    const hasToken = () => {
+      try {
+        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
+      } catch {
+        return false;
+      }
+    };
+
+    const rehydrate = () => {
+      if (!hasToken()) return;
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }).catch(() => {});
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        rehydrate();
+      }
+    };
+
+    const onFocus = () => {
+      rehydrate();
+    };
+
+    window.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
 
   const signIn = async (emailOrPhone: string, password: string) => {
     setAuthProcessing(true);
