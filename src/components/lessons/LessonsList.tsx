@@ -261,7 +261,7 @@ const LessonsList = () => {
                           {lesson.zoom_join_url ? (
                             <Button
                               size="sm"
-                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                              className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
                               onClick={() =>
                                 window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                               }
@@ -276,18 +276,18 @@ const LessonsList = () => {
                                 hasZoomUrl={false}
                                 streamStatus={(lesson as any).live_stream_status || 'waiting'}
                               />
-                              {lesson.video_url && (
-                                <Button
-                                  size="sm"
-                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
-                                  onClick={() =>
-                                    window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
-                                  }
-                                >
-                                  <Video className="w-4 h-4 mr-1" />
-                                  Ver Vídeo
-                                </Button>
-                              )}
+                          {lesson.video_url && (
+                            <Button
+                              size="sm"
+                              className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
+                              onClick={() =>
+                                window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
+                              }
+                            >
+                              <Video className="w-4 h-4 mr-1" />
+                              Ver Vídeo
+                            </Button>
+                          )}
                             </>
                           )}
                           <Button 
@@ -390,7 +390,7 @@ const LessonsList = () => {
                               {lesson.zoom_join_url ? (
                                 <Button
                                   size="sm"
-                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                  className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
                                   onClick={() =>
                                     window.open(lesson.zoom_join_url!, "_blank", "noopener,noreferrer")
                                   }
@@ -408,7 +408,7 @@ const LessonsList = () => {
                                   {lesson.video_url && (
                                     <Button
                                       size="sm"
-                                      className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                      className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
                                       onClick={() =>
                                         window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
                                       }
@@ -513,7 +513,7 @@ const LessonsList = () => {
                           {lesson.video_url && (
                             <Button
                               size="sm"
-                              className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                              className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
                               onClick={() =>
                                 window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
                               }
@@ -613,7 +613,7 @@ const LessonsList = () => {
                               {lesson.video_url && (
                                 <Button
                                   size="sm"
-                                  className="bg-brand-blue hover:bg-blue-600 text-white px-4 py-2 h-9"
+                                  className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 h-9"
                                   onClick={() =>
                                     window.open(lesson.video_url!, "_blank", "noopener,noreferrer")
                                   }
