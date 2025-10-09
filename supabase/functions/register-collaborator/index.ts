@@ -28,29 +28,33 @@ serve(async (req) => {
     const MATRIZ_URL = Deno.env.get('MATRIZ_URL');
     const MATRIZ_SERVICE_KEY = Deno.env.get('MATRIZ_SERVICE_KEY');
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !MATRIZ_URL || !MATRIZ_SERVICE_KEY) {
-      throw new Error('Credenciais do Supabase (local e matriz) não configuradas.');
+    console.log('--- START: register-collaborator ---');
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Credenciais do Supabase local não configuradas.');
     }
 
-    // --- Create Clients ---
+    // --- Create Local Client ---
     const supabaseLocal = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
-    const supabaseMatriz = createClient(MATRIZ_URL, MATRIZ_SERVICE_KEY);
 
     const collaboratorData: CollaboratorData = await req.json();
-    console.log('Creating collaborator:', { email: collaboratorData.email, unitCode: collaboratorData.unitCode });
+    console.log('Payload recebido:', { email: collaboratorData.email, unitCode: collaboratorData.unitCode });
 
     let userId: string;
 
     // 1. Check if user already exists in auth.users
+    console.log('Verificando se usuário já existe no auth...');
     const { data: existingUsers } = await supabaseLocal.auth.admin.listUsers();
     const existingUser = existingUsers.users?.find(u => u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
 
     if (existingUser) {
       userId = existingUser.id;
+      console.log('Usuário já existe no auth:', userId);
     } else {
       // 2. Create new user in auth.users
+      console.log('Criando novo usuário no auth...');
       const { data: newUser, error: authError } = await supabaseLocal.auth.admin.createUser({
         email: collaboratorData.email,
         password: collaboratorData.password,
@@ -63,11 +67,13 @@ serve(async (req) => {
         email_confirm: true
       });
       if (authError) throw authError;
-      if (!newUser.user?.id) throw new Error('Failed to create user - no ID returned');
+      if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
       userId = newUser.user.id;
+      console.log('Novo usuário criado no auth:', userId);
     }
 
     // 3. Upsert user record in public.users with 'pendente' status
+    console.log('Inserindo/atualizando registro na tabela users...');
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
     const { error: userError } = await supabaseLocal.from('users').upsert({
       id: userId,
@@ -84,81 +90,89 @@ serve(async (req) => {
       active: true,
     }, { onConflict: 'id' });
     if (userError) throw userError;
+    console.log('Registro na tabela users salvo com sucesso.');
 
     // --- SYNC WITH MATRIZ DATABASE ---
-    try {
-      console.log('Syncing with Matriz...');
-      let positionId: string;
+    console.log('--- INICIANDO SINCRONIZAÇÃO COM A MATRIZ ---');
+    if (!MATRIZ_URL || !MATRIZ_SERVICE_KEY) {
+      console.error('!!! ERRO CRÍTICO: Credenciais da Matriz não encontradas. Pulando sincronização. !!!');
+    } else {
+      try {
+        const supabaseMatriz = createClient(MATRIZ_URL, MATRIZ_SERVICE_KEY);
+        console.log('Cliente da Matriz criado.');
 
-      // a. "Get or Create" logic for position_id in Matriz
-      const { data: existingCargo, error: cargoSelectError } = await supabaseMatriz
-        .from('cargos_loja')
-        .select('id')
-        .eq('role', collaboratorData.position)
-        .maybeSingle();
+        let positionId: string;
 
-      if (cargoSelectError) {
-        throw new Error(`Error checking for position in Matriz: ${cargoSelectError.message}`);
-      }
-
-      if (existingCargo) {
-        positionId = existingCargo.id;
-        console.log(`Found existing position in Matriz: ${collaboratorData.position} (ID: ${positionId})`);
-      } else {
-        console.log(`Position '${collaboratorData.position}' not found in Matriz. Creating it...`);
-        const { data: newCargo, error: cargoInsertError } = await supabaseMatriz
+        // a. "Get or Create" logic for position_id in Matriz
+        console.log(`Buscando cargo '${collaboratorData.position}' na Matriz...`);
+        const { data: existingCargo, error: cargoSelectError } = await supabaseMatriz
           .from('cargos_loja')
-          .insert({ role: collaboratorData.position })
           .select('id')
-          .single();
+          .eq('role', collaboratorData.position)
+          .maybeSingle();
 
-        if (cargoInsertError) {
-          throw new Error(`Error creating position in Matriz: ${cargoInsertError.message}`);
+        if (cargoSelectError) {
+          throw new Error(`Erro ao buscar cargo na Matriz: ${cargoSelectError.message}`);
         }
-        positionId = newCargo.id;
-        console.log(`Created new position in Matriz: ${collaboratorData.position} (ID: ${positionId})`);
-      }
 
-      // b. Prepare record for 'colaboradores_loja'
-      const colaboradorLojaRecord = {
-        employee_name: collaboratorData.name,
-        position_id: positionId, // Use the obtained/created UUID
-        email: collaboratorData.email,
-        cpf: collaboratorData.cpf || '00000000000', // CPF is NOT NULL, provide a default if empty
-        phone: cleanPhone || '00000000000', // Phone is NOT NULL, provide a default if empty
-        admission_date: new Date().toISOString(),
-        web_password: collaboratorData.password,
-        // Defaulting required boolean fields
-        lgpd_term: true,
-        confidentiality_term: true,
-        system_term: true,
-        // Nullable fields that were made optional
-        birth_date: null,
-        salary: null,
-      };
-
-      // c. Insert into 'colaboradores_loja'
-      const { error: insertMatrizError } = await supabaseMatriz
-        .from('colaboradores_loja')
-        .insert(colaboradorLojaRecord);
-
-      if (insertMatrizError) {
-        // If it's a duplicate key error, we can ignore it as a "soft" success
-        if (insertMatrizError.code === '23505') { // unique_violation
-          console.warn('Collaborator already exists in Matriz (CPF or Email). Skipping insertion.');
+        if (existingCargo) {
+          positionId = existingCargo.id;
+          console.log(`Cargo encontrado na Matriz: ${collaboratorData.position} (ID: ${positionId})`);
         } else {
-          throw insertMatrizError;
+          console.log(`Cargo '${collaboratorData.position}' não encontrado. Criando...`);
+          const { data: newCargo, error: cargoInsertError } = await supabaseMatriz
+            .from('cargos_loja')
+            .insert({ role: collaboratorData.position })
+            .select('id')
+            .single();
+
+          if (cargoInsertError) {
+            throw new Error(`Erro ao criar cargo na Matriz: ${cargoInsertError.message}`);
+          }
+          positionId = newCargo.id;
+          console.log(`Cargo criado na Matriz: ${collaboratorData.position} (ID: ${positionId})`);
         }
-      } else {
-        console.log('Successfully synced collaborator to Matriz.');
+
+        // b. Prepare record for 'colaboradores_loja'
+        const colaboradorLojaRecord = {
+          employee_name: collaboratorData.name,
+          position_id: positionId,
+          email: collaboratorData.email,
+          cpf: collaboratorData.cpf || '00000000000',
+          phone: cleanPhone || '00000000000',
+          admission_date: new Date().toISOString(),
+          web_password: collaboratorData.password,
+          lgpd_term: true,
+          confidentiality_term: true,
+          system_term: true,
+          birth_date: null,
+          salary: null,
+        };
+        console.log('Preparando para inserir colaborador na Matriz...');
+
+        // c. Insert into 'colaboradores_loja'
+        const { error: insertMatrizError } = await supabaseMatriz
+          .from('colaboradores_loja')
+          .insert(colaboradorLojaRecord);
+
+        if (insertMatrizError) {
+          if (insertMatrizError.code === '23505') { // unique_violation
+            console.warn('Colaborador já existe na Matriz (CPF ou Email). Pulando inserção.');
+          } else {
+            throw insertMatrizError;
+          }
+        } else {
+          console.log('✅ Colaborador sincronizado com a Matriz com sucesso.');
+        }
+      } catch (matrizError) {
+        console.error('--- FALHA NA SINCRONIZAÇÃO COM A MATRIZ (NÃO BLOQUEANTE) ---');
+        console.error(matrizError);
       }
-    } catch (matrizError) {
-      // Log the error but do not fail the main operation
-      console.error('Failed to sync collaborator to Matriz (non-blocking error):', matrizError.message);
     }
-    // --- END OF SYNC WITH MATRIZ ---
+    console.log('--- FIM DA SINCRONIZAÇÃO COM A MATRIZ ---');
 
     // 4. Call notify-franchisee function
+    console.log('Invocando notificação para o franqueado...');
     const { error: notificationError } = await supabaseLocal.functions.invoke('notify-franchisee', {
       body: {
         collaboratorId: userId,
@@ -169,9 +183,12 @@ serve(async (req) => {
       }
     });
     if (notificationError) {
-      console.warn('Warning: Failed to send notification to franchisee:', notificationError);
+      console.warn('Aviso: Falha ao enviar notificação para o franqueado:', notificationError);
+    } else {
+      console.log('Notificação para o franqueado enviada com sucesso.');
     }
 
+    console.log('--- FIM: register-collaborator ---');
     return new Response(
       JSON.stringify({ 
         success: true, 
@@ -182,7 +199,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in register-collaborator function:', error);
+    console.error('--- ERRO GERAL na função register-collaborator ---');
+    console.error(error);
     return new Response(
       JSON.stringify({ 
         success: false, 
