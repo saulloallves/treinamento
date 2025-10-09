@@ -10,14 +10,23 @@ export const useStudentProfile = (studentId: string | undefined, enabled: boolea
       
       const { data: user, error: userError } = await supabase
         .from("users")
-        .select(`
-          *,
-          unit:units(name, code, address)
-        `)
+        .select(`*`)
         .eq("id", studentId)
         .single();
 
       if (userError && userError.code !== 'PGRST116') throw userError;
+
+      if (user && user.unit_code) {
+        const { data: unidade } = await supabase
+          .from('unidades')
+          .select('grupo')
+          .eq('codigo_grupo', user.unit_code)
+          .maybeSingle();
+        
+        if (unidade) {
+          (user as any).unit = { name: unidade.grupo };
+        }
+      }
 
       return user;
     },

@@ -36,19 +36,6 @@ const CreateUserDialog = ({
   const { toast } = useToast();
   const createCollaboratorMutation = useCreateCollaborator();
 
-  // Buscar unidades para validação
-  const { data: units } = useQuery({
-    queryKey: ["units"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("units")
-        .select("id,name,code,active")
-        .eq("active", true);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -69,13 +56,6 @@ const CreateUserDialog = ({
         });
       } else {
         // Para usuários normais (Aluno e Professor), continua com o fluxo atual
-        let unitId = null;
-        if (formData.unitCode) {
-          const unit = units?.find(u => u.code === formData.unitCode);
-          if (unit) {
-            unitId = unit.id;
-          }
-        }
 
         // Criar usuário no auth
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -100,7 +80,6 @@ const CreateUserDialog = ({
           name: formData.name,
           email: formData.email,
           user_type: formData.userType,
-          unit_id: unitId,
           unit_code: formData.unitCode || null,
           position: formData.position || null,
           cpf: formData.cpf || null,

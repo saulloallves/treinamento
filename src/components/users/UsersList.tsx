@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import CreateUserDialog from "./CreateUserDialog";
 import { StudentProfileDialog } from "./StudentProfileDialog";
+
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("todas");
@@ -23,19 +24,6 @@ const UsersList = () => {
   useEffect(() => {
     document.title = "Gerenciar Usuários | Admin";
   }, []);
-
-  // Unidades (nome obtido via unit_id -> units.name)
-  const unitsQuery = useQuery({
-    queryKey: ["units"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("units")
-        .select("id,name,code,active")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   // Tabela 'unidades' (fallback via código)
   const unidadesQuery = useQuery({
@@ -55,21 +43,12 @@ const UsersList = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("id,name,cpf,position,unit_id,unit_code,phone,active,user_type,updated_at,created_at")
+        .select("id,name,cpf,position,unit_code,phone,active,user_type,updated_at,created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
   });
-
-  const units = unitsQuery.data ?? [];
-  const unitNameById = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const u of (units as any[])) {
-      if (u?.id) m.set(u.id as string, (u.name as string) ?? "—");
-    }
-    return m;
-  }, [units]);
 
   const unidades = unidadesQuery.data ?? [];
   const unidadeNameByCode = useMemo(() => {
@@ -90,18 +69,17 @@ const UsersList = () => {
       name: u.name ?? "Sem nome",
       type: u.user_type ?? "Aluno",
       role: "Franqueado",
-      unitId: u.unit_id ?? null,
-      unitName: unitNameById.get(u.unit_id) ?? unidadeNameByCode.get(String(u.unit_code ?? '').trim()) ?? "—",
+      unitName: unidadeNameByCode.get(String(u.unit_code ?? '').trim()) ?? "—",
       unitCode: String(u.unit_code ?? '').trim(),
       status: u.active ? "Ativo" : "Inativo",
       lastAccess: "—",
     }));
-  }, [usersQuery.data, unitNameById, unidadeNameByCode]);
+  }, [usersQuery.data, unidadeNameByCode]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchesSearch = (user.name || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesUnit = selectedUnit === "todas" || String(user.unitId ?? "") === selectedUnit;
+      const matchesUnit = selectedUnit === "todas" || String(user.unitCode) === selectedUnit;
       return matchesSearch && matchesUnit;
     });
   }, [users, searchTerm, selectedUnit]);
@@ -149,9 +127,9 @@ const UsersList = () => {
               className="w-full h-10 px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
             >
               <option value="todas">Todas as unidades</option>
-              {units.map(unit => (
-                <option key={unit.id} value={unit.id.toString()}>
-                  {unit.name}
+              {Array.from(unidadeNameByCode.entries()).map(([code, name]) => (
+                <option key={code} value={code}>
+                  {name}
                 </option>
               ))}
             </select>
