@@ -17,43 +17,41 @@ interface CollaboratorData {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client with service role key
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    // --- Get Credentials ---
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const MATRIZ_URL = Deno.env.get('MATRIZ_URL');
+    const MATRIZ_SERVICE_KEY = Deno.env.get('MATRIZ_SERVICE_KEY');
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !MATRIZ_URL || !MATRIZ_SERVICE_KEY) {
+      throw new Error('Credenciais do Supabase (local e matriz) não configuradas.');
+    }
+
+    // --- Create Clients ---
+    const supabaseLocal = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+    const supabaseMatriz = createClient(MATRIZ_URL, MATRIZ_SERVICE_KEY);
 
     const collaboratorData: CollaboratorData = await req.json();
     console.log('Creating collaborator:', { email: collaboratorData.email, unitCode: collaboratorData.unitCode });
 
     let userId: string;
 
-    // 1. First check if user already exists in auth.users
-    console.log('Checking if user already exists:', collaboratorData.email);
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers.users?.find(u => 
-      u.email?.toLowerCase() === collaboratorData.email.toLowerCase()
-    );
+    // 1. Check if user already exists in auth.users
+    const { data: existingUsers } = await supabaseLocal.auth.admin.listUsers();
+    const existingUser = existingUsers.users?.find(u => u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
 
     if (existingUser) {
-      console.log('User already exists in auth, reusing ID:', existingUser.id);
       userId = existingUser.id;
     } else {
       // 2. Create new user in auth.users
-      console.log('Creating new user in auth');
-      const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: newUser, error: authError } = await supabaseLocal.auth.admin.createUser({
         email: collaboratorData.email,
         password: collaboratorData.password,
         user_metadata: {
@@ -64,52 +62,84 @@ serve(async (req) => {
         },
         email_confirm: true
       });
-
-      if (authError) {
-        console.error('Error creating auth user:', authError);
-        throw authError;
-      }
-
-      if (!newUser.user?.id) {
-        throw new Error('Failed to create user - no ID returned');
-      }
-
+      if (authError) throw authError;
+      if (!newUser.user?.id) throw new Error('Failed to create user - no ID returned');
       userId = newUser.user.id;
-      console.log('Created new auth user:', userId);
     }
 
     // 3. Upsert user record in public.users with 'pendente' status
-    // Clean phone number - remove all non-digit characters
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
-    
-    const { error: userError } = await supabaseAdmin
-      .from('users')
-      .upsert({
-        id: userId,
-        name: collaboratorData.name,
+    const { error: userError } = await supabaseLocal.from('users').upsert({
+      id: userId,
+      name: collaboratorData.name,
+      email: collaboratorData.email,
+      user_type: 'Aluno',
+      role: 'Colaborador',
+      unit_code: collaboratorData.unitCode,
+      position: collaboratorData.position,
+      phone: cleanPhone || null,
+      cpf: collaboratorData.cpf || null,
+      approval_status: 'pendente',
+      visible_password: collaboratorData.password,
+      active: true,
+    }, { onConflict: 'id' });
+    if (userError) throw userError;
+
+    // --- SYNC WITH MATRIZ DATABASE ---
+    try {
+      console.log('Syncing with Matriz...');
+      // a. Find position_id in Matriz
+      const { data: cargo, error: cargoError } = await supabaseMatriz
+        .from('cargos') // Assuming the table is named 'cargos'
+        .select('id')
+        .eq('name', collaboratorData.position)
+        .single();
+      
+      if (cargoError || !cargo) {
+        throw new Error(`Cargo '${collaboratorData.position}' não encontrado na Matriz.`);
+      }
+
+      // b. Prepare record for 'colaboradores_loja'
+      const colaboradorLojaRecord = {
+        employee_name: collaboratorData.name,
+        position_id: cargo.id,
         email: collaboratorData.email,
-        user_type: 'Aluno',
-        role: 'Colaborador',
-        unit_code: collaboratorData.unitCode,
-        position: collaboratorData.position,
-        phone: cleanPhone || null,
-        cpf: collaboratorData.cpf || null,
-        approval_status: 'pendente',
-        visible_password: collaboratorData.password,
-        active: true,
-      }, {
-        onConflict: 'id'
-      });
+        cpf: collaboratorData.cpf || '00000000000', // CPF is NOT NULL, provide a default if empty
+        phone: cleanPhone || '00000000000', // Phone is NOT NULL, provide a default if empty
+        admission_date: new Date().toISOString(),
+        web_password: collaboratorData.password,
+        // Defaulting required boolean fields
+        lgpd_term: true,
+        confidentiality_term: true,
+        system_term: true,
+        // Nullable fields that were made optional
+        birth_date: null,
+        salary: null,
+      };
 
-    if (userError) {
-      console.error('Error upserting user record:', userError);
-      throw userError;
+      // c. Insert into 'colaboradores_loja'
+      const { error: insertMatrizError } = await supabaseMatriz
+        .from('colaboradores_loja')
+        .insert(colaboradorLojaRecord);
+
+      if (insertMatrizError) {
+        // If it's a duplicate key error, we can ignore it as a "soft" success
+        if (insertMatrizError.code === '23505') { // unique_violation
+          console.warn('Collaborator already exists in Matriz (CPF or Email). Skipping insertion.');
+        } else {
+          throw insertMatrizError;
+        }
+      } else {
+        console.log('Successfully synced collaborator to Matriz.');
+      }
+    } catch (matrizError) {
+      // Log the error but do not fail the main operation
+      console.error('Failed to sync collaborator to Matriz (non-blocking error):', matrizError.message);
     }
-
-    console.log('User record upserted successfully');
+    // --- END OF SYNC WITH MATRIZ ---
 
     // 4. Call notify-franchisee function
-    const { error: notificationError } = await supabaseAdmin.functions.invoke('notify-franchisee', {
+    const { error: notificationError } = await supabaseLocal.functions.invoke('notify-franchisee', {
       body: {
         collaboratorId: userId,
         collaboratorName: collaboratorData.name,
@@ -118,12 +148,8 @@ serve(async (req) => {
         unitCode: collaboratorData.unitCode
       }
     });
-
     if (notificationError) {
       console.warn('Warning: Failed to send notification to franchisee:', notificationError);
-      // Don't fail the entire operation, just log the warning
-    } else {
-      console.log('Notification sent to franchisee successfully');
     }
 
     return new Response(
@@ -132,10 +158,7 @@ serve(async (req) => {
         userId,
         message: 'Colaborador criado com sucesso. Aguarde aprovação do franqueado.' 
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
   } catch (error) {
@@ -145,10 +168,7 @@ serve(async (req) => {
         success: false, 
         error: (error as Error).message || 'Erro interno do servidor' 
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
