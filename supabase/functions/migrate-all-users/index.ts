@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0'
 const DESTINATION_PROJECT_REF = 'wpuwsocezhlqlqxifpyk'
 const DESTINATION_SERVICE_ROLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwdXdzb2NlemhscWxxeGlmcHlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTc4MDQ1OCwiZXhwIjoyMDc1MzU2NDU4fQ.Wgzn0DZ9laANPSEP4N75LdjTEjK-f69TOmOCQQvksQE'
 const TEST_EMAIL = 'carloseduardoturina@gmail.com'
+const RECOVERY_REDIRECT_URL = 'https://cursos.girabot.com.br/auth/callback/recovery'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
 
     // Enviar email de teste APENAS para o usuário teste
     console.log(`📧 Sending recovery email to test user: ${TEST_EMAIL}`)
+    console.log(`📧 Using recovery redirect URL: ${RECOVERY_REDIRECT_URL}`)
 
     const recoveryResponse = await fetch(
       `https://${DESTINATION_PROJECT_REF}.supabase.co/functions/v1/admin-send-recovery-emails`,
@@ -98,7 +100,10 @@ Deno.serve(async (req) => {
           'Authorization': `Bearer ${DESTINATION_SERVICE_ROLE}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ emails: [TEST_EMAIL] })
+        body: JSON.stringify({ 
+          emails: [TEST_EMAIL],
+          redirectTo: RECOVERY_REDIRECT_URL 
+        })
       }
     )
 

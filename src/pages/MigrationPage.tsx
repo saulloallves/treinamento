@@ -72,6 +72,7 @@ export default function MigrationPage() {
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Importar TODOS os usuários ativos sem enviar emails</li>
                   <li>Enviar email de recuperação apenas para: <code className="bg-muted px-1 rounded">carloseduardoturina@gmail.com</code></li>
+                  <li>Redirecionar para: <code className="bg-muted px-1 rounded">https://cursos.girabot.com.br/auth/callback/recovery</code></li>
                   <li>Respeitar rate limits de 5 req/s</li>
                 </ul>
               </AlertDescription>
