@@ -25,7 +25,7 @@ async function processarUnidade(supabase: any, record: any) {
     p_email: record.email,
     p_telefone: record.phone,
     p_fase_loja: mapearStatus(record.store_phase),
-    p_etapa_loja: record.store_step,
+    p_etapa_loja: record.store_imp_phase, // Corrected from store_step
     p_modelo_loja: record.store_model,
     p_endereco: record.address,
     p_cidade: record.city,
