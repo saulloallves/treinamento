@@ -9,8 +9,10 @@ WORKDIR /app
 COPY package.json ./
 COPY bun.lockb ./
 
-# Instala as dependências usando o bun
-RUN bun install --frozen-lockfile
+# Instala as dependências usando o bun.
+# A flag --frozen-lockfile foi removida para permitir que o bun
+# instale as dependências do package.json mesmo que o lockfile esteja desatualizado.
+RUN bun install
 
 # Copia todo o código-fonte da aplicação
 COPY . .
