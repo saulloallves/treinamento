@@ -1,6 +1,6 @@
 # Estágio 1: Build da aplicação React
-# Usamos uma imagem Node.js para instalar dependências e construir o projeto.
-FROM node:20-alpine AS build
+# Usamos a imagem oficial do Bun, que é otimizada e já inclui o 'bun'.
+FROM oven/bun:1-alpine AS build
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /app
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json ./
 COPY bun.lockb ./
 
-# Instala as dependências
+# Instala as dependências usando o bun
 RUN bun install --frozen-lockfile
 
 # Copia todo o código-fonte da aplicação
@@ -23,7 +23,6 @@ RUN bun run build
 FROM nginx:stable-alpine
 
 # Copia a configuração customizada do Nginx para dentro do container.
-# Isso substitui a configuração padrão e adiciona a regra para SPAs (try_files).
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Copia os arquivos estáticos da pasta 'dist' (gerada no estágio de build)
