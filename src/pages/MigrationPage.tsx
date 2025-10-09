@@ -71,7 +71,7 @@ export default function MigrationPage() {
                 <strong>Atenção:</strong> Esta operação irá:
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Importar TODOS os usuários ativos sem enviar emails</li>
-                  <li>Enviar email de recuperação apenas para: <code className="bg-muted px-1 rounded">eduarda_raquel_moreira@focoreducao.com.br</code></li>
+                  <li>Enviar email de recuperação apenas para: <code className="bg-muted px-1 rounded">carloseduardoturina@gmail.com</code></li>
                   <li>Respeitar rate limits de 5 req/s</li>
                 </ul>
               </AlertDescription>

@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0'
 
 const DESTINATION_PROJECT_REF = 'wpuwsocezhlqlqxifpyk'
 const DESTINATION_SERVICE_ROLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwdXdzb2NlemhscWxxeGlmcHlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTc4MDQ1OCwiZXhwIjoyMDc1MzU2NDU4fQ.Wgzn0DZ9laANPSEP4N75LdjTEjK-f69TOmOCQQvksQE'
-const TEST_EMAIL = 'eduarda_raquel_moreira@focoreducao.com.br'
+const TEST_EMAIL = 'carloseduardoturina@gmail.com'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
