@@ -49,6 +49,7 @@ import StudentTurmaTests from "./pages/student/StudentTurmaTests";
 import StudentTurmaQuiz from "./pages/student/StudentTurmaQuiz";
 import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
+import MigrationPage from "./pages/MigrationPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
@@ -194,6 +195,11 @@ const App = () => (
               <Route path="/settings" element={
                 <AdminRoute>
                   <SettingsPage />
+                </AdminRoute>
+              } />
+              <Route path="/migration" element={
+                <AdminRoute>
+                  <MigrationPage />
                 </AdminRoute>
               } />
               <Route path="/professor" element={

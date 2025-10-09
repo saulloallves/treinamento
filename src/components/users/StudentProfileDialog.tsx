@@ -229,7 +229,7 @@ export const StudentProfileDialog = ({ student, open, onOpenChange }: StudentPro
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                       <p className="text-foreground">
-                        {studentDetails?.unit?.name || "Código: " + (studentDetails?.unit_code || "—")}
+                        {(studentDetails as any)?.unit?.name || "Código: " + (studentDetails?.unit_code || "—")}
                       </p>
                     </div>
                   </div>
