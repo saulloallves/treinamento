@@ -88,21 +88,41 @@ serve(async (req) => {
     // --- SYNC WITH MATRIZ DATABASE ---
     try {
       console.log('Syncing with Matriz...');
-      // a. Find position_id in Matriz
-      const { data: cargo, error: cargoError } = await supabaseMatriz
-        .from('cargos') // Assuming the table is named 'cargos'
+      let positionId: string;
+
+      // a. "Get or Create" logic for position_id in Matriz
+      const { data: existingCargo, error: cargoSelectError } = await supabaseMatriz
+        .from('cargos_loja')
         .select('id')
-        .eq('name', collaboratorData.position)
-        .single();
-      
-      if (cargoError || !cargo) {
-        throw new Error(`Cargo '${collaboratorData.position}' não encontrado na Matriz.`);
+        .eq('role', collaboratorData.position)
+        .maybeSingle();
+
+      if (cargoSelectError) {
+        throw new Error(`Error checking for position in Matriz: ${cargoSelectError.message}`);
+      }
+
+      if (existingCargo) {
+        positionId = existingCargo.id;
+        console.log(`Found existing position in Matriz: ${collaboratorData.position} (ID: ${positionId})`);
+      } else {
+        console.log(`Position '${collaboratorData.position}' not found in Matriz. Creating it...`);
+        const { data: newCargo, error: cargoInsertError } = await supabaseMatriz
+          .from('cargos_loja')
+          .insert({ role: collaboratorData.position })
+          .select('id')
+          .single();
+
+        if (cargoInsertError) {
+          throw new Error(`Error creating position in Matriz: ${cargoInsertError.message}`);
+        }
+        positionId = newCargo.id;
+        console.log(`Created new position in Matriz: ${collaboratorData.position} (ID: ${positionId})`);
       }
 
       // b. Prepare record for 'colaboradores_loja'
       const colaboradorLojaRecord = {
         employee_name: collaboratorData.name,
-        position_id: cargo.id,
+        position_id: positionId, // Use the obtained/created UUID
         email: collaboratorData.email,
         cpf: collaboratorData.cpf || '00000000000', // CPF is NOT NULL, provide a default if empty
         phone: cleanPhone || '00000000000', // Phone is NOT NULL, provide a default if empty
