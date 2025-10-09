@@ -19,6 +19,8 @@ serve(async (req) => {
   }
 
   try {
+    const { offset = 0, limit = 50 } = await req.json();
+
     // --- Get Credentials ---
     const MATRIZ_URL = Deno.env.get('MATRIZ_URL');
     const MATRIZ_SERVICE_KEY = Deno.env.get('MATRIZ_SERVICE_KEY');
@@ -34,9 +36,15 @@ serve(async (req) => {
     const supabaseLocal = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // --- Fetch Data from Matriz ---
-    console.log("Fetching data from Matriz...");
-    const { data: franqueadosMatriz, error: franqueadosError } = await supabaseMatriz.from('franqueados').select('*');
+    const { data: franqueadosMatriz, error: franqueadosError } = await supabaseMatriz.from('franqueados').select('*', { count: 'exact' });
     if (franqueadosError) throw franqueadosError;
+
+    const totalToProcess = franqueadosMatriz.length;
+    const batchToProcess = franqueadosMatriz.slice(offset, offset + limit);
+
+    if (batchToProcess.length === 0) {
+      return new Response(JSON.stringify({ done: true, totalToProcess }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     const { data: vinculos, error: vinculosError } = await supabaseMatriz.from('franqueados_unidades').select('franqueado_id, unidade_id');
     if (vinculosError) throw vinculosError;
@@ -57,10 +65,8 @@ serve(async (req) => {
     const results: CreateResult[] = [];
     const defaultPassword = "Trocar01";
 
-    console.log(`Found ${franqueadosMatriz.length} franchisees to process.`);
-
-    // --- Process each franchisee ---
-    for (const franqueado of franqueadosMatriz) {
+    // --- Process each franchisee in the batch ---
+    for (const franqueado of batchToProcess) {
       const result: CreateResult = { email: franqueado.email, name: franqueado.full_name, status: 'error' };
 
       try {
@@ -70,20 +76,17 @@ serve(async (req) => {
           continue;
         }
 
-        // Check for existing user in local DB
         const { data: existingUser } = await supabaseLocal.from('users').select('id').eq('email', franqueado.email).maybeSingle();
         if (existingUser) {
           result.status = 'ignored';
-          result.reason = 'Usuário já existe no sistema de treinamento.';
+          result.reason = 'Usuário já existe.';
           results.push(result);
           continue;
         }
 
-        // Find linked unit codes
         const linkedUnidadeIds = vinculosByFranqueadoId[franqueado.id] || [];
         const unitCodes = linkedUnidadeIds.map(unidadeId => unidadeIdToCodeMap.get(unidadeId)).filter(Boolean);
 
-        // Create auth user
         const { data: authUser, error: authError } = await supabaseLocal.auth.admin.createUser({
           email: franqueado.email,
           password: franqueado.systems_password || defaultPassword,
@@ -98,7 +101,6 @@ serve(async (req) => {
         if (authError) throw authError;
         if (!authUser.user) throw new Error('Falha ao criar usuário na autenticação.');
 
-        // Create user profile in public.users
         const { error: userError } = await supabaseLocal.from('users').insert({
           id: authUser.user.id,
           name: franqueado.full_name,
@@ -113,7 +115,6 @@ serve(async (req) => {
           visible_password: franqueado.systems_password || defaultPassword,
         });
         if (userError) {
-          // Rollback auth user creation if profile insert fails
           await supabaseLocal.auth.admin.deleteUser(authUser.user.id);
           throw userError;
         }
@@ -127,19 +128,16 @@ serve(async (req) => {
       }
     }
 
-    const summary = results.reduce((acc, r) => {
-      acc[r.status]++;
-      return acc;
-    }, { success: 0, ignored: 0, error: 0 });
-
-    console.log("Import finished. Summary:", summary);
+    const nextOffset = offset + limit;
+    const done = nextOffset >= totalToProcess;
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        message: `Importação concluída. ${summary.success} criados, ${summary.ignored} ignorados, ${summary.error} erros.`,
-        summary,
-        errors: results.filter(r => r.status === 'error'),
+        processedCount: batchToProcess.length,
+        totalToProcess,
+        nextOffset,
+        done,
+        results,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
