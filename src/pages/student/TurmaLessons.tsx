@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Calendar, Clock, Users, BookOpen, Play, ArrowLeft, ExternalLink } from "lucide-react";
 import { useTurmaLessons } from "@/hooks/useLessonsByTurma";
+import AttendanceButton from "@/components/student/AttendanceButton";
+import { supabase } from "@/integrations/supabase/client";
 
 const TurmaLessons = () => {
   const { turmaId } = useParams<{ turmaId: string }>();
@@ -18,6 +20,26 @@ const TurmaLessons = () => {
   
   const turmaName = lessons.length > 0 ? lessons[0].turma_name : "Turma";
   const courseName = lessons.length > 0 ? lessons[0].course_name : "";
+
+  // Buscar enrollment do aluno nesta turma
+  const { data: enrollment } = useQuery({
+    queryKey: ['student-enrollment', turmaId],
+    enabled: Boolean(turmaId),
+    queryFn: async () => {
+      const { data: userResp } = await supabase.auth.getUser();
+      if (!userResp.user) return null;
+      
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('turma_id', turmaId!)
+        .eq('user_id', userResp.user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   useEffect(() => {
     document.title = `${turmaName} - Aulas | Área do Aluno`;
@@ -124,7 +146,15 @@ const TurmaLessons = () => {
                   </div>
                 </div>
                 
-                <div className="pt-2">
+                <div className="pt-2 space-y-2">
+                  {enrollment?.id && (
+                    <AttendanceButton 
+                      enrollmentId={enrollment.id}
+                      lessonId={lesson.id}
+                      className="w-full"
+                    />
+                  )}
+                  
                   <Button 
                     asChild 
                     className="w-full gap-2" 
