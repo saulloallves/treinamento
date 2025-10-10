@@ -594,14 +594,14 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className="h-full flex flex-col border-r border-border shadow-xl">
             {/* Header da sidebar */}
             <div className="p-6 border-b border-border mt-16">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <img 
                   src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
                   alt="Mascote Cresci e Perdi" 
-                  className="w-10 h-10"
+                  className="w-8 h-8"
                 />
                 <div>
-                  <h1 className="text-lg font-semibold text-foreground">
+                  <h1 className="text-base font-semibold text-foreground">
                     Cresci e Perdi
                   </h1>
                   <p className="text-xs text-muted-foreground">
@@ -657,15 +657,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         {/* Header da sidebar */}
         <div className="p-6 border-b border-border relative">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-            <div className={`flex items-center gap-3 ${isCollapsed ? '' : 'flex-1'}`}>
+            <div className={`flex items-center gap-2 ${isCollapsed ? '' : 'flex-1'}`}>
               <img 
                 src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
                 alt="Mascote Cresci e Perdi" 
-                className="w-10 h-10"
+                className={`transition-all duration-300 ${isCollapsed ? 'w-9 h-9' : 'w-8 h-8'}`}
               />
               {!isCollapsed && (
                 <div className="flex-1">
-                  <h1 className="text-lg font-semibold text-foreground">
+                  <h1 className="text-base font-semibold text-foreground">
                     Cresci e Perdi
                   </h1>
                   <p className="text-xs text-muted-foreground">
