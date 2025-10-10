@@ -13,7 +13,8 @@ serve(async (req) => {
   try {
     const { unit_code, grupo } = await req.json()
     
-    console.log('Creating collaborator group:', { unit_code, grupo })
+    console.log('=== INÍCIO: create-collaborator-group ===');
+    console.log('Dados recebidos:', { unit_code, grupo, unit_code_type: typeof unit_code });
 
     if (!grupo) {
       throw new Error('Grupo is required')
@@ -25,15 +26,45 @@ serve(async (req) => {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Converter unit_code para número se necessário
+    const unitCodeNumber = typeof unit_code === 'string' ? parseInt(unit_code, 10) : unit_code;
+    console.log('Unit code convertido para número:', unitCodeNumber);
+
     // Verificar se a unidade já tem um grupo de colaboradores
-    const { data: existingUnit } = await supabase
+    console.log('Verificando se unidade já tem grupo...');
+    const { data: existingUnit, error: existingUnitError } = await supabase
       .from('unidades')
-      .select('grupo_colaborador')
-      .eq('codigo_grupo', unit_code)
-      .single()
+      .select('grupo_colaborador, grupo, codigo_grupo')
+      .eq('codigo_grupo', unitCodeNumber)
+      .maybeSingle()
+
+    if (existingUnitError) {
+      console.error('Erro ao buscar unidade:', existingUnitError);
+      throw new Error(`Erro ao buscar unidade: ${existingUnitError.message}`);
+    }
+
+    if (!existingUnit) {
+      console.error('Unidade não encontrada para código:', unit_code);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Unidade com código ${unit_code} não encontrada no sistema.`
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404
+        }
+      )
+    }
+
+    console.log('Unidade encontrada:', {
+      codigo_grupo: existingUnit.codigo_grupo,
+      grupo: existingUnit.grupo,
+      grupo_colaborador: existingUnit.grupo_colaborador
+    });
 
     if (existingUnit?.grupo_colaborador) {
-      console.log('Unit already has a collaborator group:', existingUnit.grupo_colaborador)
+      console.log('⚠️ Unidade já tem grupo de colaboradores:', existingUnit.grupo_colaborador);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -198,14 +229,18 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('unidades')
       .update({ grupo_colaborador: groupId })
-      .eq('codigo_grupo', unit_code)
+      .eq('codigo_grupo', unitCodeNumber)
 
     if (updateError) {
-      console.error('Error updating unidades:', updateError)
+      console.error('❌ Erro ao atualizar unidades:', updateError)
       throw new Error(`Failed to update unidades: ${updateError.message}`)
     }
 
-    console.log(`Group created successfully. ID: ${groupId}, Name: ${groupName}`)
+    console.log(`✅ Grupo criado com sucesso!`);
+    console.log(`   - ID: ${groupId}`);
+    console.log(`   - Nome: ${groupName}`);
+    console.log(`   - Unidade atualizada: ${unitCodeNumber}`);
+    console.log('=== FIM: create-collaborator-group ===');
 
     return new Response(
       JSON.stringify({ 
