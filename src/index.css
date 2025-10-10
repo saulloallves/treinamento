@@ -48,11 +48,11 @@ html, body, #root {
 
     /* Sidebar Colors */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 28 75% 24%;
-    --sidebar-primary: 45 100% 55%;
-    --sidebar-primary-foreground: 28 75% 24%;
-    --sidebar-accent: 45 100% 97%;
-    --sidebar-accent-foreground: 28 75% 24%;
+    --sidebar-foreground: 28 75% 24%; /* Marrom Régua */
+    --sidebar-primary: 45 100% 55%; /* Amarelo Girafa */
+    --sidebar-primary-foreground: 28 75% 24%; /* Marrom Régua */
+    --sidebar-accent: 45 100% 97%; /* Amarelo Girafa bem claro */
+    --sidebar-accent-foreground: 28 75% 24%; /* Marrom Régua */
     --sidebar-border: 28 25% 90%;
     --sidebar-ring: 45 100% 55%;
 

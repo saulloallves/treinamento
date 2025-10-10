@@ -393,10 +393,10 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           }
           if (isMobile) setIsOpen(false);
         }}
-        className={`group relative flex items-center rounded-lg text-sm hover:bg-slate-100/50 ${
+        className={`group relative flex items-center rounded-lg text-sm hover:bg-muted ${
           isActive 
-            ? "bg-blue-50 text-blue-700 shadow-sm" 
-            : "text-slate-700 hover:text-slate-900"
+            ? "bg-primary/10 text-primary-foreground shadow-sm" 
+            : "text-foreground hover:text-foreground"
         } ${isSubItem ? 'ml-7 pl-4 gap-3 px-3 py-2' : ''} ${
           isCollapsed && !isMobile && !isSubItem 
             ? 'w-12 h-12 justify-center mx-auto' 
@@ -407,7 +407,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
       >
         {/* Active indicator bar - hidden when collapsed */}
         {isActive && !isSubItem && !isCollapsed && (
-          <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
+          <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
         )}
         
         <div className={`${isSubItem ? 'w-4 h-4' : 'w-5 h-5'} flex items-center justify-center shrink-0`}>
@@ -445,10 +445,10 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         type="button"
         onClick={(event) => toggleGroup(item.id, event)}
         onMouseDown={(e) => e.preventDefault()} // Prevent focus issues
-        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100/50 focus:outline-none select-none ${
+        className={`group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-muted focus:outline-none select-none ${
           hasActiveChild
-            ? 'bg-slate-100/50 text-slate-900'
-            : 'text-slate-700 hover:text-slate-900'
+            ? 'bg-muted/50 text-foreground'
+            : 'text-foreground hover:text-foreground'
         } ${isCollapsed && !isMobile ? 'justify-center px-2 mx-1' : ''}`}
       >
         <div className="flex items-center gap-3 pointer-events-none">
@@ -541,15 +541,15 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             onClick={() => {
               if (isMobile) setIsOpen(false);
             }}
-            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-slate-100/50 ${
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-muted ${
               isActive 
-                ? "bg-blue-50 text-blue-700 shadow-sm" 
-                : "text-slate-700 hover:text-slate-900"
+                ? "bg-primary/10 text-primary-foreground shadow-sm" 
+                : "text-foreground hover:text-foreground"
             }`}
           >
             {/* Active indicator bar */}
             {isActive && (
-              <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-blue-600" />
+              <div className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
             )}
             
             <div className="w-5 h-5 shrink-0">
@@ -591,18 +591,18 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
-          <div className="h-full flex flex-col border-r border-slate-200/60 shadow-xl">
+          <div className="h-full flex flex-col border-r border-border shadow-xl">
             {/* Header da sidebar */}
-            <div className="p-6 border-b border-slate-200/60 mt-16">
+            <div className="p-6 border-b border-border mt-16">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                  <GraduationCap className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                  <GraduationCap className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-slate-900">
+                  <h1 className="text-lg font-semibold text-foreground">
                     Cresci e Perdi
                   </h1>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Sistema de Treinamentos
                   </p>
                 </div>
@@ -619,21 +619,21 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             </nav>
 
             {/* Footer da sidebar */}
-            <div className="p-4 border-t border-slate-200/60">
-              <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200 ${
+            <div className="p-4 border-t border-border">
+              <div className={`flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 ${
                 isCollapsed ? 'justify-center' : ''
               }`}>
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-medium text-white">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                  <span className="text-sm font-medium text-primary-foreground">
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
                     </p>
-                    <p className="text-xs text-slate-500 break-all">
+                    <p className="text-xs text-muted-foreground break-all">
                       {user?.email ?? ''}
                     </p>
                   </div>
@@ -650,21 +650,21 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
     <TooltipProvider>
       <div 
         ref={sidebarRef}
-        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-slate-200/60 shadow-sm`}
+        className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-border shadow-sm`}
       >
         {/* Header da sidebar */}
-        <div className="p-6 border-b border-slate-200/60 relative">
+        <div className="p-6 border-b border-border relative">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-3 ${isCollapsed ? '' : 'flex-1'}`}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                <GraduationCap className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                <GraduationCap className="w-6 h-6 text-primary-foreground" />
               </div>
               {!isCollapsed && (
                 <div className="flex-1">
-                  <h1 className="text-lg font-semibold text-slate-900">
+                  <h1 className="text-lg font-semibold text-foreground">
                     Cresci e Perdi
                   </h1>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     Sistema de Treinamentos
                   </p>
                 </div>
@@ -676,8 +676,8 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
               variant="ghost"
               size="icon"
               onClick={toggleCollapsed}
-              className={`h-8 w-8 hover:bg-slate-100 transition-colors flex-shrink-0 ${
-                isCollapsed ? 'absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-md border border-slate-200 rounded-full' : ''
+              className={`h-8 w-8 hover:bg-muted transition-colors flex-shrink-0 ${
+                isCollapsed ? 'absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-md border border-border rounded-full' : ''
               }`}
             >
               {isCollapsed ? (
@@ -699,21 +699,21 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </nav>
 
         {/* Footer da sidebar */}
-        <div className="p-4 border-t border-slate-200/60">
-          <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-50/50 hover:bg-slate-100/50 transition-colors duration-200 ${
+        <div className="p-4 border-t border-border">
+          <div className={`flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 ${
             isCollapsed ? 'justify-center' : ''
           }`}>
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-sm font-medium text-primary-foreground">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </span>
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                 <p className="text-sm font-medium text-slate-900 truncate">
+                 <p className="text-sm font-medium text-foreground truncate">
                    {selectedProfile || (isAdmin ? 'Admin' : isProfessor ? 'Professor' : 'Aluno')}
                  </p>
-                <p className="text-xs text-slate-500 break-all">
+                <p className="text-xs text-muted-foreground break-all">
                   {user?.email ?? ''}
                 </p>
               </div>
