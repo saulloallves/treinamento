@@ -324,8 +324,8 @@ const Auth = () => {
                         <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento</Label>
-                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+                        <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
+                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
                       </div>
                     </>
                   )}
