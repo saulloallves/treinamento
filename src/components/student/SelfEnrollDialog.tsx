@@ -81,10 +81,37 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     onOpenChange(newOpen);
   };
 
-  // Buscar posição do usuário para filtragem por cargo
-  const { data: userPosition } = useUserPosition();
+  // Verificar permissões de acesso aos cursos
+  const { data: courseAccessChecks = {} } = useQuery({
+    queryKey: ['course-access-checks', currentUser?.id, courses.map(c => c.id)],
+    queryFn: async () => {
+      if (!currentUser?.id) return {};
+      
+      const checks: Record<string, boolean> = {};
+      
+      // Verificar acesso para cada curso usando a função RPC do banco
+      await Promise.all(
+        courses.map(async (course) => {
+          const { data, error } = await supabase.rpc('can_user_access_course', {
+            p_user_id: currentUser.id,
+            p_course_id: course.id
+          });
+          
+          if (!error) {
+            checks[course.id] = data || false;
+          } else {
+            console.error(`Erro ao verificar acesso ao curso ${course.name}:`, error);
+            checks[course.id] = false;
+          }
+        })
+      );
+      
+      return checks;
+    },
+    enabled: open && !!currentUser?.id && courses.length > 0,
+  });
   
-  // Filtrar cursos com base em acesso por cargo
+  // Filtrar cursos com base em acesso por cargo e permissões
   const availableCourses = useMemo(() => {
     const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
     const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
@@ -95,25 +122,26 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
         return false;
       }
       
-      // Se usuário tem acesso total (professor/admin), permitir
-      if (userPosition?.hasFullAccess) {
-        return true;
-      }
+      // Verificar se o usuário tem permissão para acessar este curso
+      const hasAccess = courseAccessChecks[course.id];
       
-      // Por enquanto, permitir acesso (implementação completa será feita em próxima iteração)
-      return true;
+      return hasAccess === true;
     });
-  }, [courses, myEnrollments, availableTurmas, userPosition]);
+  }, [courses, myEnrollments, availableTurmas, courseAccessChecks]);
 
   // Dados para debug
   const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
   const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
 
   // Debug: log para verificar
+  console.log('=== DEBUG AUTOINSCRIÇÃO ===');
+  console.log('Usuário atual:', currentUser);
   console.log('Todos os cursos:', courses);
-  console.log('Cursos inscritos:', enrolledCourseIds);
+  console.log('Verificações de acesso aos cursos:', courseAccessChecks);
+  console.log('Cursos inscritos:', Array.from(enrolledCourseIds));
   console.log('Turmas com inscrições abertas:', availableTurmas);
-  console.log('Cursos disponíveis:', availableCourses);
+  console.log('Cursos disponíveis após filtro:', availableCourses);
+  console.log('=========================');
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
