@@ -177,7 +177,7 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                 )}/>}
               </div>
             </div>
-            <DialogFooter className="pt-4 border-t mt-4 flex-shrink-0">
+            <DialogFooter className="pt-4 border-t flex-shrink-0">
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Salvar e Aprovar Colaborador
