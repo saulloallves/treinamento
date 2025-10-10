@@ -49,12 +49,16 @@ serve(async (req) => {
     // Lista de participantes: sempre inclui o número padrão
     const participants = [defaultPhone]
     
+    // Lista de admins a serem promovidos
+    const adminsToPromote = [defaultPhone]
+    
     // Adiciona o franqueado se tiver telefone
     if (franchisee?.phone) {
       const cleanPhone = franchisee.phone.replace(/\D/g, '')
       const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
       if (fullPhone !== defaultPhone) {
         participants.push(fullPhone)
+        adminsToPromote.push(fullPhone) // Franqueado também é admin
       }
     }
 
@@ -101,28 +105,30 @@ serve(async (req) => {
       throw new Error('Failed to get group ID from ZAPI response')
     }
 
-    // Promover número padrão a administrador do grupo
-    try {
-      const promoteResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/promote-participant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Client-Token': zapiClientToken
-        },
-        body: JSON.stringify({
-          groupId: groupId,
-          phone: defaultPhone
-        }),
-      })
-      
-      if (!promoteResponse.ok) {
-        console.error('Failed to promote admin, but group was created:', await promoteResponse.text())
-      } else {
-        console.log('Successfully promoted default phone to admin')
+    // Promover todos os admins (número padrão e franqueado)
+    for (const adminPhone of adminsToPromote) {
+      try {
+        const promoteResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/promote-participant`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Client-Token': zapiClientToken
+          },
+          body: JSON.stringify({
+            groupId: groupId,
+            phone: adminPhone
+          }),
+        })
+        
+        if (!promoteResponse.ok) {
+          console.error(`Failed to promote ${adminPhone} to admin:`, await promoteResponse.text())
+        } else {
+          console.log(`Successfully promoted ${adminPhone} to admin`)
+        }
+      } catch (promoteError) {
+        console.error(`Error promoting ${adminPhone} to admin:`, promoteError)
+        // Não lançar erro aqui - grupo já foi criado com sucesso
       }
-    } catch (promoteError) {
-      console.error('Error promoting to admin:', promoteError)
-      // Não lançar erro aqui - grupo já foi criado com sucesso
     }
 
     // Definir foto do grupo

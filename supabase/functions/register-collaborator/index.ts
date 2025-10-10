@@ -171,7 +171,53 @@ serve(async (req) => {
     }
     console.log('--- FIM DA SINCRONIZAÇÃO COM A MATRIZ ---');
 
-    // 4. Call notify-franchisee function
+    // 4. Check if collaborator group exists for unit, if not create it
+    console.log('Verificando grupo de colaboradores da unidade...');
+    const { data: unidade } = await supabaseLocal
+      .from('unidades')
+      .select('grupo_colaborador')
+      .eq('codigo_grupo', collaboratorData.unitCode)
+      .single();
+    
+    let grupoColaborador = unidade?.grupo_colaborador;
+    
+    if (!grupoColaborador) {
+      // Criar grupo se não existe
+      console.log('Criando grupo de colaboradores...');
+      const { data: groupData, error: groupError } = await supabaseLocal.functions.invoke('create-collaborator-group', {
+        body: {
+          unit_code: collaboratorData.unitCode,
+          grupo: `UNIDADE ${collaboratorData.unitCode}`
+        }
+      });
+      
+      if (groupError) {
+        console.warn('Aviso: Falha ao criar grupo de colaboradores:', groupError);
+      } else {
+        grupoColaborador = groupData?.groupId;
+        console.log('Grupo de colaboradores criado:', grupoColaborador);
+      }
+    }
+    
+    // 5. Add collaborator to WhatsApp group
+    if (grupoColaborador && cleanPhone) {
+      console.log('Adicionando colaborador ao grupo WhatsApp...');
+      const { error: addToGroupError } = await supabaseLocal.functions.invoke('add-collaborator-to-group', {
+        body: {
+          groupId: grupoColaborador,
+          phone: cleanPhone,
+          name: collaboratorData.name
+        }
+      });
+      
+      if (addToGroupError) {
+        console.warn('Aviso: Falha ao adicionar colaborador ao grupo:', addToGroupError);
+      } else {
+        console.log('Colaborador adicionado ao grupo com sucesso.');
+      }
+    }
+    
+    // 6. Call notify-franchisee function
     console.log('Invocando notificação para o franqueado...');
     const { error: notificationError } = await supabaseLocal.functions.invoke('notify-franchisee', {
       body: {
