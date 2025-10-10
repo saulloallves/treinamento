@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CollaborationApproval } from "@/hooks/useCollaborationApprovals";
+import { formatCurrency } from "@/lib/formatting";
 
 const formSchema = z.object({
   admission_date: z.date({ required_error: "Data de admissão é obrigatória." }),
@@ -139,7 +140,7 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                   )}
                 />
                 <FormField control={form.control} name="salary" render={({ field }) => (
-                  <FormItem><FormLabel>Salário *</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Salário *</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} onChange={(e) => field.onChange(formatCurrency(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="instagram_profile" render={({ field }) => (
                   <FormItem><FormLabel>Instagram (Opcional)</FormLabel><FormControl><Input placeholder="@perfil" {...field} /></FormControl><FormMessage /></FormItem>
@@ -155,25 +156,25 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Vale Refeição</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
                 )}/>
                 {watchMealVoucher && <FormField control={form.control} name="meal_voucher_value" render={({ field }) => (
-                  <FormItem><FormLabel>Valor do Vale Refeição</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Valor do Vale Refeição</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} onChange={(e) => field.onChange(formatCurrency(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )}/>}
                 <FormField control={form.control} name="transport_voucher_active" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Vale Transporte</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
                 )}/>
                 {watchTransportVoucher && <FormField control={form.control} name="transport_voucher_value" render={({ field }) => (
-                  <FormItem><FormLabel>Valor do Vale Transporte</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Valor do Vale Transporte</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} onChange={(e) => field.onChange(formatCurrency(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )}/>}
                 <FormField control={form.control} name="basic_food_basket_active" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Cesta Básica</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
                 )}/>
                 {watchBasicBasket && <FormField control={form.control} name="basic_food_basket_value" render={({ field }) => (
-                  <FormItem><FormLabel>Valor da Cesta Básica</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Valor da Cesta Básica</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} onChange={(e) => field.onChange(formatCurrency(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )}/>}
                 <FormField control={form.control} name="cost_assistance_active" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm"><div className="space-y-0.5"><FormLabel>Ajuda de Custo</FormLabel></div><FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl></FormItem>
                 )}/>
                 {watchCostAssistance && <FormField control={form.control} name="cost_assistance_value" render={({ field }) => (
-                  <FormItem><FormLabel>Valor da Ajuda de Custo</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Valor da Ajuda de Custo</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} onChange={(e) => field.onChange(formatCurrency(e.target.value))} /></FormControl><FormMessage /></FormItem>
                 )}/>}
               </div>
             </div>
