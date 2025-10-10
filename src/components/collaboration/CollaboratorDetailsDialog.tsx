@@ -95,9 +95,9 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
             Preencha as informações de <strong>{collaborator.collaborator_name}</strong> para finalizar a aprovação.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto pr-6 pl-1 -ml-1">
-          <Form {...form}>
-            <form id="collaborator-details-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto pr-6 pl-1 -ml-1 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -176,15 +176,15 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                   <FormItem><FormLabel>Valor da Ajuda de Custo</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>}
               </div>
-            </form>
-          </Form>
-        </div>
-        <DialogFooter className="pt-4 border-t mt-4">
-          <Button type="submit" form="collaborator-details-form" disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Salvar e Aprovar Colaborador
-          </Button>
-        </DialogFooter>
+            </div>
+            <DialogFooter className="pt-4 border-t mt-4 flex-shrink-0">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Salvar e Aprovar Colaborador
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
