@@ -61,6 +61,7 @@ serve(async (req) => {
           user_type: 'Aluno',
           role: 'Colaborador',
           unit_code: collaboratorData.unitCode,
+          birth_date: collaboratorData.birth_date,
           address: {
             cep: collaboratorData.cep,
             endereco: collaboratorData.endereco,
@@ -135,7 +136,6 @@ serve(async (req) => {
           system_term: true,
           birth_date: collaboratorData.birth_date || null,
           salary: null,
-          // Mapeando novos campos de endereço
           address: collaboratorData.endereco,
           number_address: collaboratorData.numero,
           address_complement: collaboratorData.complemento,
