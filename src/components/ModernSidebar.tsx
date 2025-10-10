@@ -655,7 +655,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-border shadow-sm`}
       >
         {/* Header da sidebar */}
-        <div className="p-6 border-b border-border relative">
+        <div className="pt-3 pb-3 border-b border-border relative">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-2 ${isCollapsed ? '' : 'flex-1'}`}>
               <img 
