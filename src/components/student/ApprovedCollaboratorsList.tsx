@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface ApprovedCollaborator {
   id: string;
@@ -34,38 +35,46 @@ interface ApprovedCollaborator {
 }
 
 interface ApprovedCollaboratorsListProps {
-  unitCode: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
 
-const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: ApprovedCollaboratorsListProps) => {
+const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollaboratorsListProps) => {
   const queryClient = useQueryClient();
   const createGroupMutation = useCreateCollaboratorGroup();
-  
-  // Query para buscar info da unidade
+  const { data: currentUser } = useCurrentUser();
+
+  const allUnitCodes = [
+    ...(currentUser?.unit_codes || []),
+    ...(currentUser?.unit_code ? [currentUser.unit_code] : [])
+  ].filter((code, index, self) => code && self.indexOf(code) === index);
+
+  // Query para buscar info da unidade principal
   const { data: unitInfo } = useQuery({
-    queryKey: ['unit-info', unitCode],
+    queryKey: ['unit-info', currentUser?.unit_code],
     queryFn: async () => {
+      if (!currentUser?.unit_code) return null;
       const { data, error } = await supabase
         .from('unidades')
         .select('codigo_grupo, grupo, grupo_colaborador')
-        .eq('codigo_grupo', parseInt(unitCode))
+        .eq('codigo_grupo', parseInt(currentUser.unit_code))
         .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!unitCode,
+    enabled: !!currentUser?.unit_code,
   });
   
   const { data: collaborators = [], isLoading } = useQuery({
-    queryKey: ['approved-collaborators', unitCode],
+    queryKey: ['approved-collaborators', allUnitCodes.join(',')],
     queryFn: async () => {
+      if (allUnitCodes.length === 0) return [];
+
       const { data, error } = await supabase
         .from('users')
         .select('id, name, email, role, position, approved_at, created_at, active')
-        .eq('unit_code', unitCode)
+        .in('unit_code', allUnitCodes)
         .eq('role', 'Colaborador')
         .eq('approval_status', 'aprovado')
         .order('approved_at', { ascending: false });
@@ -73,7 +82,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
       if (error) throw error;
       return data as ApprovedCollaborator[];
     },
-    enabled: !!unitCode,
+    enabled: allUnitCodes.length > 0,
   });
 
   const pauseCollaboratorMutation = useMutation({
@@ -86,7 +95,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', unitCode] });
+      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
       toast.success("Colaborador pausado com sucesso!");
       if (onRefresh) onRefresh();
     },
@@ -105,7 +114,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', unitCode] });
+      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
       toast.success("Colaborador ativado com sucesso!");
       if (onRefresh) onRefresh();
     },
@@ -149,7 +158,7 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', unitCode] });
+      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
       toast.success("Colaborador removido com sucesso!");
       if (onRefresh) onRefresh();
     },
@@ -159,9 +168,9 @@ const ApprovedCollaboratorsList = ({ unitCode, onRefresh, isRefreshing }: Approv
   });
 
   const handleCreateGroup = () => {
-    if (unitInfo?.grupo) {
+    if (unitInfo?.grupo && currentUser?.unit_code) {
       createGroupMutation.mutate({
-        unitCode: unitCode,
+        unitCode: currentUser.unit_code,
         grupo: unitInfo.grupo
       });
     }
