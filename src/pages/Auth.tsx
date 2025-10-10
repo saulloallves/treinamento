@@ -45,6 +45,7 @@ const Auth = () => {
   const [estado, setEstado] = useState('');
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState('');
 
   const navigate = useNavigate();
 
@@ -149,6 +150,7 @@ const Auth = () => {
             position,
             whatsapp,
             cpf,
+            birth_date: birthDate,
             cep,
             endereco,
             numero,
@@ -168,7 +170,7 @@ const Auth = () => {
           
           // Clear form
           setFullName(''); setEmail(''); setPassword(''); setUnitCode(''); setPosition(''); setWhatsapp(''); setCpf('');
-          setCep(''); setEndereco(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setEstado('');
+          setBirthDate(''); setCep(''); setEndereco(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setEstado('');
         } else {
           throw new Error(data?.error || 'Erro desconhecido');
         }
@@ -320,6 +322,10 @@ const Auth = () => {
                       <div className="space-y-2">
                         <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
                         <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento</Label>
+                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
                       </div>
                     </>
                   )}

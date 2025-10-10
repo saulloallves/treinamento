@@ -14,6 +14,7 @@ interface CollaboratorData {
   position: string;
   whatsapp?: string;
   cpf?: string;
+  birth_date?: string;
   cep?: string;
   endereco?: string;
   numero?: string;
@@ -132,7 +133,7 @@ serve(async (req) => {
           lgpd_term: true,
           confidentiality_term: true,
           system_term: true,
-          birth_date: null,
+          birth_date: collaboratorData.birth_date || null,
           salary: null,
           // Mapeando novos campos de endereço
           address: collaboratorData.endereco,
