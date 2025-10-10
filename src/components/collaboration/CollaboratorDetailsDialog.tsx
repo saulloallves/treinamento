@@ -18,7 +18,7 @@ import { CollaborationApproval } from "@/hooks/useCollaborationApprovals";
 const formSchema = z.object({
   admission_date: z.date({ required_error: "Data de admissão é obrigatória." }),
   instagram_profile: z.string().optional(),
-  salary: z.string().optional(),
+  salary: z.string().min(1, { message: "Salário é obrigatório." }),
   meal_voucher_active: z.boolean().default(false),
   meal_voucher_value: z.string().optional(),
   transport_voucher_active: z.boolean().default(false),
@@ -138,7 +138,7 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                 )}
               />
               <FormField control={form.control} name="salary" render={({ field }) => (
-                <FormItem><FormLabel>Salário (Opcional)</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Salário *</FormLabel><FormControl><Input placeholder="R$ 0,00" {...field} /></FormControl><FormMessage /></FormItem>
               )}/>
               <FormField control={form.control} name="instagram_profile" render={({ field }) => (
                 <FormItem><FormLabel>Instagram (Opcional)</FormLabel><FormControl><Input placeholder="@perfil" {...field} /></FormControl><FormMessage /></FormItem>
