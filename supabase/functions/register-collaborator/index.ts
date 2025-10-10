@@ -43,6 +43,7 @@ serve(async (req) => {
     });
 
     const collaboratorData: CollaboratorData = await req.json();
+    console.log('Received payload for collaborator registration:', collaboratorData);
     let userId: string;
 
     const { data: existingUsers } = await supabaseLocal.auth.admin.listUsers();
