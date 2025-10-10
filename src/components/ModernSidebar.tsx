@@ -598,7 +598,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
                 <img 
                   src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
                   alt="Mascote Cresci e Perdi" 
-                  className="w-8 h-8"
+                  className="h-8 w-auto object-contain"
                 />
                 <div>
                   <h1 className="text-base font-semibold text-foreground">
@@ -661,7 +661,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
               <img 
                 src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
                 alt="Mascote Cresci e Perdi" 
-                className={`transition-all duration-300 ${isCollapsed ? 'w-9 h-9' : 'w-8 h-8'}`}
+                className={`object-contain transition-all duration-300 ${isCollapsed ? 'h-9' : 'h-8'}`}
               />
               {!isCollapsed && (
                 <div className="flex-1">
@@ -703,11 +703,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         </nav>
 
         {/* Footer da sidebar */}
-        <div className="p-4 border-t border-border">
-          <div className={`flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors duration-200 ${
-            isCollapsed ? 'justify-center' : ''
+        <div className={`border-t border-border transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+          <div className={`flex items-center transition-all duration-300 rounded-lg bg-muted/50 hover:bg-muted ${
+            isCollapsed ? 'justify-center p-1 gap-0' : 'p-3 gap-3'
           }`}>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 min-w-[2rem] h-8 min-h-[2rem] rounded-full bg-primary flex items-center justify-center shrink-0">
               <span className="text-sm font-medium text-primary-foreground">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </span>
