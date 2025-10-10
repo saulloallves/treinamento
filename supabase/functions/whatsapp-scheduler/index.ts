@@ -136,14 +136,25 @@ serve(async (req: Request) => {
         const timeUntilLesson = lessonTime.getTime() - now.getTime()
         const minutesUntil = Math.floor(timeUntilLesson / (1000 * 60))
 
+        console.log(`Lesson "${lesson.title}" starts in ${minutesUntil} minutes (${lessonTime.toISOString()})`)
+
         // Determine which dispatch types to check
+        // Using wider windows to ensure dispatches are sent
+        // 2 hours = 120 minutes, checking between 115-125 minutes
+        // 30 minutes, checking between 25-35 minutes
         let dispatchTypes: Array<'2_hours_before' | '30_minutes_before'> = []
         
-        if (minutesUntil <= 130 && minutesUntil > 110) {
+        if (minutesUntil <= 125 && minutesUntil >= 115) {
+          console.log(`  -> Will create 2_hours_before dispatch`)
           dispatchTypes.push('2_hours_before')
         }
-        if (minutesUntil <= 35 && minutesUntil > 25) {
+        if (minutesUntil <= 35 && minutesUntil >= 25) {
+          console.log(`  -> Will create 30_minutes_before dispatch`)
           dispatchTypes.push('30_minutes_before')
+        }
+
+        if (dispatchTypes.length === 0) {
+          console.log(`  -> No dispatch needed at this time`)
         }
 
         for (const dispatchType of dispatchTypes) {
@@ -162,18 +173,36 @@ serve(async (req: Request) => {
               continue
             }
 
-            // Check if dispatch was already created recently
-            const { data: existingDispatch } = await supabase
+            // Check if dispatch was already created for this specific lesson and type
+            // We check by creating a unique identifier for each dispatch type
+            const dispatchIdentifier = `${lesson.id}_${dispatchType}_${lesson.zoom_start_time}`
+            
+            const { data: existingDispatches, error: existingError } = await supabase
               .from('whatsapp_dispatches')
-              .select('id')
+              .select('id, created_at, status')
               .eq('type', 'aula')
               .eq('item_id', lesson.id)
-              .gte('created_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString()) // Last 3 hours
-              .ilike('message', `%${dispatchType === '2_hours_before' ? '2 horas' : '30 minutos'}%`)
-              .single()
+              .gte('created_at', new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+              .order('created_at', { ascending: false })
 
-            if (existingDispatch) {
-              console.log(`Dispatch already exists for lesson ${lesson.title}, type ${dispatchType}`)
+            if (existingError) {
+              console.error(`Error checking existing dispatches:`, existingError)
+            }
+
+            // Check if we already sent this specific dispatch type for this lesson time
+            const alreadySent = existingDispatches?.some(d => {
+              // For 2h before: check if message mentions "2 horas" or similar
+              // For 30m before: check if message mentions "30 minutos" or similar
+              const isCorrectType = dispatchType === '2_hours_before' 
+                ? d.created_at && new Date(d.created_at).getTime() >= new Date(lesson.zoom_start_time).getTime() - 3 * 60 * 60 * 1000 &&
+                  new Date(d.created_at).getTime() <= new Date(lesson.zoom_start_time).getTime() - 1 * 60 * 60 * 1000
+                : d.created_at && new Date(d.created_at).getTime() >= new Date(lesson.zoom_start_time).getTime() - 45 * 60 * 1000 &&
+                  new Date(d.created_at).getTime() <= new Date(lesson.zoom_start_time).getTime() - 20 * 60 * 1000
+              return isCorrectType
+            })
+
+            if (alreadySent) {
+              console.log(`✅ Dispatch already sent for lesson "${lesson.title}", type ${dispatchType}`)
               continue
             }
 
@@ -183,7 +212,8 @@ serve(async (req: Request) => {
               .replace(/{link}/g, lesson.zoom_join_url || '')
               .replace(/{horario}/g, new Date(lesson.zoom_start_time).toLocaleString('pt-BR'))
 
-            console.log(`Creating ${dispatchType} dispatch for lesson: ${lesson.title}`)
+            console.log(`📤 Creating ${dispatchType} dispatch for lesson: "${lesson.title}" at ${lessonTime.toLocaleString('pt-BR')}`)
+            console.log(`   Message: ${message.substring(0, 100)}...`)
 
             // Insert dispatch and immediately process it
             const { data: newDispatch, error: createError } = await supabase
