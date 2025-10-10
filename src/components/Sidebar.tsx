@@ -448,9 +448,11 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
             {/* Header da sidebar */}
             <div className="p-6 border-b border-gray-200 mt-16">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                  <GraduationCap className="w-6 h-6 text-primary-foreground" />
-                </div>
+                <img 
+                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  alt="Mascote Cresci e Perdi" 
+                  className="w-10 h-10"
+                />
                 <div>
                   <h1 className="text-xl font-bold text-foreground">
                     Cresci e Perdi
@@ -496,9 +498,11 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       {/* Header da sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
-            <GraduationCap className="w-6 h-6 text-primary-foreground" />
-          </div>
+          <img 
+            src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+            alt="Mascote Cresci e Perdi" 
+            className="w-10 h-10"
+          />
           <div>
             <h1 className="text-xl font-bold text-foreground">
               Cresci e Perdi

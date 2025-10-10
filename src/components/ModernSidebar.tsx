@@ -595,9 +595,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             {/* Header da sidebar */}
             <div className="p-6 border-b border-border mt-16">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
-                  <GraduationCap className="w-6 h-6 text-primary-foreground" />
-                </div>
+                <img 
+                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  alt="Mascote Cresci e Perdi" 
+                  className="w-10 h-10"
+                />
                 <div>
                   <h1 className="text-lg font-semibold text-foreground">
                     Cresci e Perdi
@@ -656,9 +658,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         <div className="p-6 border-b border-border relative">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-3 ${isCollapsed ? '' : 'flex-1'}`}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
-                <GraduationCap className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <img 
+                src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                alt="Mascote Cresci e Perdi" 
+                className="w-10 h-10"
+              />
               {!isCollapsed && (
                 <div className="flex-1">
                   <h1 className="text-lg font-semibold text-foreground">
