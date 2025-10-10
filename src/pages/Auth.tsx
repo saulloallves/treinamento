@@ -237,10 +237,11 @@ const Auth = () => {
       </div>
       <div className="w-full max-w-xl space-y-8">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary/10 ring-1 ring-primary/15 mb-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)]">
-            <GraduationCap className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Cresci e Perdi</h1>
+          <img 
+            src="https://raw.githubusercontent.com/saulloallves/sistema-matriz/refs/heads/main/src/assets/logo-principal.png" 
+            alt="Cresci e Perdi Logo" 
+            className="mx-auto mb-4 w-48"
+          />
           <p className="text-muted-foreground">Sistema de Treinamentos</p>
         </div>
 
@@ -426,6 +427,9 @@ const Auth = () => {
 
         <div className="text-center text-sm text-muted-foreground">
           Ao continuar, você concorda com nossos termos de uso
+        </div>
+        <div className="text-center text-xs text-muted-foreground/80 mt-6">
+          &copy; {new Date().getFullYear()} Cresci e Perdi Franchising LTDA
         </div>
       </div>
     </div>
