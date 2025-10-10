@@ -19,6 +19,34 @@ serve(async (req) => {
       throw new Error('Grupo is required')
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Verificar se a unidade já tem um grupo de colaboradores
+    const { data: existingUnit } = await supabase
+      .from('unidades')
+      .select('grupo_colaborador')
+      .eq('codigo_grupo', unit_code)
+      .single()
+
+    if (existingUnit?.grupo_colaborador) {
+      console.log('Unit already has a collaborator group:', existingUnit.grupo_colaborador)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Esta unidade já possui um grupo de colaboradores ativo. Se deseja recriar o grupo, primeiro remova o grupo existente nas configurações da unidade.',
+          groupId: existingUnit.grupo_colaborador
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
+
     const zapiToken = Deno.env.get('ZAPI_TOKEN')
     const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
     const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN')
@@ -26,12 +54,6 @@ serve(async (req) => {
     if (!zapiToken || !zapiInstanceId || !zapiClientToken) {
       throw new Error('ZAPI credentials not configured')
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Buscar telefone do franqueado para adicionar como participante inicial
     const { data: franchisee } = await supabase
@@ -85,6 +107,22 @@ serve(async (req) => {
 
     if (!zapiResponse.ok) {
       console.error('ZAPI error response:', responseText)
+      
+      // Verificar se é erro de grupo duplicado
+      if (responseText.includes('already exists') || responseText.includes('já existe')) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Um grupo com este nome já existe no WhatsApp. Por favor, use um nome diferente ou remova o grupo existente primeiro.',
+            zapiError: responseText
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          }
+        )
+      }
+      
       throw new Error(`Failed to create WhatsApp group: ${responseText}`)
     }
 
