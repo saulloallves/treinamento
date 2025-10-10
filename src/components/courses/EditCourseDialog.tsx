@@ -108,8 +108,8 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Edit className="w-5 h-5" />
             Editar Curso
@@ -119,7 +119,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="basic" className="w-full">
+        <Tabs defaultValue="basic" className="flex-1 flex flex-col px-6 overflow-hidden">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
@@ -135,8 +135,8 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
             </TabsTrigger>
           </TabsList>
 
-          <div className="mt-6 max-h-[60vh] overflow-y-auto">
-            <TabsContent value="basic" className="space-y-4">
+          <div className="flex-1 overflow-y-auto mt-6 pr-2">
+            <TabsContent value="basic" className="space-y-4 mt-0">
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Nome do Curso *</Label>
@@ -363,7 +363,7 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
           </div>
         </Tabs>
 
-        <DialogFooter className="flex-shrink-0 border-t pt-4">
+        <DialogFooter className="flex-shrink-0 border-t px-6 py-4 mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             <X className="w-4 h-4" />
             Cancelar
