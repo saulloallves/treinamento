@@ -36,21 +36,37 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
   const { data: availableTurmas = [] } = useQuery({
     queryKey: ['available-turmas-for-enrollment'],
     queryFn: async () => {
-      const now = new Date().toISOString();
+      const now = new Date();
       
+      // Buscar turmas agendadas ou em andamento
       const { data, error } = await supabase
         .from('turmas')
-        .select('course_id, enrollment_open_at, enrollment_close_at')
-        .eq('status', 'agendada')
-        .or(`enrollment_open_at.is.null,enrollment_open_at.lte.${now}`)
-        .or(`enrollment_close_at.is.null,enrollment_close_at.gte.${now}`);
+        .select('course_id, enrollment_open_at, enrollment_close_at, status')
+        .in('status', ['agendada', 'em_andamento']);
 
       if (error) {
         console.error('Error fetching available turmas:', error);
         return [];
       }
 
-      return data || [];
+      // Filtrar turmas com janela de inscrição aberta
+      const filtered = (data || []).filter((turma) => {
+        // Se não há datas definidas, considerar como sempre aberta
+        if (!turma.enrollment_open_at && !turma.enrollment_close_at) {
+          return true;
+        }
+        
+        // Verificar se está dentro da janela de inscrições
+        const openAt = turma.enrollment_open_at ? new Date(turma.enrollment_open_at) : null;
+        const closeAt = turma.enrollment_close_at ? new Date(turma.enrollment_close_at) : null;
+        
+        const isAfterOpen = !openAt || now >= openAt;
+        const isBeforeClose = !closeAt || now <= closeAt;
+        
+        return isAfterOpen && isBeforeClose;
+      });
+
+      return filtered;
     },
     enabled: open, // Só busca quando o diálogo está aberto
   });
