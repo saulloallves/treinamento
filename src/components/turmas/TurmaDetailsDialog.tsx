@@ -4,7 +4,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, Users, GraduationCap, User, ClipboardCheck, TrendingUp, Award, FileText, CheckCircle2, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, Users, GraduationCap, User, ClipboardCheck, TrendingUp, Award, FileText, CheckCircle2, Mail, Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TurmaEnrollmentsList } from "./TurmaEnrollmentsList";
@@ -12,6 +13,7 @@ import { useEnrollments } from "@/hooks/useEnrollments";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
+import { toast } from "sonner";
 
 interface TurmaDetailsDialogProps {
   open: boolean;
@@ -149,26 +151,40 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
   const { data: testSubmissions } = useQuery({
     queryKey: ['turma-test-submissions', turma?.id],
     queryFn: async () => {
+      // First get test IDs for this turma
+      const { data: tests } = await supabase
+        .from('tests')
+        .select('id')
+        .eq('turma_id', turma.id);
+      
+      const testIds = tests?.map(t => t.id) || [];
+      
+      if (testIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from('test_submissions')
         .select(`
           *,
-          users:user_id(name, email),
           tests:test_id(name, passing_percentage)
         `)
-        .in('test_id', 
-          await supabase
-            .from('tests')
-            .select('id')
-            .eq('turma_id', turma.id)
-            .then(res => res.data?.map(t => t.id) || [])
-        )
+        .in('test_id', testIds)
         .order('submitted_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Get user names from enrollments
+      const enrichedData = await Promise.all((data || []).map(async (submission) => {
+        const enrollment = turmaEnrollments.find(e => e.user_id === submission.user_id);
+        return {
+          ...submission,
+          student_name: enrollment?.student_name || 'Não identificado',
+          student_email: enrollment?.student_email || 'N/A'
+        };
+      }));
+      
+      return enrichedData;
     },
-    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas') && turmaEnrollments.length > 0
   });
 
   const isArchivedTurma = turma?.status === 'encerrada' || turma?.status === 'arquivadas';
@@ -177,20 +193,123 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
     return null;
   }
 
+  // Export all turma data
+  const handleExportData = async () => {
+    try {
+      toast.loading("Preparando exportação...");
+      
+      const exportData = {
+        turma: {
+          nome: turma.name || turma.code,
+          codigo: turma.code,
+          status: turma.status,
+          curso: course?.name,
+          responsavel: turma.responsavel_user?.name,
+          email_responsavel: turma.responsavel_user?.email,
+          capacidade: turma.capacity,
+          prazo_conclusao: turma.completion_deadline,
+          inicio: turma.start_at,
+          fim: turma.end_at,
+          abertura_inscricoes: turma.enrollment_open_at,
+          fechamento_inscricoes: turma.enrollment_close_at,
+        },
+        inscricoes: turmaEnrollments.map(e => ({
+          aluno: e.student_name,
+          email: e.student_email,
+          telefone: e.student_phone,
+          unidade: e.unit_code,
+          status: e.status,
+          data_inscricao: e.enrollment_date,
+          progresso: e.progress_percentage + '%'
+        })),
+        presencas: attendanceData?.map(a => ({
+          aluno: a.users?.name || 'Não identificado',
+          email: a.users?.email,
+          data_hora: a.confirmed_at,
+          tipo: a.attendance_type,
+          palavra_chave: a.typed_keyword
+        })) || [],
+        progresso: progressSummary.map(p => ({
+          aluno: p.student_name,
+          email: p.student_email,
+          status: p.status,
+          progresso: p.progress_percentage + '%'
+        })),
+        certificados: certificates?.map(c => ({
+          aluno: c.users?.name,
+          email: c.users?.email,
+          data_emissao: c.generated_at,
+          status: c.status,
+          url: c.certificate_url
+        })) || [],
+        quiz_respostas: quizResponses?.map(q => ({
+          aluno: q.users?.name,
+          quiz: q.quiz?.quiz_name || 'Quiz sem nome',
+          resposta: q.selected_answer,
+          correta: q.is_correct ? 'Sim' : 'Não',
+          data: q.answered_at
+        })) || [],
+        testes: testSubmissions?.map(t => ({
+          aluno: t.student_name,
+          teste: t.tests?.name,
+          pontuacao: t.total_score,
+          pontuacao_maxima: t.max_possible_score,
+          percentual: t.percentage.toFixed(1) + '%',
+          aprovado: t.passed ? 'Sim' : 'Não',
+          data_submissao: t.submitted_at,
+          tempo_gasto: t.time_taken_minutes ? t.time_taken_minutes + ' min' : 'N/A'
+        })) || []
+      };
+
+      // Create JSON blob
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = `turma_${turma.code || turma.id}_${format(new Date(), 'yyyyMMdd_HHmmss')}.json`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Dados exportados com sucesso!");
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast.error("Erro ao exportar dados");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <GraduationCap className="w-6 h-6 text-primary" />
-            <div>
-              <DialogTitle className="text-xl">
-                {turma.name || `Turma ${turma.code || turma.id.slice(0, 8)}`}
-              </DialogTitle>
-              <p className="text-sm text-muted-foreground">
-                {course.name}
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <GraduationCap className="w-6 h-6 text-primary" />
+              <div>
+                <DialogTitle className="text-xl">
+                  {turma.name || `Turma ${turma.code || turma.id.slice(0, 8)}`}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  {course.name}
+                </p>
+              </div>
             </div>
+            {isArchivedTurma && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                className="gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Exportar Dados
+              </Button>
+            )}
           </div>
         </DialogHeader>
 
@@ -476,7 +595,7 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
                     {testSubmissions.map((submission: any) => (
                       <div key={submission.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium">{submission.users?.name}</p>
+                          <p className="font-medium">{submission.student_name}</p>
                           <p className="text-sm text-muted-foreground">{submission.tests?.name}</p>
                         </div>
                         <div className="text-right">
