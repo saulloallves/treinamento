@@ -119,6 +119,7 @@ serve(async (req) => {
     
     console.log('Creating WhatsApp group:', groupName, 'with participants:', participants)
 
+    // Criar grupo primeiro sem participantes (apenas o criador)
     const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/create-group`, {
       method: 'POST',
       headers: {
@@ -126,9 +127,7 @@ serve(async (req) => {
         'Client-Token': zapiClientToken
       },
       body: JSON.stringify({
-        autoInvite: true,
-        groupName: groupName,
-        phones: participants
+        groupName: groupName
       }),
     })
 
@@ -174,7 +173,44 @@ serve(async (req) => {
       throw new Error('Failed to get group ID from ZAPI response')
     }
 
+    // Aguardar 2 segundos para o grupo ser criado completamente
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    // Adicionar participantes ao grupo
+    console.log('Adding participants to group:', participants)
+    for (const participantPhone of participants) {
+      try {
+        const addResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/add-participant`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Client-Token': zapiClientToken
+          },
+          body: JSON.stringify({
+            groupId: groupId,
+            phone: participantPhone
+          }),
+        })
+        
+        if (!addResponse.ok) {
+          const addText = await addResponse.text()
+          console.error(`Failed to add participant ${participantPhone}:`, addText)
+        } else {
+          console.log(`Successfully added participant ${participantPhone}`)
+        }
+        
+        // Aguardar 1 segundo entre adições
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      } catch (addError) {
+        console.error(`Error adding participant ${participantPhone}:`, addError)
+      }
+    }
+
+    // Aguardar mais 2 segundos antes de promover admins
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
     // Promover todos os admins (número padrão e franqueado)
+    console.log('Promoting admins:', adminsToPromote)
     for (const adminPhone of adminsToPromote) {
       try {
         const promoteResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/promote-participant`, {
@@ -194,15 +230,31 @@ serve(async (req) => {
         } else {
           console.log(`Successfully promoted ${adminPhone} to admin`)
         }
+        
+        // Aguardar 1 segundo entre promoções
+        await new Promise(resolve => setTimeout(resolve, 1000))
       } catch (promoteError) {
         console.error(`Error promoting ${adminPhone} to admin:`, promoteError)
         // Não lançar erro aqui - grupo já foi criado com sucesso
       }
     }
 
+    // Aguardar 2 segundos antes de definir foto
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
     // Definir foto do grupo
+    console.log('Setting group photo...')
     try {
-      const imageUrl = 'https://tctkacgbhqvkqovctrzf.supabase.co/storage/v1/object/public/course-covers/grupo-colaborador-avatar.png'
+      // Buscar a imagem do storage e converter para base64
+      const imageResponse = await fetch('https://tctkacgbhqvkqovctrzf.supabase.co/storage/v1/object/public/course-covers/grupo-colaborador-avatar.png')
+      
+      if (!imageResponse.ok) {
+        throw new Error('Failed to fetch group avatar image')
+      }
+      
+      const imageBuffer = await imageResponse.arrayBuffer()
+      const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)))
+      const imageDataUrl = `data:image/png;base64,${base64Image}`
       
       const photoResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/change-group-image`, {
         method: 'POST',
@@ -212,7 +264,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           groupId: groupId,
-          image: imageUrl
+          image: imageDataUrl
         }),
       })
       
