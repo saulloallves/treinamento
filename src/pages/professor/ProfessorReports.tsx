@@ -8,12 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EvaluationReports } from "@/components/reports/EvaluationReports";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useAuth } from "@/hooks/useAuth";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const ProfessorReports = () => {
   const [selectedTurma, setSelectedTurma] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
-  const [statusFilter, setStatusFilter] = useState("ativas");
   
   const { user } = useAuth();
   const { data: turmas } = useTurmas();
@@ -22,17 +20,6 @@ const ProfessorReports = () => {
   const professorTurmas = turmas?.filter(turma => 
     turma.responsavel_user_id === user?.id
   );
-
-  // Filter turmas by status
-  const filteredTurmas = professorTurmas?.filter(turma => {
-    if (statusFilter === "ativas") {
-      return turma.status === 'em_andamento' || turma.status === 'agendada';
-    } else if (statusFilter === "arquivadas") {
-      return turma.status === 'encerrada' || turma.status === 'cancelada';
-    } else {
-      return turma.status === statusFilter;
-    }
-  }) || [];
 
   const handleExport = (format: 'pdf' | 'excel') => {
     // TODO: Implementar exportação
@@ -74,15 +61,6 @@ const ProfessorReports = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Status Filters */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status da Turma</label>
-              <TurmaStatusFilters 
-                statusFilter={statusFilter}
-                onStatusChange={setStatusFilter}
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Turma</label>
@@ -92,7 +70,7 @@ const ProfessorReports = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as minhas turmas</SelectItem>
-                    {filteredTurmas
+                    {professorTurmas
                       ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento' || turma.status === 'encerrada')
                       ?.map((turma) => (
                         <SelectItem key={turma.id} value={turma.id}>
@@ -144,8 +122,7 @@ const ProfessorReports = () => {
                 professorId={user?.id}
                 filters={{
                   turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
-                  statusFilter: statusFilter,
-                  startDate: selectedPeriod !== "all" ? 
+                  startDate: selectedPeriod !== "all" ?
                     new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
                     undefined
                 }}

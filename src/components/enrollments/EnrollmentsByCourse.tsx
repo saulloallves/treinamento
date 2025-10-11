@@ -4,12 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { EnrollmentTurmaCard } from "./EnrollmentTurmaCard";
 import { TurmaEnrollmentsDialog } from "./TurmaEnrollmentsDialog";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const EnrollmentsByCourse = () => {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("ativas");
 
   // Fetch all turmas and their enrollments
   const { data: turmasData, isLoading } = useQuery({
@@ -76,19 +74,10 @@ const EnrollmentsByCourse = () => {
   const grouped = useMemo(() => {
     if (!turmasData) return [];
 
-    // Filter turmas by status
+    // Show only active turmas (em_andamento and agendada)
     const filteredTurmas = turmasData.filter(turmaData => {
       const turmaStatus = turmaData.turmaStatus;
-      if (statusFilter === "ativas") {
-        // Default active view: show 'em_andamento' and 'agendada' only
-        return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
-      } else if (statusFilter === "arquivadas") {
-        // Archive view: show 'encerrada' and 'cancelada'
-        return turmaStatus === 'encerrada' || turmaStatus === 'cancelada';
-      } else {
-        // Specific status filter
-        return turmaStatus === statusFilter;
-      }
+      return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
     });
 
     return filteredTurmas.map((turmaData) => ({
@@ -99,7 +88,7 @@ const EnrollmentsByCourse = () => {
       courseName: turmaData.courseName,
       items: turmaData.enrollments
     })).sort((a, b) => a.courseName.localeCompare(b.courseName));
-  }, [turmasData, statusFilter]);
+  }, [turmasData]);
 
   const handleCardClick = (group: any) => {
     setSelectedGroup(group);
@@ -125,11 +114,6 @@ const EnrollmentsByCourse = () => {
   return (
     <>
       <div className="space-y-6">
-        <TurmaStatusFilters 
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-        />
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {grouped.map((group) => (
             <EnrollmentTurmaCard
