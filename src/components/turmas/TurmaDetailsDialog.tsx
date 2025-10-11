@@ -2,13 +2,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, Users, GraduationCap, User, ClipboardCheck, TrendingUp, Award, FileText, CheckCircle2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+import { Calendar, Clock, Users, GraduationCap, User, ClipboardCheck, TrendingUp, Award, FileText, CheckCircle2, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TurmaEnrollmentsList } from "./TurmaEnrollmentsList";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 
 interface TurmaDetailsDialogProps {
   open: boolean;
@@ -76,6 +79,35 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
     },
     enabled: open && !!turma?.id && turmaEnrollments.length > 0 && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
   });
+
+  // Calculate progress summary by student
+  const progressSummary = useMemo(() => {
+    if (!progressData || !turmaEnrollments.length) return [];
+    
+    // Get total lessons count
+    const totalLessons = course?.lessons_count || 0;
+    
+    // Group progress by enrollment
+    const enrollmentProgress = turmaEnrollments.map(enrollment => {
+      const completedLessons = progressData.filter(
+        p => p.enrollment_id === enrollment.id && p.status === 'completed'
+      ).length;
+      
+      const progressPercentage = totalLessons > 0 
+        ? Math.round((completedLessons / totalLessons) * 100) 
+        : 0;
+      
+      return {
+        id: enrollment.id,
+        student_name: enrollment.student_name,
+        student_email: enrollment.student_email,
+        status: enrollment.status,
+        progress_percentage: progressPercentage
+      };
+    });
+    
+    return enrollmentProgress;
+  }, [progressData, turmaEnrollments, course]);
 
   // Fetch certificates
   const { data: certificates } = useQuery({
@@ -332,25 +364,51 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
             <TabsContent value="progress" className="mt-4">
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Progresso dos Alunos</h3>
-                {progressData && progressData.length > 0 ? (
-                  <div className="space-y-2">
-                    {progressData.map((progress: any) => (
-                      <div key={progress.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium">{progress.enrollment?.student_name}</p>
-                          <p className="text-sm text-muted-foreground">{progress.lesson?.title}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={progress.status === 'completed' ? 'default' : 'secondary'}>
-                            {progress.status === 'completed' ? 'Concluída' : 
-                             progress.status === 'in_progress' ? 'Em Progresso' : 'Não Iniciada'}
-                          </Badge>
-                          {progress.watch_time_minutes > 0 && (
-                            <p className="text-sm text-muted-foreground mt-1">{progress.watch_time_minutes} min assistidos</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                {progressSummary.length > 0 ? (
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Aluno</TableHead>
+                          <TableHead>E-mail</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Progresso</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {progressSummary.map((student) => (
+                          <TableRow key={student.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <User className="w-4 h-4 text-primary" />
+                                </div>
+                                <span className="font-medium">{student.student_name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Mail className="w-3 h-3 text-muted-foreground" />
+                                <span className="text-sm">{student.student_email}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={student.status === 'Ativo' ? 'default' : 'secondary'}>
+                                {student.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="min-w-[200px]">
+                              <div className="flex items-center gap-3">
+                                <Progress value={student.progress_percentage} className="w-32" />
+                                <span className="text-sm text-muted-foreground font-medium">
+                                  {student.progress_percentage}%
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum progresso registrado</p>
