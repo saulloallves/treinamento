@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
   Edit, 
   Trash2, 
   Eye,
@@ -11,7 +10,6 @@ import {
   Award
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
-import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 
 interface CourseCardMobileProps {
   course: Course;
@@ -53,7 +51,6 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
-  const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
 
   return (
     <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[220px]">
@@ -119,14 +116,6 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
 
         {/* Main Info */}
         <div className="space-y-1 flex-1">
-          {/* Show lesson count only for treinamentos (gravado) */}
-          {course.tipo === 'gravado' && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
-            </div>
-          )}
-
           {/* Instructor - Only if available */}
           {course.instructor && (
             <div className="text-[10px]">

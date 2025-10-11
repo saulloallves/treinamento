@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import TouchCard from '@/components/mobile/TouchCard';
 import { 
-  BookOpen, 
   Edit, 
   Trash2, 
   Eye,
@@ -12,7 +11,6 @@ import {
   Award
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
-import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CourseCardMobile } from './CourseCardMobile';
 
@@ -56,7 +54,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
-  const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
   const isMobile = useIsMobile();
   
   // Use mobile-specific component on mobile devices
@@ -141,14 +138,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
         {/* Course Info - More compact */}
         <div className="space-y-1 flex-1">
-          {/* Show lesson count only for treinamentos (gravado) */}
-          {course.tipo === 'gravado' && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
-            </div>
-          )}
-
           {course.instructor && (
             <div className="text-xs">
               <span className="text-muted-foreground">Instrutor: </span>
