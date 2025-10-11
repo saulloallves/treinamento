@@ -221,8 +221,7 @@ serve(async (req) => {
       } else {
         console.log('✅ Grupo já existe:', grupoColaborador);
       }
-    }
-    
+      
       // 5. Add collaborator to WhatsApp group (apenas se grupo existir)
       if (grupoColaborador && cleanPhone) {
         console.log('🔄 Adicionando colaborador ao grupo WhatsApp...');
