@@ -4,17 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   BookOpen, 
-  Users, 
   Edit, 
   Trash2, 
   Eye,
-  PlayCircle,
   FileText,
-  Award,
-  Clock
+  Award
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
-import { useCourseAccess } from '@/hooks/useCourseAccess';
 import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 
 interface CourseCardMobileProps {
@@ -57,22 +53,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
-  const { positionNames } = useCourseAccess(course.id);
   const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
-  
-  // Get correct public target label
-  const getCorrectPublicTargetLabel = () => {
-    if (positionNames && positionNames.length > 0) {
-      return positionNames.slice(0, 1).join(', ') + (positionNames.length > 1 ? '...' : '');
-    }
-    // Fallback to basic labels
-    switch (course.public_target) {
-      case "franqueado": return "Franqueado";
-      case "colaborador": return "Colaborador"; 
-      case "ambos": return "Ambos";
-      default: return course.public_target;
-    }
-  };
 
   return (
     <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[220px]">
@@ -138,16 +119,13 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
 
         {/* Main Info */}
         <div className="space-y-1 flex-1">
-          {/* Course Meta - Compact row */}
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
+          {/* Show lesson count only for treinamentos (gravado) */}
+          {course.tipo === 'gravado' && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <BookOpen className="w-3 h-3 shrink-0" />
               <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {getCorrectPublicTargetLabel()}
-            </span>
-          </div>
+          )}
 
           {/* Instructor - Only if available */}
           {course.instructor && (
