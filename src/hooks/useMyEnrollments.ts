@@ -139,9 +139,9 @@ export const useMyEnrollments = (): UseQueryResult<MyEnrollment[], Error> => {
           // Se não tem turma, não permite (cursos devem ter turma)
           if (!enrollment.turma) return false;
           
-          // Mostrar apenas turmas em andamento
+          // Mostrar turmas agendadas ou em andamento
           const turmaStatus = enrollment.turma.status?.toLowerCase();
-          return turmaStatus === 'em_andamento';
+          return turmaStatus === 'agendada' || turmaStatus === 'em_andamento';
         });
 
         return activeEnrollments;
