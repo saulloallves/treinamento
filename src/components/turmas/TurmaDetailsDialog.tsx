@@ -196,7 +196,7 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
   // Export all turma data as CSV
   const handleExportData = async () => {
     try {
-      toast.loading("Preparando exportação...");
+      toast.info("Preparando exportação em CSV...");
       
       // Helper function to escape CSV values
       const escapeCSV = (value: any): string => {
@@ -316,14 +316,16 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
       // Create download link
       const link = document.createElement('a');
       link.href = url;
-      const fileName = `turma_${turma.code || turma.id}_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const fileName = `turma_${turma.code || turma.id}_${timestamp}.csv`;
       link.download = fileName;
+      link.setAttribute('type', 'text/csv');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.success("Dados exportados com sucesso!");
+      toast.success("Arquivo CSV exportado com sucesso!");
     } catch (error) {
       console.error('Error exporting data:', error);
       toast.error("Erro ao exportar dados");
