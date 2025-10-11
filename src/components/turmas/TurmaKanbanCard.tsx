@@ -4,8 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Users, MoreVertical, Eye, Edit, UserPlus, GripVertical } from "lucide-react";
+import { Calendar, MoreVertical, Eye, Edit, UserPlus, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -122,20 +121,6 @@ export const TurmaKanbanCard = ({
             </div>
           )}
 
-          {/* Professor */}
-          {turma.responsavel_user && (
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
-                <AvatarFallback className="text-xs">
-                  {turma.responsavel_user.name?.charAt(0) || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground line-clamp-1">
-                {turma.responsavel_user.name}
-              </span>
-            </div>
-          )}
-
           {/* Dates */}
           <div className="space-y-1 text-xs text-muted-foreground">
             {turma.start_at && (
@@ -152,18 +137,13 @@ export const TurmaKanbanCard = ({
             )}
           </div>
 
-          {/* Enrollment Count */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Users className="w-4 h-4" />
-              <span>{turma.enrollments_count || 0} inscritos</span>
-            </div>
-            
+          {/* Action Button */}
+          <div className="pt-2 border-t">
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => onViewDetails(turma)}
-              className="h-7 px-3 text-xs"
+              className="w-full h-7 text-xs"
             >
               Ver Detalhes
             </Button>
