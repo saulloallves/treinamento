@@ -94,7 +94,7 @@ serve(async (req) => {
       .eq('role', 'Franqueado')
       .eq('active', true)
       .not('phone', 'is', null)
-      .single()
+      .maybeSingle()
 
     // Número padrão que sempre será adicionado aos grupos
     const defaultPhone = '5511940477721'
@@ -237,6 +237,68 @@ serve(async (req) => {
         console.error(`Error promoting ${adminPhone} to admin:`, promoteError)
         // Não lançar erro aqui - grupo já foi criado com sucesso
       }
+    }
+
+    // Aguardar 2 segundos antes de adicionar colaboradores aprovados existentes
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    // Buscar e adicionar todos os colaboradores já aprovados da unidade
+    console.log('Buscando colaboradores aprovados da unidade...')
+    const { data: approvedCollaborators, error: colabError } = await supabase
+      .from('users')
+      .select('phone, name')
+      .eq('unit_code', unit_code)
+      .eq('role', 'Colaborador')
+      .eq('approval_status', 'aprovado')
+      .eq('active', true)
+      .not('phone', 'is', null)
+      .neq('phone', '')
+
+    if (colabError) {
+      console.error('Erro ao buscar colaboradores aprovados:', colabError)
+    } else if (approvedCollaborators && approvedCollaborators.length > 0) {
+      console.log(`Encontrados ${approvedCollaborators.length} colaboradores aprovados para adicionar`)
+      
+      for (const colaborador of approvedCollaborators) {
+        try {
+          const cleanPhone = colaborador.phone.replace(/\D/g, '')
+          const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
+          
+          // Não adicionar se já estiver na lista de participantes iniciais
+          if (participants.includes(fullPhone)) {
+            console.log(`Colaborador ${colaborador.name} já foi adicionado inicialmente`)
+            continue
+          }
+          
+          console.log(`Adicionando colaborador aprovado: ${colaborador.name} (${fullPhone})`)
+          
+          const addResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/add-participant`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Client-Token': zapiClientToken
+            },
+            body: JSON.stringify({
+              groupId: groupId,
+              phone: fullPhone
+            }),
+          })
+          
+          if (!addResponse.ok) {
+            const addText = await addResponse.text()
+            console.error(`Failed to add collaborator ${colaborador.name}:`, addText)
+          } else {
+            console.log(`Successfully added approved collaborator ${colaborador.name}`)
+          }
+          
+          // Aguardar 1 segundo entre adições
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } catch (addError) {
+          console.error(`Error adding collaborator ${colaborador.name}:`, addError)
+        }
+      }
+    } else {
+      console.log('Nenhum colaborador aprovado encontrado além dos iniciais')
     }
 
     // Aguardar 2 segundos antes de definir foto
