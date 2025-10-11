@@ -92,11 +92,13 @@ const ProfessorReports = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as minhas turmas</SelectItem>
-                    {filteredTurmas?.map((turma) => (
-                      <SelectItem key={turma.id} value={turma.id}>
-                        {turma.name || turma.code}
-                      </SelectItem>
-                    ))}
+                    {filteredTurmas
+                      ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento' || turma.status === 'encerrada')
+                      ?.map((turma) => (
+                        <SelectItem key={turma.id} value={turma.id}>
+                          {turma.name || turma.code}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

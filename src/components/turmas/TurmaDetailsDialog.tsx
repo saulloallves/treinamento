@@ -1,11 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, Users, GraduationCap, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Clock, Users, GraduationCap, User, ClipboardCheck, TrendingUp, Award, FileText, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TurmaEnrollmentsList } from "./TurmaEnrollmentsList";
 import { useEnrollments } from "@/hooks/useEnrollments";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TurmaDetailsDialogProps {
   open: boolean;
@@ -37,6 +40,106 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
   
   // Filter enrollments for this turma
   const turmaEnrollments = enrollments.filter(enrollment => enrollment.turma_id === turma?.id);
+
+  // Fetch attendance data for archived turmas
+  const { data: attendanceData } = useQuery({
+    queryKey: ['turma-attendance', turma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*, users:user_id(name, email)')
+        .eq('turma_id', turma.id)
+        .order('confirmed_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+  });
+
+  // Fetch progress data
+  const { data: progressData } = useQuery({
+    queryKey: ['turma-progress', turma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('student_progress')
+        .select(`
+          *,
+          enrollment:enrollment_id(student_name, student_email, user_id),
+          lesson:lesson_id(title)
+        `)
+        .in('enrollment_id', turmaEnrollments.map(e => e.id))
+        .order('updated_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!turma?.id && turmaEnrollments.length > 0 && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+  });
+
+  // Fetch certificates
+  const { data: certificates } = useQuery({
+    queryKey: ['turma-certificates', turma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('*, users:user_id(name, email)')
+        .eq('turma_id', turma.id)
+        .order('generated_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+  });
+
+  // Fetch quiz responses
+  const { data: quizResponses } = useQuery({
+    queryKey: ['turma-quiz-responses', turma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('quiz_responses')
+        .select(`
+          *,
+          users:user_id(name, email),
+          quiz:quiz_id(question, quiz_name)
+        `)
+        .eq('course_id', turma.course_id)
+        .order('answered_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+  });
+
+  // Fetch test submissions
+  const { data: testSubmissions } = useQuery({
+    queryKey: ['turma-test-submissions', turma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('test_submissions')
+        .select(`
+          *,
+          users:user_id(name, email),
+          tests:test_id(name, passing_percentage)
+        `)
+        .in('test_id', 
+          await supabase
+            .from('tests')
+            .select('id')
+            .eq('turma_id', turma.id)
+            .then(res => res.data?.map(t => t.id) || [])
+        )
+        .order('submitted_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!turma?.id && (turma?.status === 'encerrada' || turma?.status === 'arquivadas')
+  });
+
+  const isArchivedTurma = turma?.status === 'encerrada' || turma?.status === 'arquivadas';
 
   if (!turma || !course) {
     return null;
@@ -168,11 +271,180 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
 
         <Separator />
 
-        {/* Lista de Inscrições */}
-        <TurmaEnrollmentsList 
-          enrollments={turmaEnrollments} 
-          isLoading={isLoading} 
-        />
+        {/* Historical Data for Archived Turmas */}
+        {isArchivedTurma ? (
+          <Tabs defaultValue="enrollments" className="w-full">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="enrollments" className="text-xs">
+                <Users className="w-3 h-3 mr-1" />
+                Inscrições
+              </TabsTrigger>
+              <TabsTrigger value="attendance" className="text-xs">
+                <ClipboardCheck className="w-3 h-3 mr-1" />
+                Presenças
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="text-xs">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Progresso
+              </TabsTrigger>
+              <TabsTrigger value="certificates" className="text-xs">
+                <Award className="w-3 h-3 mr-1" />
+                Certificados
+              </TabsTrigger>
+              <TabsTrigger value="quiz" className="text-xs">
+                <FileText className="w-3 h-3 mr-1" />
+                Quiz
+              </TabsTrigger>
+              <TabsTrigger value="tests" className="text-xs">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Testes
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="enrollments" className="mt-4">
+              <TurmaEnrollmentsList enrollments={turmaEnrollments} isLoading={isLoading} />
+            </TabsContent>
+
+            <TabsContent value="attendance" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Histórico de Presenças</h3>
+                {attendanceData && attendanceData.length > 0 ? (
+                  <div className="space-y-2">
+                    {attendanceData.map((attendance: any) => (
+                      <div key={attendance.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium">{attendance.users?.name || 'Não identificado'}</p>
+                          <p className="text-sm text-muted-foreground">{attendance.users?.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{format(new Date(attendance.confirmed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                          <Badge variant="outline">{attendance.attendance_type}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma presença registrada</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="progress" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Progresso dos Alunos</h3>
+                {progressData && progressData.length > 0 ? (
+                  <div className="space-y-2">
+                    {progressData.map((progress: any) => (
+                      <div key={progress.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{progress.enrollment?.student_name}</p>
+                          <p className="text-sm text-muted-foreground">{progress.lesson?.title}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={progress.status === 'completed' ? 'default' : 'secondary'}>
+                            {progress.status === 'completed' ? 'Concluída' : 
+                             progress.status === 'in_progress' ? 'Em Progresso' : 'Não Iniciada'}
+                          </Badge>
+                          {progress.watch_time_minutes > 0 && (
+                            <p className="text-sm text-muted-foreground mt-1">{progress.watch_time_minutes} min assistidos</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum progresso registrado</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="certificates" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Certificados Emitidos</h3>
+                {certificates && certificates.length > 0 ? (
+                  <div className="space-y-2">
+                    {certificates.map((cert: any) => (
+                      <div key={cert.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium">{cert.users?.name}</p>
+                          <p className="text-sm text-muted-foreground">{cert.users?.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm">{format(new Date(cert.generated_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+                          <Badge variant={cert.status === 'active' ? 'default' : 'secondary'}>{cert.status}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum certificado emitido</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="quiz" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Respostas de Quiz</h3>
+                {quizResponses && quizResponses.length > 0 ? (
+                  <div className="space-y-2">
+                    {quizResponses.map((response: any) => (
+                      <div key={response.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{response.users?.name}</p>
+                          <p className="text-sm text-muted-foreground">{response.quiz?.quiz_name || 'Quiz sem nome'}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={response.is_correct ? 'default' : 'destructive'}>
+                            {response.is_correct ? 'Correta' : 'Incorreta'}
+                          </Badge>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {format(new Date(response.answered_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma resposta de quiz registrada</p>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tests" className="mt-4">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Submissões de Testes</h3>
+                {testSubmissions && testSubmissions.length > 0 ? (
+                  <div className="space-y-2">
+                    {testSubmissions.map((submission: any) => (
+                      <div key={submission.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium">{submission.users?.name}</p>
+                          <p className="text-sm text-muted-foreground">{submission.tests?.name}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2 justify-end mb-1">
+                            <span className="text-sm font-medium">{submission.percentage.toFixed(1)}%</span>
+                            <Badge variant={submission.passed ? 'default' : 'destructive'}>
+                              {submission.passed ? 'Aprovado' : 'Reprovado'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {submission.submitted_at ? format(new Date(submission.submitted_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : 'Em progresso'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma submissão de teste registrada</p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          /* Lista de Inscrições para turmas não arquivadas */
+          <TurmaEnrollmentsList enrollments={turmaEnrollments} isLoading={isLoading} />
+        )}
       </DialogContent>
     </Dialog>
   );

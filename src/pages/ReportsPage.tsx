@@ -74,12 +74,14 @@ const ReportsPage = () => {
                     <SelectValue placeholder="Selecione uma turma" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as turmas filtradas</SelectItem>
-                    {filteredTurmas?.map((turma) => (
-                      <SelectItem key={turma.id} value={turma.id}>
-                        {turma.name || turma.code}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">Todas as turmas</SelectItem>
+                    {filteredTurmas
+                      ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento' || turma.status === 'encerrada')
+                      ?.map((turma) => (
+                        <SelectItem key={turma.id} value={turma.id}>
+                          {turma.name || turma.code}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
