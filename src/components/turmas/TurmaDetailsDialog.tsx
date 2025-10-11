@@ -193,83 +193,130 @@ export const TurmaDetailsDialog = ({ open, onOpenChange, turma, course }: TurmaD
     return null;
   }
 
-  // Export all turma data
+  // Export all turma data as CSV
   const handleExportData = async () => {
     try {
       toast.loading("Preparando exportação...");
       
-      const exportData = {
-        turma: {
-          nome: turma.name || turma.code,
-          codigo: turma.code,
-          status: turma.status,
-          curso: course?.name,
-          responsavel: turma.responsavel_user?.name,
-          email_responsavel: turma.responsavel_user?.email,
-          capacidade: turma.capacity,
-          prazo_conclusao: turma.completion_deadline,
-          inicio: turma.start_at,
-          fim: turma.end_at,
-          abertura_inscricoes: turma.enrollment_open_at,
-          fechamento_inscricoes: turma.enrollment_close_at,
-        },
-        inscricoes: turmaEnrollments.map(e => ({
-          aluno: e.student_name,
-          email: e.student_email,
-          telefone: e.student_phone,
-          unidade: e.unit_code,
-          status: e.status,
-          data_inscricao: e.enrollment_date,
-          progresso: e.progress_percentage + '%'
-        })),
-        presencas: attendanceData?.map(a => ({
-          aluno: a.users?.name || 'Não identificado',
-          email: a.users?.email,
-          data_hora: a.confirmed_at,
-          tipo: a.attendance_type,
-          palavra_chave: a.typed_keyword
-        })) || [],
-        progresso: progressSummary.map(p => ({
-          aluno: p.student_name,
-          email: p.student_email,
-          status: p.status,
-          progresso: p.progress_percentage + '%'
-        })),
-        certificados: certificates?.map(c => ({
-          aluno: c.users?.name,
-          email: c.users?.email,
-          data_emissao: c.generated_at,
-          status: c.status,
-          url: c.certificate_url
-        })) || [],
-        quiz_respostas: quizResponses?.map(q => ({
-          aluno: q.users?.name,
-          quiz: q.quiz?.quiz_name || 'Quiz sem nome',
-          resposta: q.selected_answer,
-          correta: q.is_correct ? 'Sim' : 'Não',
-          data: q.answered_at
-        })) || [],
-        testes: testSubmissions?.map(t => ({
-          aluno: t.student_name,
-          teste: t.tests?.name,
-          pontuacao: t.total_score,
-          pontuacao_maxima: t.max_possible_score,
-          percentual: t.percentage.toFixed(1) + '%',
-          aprovado: t.passed ? 'Sim' : 'Não',
-          data_submissao: t.submitted_at,
-          tempo_gasto: t.time_taken_minutes ? t.time_taken_minutes + ' min' : 'N/A'
-        })) || []
+      // Helper function to escape CSV values
+      const escapeCSV = (value: any): string => {
+        if (value === null || value === undefined) return '';
+        const str = String(value);
+        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes(';')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
       };
 
-      // Create JSON blob
-      const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
+      // Prepare consolidated student data
+      const studentData = turmaEnrollments?.map(enrollment => {
+        // Get attendance for this student
+        const studentAttendance = attendanceData?.filter(
+          a => a.users?.email === enrollment.student_email
+        ) || [];
+
+        // Get certificate info
+        const certificate = certificates?.find(
+          c => c.users?.email === enrollment.student_email
+        );
+
+        // Count quiz responses
+        const studentQuizResponses = quizResponses?.filter(
+          q => q.users?.email === enrollment.student_email
+        ) || [];
+
+        // Get test submission info
+        const testSubmission = testSubmissions?.find(
+          t => t.student_email === enrollment.student_email
+        );
+
+        return {
+          nome: enrollment.student_name,
+          email: enrollment.student_email,
+          telefone: enrollment.student_phone || '',
+          unidade: enrollment.unit_code || '',
+          data_inscricao: enrollment.enrollment_date ? format(new Date(enrollment.enrollment_date), 'dd/MM/yyyy HH:mm') : '',
+          status: enrollment.status,
+          progresso_percentual: enrollment.progress_percentage,
+          total_presencas: studentAttendance.length,
+          certificado_emitido: certificate ? 'Sim' : 'Não',
+          data_certificado: certificate?.generated_at ? format(new Date(certificate.generated_at), 'dd/MM/yyyy HH:mm') : '',
+          respostas_quiz: studentQuizResponses.length,
+          quiz_corretas: studentQuizResponses.filter(q => q.is_correct).length,
+          nota_teste: testSubmission?.total_score || '',
+          nota_maxima_teste: testSubmission?.max_possible_score || '',
+          percentual_teste: testSubmission?.percentage ? `${testSubmission.percentage.toFixed(1)}%` : '',
+          aprovado_teste: testSubmission?.passed === true ? 'Sim' : testSubmission?.passed === false ? 'Não' : '',
+          tentativas_teste: testSubmission?.attempt_number || '',
+          tempo_teste_minutos: testSubmission?.time_taken_minutes || '',
+        };
+      }) || [];
+
+      // CSV Headers
+      const headers = [
+        'Nome',
+        'Email', 
+        'Telefone',
+        'Unidade',
+        'Data Inscrição',
+        'Status',
+        'Progresso (%)',
+        'Total Presenças',
+        'Certificado Emitido',
+        'Data Certificado',
+        'Respostas Quiz',
+        'Quiz Corretas',
+        'Nota Teste',
+        'Nota Máxima Teste',
+        'Percentual Teste',
+        'Aprovado Teste',
+        'Tentativas Teste',
+        'Tempo Teste (min)'
+      ];
+
+      // Build CSV content
+      const csvRows = [];
+      
+      // Add headers
+      csvRows.push(headers.join(','));
+      
+      // Add data rows
+      studentData.forEach(student => {
+        const row = [
+          escapeCSV(student.nome),
+          escapeCSV(student.email),
+          escapeCSV(student.telefone),
+          escapeCSV(student.unidade),
+          escapeCSV(student.data_inscricao),
+          escapeCSV(student.status),
+          escapeCSV(student.progresso_percentual),
+          escapeCSV(student.total_presencas),
+          escapeCSV(student.certificado_emitido),
+          escapeCSV(student.data_certificado),
+          escapeCSV(student.respostas_quiz),
+          escapeCSV(student.quiz_corretas),
+          escapeCSV(student.nota_teste),
+          escapeCSV(student.nota_maxima_teste),
+          escapeCSV(student.percentual_teste),
+          escapeCSV(student.aprovado_teste),
+          escapeCSV(student.tentativas_teste),
+          escapeCSV(student.tempo_teste_minutos),
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+
+      // Create CSV blob with UTF-8 BOM for proper Excel encoding
+      const blob = new Blob(['\ufeff' + csvContent], { 
+        type: 'text/csv;charset=utf-8;' 
+      });
       const url = URL.createObjectURL(blob);
       
       // Create download link
       const link = document.createElement('a');
       link.href = url;
-      const fileName = `turma_${turma.code || turma.id}_${format(new Date(), 'yyyyMMdd_HHmmss')}.json`;
+      const fileName = `turma_${turma.code || turma.id}_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
