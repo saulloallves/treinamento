@@ -112,15 +112,6 @@ export const TurmaKanbanCard = ({
             )}
           </div>
 
-          {/* Code - Hide for finished turmas */}
-          {turma.code && turma.status !== 'encerrada' && (
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {turma.code}
-              </Badge>
-            </div>
-          )}
-
           {/* Dates */}
           <div className="space-y-1 text-xs text-muted-foreground">
             {turma.start_at && (
