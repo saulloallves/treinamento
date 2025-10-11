@@ -108,9 +108,10 @@ serve(async (req: Request) => {
     // 2. CREATE AUTOMATED DISPATCHES FOR UPCOMING LESSONS
     console.log('Checking for upcoming lessons needing automated dispatches...')
     
-    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+    // Buscar aulas nas próximas 2.5 horas para pegar ambos os tipos de disparo
+    const searchWindowEnd = new Date(now.getTime() + 2.5 * 60 * 60 * 1000)
 
-    // Get lessons with zoom_start_time in the next 2 hours and 30 minutes
+    // Get lessons with zoom_start_time in the search window
     const { data: upcomingLessons, error: lessonsError } = await supabase
       .from('lessons')
       .select(`
@@ -124,7 +125,7 @@ serve(async (req: Request) => {
       .not('zoom_start_time', 'is', null)
       .eq('status', 'Ativo')
       .gte('zoom_start_time', now.toISOString())
-      .lte('zoom_start_time', twoHoursFromNow.toISOString())
+      .lte('zoom_start_time', searchWindowEnd.toISOString())
 
     if (lessonsError) {
       console.error('Error fetching upcoming lessons:', lessonsError)
@@ -139,22 +140,25 @@ serve(async (req: Request) => {
         console.log(`Lesson "${lesson.title}" starts in ${minutesUntil} minutes (${lessonTime.toISOString()})`)
 
         // Determine which dispatch types to check
-        // Using wider windows to ensure dispatches are sent
-        // 2 hours = 120 minutes, checking between 115-125 minutes
-        // 30 minutes, checking between 25-35 minutes
+        // Janelas mais amplas e flexíveis para garantir que funcionem mesmo se ativadas tarde
+        // 2 horas = 120 minutos (janela: 100-140 minutos para pegar ativações atrasadas)
+        // 30 minutos (janela: 15-50 minutos para pegar ativações atrasadas)
         let dispatchTypes: Array<'2_hours_before' | '30_minutes_before'> = []
         
-        if (minutesUntil <= 125 && minutesUntil >= 115) {
+        // Disparo de 2 horas antes - janela ampla
+        if (minutesUntil <= 140 && minutesUntil >= 100) {
           console.log(`  -> Will create 2_hours_before dispatch`)
           dispatchTypes.push('2_hours_before')
         }
-        if (minutesUntil <= 35 && minutesUntil >= 25) {
+        
+        // Disparo de 30 minutos antes - janela ampla
+        if (minutesUntil <= 50 && minutesUntil >= 15) {
           console.log(`  -> Will create 30_minutes_before dispatch`)
           dispatchTypes.push('30_minutes_before')
         }
 
         if (dispatchTypes.length === 0) {
-          console.log(`  -> No dispatch needed at this time`)
+          console.log(`  -> No dispatch needed at this time (${minutesUntil} minutes until lesson)`)
         }
 
         for (const dispatchType of dispatchTypes) {
@@ -174,31 +178,33 @@ serve(async (req: Request) => {
             }
 
             // Check if dispatch was already created for this specific lesson and type
-            // We check by creating a unique identifier for each dispatch type
-            const dispatchIdentifier = `${lesson.id}_${dispatchType}_${lesson.zoom_start_time}`
-            
+            // Busca disparos recentes (últimas 6 horas) para essa aula
             const { data: existingDispatches, error: existingError } = await supabase
               .from('whatsapp_dispatches')
-              .select('id, created_at, status')
+              .select('id, created_at, status, message')
               .eq('type', 'aula')
               .eq('item_id', lesson.id)
-              .gte('created_at', new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+              .gte('created_at', new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString())
               .order('created_at', { ascending: false })
 
             if (existingError) {
               console.error(`Error checking existing dispatches:`, existingError)
             }
 
-            // Check if we already sent this specific dispatch type for this lesson time
+            // Verifica se já existe disparo desse tipo específico
+            // Identifica o tipo pela mensagem (2 horas ou 30 minutos)
             const alreadySent = existingDispatches?.some(d => {
-              // For 2h before: check if message mentions "2 horas" or similar
-              // For 30m before: check if message mentions "30 minutos" or similar
-              const isCorrectType = dispatchType === '2_hours_before' 
-                ? d.created_at && new Date(d.created_at).getTime() >= new Date(lesson.zoom_start_time).getTime() - 3 * 60 * 60 * 1000 &&
-                  new Date(d.created_at).getTime() <= new Date(lesson.zoom_start_time).getTime() - 1 * 60 * 60 * 1000
-                : d.created_at && new Date(d.created_at).getTime() >= new Date(lesson.zoom_start_time).getTime() - 45 * 60 * 1000 &&
-                  new Date(d.created_at).getTime() <= new Date(lesson.zoom_start_time).getTime() - 20 * 60 * 1000
-              return isCorrectType
+              if (!d.message) return false
+              
+              const msg = d.message.toLowerCase()
+              const is2HoursType = msg.includes('2 horas') || msg.includes('duas horas')
+              const is30MinType = msg.includes('30 minutos') || msg.includes('meia hora')
+              
+              // Verifica se o tipo bate
+              if (dispatchType === '2_hours_before' && is2HoursType) return true
+              if (dispatchType === '30_minutes_before' && is30MinType) return true
+              
+              return false
             })
 
             if (alreadySent) {
