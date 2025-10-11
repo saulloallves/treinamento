@@ -73,7 +73,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[240px]"
+      className="overflow-hidden flex flex-col group h-[200px]"
       variant="elevated"
     >
       {/* Compact Cover Area */}
@@ -110,10 +110,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-2">
+      <CardContent className="flex-1 flex flex-col p-2.5">
         {/* Title */}
-        <div className="mb-1.5">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
+        <div className="mb-2">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1.5 min-h-[2.5rem]">
             {course.name}
           </h3>
           
@@ -137,7 +137,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Course Info - More compact */}
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1.5 flex-1">
           {course.instructor && (
             <div className="text-xs">
               <span className="text-muted-foreground">Instrutor: </span>
@@ -174,8 +174,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="pt-1 mt-auto">
-          <div className="space-y-0.5">
+        <div className="pt-2 mt-auto">
+          <div className="space-y-1">
             {/* Details button only for treinamentos (gravado) */}
             {course.tipo === 'gravado' && (
               <Button
@@ -188,7 +188,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                     onViewDetails(course);
                   }
                 }}
-                className="w-full h-6 text-xs font-medium"
+                className="w-full h-7 text-xs font-medium"
               >
                 <Eye className="w-3 h-3 mr-1.5" />
                 Detalhes
@@ -201,7 +201,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-5 px-2 text-xs"
+                className="h-6 px-2 text-xs"
                 title="Editar"
               >
                 <Edit className="w-3 h-3" />
@@ -210,7 +210,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-5 px-2 text-xs"
+                className="h-6 px-2 text-xs"
                 title="Excluir"
               >
                 <Trash2 className="w-3 h-3" />

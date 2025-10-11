@@ -53,7 +53,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   const gradientClass = getThemeGradient(course.theme, course.tipo);
 
   return (
-    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[220px]">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[180px]">
       {/* Compact Cover Area */}
       <div className="relative h-10 shrink-0">
         {course.cover_image_url ? (
@@ -88,7 +88,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
       </div>
 
       {/* Content - Optimized for mobile */}
-      <CardContent className="p-1.5 flex-1 flex flex-col">
+      <CardContent className="p-2 flex-1 flex flex-col">
         {/* Title */}
         <div className="mb-1.5">
           <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
@@ -115,7 +115,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Main Info */}
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1.5 flex-1">
           {/* Instructor - Only if available */}
           {course.instructor && (
             <div className="text-[10px]">
@@ -153,8 +153,8 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Actions - Mobile optimized */}
-        <div className="pt-1 mt-auto">
-          <div className="space-y-0.5">
+        <div className="pt-1.5 mt-auto">
+          <div className="space-y-1">
             {/* Details button only for treinamentos (gravado) */}
             {course.tipo === 'gravado' && (
               <Button
@@ -167,7 +167,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                     onViewDetails(course);
                   }
                 }}
-                className="w-full h-5 text-xs font-medium"
+                className="w-full h-6 text-xs font-medium"
               >
                 <Eye className="w-2.5 h-2.5 mr-1.5" />
                 Detalhes
@@ -180,7 +180,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-4 px-2 text-xs"
+                className="h-5 px-2 text-xs"
                 title="Editar"
               >
                 <Edit className="w-2.5 h-2.5" />
@@ -189,7 +189,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-4 px-2 text-xs"
+                className="h-5 px-2 text-xs"
                 title="Excluir"
               >
                 <Trash2 className="w-2.5 h-2.5" />
