@@ -86,80 +86,80 @@ export const useApproveCollaborator = () => {
       if (approveError) throw approveError;
 
       // If approved, handle WhatsApp group management
-      if (approve) {
-        // Get approval details
-        const { data: approval } = await supabase
-          .from('collaboration_approvals')
-          .select('unit_code, collaborator_id')
-          .eq('id', approvalId)
-          .single();
+      // if (approve) {
+      //   // Get approval details
+      //   const { data: approval } = await supabase
+      //     .from('collaboration_approvals')
+      //     .select('unit_code, collaborator_id')
+      //     .eq('id', approvalId)
+      //     .single();
 
-        if (!approval) return { approvalId, approve };
+      //   if (!approval) return { approvalId, approve };
 
-        // Get unit details
-        const { data: unit } = await supabase
-          .from('unidades')
-          .select('id, grupo, id_grupo_colab')
-          .eq('id', approval.unit_code)
-          .single();
+      //   // Get unit details
+      //   const { data: unit } = await supabase
+      //     .from('unidades')
+      //     .select('id, grupo, id_grupo_colab')
+      //     .eq('id', approval.unit_code)
+      //     .single();
 
-        if (!unit) return { approvalId, approve };
+      //   if (!unit) return { approvalId, approve };
 
-        let grupoColaborador = unit.id_grupo_colab;
+      //   let grupoColaborador = unit.id_grupo_colab;
 
-        // Verificar se já existe um grupo de colaboradores para esta unidade
-        if (!grupoColaborador || grupoColaborador === '') {
-          console.log(`Grupo de colaboradores não existe para unidade ${approval.unit_code}. Criando novo grupo...`);
-          try {
-            const { data: groupData } = await supabase.functions.invoke('create-collaborator-group', {
-              body: {
-                unit_code: approval.unit_code,
-                grupo: unit.grupo
-              }
-            });
+      //   // Verificar se já existe um grupo de colaboradores para esta unidade
+      //   if (!grupoColaborador || grupoColaborador === '') {
+      //     console.log(`Grupo de colaboradores não existe para unidade ${approval.unit_code}. Criando novo grupo...`);
+      //     try {
+      //       const { data: groupData } = await supabase.functions.invoke('create-collaborator-group', {
+      //         body: {
+      //           unit_code: approval.unit_code,
+      //           grupo: unit.grupo
+      //         }
+      //       });
 
-            if (groupData?.groupId) {
-              grupoColaborador = groupData.groupId;
-              console.log(`Grupo criado com sucesso! ID: ${grupoColaborador}`);
-            }
-          } catch (error) {
-            console.error('Error creating collaborator group:', error);
-          }
-        } else {
-          console.log(`Grupo de colaboradores já existe para unidade ${approval.unit_code}. Usando grupo existente: ${grupoColaborador}`);
-        }
+      //       if (groupData?.groupId) {
+      //         grupoColaborador = groupData.groupId;
+      //         console.log(`Grupo criado com sucesso! ID: ${grupoColaborador}`);
+      //       }
+      //     } catch (error) {
+      //       console.error('Error creating collaborator group:', error);
+      //     }
+      //   } else {
+      //     console.log(`Grupo de colaboradores já existe para unidade ${approval.unit_code}. Usando grupo existente: ${grupoColaborador}`);
+      //   }
 
-        // Adicionar todos os colaboradores aprovados ao grupo (incluindo o novo aprovado)
-        if (grupoColaborador && grupoColaborador !== '') {
-          const { data: collaborators } = await supabase
-            .from('users')
-            .select('phone, name')
-            .eq('unit_code', approval.unit_code)
-            .eq('role', 'Colaborador')
-            .eq('approval_status', 'aprovado')
-            .eq('active', true)
-            .not('phone', 'is', null);
+      //   // Adicionar todos os colaboradores aprovados ao grupo (incluindo o novo aprovado)
+      //   if (grupoColaborador && grupoColaborador !== '') {
+      //     const { data: collaborators } = await supabase
+      //       .from('users')
+      //       .select('phone, name')
+      //       .eq('unit_code', approval.unit_code)
+      //       .eq('role', 'Colaborador')
+      //       .eq('approval_status', 'aprovado')
+      //       .eq('active', true)
+      //       .not('phone', 'is', null);
 
-          if (collaborators && collaborators.length > 0) {
-            console.log(`Adicionando ${collaborators.length} colaborador(es) ao grupo ${grupoColaborador}`);
-            for (const collaborator of collaborators) {
-              try {
-                console.log(`Adicionando colaborador ${collaborator.name} (${collaborator.phone}) ao grupo...`);
-                await supabase.functions.invoke('add-collaborator-to-group', {
-                  body: {
-                    groupId: grupoColaborador,
-                    phone: collaborator.phone,
-                    name: collaborator.name
-                  }
-                });
-                console.log(`✅ Colaborador ${collaborator.name} adicionado com sucesso ao grupo!`);
-              } catch (error) {
-                console.error(`❌ Erro ao adicionar colaborador ${collaborator.name} ao grupo:`, error);
-              }
-            }
-          }
-        }
-      }
+      //     if (collaborators && collaborators.length > 0) {
+      //       console.log(`Adicionando ${collaborators.length} colaborador(es) ao grupo ${grupoColaborador}`);
+      //       for (const collaborator of collaborators) {
+      //         try {
+      //           console.log(`Adicionando colaborador ${collaborator.name} (${collaborator.phone}) ao grupo...`);
+      //           await supabase.functions.invoke('add-collaborator-to-group', {
+      //             body: {
+      //               groupId: grupoColaborador,
+      //               phone: collaborator.phone,
+      //               name: collaborator.name
+      //             }
+      //           });
+      //           console.log(`✅ Colaborador ${collaborator.name} adicionado com sucesso ao grupo!`);
+      //         } catch (error) {
+      //           console.error(`❌ Erro ao adicionar colaborador ${collaborator.name} ao grupo:`, error);
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       return { approvalId, approve };
     },

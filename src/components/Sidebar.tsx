@@ -292,8 +292,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         }}
         className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
           isActive 
-            ? "bg-primary text-white" 
-            : "text-foreground hover:bg-secondary hover:text-primary"
+            ? "bg-primary text-primary-foreground" 
+            : "text-foreground hover:bg-muted hover:text-foreground"
         } ${isSubItem ? 'ml-6' : ''}`}
       >
         <div className="w-8 h-8 rounded-sm flex items-center justify-center">
@@ -320,8 +320,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
             onClick={() => toggleGroup(item.id)}
             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
               activeGroup === item.id
-                ? 'bg-secondary text-primary'
-                : 'text-foreground hover:bg-secondary hover:text-primary'
+                ? 'bg-muted text-foreground'
+                : 'text-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -361,8 +361,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
             onClick={() => toggleGroup(item.id)}
             className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none ${
               activeGroup === item.id
-                ? 'bg-secondary text-primary'
-                : 'text-foreground hover:bg-secondary hover:text-primary'
+                ? 'bg-muted text-foreground'
+                : 'text-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -402,8 +402,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
           }}
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150 w-full font-medium ${
             isActive 
-              ? "bg-primary text-white" 
-              : "text-foreground hover:bg-secondary hover:text-primary"
+              ? "bg-primary text-primary-foreground" 
+              : "text-foreground hover:bg-muted hover:text-foreground"
           }`}
         >
           <div className="w-8 h-8 rounded-sm flex items-center justify-center">
@@ -448,11 +448,13 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
             {/* Header da sidebar */}
             <div className="p-6 border-b border-gray-200 mt-16">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
+                <img 
+                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  alt="Mascote Cresci e Perdi" 
+                  className="h-8 w-auto object-contain"
+                />
                 <div>
-                  <h1 className="text-xl font-bold text-foreground">
+                  <h1 className="text-base font-semibold text-foreground">
                     Cresci e Perdi
                   </h1>
                   <p className="text-xs text-muted-foreground">
@@ -469,9 +471,9 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
 
             {/* Footer da sidebar */}
             <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center gap-3 p-3 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200">
+              <div className="flex items-center gap-3 p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors duration-200">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-primary-foreground">
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </span>
                 </div>
@@ -496,11 +498,13 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       {/* Header da sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shadow-sm">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
+          <img 
+            src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+            alt="Mascote Cresci e Perdi" 
+            className="h-8 w-auto object-contain"
+          />
           <div>
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="text-base font-semibold text-foreground">
               Cresci e Perdi
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -517,9 +521,9 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
 
       {/* Footer da sidebar */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 p-3 rounded-md bg-secondary hover:bg-secondary/80 transition-colors duration-200">
+        <div className="flex items-center gap-3 p-3 rounded-md bg-muted hover:bg-muted/80 transition-colors duration-200">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium text-primary-foreground">
               {user?.email?.[0]?.toUpperCase() || 'U'}
             </span>
           </div>

@@ -14,6 +14,7 @@ interface CollaboratorData {
   position: string;
   whatsapp?: string;
   cpf?: string;
+  birth_date?: string;
   cep?: string;
   endereco?: string;
   numero?: string;
@@ -43,6 +44,7 @@ serve(async (req) => {
     });
 
     const collaboratorData: CollaboratorData = await req.json();
+    console.log('Received payload for collaborator registration:', collaboratorData);
     let userId: string;
 
     const { data: existingUsers } = await supabaseLocal.auth.admin.listUsers();
@@ -59,6 +61,7 @@ serve(async (req) => {
           user_type: 'Aluno',
           role: 'Colaborador',
           unit_code: collaboratorData.unitCode,
+          birth_date: collaboratorData.birth_date,
           address: {
             cep: collaboratorData.cep,
             endereco: collaboratorData.endereco,
@@ -131,9 +134,8 @@ serve(async (req) => {
           lgpd_term: true,
           confidentiality_term: true,
           system_term: true,
-          birth_date: null,
+          birth_date: collaboratorData.birth_date || null,
           salary: null,
-          // Mapeando novos campos de endereço
           address: collaboratorData.endereco,
           number_address: collaboratorData.numero,
           address_complement: collaboratorData.complemento,
