@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useIsProfessor } from "@/hooks/useIsProfessor";
 import {
   Dialog,
   DialogContent,
@@ -62,15 +64,26 @@ const ProfessorPermissionsDialog = ({
   const bulkUpdateMutation = useBulkUpdateProfessorPermissions();
   const turmaUpdateMutation = useBulkUpdateProfessorTurmaPermissions();
 
+  const { data: currentUser } = useCurrentUser();
+  const { data: isCurrentUserProfessor } = useIsProfessor(currentUser?.id);
   const professor = professors.find(p => p.id === professorId);
 
   const queryClient = useQueryClient();
+
+  // Early return if user doesn't have permission to view professor permissions
+  if (!currentUser || (!isCurrentUserProfessor && currentUser?.user_type !== 'Admin')) {
+    return null;
+  }
+
   useEffect(() => {
-    if (open && professorId) {
+    if (open && professorId && professor) {
       queryClient.invalidateQueries({ queryKey: ["professor-permissions", professorId] });
       queryClient.invalidateQueries({ queryKey: ["professor-turma-permissions", professorId] });
     }
-  }, [open, professorId, queryClient]);
+  }, [open, professorId, professor, queryClient]);
+
+  // Skip rendering if there's no professor
+  if (!professor || !professorId) return null;
 
   // Helpers to normalize legacy/translated module names
   const normalizeModuleName = (name: string): string => {
@@ -110,8 +123,7 @@ const ProfessorPermissionsDialog = ({
 
   // Load existing module permissions
   useEffect(() => {
-    console.log('Loading professor permissions for:', professorId);
-    console.log('Existing permissions:', existingPermissions);
+    if (!professorId || !open) return;
 
     // Start with defaults for all modules so UI always has a defined object
     const defaults: ModulePermissions = {};
@@ -146,9 +158,9 @@ const ProfessorPermissionsDialog = ({
 
   // Load existing turma permissions and merge with responsible turmas
   useEffect(() => {
+    if (!professorId || !open) return;
+    
     const loadTurmaPermissions = async () => {
-      console.log('Loading turma permissions for:', professorId);
-      console.log('Existing turma permissions:', existingTurmaPermissions);
 
       // Start from existing saved permissions
       let turmaPerms: TurmaPermission[] = (existingTurmaPermissions || []).map(perm => ({

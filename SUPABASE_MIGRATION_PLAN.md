@@ -115,12 +115,12 @@ pg_dump -h aws-0-sa-east-1.pooler.supabase.com \
 pg_dump -h aws-0-sa-east-1.pooler.supabase.com \
   -U postgres.tctkacgbhqvkqovctrzf \
   -d postgres \
-  -t public.users \
-  -t public.courses \
-  -t public.turmas \
-  -t public.enrollments \
-  -t public.lessons \
-  -t public.attendance \
+  -t treinamento.users \
+  -t treinamento.courses \
+  -t treinamento.turmas \
+  -t treinamento.enrollments \
+  -t treinamento.lessons \
+  -t treinamento.attendance \
   -F c \
   -f backup_critical_tables_$(date +%Y%m%d_%H%M%S).dump
 ```
@@ -232,7 +232,7 @@ Email Templates:
 
 #### 3.1.1 Tabela: users
 ```sql
-CREATE TABLE public.users (
+CREATE TABLE treinamento.users (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name text NOT NULL,
   email text UNIQUE NOT NULL,
@@ -252,15 +252,15 @@ CREATE TABLE public.users (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_users_email ON public.users(email);
-CREATE INDEX idx_users_unit_code ON public.users(unit_code);
-CREATE INDEX idx_users_user_type ON public.users(user_type);
-CREATE INDEX idx_users_active ON public.users(active);
+CREATE INDEX idx_users_email ON treinamento.users(email);
+CREATE INDEX idx_users_unit_code ON treinamento.users(unit_code);
+CREATE INDEX idx_users_user_type ON treinamento.users(user_type);
+CREATE INDEX idx_users_active ON treinamento.users(active);
 ```
 
 #### 3.1.2 Tabela: courses
 ```sql
-CREATE TABLE public.courses (
+CREATE TABLE treinamento.courses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   description text,
@@ -274,17 +274,17 @@ CREATE TABLE public.courses (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_courses_tipo ON public.courses(tipo);
-CREATE INDEX idx_courses_status ON public.courses(status);
-CREATE INDEX idx_courses_public_target ON public.courses(public_target);
+CREATE INDEX idx_courses_tipo ON treinamento.courses(tipo);
+CREATE INDEX idx_courses_status ON treinamento.courses(status);
+CREATE INDEX idx_courses_public_target ON treinamento.courses(public_target);
 ```
 
 #### 3.1.3 Tabela: turmas
 ```sql
-CREATE TABLE public.turmas (
+CREATE TABLE treinamento.turmas (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
   responsavel_user_id uuid REFERENCES auth.users(id),
   status turma_status DEFAULT 'agendada',
   start_at timestamptz,
@@ -296,18 +296,18 @@ CREATE TABLE public.turmas (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_turmas_course_id ON public.turmas(course_id);
-CREATE INDEX idx_turmas_status ON public.turmas(status);
-CREATE INDEX idx_turmas_responsavel ON public.turmas(responsavel_user_id);
+CREATE INDEX idx_turmas_course_id ON treinamento.turmas(course_id);
+CREATE INDEX idx_turmas_status ON treinamento.turmas(status);
+CREATE INDEX idx_turmas_responsavel ON treinamento.turmas(responsavel_user_id);
 ```
 
 #### 3.1.4 Tabela: enrollments
 ```sql
-CREATE TABLE public.enrollments (
+CREATE TABLE treinamento.enrollments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE SET NULL,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE SET NULL,
   student_name text NOT NULL,
   student_email text NOT NULL,
   student_phone text,
@@ -318,19 +318,19 @@ CREATE TABLE public.enrollments (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_enrollments_user_id ON public.enrollments(user_id);
-CREATE INDEX idx_enrollments_course_id ON public.enrollments(course_id);
-CREATE INDEX idx_enrollments_turma_id ON public.enrollments(turma_id);
-CREATE INDEX idx_enrollments_student_email ON public.enrollments(student_email);
+CREATE INDEX idx_enrollments_user_id ON treinamento.enrollments(user_id);
+CREATE INDEX idx_enrollments_course_id ON treinamento.enrollments(course_id);
+CREATE INDEX idx_enrollments_turma_id ON treinamento.enrollments(turma_id);
+CREATE INDEX idx_enrollments_student_email ON treinamento.enrollments(student_email);
 ```
 
 #### 3.1.5 Tabela: lessons
 ```sql
-CREATE TABLE public.lessons (
+CREATE TABLE treinamento.lessons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
   order_index integer NOT NULL,
   video_url text,
   duration_minutes integer,
@@ -339,16 +339,16 @@ CREATE TABLE public.lessons (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX idx_lessons_course_id ON public.lessons(course_id);
-CREATE INDEX idx_lessons_order ON public.lessons(course_id, order_index);
+CREATE INDEX idx_lessons_course_id ON treinamento.lessons(course_id);
+CREATE INDEX idx_lessons_order ON treinamento.lessons(course_id, order_index);
 ```
 
 #### 3.1.6 Tabela: attendance
 ```sql
-CREATE TABLE public.attendance (
+CREATE TABLE treinamento.attendance (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  enrollment_id uuid NOT NULL REFERENCES public.enrollments(id) ON DELETE CASCADE,
-  lesson_id uuid NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
+  enrollment_id uuid NOT NULL REFERENCES treinamento.enrollments(id) ON DELETE CASCADE,
+  lesson_id uuid NOT NULL REFERENCES treinamento.lessons(id) ON DELETE CASCADE,
   attended boolean DEFAULT true,
   attended_at timestamptz DEFAULT now(),
   keyword_used text,
@@ -356,14 +356,14 @@ CREATE TABLE public.attendance (
   UNIQUE(enrollment_id, lesson_id)
 );
 
-CREATE INDEX idx_attendance_enrollment ON public.attendance(enrollment_id);
-CREATE INDEX idx_attendance_lesson ON public.attendance(lesson_id);
+CREATE INDEX idx_attendance_enrollment ON treinamento.attendance(enrollment_id);
+CREATE INDEX idx_attendance_lesson ON treinamento.attendance(lesson_id);
 ```
 
 #### 3.1.7 Tabelas Adicionais
 ```sql
 -- admin_users
-CREATE TABLE public.admin_users (
+CREATE TABLE treinamento.admin_users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name text NOT NULL,
@@ -376,7 +376,7 @@ CREATE TABLE public.admin_users (
 );
 
 -- unidades
-CREATE TABLE public.unidades (
+CREATE TABLE treinamento.unidades (
   id text PRIMARY KEY,
   grupo text,
   codigo_grupo integer,
@@ -386,7 +386,7 @@ CREATE TABLE public.unidades (
 );
 
 -- job_positions
-CREATE TABLE public.job_positions (
+CREATE TABLE treinamento.job_positions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   position_code text UNIQUE NOT NULL,
   position_name text NOT NULL,
@@ -397,9 +397,9 @@ CREATE TABLE public.job_positions (
 );
 
 -- course_position_access
-CREATE TABLE public.course_position_access (
+CREATE TABLE treinamento.course_position_access (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
   position_code text NOT NULL,
   active boolean DEFAULT true,
   created_at timestamptz DEFAULT now(),
@@ -407,7 +407,7 @@ CREATE TABLE public.course_position_access (
 );
 
 -- collaboration_approvals
-CREATE TABLE public.collaboration_approvals (
+CREATE TABLE treinamento.collaboration_approvals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   collaborator_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   franchisee_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -418,13 +418,13 @@ CREATE TABLE public.collaboration_approvals (
 );
 
 -- quiz tables
-CREATE TABLE public.quizzes (
+CREATE TABLE treinamento.quizzes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
-  course_id uuid REFERENCES public.courses(id) ON DELETE CASCADE,
-  lesson_id uuid REFERENCES public.lessons(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE CASCADE,
+  course_id uuid REFERENCES treinamento.courses(id) ON DELETE CASCADE,
+  lesson_id uuid REFERENCES treinamento.lessons(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   passing_score integer DEFAULT 70,
   time_limit_minutes integer,
   status text DEFAULT 'draft',
@@ -432,9 +432,9 @@ CREATE TABLE public.quizzes (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.quiz_questions (
+CREATE TABLE treinamento.quiz_questions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+  quiz_id uuid NOT NULL REFERENCES treinamento.quizzes(id) ON DELETE CASCADE,
   question_text text NOT NULL,
   question_type text DEFAULT 'multiple_choice',
   points integer DEFAULT 1,
@@ -442,20 +442,20 @@ CREATE TABLE public.quiz_questions (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.quiz_options (
+CREATE TABLE treinamento.quiz_options (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  question_id uuid NOT NULL REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
+  question_id uuid NOT NULL REFERENCES treinamento.quiz_questions(id) ON DELETE CASCADE,
   option_text text NOT NULL,
   is_correct boolean DEFAULT false,
   order_index integer,
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.quiz_attempts (
+CREATE TABLE treinamento.quiz_attempts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+  quiz_id uuid NOT NULL REFERENCES treinamento.quizzes(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  enrollment_id uuid REFERENCES public.enrollments(id) ON DELETE CASCADE,
+  enrollment_id uuid REFERENCES treinamento.enrollments(id) ON DELETE CASCADE,
   score numeric(5,2),
   passed boolean,
   started_at timestamptz DEFAULT now(),
@@ -463,21 +463,21 @@ CREATE TABLE public.quiz_attempts (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.quiz_responses (
+CREATE TABLE treinamento.quiz_responses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  attempt_id uuid NOT NULL REFERENCES public.quiz_attempts(id) ON DELETE CASCADE,
-  question_id uuid NOT NULL REFERENCES public.quiz_questions(id) ON DELETE CASCADE,
-  selected_option_id uuid REFERENCES public.quiz_options(id),
+  attempt_id uuid NOT NULL REFERENCES treinamento.quiz_attempts(id) ON DELETE CASCADE,
+  question_id uuid NOT NULL REFERENCES treinamento.quiz_questions(id) ON DELETE CASCADE,
+  selected_option_id uuid REFERENCES treinamento.quiz_options(id),
   is_correct boolean,
   created_at timestamptz DEFAULT now()
 );
 
 -- tests tables (similar structure to quizzes)
-CREATE TABLE public.tests (
+CREATE TABLE treinamento.tests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   passing_score integer DEFAULT 70,
   time_limit_minutes integer,
   status text DEFAULT 'draft',
@@ -488,19 +488,19 @@ CREATE TABLE public.tests (
 );
 
 -- certificates
-CREATE TABLE public.certificates (
+CREATE TABLE treinamento.certificates (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  enrollment_id uuid NOT NULL REFERENCES public.enrollments(id) ON DELETE CASCADE,
+  enrollment_id uuid NOT NULL REFERENCES treinamento.enrollments(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE SET NULL,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE SET NULL,
   certificate_url text,
   issued_at timestamptz DEFAULT now(),
   created_at timestamptz DEFAULT now()
 );
 
 -- professor_permissions
-CREATE TABLE public.professor_permissions (
+CREATE TABLE treinamento.professor_permissions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   professor_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   module_name text NOT NULL,
@@ -513,10 +513,10 @@ CREATE TABLE public.professor_permissions (
 );
 
 -- professor_turma_permissions
-CREATE TABLE public.professor_turma_permissions (
+CREATE TABLE treinamento.professor_turma_permissions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   professor_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  turma_id uuid NOT NULL REFERENCES public.turmas(id) ON DELETE CASCADE,
+  turma_id uuid NOT NULL REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   can_view boolean DEFAULT false,
   can_edit boolean DEFAULT false,
   can_manage_students boolean DEFAULT false,
@@ -526,10 +526,10 @@ CREATE TABLE public.professor_turma_permissions (
 );
 
 -- transformation_kanban
-CREATE TABLE public.transformation_kanban (
+CREATE TABLE treinamento.transformation_kanban (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE CASCADE,
+  course_id uuid NOT NULL REFERENCES treinamento.courses(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   status text NOT NULL,
   column_order integer,
   created_by uuid REFERENCES auth.users(id),
@@ -538,10 +538,10 @@ CREATE TABLE public.transformation_kanban (
 );
 
 -- live_sessions (para streaming)
-CREATE TABLE public.live_sessions (
+CREATE TABLE treinamento.live_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  lesson_id uuid NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE CASCADE,
+  lesson_id uuid NOT NULL REFERENCES treinamento.lessons(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   host_id uuid NOT NULL REFERENCES auth.users(id),
   session_status text DEFAULT 'scheduled',
   started_at timestamptz,
@@ -550,9 +550,9 @@ CREATE TABLE public.live_sessions (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE public.live_participants (
+CREATE TABLE treinamento.live_participants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id uuid NOT NULL REFERENCES public.live_sessions(id) ON DELETE CASCADE,
+  session_id uuid NOT NULL REFERENCES treinamento.live_sessions(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   joined_at timestamptz DEFAULT now(),
   left_at timestamptz,
@@ -560,10 +560,10 @@ CREATE TABLE public.live_participants (
 );
 
 -- whatsapp_dispatches
-CREATE TABLE public.whatsapp_dispatches (
+CREATE TABLE treinamento.whatsapp_dispatches (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  lesson_id uuid REFERENCES public.lessons(id) ON DELETE CASCADE,
-  turma_id uuid REFERENCES public.turmas(id) ON DELETE CASCADE,
+  lesson_id uuid REFERENCES treinamento.lessons(id) ON DELETE CASCADE,
+  turma_id uuid REFERENCES treinamento.turmas(id) ON DELETE CASCADE,
   message_template text NOT NULL,
   scheduled_for timestamptz,
   sent_at timestamptz,
@@ -576,7 +576,7 @@ CREATE TABLE public.whatsapp_dispatches (
 );
 
 -- system_settings
-CREATE TABLE public.system_settings (
+CREATE TABLE treinamento.system_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   system_name text DEFAULT 'Cresci e Perdi',
   system_description text,
@@ -607,7 +607,7 @@ CREATE TYPE class_status AS ENUM ('planejada', 'iniciada', 'encerrada');
 ### 4.1 Functions de Autenticação e Permissões
 ```sql
 -- is_admin
-CREATE OR REPLACE FUNCTION public.is_admin(_user uuid)
+CREATE OR REPLACE FUNCTION treinamento.is_admin(_user uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE SECURITY DEFINER
@@ -615,7 +615,7 @@ SET search_path TO 'public'
 AS $$
   SELECT EXISTS (
     SELECT 1
-    FROM public.admin_users au
+    FROM treinamento.admin_users au
     WHERE au.user_id = _user
       AND au.active = true
       AND au.status = 'approved'
@@ -623,7 +623,7 @@ AS $$
 $$;
 
 -- is_professor
-CREATE OR REPLACE FUNCTION public.is_professor(_user uuid)
+CREATE OR REPLACE FUNCTION treinamento.is_professor(_user uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE SECURITY DEFINER
@@ -631,7 +631,7 @@ SET search_path TO 'public'
 AS $$
   SELECT EXISTS (
     SELECT 1
-    FROM public.users u
+    FROM treinamento.users u
     WHERE u.id = _user
       AND u.user_type = 'Professor'
       AND u.active = true
@@ -639,7 +639,7 @@ AS $$
 $$;
 
 -- has_professor_permission
-CREATE OR REPLACE FUNCTION public.has_professor_permission(
+CREATE OR REPLACE FUNCTION treinamento.has_professor_permission(
   _professor_id uuid,
   _module_name text,
   _permission_type text DEFAULT 'view'
@@ -659,7 +659,7 @@ AS $$
 $$;
 
 -- has_professor_turma_access
-CREATE OR REPLACE FUNCTION public.has_professor_turma_access(
+CREATE OR REPLACE FUNCTION treinamento.has_professor_turma_access(
   _professor_id uuid,
   _turma_id uuid,
   _permission_type text DEFAULT 'view'
@@ -684,7 +684,7 @@ $$;
 ### 4.2 Functions de Negócio
 ```sql
 -- get_franchisee_position
-CREATE OR REPLACE FUNCTION public.get_franchisee_position(p_unit_code text)
+CREATE OR REPLACE FUNCTION treinamento.get_franchisee_position(p_unit_code text)
 RETURNS text
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -694,7 +694,7 @@ DECLARE
   v_fase_loja TEXT;
 BEGIN
   SELECT fase_loja INTO v_fase_loja
-  FROM public.unidades
+  FROM treinamento.unidades
   WHERE id = p_unit_code OR grupo = p_unit_code
   LIMIT 1;
   
@@ -710,7 +710,7 @@ END;
 $$;
 
 -- can_user_access_course
-CREATE OR REPLACE FUNCTION public.can_user_access_course(
+CREATE OR REPLACE FUNCTION treinamento.can_user_access_course(
   p_user_id uuid,
   p_course_id uuid
 )
@@ -725,14 +725,14 @@ DECLARE
   v_user_position TEXT;
   v_has_access BOOLEAN := false;
 BEGIN
-  SELECT * INTO v_user FROM public.users WHERE id = p_user_id;
+  SELECT * INTO v_user FROM treinamento.users WHERE id = p_user_id;
   IF NOT FOUND THEN RETURN false; END IF;
   
-  SELECT * INTO v_course FROM public.courses WHERE id = p_course_id;
+  SELECT * INTO v_course FROM treinamento.courses WHERE id = p_course_id;
   IF NOT FOUND THEN RETURN false; END IF;
   
   IF v_user.user_type = 'Aluno' AND v_user.role = 'Franqueado' THEN
-    v_user_position := public.get_franchisee_position(v_user.unit_code);
+    v_user_position := treinamento.get_franchisee_position(v_user.unit_code);
   ELSIF v_user.user_type = 'Aluno' AND v_user.role = 'Colaborador' THEN
     v_user_position := CASE v_user.position
       WHEN 'Atendente de Loja' THEN 'ATEND_LOJA'
@@ -750,21 +750,21 @@ BEGIN
   
   IF v_course.public_target = 'ambos' THEN
     SELECT EXISTS(
-      SELECT 1 FROM public.course_position_access cpa
+      SELECT 1 FROM treinamento.course_position_access cpa
       WHERE cpa.course_id = p_course_id AND cpa.active = true
     ) INTO v_has_access;
     
     IF NOT v_has_access THEN RETURN true; END IF;
   ELSIF v_course.public_target = 'franqueado' AND v_user.role = 'Franqueado' THEN
     SELECT EXISTS(
-      SELECT 1 FROM public.course_position_access cpa
+      SELECT 1 FROM treinamento.course_position_access cpa
       WHERE cpa.course_id = p_course_id AND cpa.active = true
     ) INTO v_has_access;
     
     IF NOT v_has_access THEN RETURN true; END IF;
   ELSIF v_course.public_target = 'colaborador' AND v_user.role = 'Colaborador' THEN
     SELECT EXISTS(
-      SELECT 1 FROM public.course_position_access cpa
+      SELECT 1 FROM treinamento.course_position_access cpa
       WHERE cpa.course_id = p_course_id AND cpa.active = true
     ) INTO v_has_access;
     
@@ -775,7 +775,7 @@ BEGIN
   
   IF v_user_position IS NOT NULL THEN
     SELECT EXISTS(
-      SELECT 1 FROM public.course_position_access cpa
+      SELECT 1 FROM treinamento.course_position_access cpa
       WHERE cpa.course_id = p_course_id 
         AND cpa.position_code = v_user_position 
         AND cpa.active = true
@@ -789,7 +789,7 @@ END;
 $$;
 
 -- recalc_enrollment_progress
-CREATE OR REPLACE FUNCTION public.recalc_enrollment_progress(p_enrollment_id uuid)
+CREATE OR REPLACE FUNCTION treinamento.recalc_enrollment_progress(p_enrollment_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -801,27 +801,27 @@ DECLARE
   v_attended integer;
   v_percent integer;
 BEGIN
-  SELECT course_id INTO v_course_id FROM public.enrollments WHERE id = p_enrollment_id;
+  SELECT course_id INTO v_course_id FROM treinamento.enrollments WHERE id = p_enrollment_id;
   IF v_course_id IS NULL THEN RETURN; END IF;
 
-  SELECT COUNT(*) INTO v_total_lessons FROM public.lessons WHERE course_id = v_course_id;
+  SELECT COUNT(*) INTO v_total_lessons FROM treinamento.lessons WHERE course_id = v_course_id;
   IF COALESCE(v_total_lessons, 0) = 0 THEN
     v_percent := 0;
   ELSE
-    SELECT COUNT(*) INTO v_attended FROM public.attendance WHERE enrollment_id = p_enrollment_id;
+    SELECT COUNT(*) INTO v_attended FROM treinamento.attendance WHERE enrollment_id = p_enrollment_id;
     v_percent := FLOOR((v_attended::numeric * 100) / v_total_lessons)::int;
     IF v_percent > 100 THEN v_percent := 100; END IF;
     IF v_percent < 0 THEN v_percent := 0; END IF;
   END IF;
 
-  UPDATE public.enrollments
+  UPDATE treinamento.enrollments
   SET progress_percentage = v_percent, updated_at = now()
   WHERE id = p_enrollment_id;
 END;
 $$;
 
 -- can_enroll_in_turma
-CREATE OR REPLACE FUNCTION public.can_enroll_in_turma(p_user uuid, p_turma uuid)
+CREATE OR REPLACE FUNCTION treinamento.can_enroll_in_turma(p_user uuid, p_turma uuid)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -866,7 +866,7 @@ END;
 $$;
 
 -- approve_collaborator
-CREATE OR REPLACE FUNCTION public.approve_collaborator(_approval_id uuid, _approve boolean)
+CREATE OR REPLACE FUNCTION treinamento.approve_collaborator(_approval_id uuid, _approve boolean)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -877,7 +877,7 @@ DECLARE
   new_status approval_status;
 BEGIN
   SELECT * INTO approval_record 
-  FROM public.collaboration_approvals 
+  FROM treinamento.collaboration_approvals 
   WHERE id = _approval_id;
   
   IF NOT FOUND THEN
@@ -890,11 +890,11 @@ BEGIN
   
   new_status := CASE WHEN _approve THEN 'aprovado'::approval_status ELSE 'rejeitado'::approval_status END;
   
-  UPDATE public.collaboration_approvals
+  UPDATE treinamento.collaboration_approvals
   SET status = new_status, updated_at = now()
   WHERE id = _approval_id;
   
-  UPDATE public.users
+  UPDATE treinamento.users
   SET 
     approval_status = new_status,
     approved_by = CASE WHEN _approve THEN auth.uid() ELSE NULL END,
@@ -905,7 +905,7 @@ END;
 $$;
 
 -- get_email_by_phone
-CREATE OR REPLACE FUNCTION public.get_email_by_phone(p_phone text)
+CREATE OR REPLACE FUNCTION treinamento.get_email_by_phone(p_phone text)
 RETURNS text
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -915,7 +915,7 @@ DECLARE
   v_email text;
 BEGIN
   SELECT email INTO v_email
-  FROM public.users
+  FROM treinamento.users
   WHERE phone = p_phone AND active = true
   LIMIT 1;
   
@@ -924,7 +924,7 @@ END;
 $$;
 
 -- find_franchisee_by_unit_code
-CREATE OR REPLACE FUNCTION public.find_franchisee_by_unit_code(_unit_code text)
+CREATE OR REPLACE FUNCTION treinamento.find_franchisee_by_unit_code(_unit_code text)
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -934,7 +934,7 @@ DECLARE
   franchisee_id uuid;
 BEGIN
   SELECT id INTO franchisee_id
-  FROM public.users
+  FROM treinamento.users
   WHERE (unit_code = _unit_code OR _unit_code = ANY(unit_codes))
     AND role = 'Franqueado'
     AND active = true
@@ -948,7 +948,7 @@ $$;
 ### 4.3 Functions de Gerenciamento de Turmas
 ```sql
 -- start_turma
-CREATE OR REPLACE FUNCTION public.start_turma(p_turma_id uuid, p_user_id uuid)
+CREATE OR REPLACE FUNCTION treinamento.start_turma(p_turma_id uuid, p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -956,7 +956,7 @@ AS $$
 DECLARE
   v_turma_record RECORD;
 BEGIN
-  SELECT * INTO v_turma_record FROM public.turmas WHERE id = p_turma_id;
+  SELECT * INTO v_turma_record FROM treinamento.turmas WHERE id = p_turma_id;
   
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Turma not found';
@@ -966,14 +966,14 @@ BEGIN
     RAISE EXCEPTION 'Only scheduled turmas can be started';
   END IF;
 
-  UPDATE public.turmas
+  UPDATE treinamento.turmas
   SET status = 'em_andamento', start_at = now(), updated_at = now()
   WHERE id = p_turma_id;
 END;
 $$;
 
 -- conclude_turma
-CREATE OR REPLACE FUNCTION public.conclude_turma(p_turma_id uuid, p_user_id uuid)
+CREATE OR REPLACE FUNCTION treinamento.conclude_turma(p_turma_id uuid, p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -981,7 +981,7 @@ AS $$
 DECLARE
   v_turma_record RECORD;
 BEGIN
-  SELECT * INTO v_turma_record FROM public.turmas WHERE id = p_turma_id;
+  SELECT * INTO v_turma_record FROM treinamento.turmas WHERE id = p_turma_id;
   
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Turma not found';
@@ -991,17 +991,17 @@ BEGIN
     RAISE EXCEPTION 'Only turmas in progress can be concluded';
   END IF;
 
-  UPDATE public.turmas
+  UPDATE treinamento.turmas
   SET status = 'encerrada', end_at = now(), updated_at = now()
   WHERE id = p_turma_id;
 
-  INSERT INTO public.transformation_kanban (course_id, turma_id, status, created_by)
+  INSERT INTO treinamento.transformation_kanban (course_id, turma_id, status, created_by)
   VALUES (v_turma_record.course_id, p_turma_id, 'Pronto para virar treinamento', p_user_id);
 END;
 $$;
 
 -- force_close_turma_enrollments
-CREATE OR REPLACE FUNCTION public.force_close_turma_enrollments(p_turma_id uuid, p_user_id uuid)
+CREATE OR REPLACE FUNCTION treinamento.force_close_turma_enrollments(p_turma_id uuid, p_user_id uuid)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1009,7 +1009,7 @@ AS $$
 DECLARE
   v_turma_record RECORD;
 BEGIN
-  SELECT * INTO v_turma_record FROM public.turmas WHERE id = p_turma_id;
+  SELECT * INTO v_turma_record FROM treinamento.turmas WHERE id = p_turma_id;
   
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Turma not found';
@@ -1019,7 +1019,7 @@ BEGIN
     RAISE EXCEPTION 'Access denied';
   END IF;
 
-  UPDATE public.turmas
+  UPDATE treinamento.turmas
   SET status = 'encerrada', updated_at = now()
   WHERE id = p_turma_id;
 END;
@@ -1032,7 +1032,7 @@ $$;
 
 ```sql
 -- Trigger para atualizar updated_at
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+CREATE OR REPLACE FUNCTION treinamento.update_updated_at_column()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
@@ -1044,32 +1044,32 @@ $$;
 
 -- Aplicar trigger em todas as tabelas relevantes
 CREATE TRIGGER update_users_updated_at
-  BEFORE UPDATE ON public.users
+  BEFORE UPDATE ON treinamento.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  EXECUTE FUNCTION treinamento.update_updated_at_column();
 
 CREATE TRIGGER update_courses_updated_at
-  BEFORE UPDATE ON public.courses
+  BEFORE UPDATE ON treinamento.courses
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  EXECUTE FUNCTION treinamento.update_updated_at_column();
 
 CREATE TRIGGER update_turmas_updated_at
-  BEFORE UPDATE ON public.turmas
+  BEFORE UPDATE ON treinamento.turmas
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  EXECUTE FUNCTION treinamento.update_updated_at_column();
 
 CREATE TRIGGER update_enrollments_updated_at
-  BEFORE UPDATE ON public.enrollments
+  BEFORE UPDATE ON treinamento.enrollments
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  EXECUTE FUNCTION treinamento.update_updated_at_column();
 
 CREATE TRIGGER update_lessons_updated_at
-  BEFORE UPDATE ON public.lessons
+  BEFORE UPDATE ON treinamento.lessons
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
+  EXECUTE FUNCTION treinamento.update_updated_at_column();
 
 -- Trigger para recalcular progresso ao registrar presença
-CREATE OR REPLACE FUNCTION public.trg_update_progress_on_attendance()
+CREATE OR REPLACE FUNCTION treinamento.trg_update_progress_on_attendance()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1077,10 +1077,10 @@ SET search_path TO 'public'
 AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    PERFORM public.recalc_enrollment_progress(NEW.enrollment_id);
+    PERFORM treinamento.recalc_enrollment_progress(NEW.enrollment_id);
     RETURN NEW;
   ELSIF TG_OP = 'DELETE' THEN
-    PERFORM public.recalc_enrollment_progress(OLD.enrollment_id);
+    PERFORM treinamento.recalc_enrollment_progress(OLD.enrollment_id);
     RETURN OLD;
   ELSE
     RETURN NEW;
@@ -1089,24 +1089,24 @@ END;
 $$;
 
 CREATE TRIGGER trg_update_progress_on_attendance
-  AFTER INSERT OR DELETE ON public.attendance
+  AFTER INSERT OR DELETE ON treinamento.attendance
   FOR EACH ROW
-  EXECUTE FUNCTION public.trg_update_progress_on_attendance();
+  EXECUTE FUNCTION treinamento.trg_update_progress_on_attendance();
 
 -- Trigger para atualizar contagem de lessons
-CREATE OR REPLACE FUNCTION public.update_course_lessons_count()
+CREATE OR REPLACE FUNCTION treinamento.update_course_lessons_count()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
   IF TG_OP = 'DELETE' THEN
-    UPDATE public.courses 
-    SET lessons_count = (SELECT COUNT(*) FROM public.lessons WHERE course_id = OLD.course_id)
+    UPDATE treinamento.courses 
+    SET lessons_count = (SELECT COUNT(*) FROM treinamento.lessons WHERE course_id = OLD.course_id)
     WHERE id = OLD.course_id;
     RETURN OLD;
   ELSE
-    UPDATE public.courses 
-    SET lessons_count = (SELECT COUNT(*) FROM public.lessons WHERE course_id = NEW.course_id)
+    UPDATE treinamento.courses 
+    SET lessons_count = (SELECT COUNT(*) FROM treinamento.lessons WHERE course_id = NEW.course_id)
     WHERE id = NEW.course_id;
     RETURN NEW;
   END IF;
@@ -1114,19 +1114,19 @@ END;
 $$;
 
 CREATE TRIGGER trg_update_course_lessons_count
-  AFTER INSERT OR DELETE ON public.lessons
+  AFTER INSERT OR DELETE ON treinamento.lessons
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_course_lessons_count();
+  EXECUTE FUNCTION treinamento.update_course_lessons_count();
 
 -- Trigger para vincular enrollments ao criar usuário
-CREATE OR REPLACE FUNCTION public.link_enrollments_on_user_creation()
+CREATE OR REPLACE FUNCTION treinamento.link_enrollments_on_user_creation()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
 BEGIN
-  UPDATE public.enrollments 
+  UPDATE treinamento.enrollments 
   SET user_id = NEW.id
   WHERE student_email = NEW.email AND user_id IS NULL;
   
@@ -1135,12 +1135,12 @@ END;
 $$;
 
 CREATE TRIGGER trg_link_enrollments_on_user_creation
-  AFTER INSERT ON public.users
+  AFTER INSERT ON treinamento.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.link_enrollments_on_user_creation();
+  EXECUTE FUNCTION treinamento.link_enrollments_on_user_creation();
 
 -- Trigger para sincronizar nomes de unidades
-CREATE OR REPLACE FUNCTION public.sync_nomes_unidades()
+CREATE OR REPLACE FUNCTION treinamento.sync_nomes_unidades()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1150,7 +1150,7 @@ BEGIN
   IF NEW.unit_codes IS NOT NULL AND array_length(NEW.unit_codes, 1) > 0 THEN
     SELECT string_agg(DISTINCT u.grupo, ', ' ORDER BY u.grupo)
     INTO NEW.nomes_unidades
-    FROM public.unidades u
+    FROM treinamento.unidades u
     WHERE u.codigo_grupo::text = ANY(NEW.unit_codes) AND u.grupo IS NOT NULL;
   ELSE
     NEW.nomes_unidades := NULL;
@@ -1161,12 +1161,12 @@ END;
 $$;
 
 CREATE TRIGGER trg_sync_nomes_unidades
-  BEFORE INSERT OR UPDATE ON public.users
+  BEFORE INSERT OR UPDATE ON treinamento.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.sync_nomes_unidades();
+  EXECUTE FUNCTION treinamento.sync_nomes_unidades();
 
 -- Trigger para validar unit codes
-CREATE OR REPLACE FUNCTION public.validate_unit_codes()
+CREATE OR REPLACE FUNCTION treinamento.validate_unit_codes()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1179,7 +1179,7 @@ BEGIN
     SELECT array_agg(code)
     INTO invalid_codes
     FROM unnest(NEW.unit_codes) AS code
-    WHERE code NOT IN (SELECT id FROM public.unidades);
+    WHERE code NOT IN (SELECT id FROM treinamento.unidades);
     
     IF invalid_codes IS NOT NULL AND array_length(invalid_codes, 1) > 0 THEN
       RAISE EXCEPTION 'Código(s) de unidade inválido(s): %. Cadastro não aprovado.', 
@@ -1192,25 +1192,25 @@ END;
 $$;
 
 CREATE TRIGGER trg_validate_unit_codes
-  BEFORE INSERT OR UPDATE ON public.users
+  BEFORE INSERT OR UPDATE ON treinamento.users
   FOR EACH ROW
-  EXECUTE FUNCTION public.validate_unit_codes();
+  EXECUTE FUNCTION treinamento.validate_unit_codes();
 
 -- Trigger para preencher unit_code em enrollments
-CREATE OR REPLACE FUNCTION public.fill_enrollment_unit_code()
+CREATE OR REPLACE FUNCTION treinamento.fill_enrollment_unit_code()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
   IF NEW.user_id IS NOT NULL THEN
     SELECT unit_code INTO NEW.unit_code 
-    FROM public.users 
+    FROM treinamento.users 
     WHERE id = NEW.user_id;
   END IF;
   
   IF NEW.unit_code IS NULL AND NEW.student_email IS NOT NULL THEN
     SELECT unit_code INTO NEW.unit_code 
-    FROM public.users 
+    FROM treinamento.users 
     WHERE email = NEW.student_email 
     LIMIT 1;
   END IF;
@@ -1220,9 +1220,9 @@ END;
 $$;
 
 CREATE TRIGGER trg_fill_enrollment_unit_code
-  BEFORE INSERT OR UPDATE ON public.enrollments
+  BEFORE INSERT OR UPDATE ON treinamento.enrollments
   FOR EACH ROW
-  EXECUTE FUNCTION public.fill_enrollment_unit_code();
+  EXECUTE FUNCTION treinamento.fill_enrollment_unit_code();
 ```
 
 ---
@@ -1231,69 +1231,69 @@ CREATE TRIGGER trg_fill_enrollment_unit_code
 
 ### 6.1 Habilitar RLS em Todas as Tabelas
 ```sql
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.turmas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.unidades ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.job_positions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.course_position_access ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.collaboration_approvals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_options ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_attempts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_responses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.tests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.certificates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.professor_permissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.professor_turma_permissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.transformation_kanban ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.live_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.live_participants ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.whatsapp_dispatches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.turmas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.enrollments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.lessons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.unidades ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.job_positions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.course_position_access ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.collaboration_approvals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.quizzes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.quiz_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.quiz_options ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.quiz_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.quiz_responses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.tests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.professor_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.professor_turma_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.transformation_kanban ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.live_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.live_participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.whatsapp_dispatches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treinamento.system_settings ENABLE ROW LEVEL SECURITY;
 ```
 
 ### 6.2 Policies para Tabela users
 ```sql
 -- Admins podem ver e modificar todos os usuários
 CREATE POLICY "Admins can view all users"
-  ON public.users FOR SELECT
+  ON treinamento.users FOR SELECT
   USING (is_admin(auth.uid()));
 
 CREATE POLICY "Admins can update all users"
-  ON public.users FOR UPDATE
+  ON treinamento.users FOR UPDATE
   USING (is_admin(auth.uid()));
 
 CREATE POLICY "Admins can insert users"
-  ON public.users FOR INSERT
+  ON treinamento.users FOR INSERT
   WITH CHECK (is_admin(auth.uid()));
 
 -- Usuários podem ver seu próprio perfil
 CREATE POLICY "Users can view own profile"
-  ON public.users FOR SELECT
+  ON treinamento.users FOR SELECT
   USING (auth.uid() = id);
 
 -- Usuários podem atualizar seu próprio perfil (campos limitados)
 CREATE POLICY "Users can update own profile"
-  ON public.users FOR UPDATE
+  ON treinamento.users FOR UPDATE
   USING (auth.uid() = id);
 
 -- Professores podem ver usuários (para gerenciamento de turmas)
 CREATE POLICY "Professors can view users"
-  ON public.users FOR SELECT
+  ON treinamento.users FOR SELECT
   USING (is_professor(auth.uid()));
 
 -- Franqueados podem ver colaboradores de suas unidades
 CREATE POLICY "Franchisees can view their unit collaborators"
-  ON public.users FOR SELECT
+  ON treinamento.users FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.users franchisee
+      SELECT 1 FROM treinamento.users franchisee
       WHERE franchisee.id = auth.uid()
         AND franchisee.role = 'Franqueado'
         AND (
@@ -1308,17 +1308,17 @@ CREATE POLICY "Franchisees can view their unit collaborators"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage courses"
-  ON public.courses FOR ALL
+  ON treinamento.courses FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem ver todos os cursos
 CREATE POLICY "Professors can view courses"
-  ON public.courses FOR SELECT
+  ON treinamento.courses FOR SELECT
   USING (is_professor(auth.uid()));
 
 -- Alunos podem ver cursos aos quais têm acesso
 CREATE POLICY "Students can view accessible courses"
-  ON public.courses FOR SELECT
+  ON treinamento.courses FOR SELECT
   USING (can_user_access_course(auth.uid(), id));
 ```
 
@@ -1326,17 +1326,17 @@ CREATE POLICY "Students can view accessible courses"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage turmas"
-  ON public.turmas FOR ALL
+  ON treinamento.turmas FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores responsáveis podem gerenciar suas turmas
 CREATE POLICY "Responsible professors can manage turmas"
-  ON public.turmas FOR ALL
+  ON treinamento.turmas FOR ALL
   USING (responsavel_user_id = auth.uid());
 
 -- Professores com permissão podem ver turmas específicas
 CREATE POLICY "Professors can view permitted turmas"
-  ON public.turmas FOR SELECT
+  ON treinamento.turmas FOR SELECT
   USING (
     is_professor(auth.uid()) AND
     has_professor_turma_access(auth.uid(), id, 'view')
@@ -1344,10 +1344,10 @@ CREATE POLICY "Professors can view permitted turmas"
 
 -- Alunos podem ver turmas em que estão inscritos
 CREATE POLICY "Students can view their turmas"
-  ON public.turmas FOR SELECT
+  ON treinamento.turmas FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.enrollments e
+      SELECT 1 FROM treinamento.enrollments e
       WHERE e.turma_id = id
         AND e.user_id = auth.uid()
     )
@@ -1355,7 +1355,7 @@ CREATE POLICY "Students can view their turmas"
 
 -- Alunos podem ver turmas disponíveis para inscrição
 CREATE POLICY "Students can view available turmas"
-  ON public.turmas FOR SELECT
+  ON treinamento.turmas FOR SELECT
   USING (
     status IN ('agendada', 'em_andamento') AND
     can_enroll_in_turma(auth.uid(), id)
@@ -1366,16 +1366,16 @@ CREATE POLICY "Students can view available turmas"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage enrollments"
-  ON public.enrollments FOR ALL
+  ON treinamento.enrollments FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem ver enrollments de suas turmas
 CREATE POLICY "Professors can view turma enrollments"
-  ON public.enrollments FOR SELECT
+  ON treinamento.enrollments FOR SELECT
   USING (
     is_professor(auth.uid()) AND
     EXISTS (
-      SELECT 1 FROM public.turmas t
+      SELECT 1 FROM treinamento.turmas t
       WHERE t.id = turma_id
         AND (
           t.responsavel_user_id = auth.uid()
@@ -1386,17 +1386,17 @@ CREATE POLICY "Professors can view turma enrollments"
 
 -- Alunos podem ver suas próprias inscrições
 CREATE POLICY "Students can view own enrollments"
-  ON public.enrollments FOR SELECT
+  ON treinamento.enrollments FOR SELECT
   USING (user_id = auth.uid());
 
 -- Alunos podem criar inscrições para si mesmos
 CREATE POLICY "Students can create own enrollments"
-  ON public.enrollments FOR INSERT
+  ON treinamento.enrollments FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
 -- Alunos podem atualizar suas próprias inscrições (campos limitados)
 CREATE POLICY "Students can update own enrollments"
-  ON public.enrollments FOR UPDATE
+  ON treinamento.enrollments FOR UPDATE
   USING (user_id = auth.uid());
 ```
 
@@ -1404,20 +1404,20 @@ CREATE POLICY "Students can update own enrollments"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage lessons"
-  ON public.lessons FOR ALL
+  ON treinamento.lessons FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem gerenciar lessons
 CREATE POLICY "Professors can manage lessons"
-  ON public.lessons FOR ALL
+  ON treinamento.lessons FOR ALL
   USING (is_professor(auth.uid()));
 
 -- Alunos podem ver lessons de cursos aos quais têm acesso
 CREATE POLICY "Students can view course lessons"
-  ON public.lessons FOR SELECT
+  ON treinamento.lessons FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.enrollments e
+      SELECT 1 FROM treinamento.enrollments e
       WHERE e.course_id = lessons.course_id
         AND e.user_id = auth.uid()
     )
@@ -1428,20 +1428,20 @@ CREATE POLICY "Students can view course lessons"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage attendance"
-  ON public.attendance FOR ALL
+  ON treinamento.attendance FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem gerenciar presença
 CREATE POLICY "Professors can manage attendance"
-  ON public.attendance FOR ALL
+  ON treinamento.attendance FOR ALL
   USING (is_professor(auth.uid()));
 
 -- Alunos podem ver sua própria presença
 CREATE POLICY "Students can view own attendance"
-  ON public.attendance FOR SELECT
+  ON treinamento.attendance FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.enrollments e
+      SELECT 1 FROM treinamento.enrollments e
       WHERE e.id = enrollment_id
         AND e.user_id = auth.uid()
     )
@@ -1449,10 +1449,10 @@ CREATE POLICY "Students can view own attendance"
 
 -- Alunos podem registrar sua própria presença
 CREATE POLICY "Students can register own attendance"
-  ON public.attendance FOR INSERT
+  ON treinamento.attendance FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM public.enrollments e
+      SELECT 1 FROM treinamento.enrollments e
       WHERE e.id = enrollment_id
         AND e.user_id = auth.uid()
     )
@@ -1463,28 +1463,28 @@ CREATE POLICY "Students can register own attendance"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage quizzes"
-  ON public.quizzes FOR ALL
+  ON treinamento.quizzes FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem gerenciar quizzes
 CREATE POLICY "Professors can manage quizzes"
-  ON public.quizzes FOR ALL
+  ON treinamento.quizzes FOR ALL
   USING (is_professor(auth.uid()));
 
 -- Alunos podem ver quizzes publicados de seus cursos
 CREATE POLICY "Students can view published quizzes"
-  ON public.quizzes FOR SELECT
+  ON treinamento.quizzes FOR SELECT
   USING (
     status = 'published' AND
     (
       EXISTS (
-        SELECT 1 FROM public.enrollments e
+        SELECT 1 FROM treinamento.enrollments e
         WHERE e.course_id = quizzes.course_id
           AND e.user_id = auth.uid()
       )
       OR
       EXISTS (
-        SELECT 1 FROM public.enrollments e
+        SELECT 1 FROM treinamento.enrollments e
         WHERE e.turma_id = quizzes.turma_id
           AND e.user_id = auth.uid()
       )
@@ -1496,17 +1496,17 @@ CREATE POLICY "Students can view published quizzes"
 ```sql
 -- Admins têm acesso completo
 CREATE POLICY "Admins can manage certificates"
-  ON public.certificates FOR ALL
+  ON treinamento.certificates FOR ALL
   USING (is_admin(auth.uid()));
 
 -- Professores podem ver certificados
 CREATE POLICY "Professors can view certificates"
-  ON public.certificates FOR SELECT
+  ON treinamento.certificates FOR SELECT
   USING (is_professor(auth.uid()));
 
 -- Alunos podem ver seus próprios certificados
 CREATE POLICY "Students can view own certificates"
-  ON public.certificates FOR SELECT
+  ON treinamento.certificates FOR SELECT
   USING (user_id = auth.uid());
 ```
 
@@ -1514,49 +1514,49 @@ CREATE POLICY "Students can view own certificates"
 ```sql
 -- admin_users
 CREATE POLICY "Admins can manage admin users"
-  ON public.admin_users FOR ALL
+  ON treinamento.admin_users FOR ALL
   USING (is_admin(auth.uid()));
 
 -- collaboration_approvals
 CREATE POLICY "Admins can manage approvals"
-  ON public.collaboration_approvals FOR ALL
+  ON treinamento.collaboration_approvals FOR ALL
   USING (is_admin(auth.uid()));
 
 CREATE POLICY "Franchisees can manage their approvals"
-  ON public.collaboration_approvals FOR ALL
+  ON treinamento.collaboration_approvals FOR ALL
   USING (franchisee_id = auth.uid());
 
 CREATE POLICY "Collaborators can view their approval status"
-  ON public.collaboration_approvals FOR SELECT
+  ON treinamento.collaboration_approvals FOR SELECT
   USING (collaborator_id = auth.uid());
 
 -- professor_permissions
 CREATE POLICY "Admins can manage professor permissions"
-  ON public.professor_permissions FOR ALL
+  ON treinamento.professor_permissions FOR ALL
   USING (is_admin(auth.uid()));
 
 CREATE POLICY "Professors can view own permissions"
-  ON public.professor_permissions FOR SELECT
+  ON treinamento.professor_permissions FOR SELECT
   USING (professor_id = auth.uid());
 
 -- system_settings
 CREATE POLICY "Admins can manage system settings"
-  ON public.system_settings FOR ALL
+  ON treinamento.system_settings FOR ALL
   USING (is_admin(auth.uid()));
 
 CREATE POLICY "All authenticated users can view system settings"
-  ON public.system_settings FOR SELECT
+  ON treinamento.system_settings FOR SELECT
   TO authenticated
   USING (true);
 
 -- unidades (público para leitura)
 CREATE POLICY "All authenticated users can view unidades"
-  ON public.unidades FOR SELECT
+  ON treinamento.unidades FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Admins can manage unidades"
-  ON public.unidades FOR ALL
+  ON treinamento.unidades FOR ALL
   USING (is_admin(auth.uid()));
 ```
 
@@ -2294,49 +2294,49 @@ migrateAllBuckets()
 ### 10.2 Scripts de Validação
 ```sql
 -- Validar contagem de registros
-SELECT 'users' as table_name, COUNT(*) as count FROM public.users
+SELECT 'users' as table_name, COUNT(*) as count FROM treinamento.users
 UNION ALL
-SELECT 'courses', COUNT(*) FROM public.courses
+SELECT 'courses', COUNT(*) FROM treinamento.courses
 UNION ALL
-SELECT 'turmas', COUNT(*) FROM public.turmas
+SELECT 'turmas', COUNT(*) FROM treinamento.turmas
 UNION ALL
-SELECT 'enrollments', COUNT(*) FROM public.enrollments
+SELECT 'enrollments', COUNT(*) FROM treinamento.enrollments
 UNION ALL
-SELECT 'lessons', COUNT(*) FROM public.lessons
+SELECT 'lessons', COUNT(*) FROM treinamento.lessons
 UNION ALL
-SELECT 'attendance', COUNT(*) FROM public.attendance
+SELECT 'attendance', COUNT(*) FROM treinamento.attendance
 UNION ALL
-SELECT 'quizzes', COUNT(*) FROM public.quizzes
+SELECT 'quizzes', COUNT(*) FROM treinamento.quizzes
 UNION ALL
-SELECT 'certificates', COUNT(*) FROM public.certificates
+SELECT 'certificates', COUNT(*) FROM treinamento.certificates
 ORDER BY table_name;
 
 -- Validar integridade referencial
 SELECT 
   'enrollments sem user_id' as issue,
   COUNT(*) as count
-FROM public.enrollments
+FROM treinamento.enrollments
 WHERE user_id IS NULL
 UNION ALL
 SELECT 
   'enrollments com user_id inválido',
   COUNT(*)
-FROM public.enrollments e
-LEFT JOIN public.users u ON u.id = e.user_id
+FROM treinamento.enrollments e
+LEFT JOIN treinamento.users u ON u.id = e.user_id
 WHERE e.user_id IS NOT NULL AND u.id IS NULL
 UNION ALL
 SELECT 
   'lessons sem course_id válido',
   COUNT(*)
-FROM public.lessons l
-LEFT JOIN public.courses c ON c.id = l.course_id
+FROM treinamento.lessons l
+LEFT JOIN treinamento.courses c ON c.id = l.course_id
 WHERE c.id IS NULL
 UNION ALL
 SELECT 
   'turmas sem course_id válido',
   COUNT(*)
-FROM public.turmas t
-LEFT JOIN public.courses c ON c.id = t.course_id
+FROM treinamento.turmas t
+LEFT JOIN treinamento.courses c ON c.id = t.course_id
 WHERE c.id IS NULL;
 
 -- Validar functions
@@ -2588,25 +2588,25 @@ LIMIT 20;
 
 -- Adicionar índices adicionais se necessário
 CREATE INDEX CONCURRENTLY idx_enrollments_user_course 
-  ON public.enrollments(user_id, course_id);
+  ON treinamento.enrollments(user_id, course_id);
 
 CREATE INDEX CONCURRENTLY idx_attendance_enrollment_lesson 
-  ON public.attendance(enrollment_id, lesson_id);
+  ON treinamento.attendance(enrollment_id, lesson_id);
 
 CREATE INDEX CONCURRENTLY idx_quiz_attempts_user_quiz 
-  ON public.quiz_attempts(user_id, quiz_id);
+  ON treinamento.quiz_attempts(user_id, quiz_id);
 ```
 
 ### 13.2 Limpeza
 ```sql
 -- Remover dados de teste (se houver)
-DELETE FROM public.users WHERE email LIKE '%@teste.com';
+DELETE FROM treinamento.users WHERE email LIKE '%@teste.com';
 
 -- Vacuum e analyze
-VACUUM ANALYZE public.users;
-VACUUM ANALYZE public.enrollments;
-VACUUM ANALYZE public.courses;
-VACUUM ANALYZE public.turmas;
+VACUUM ANALYZE treinamento.users;
+VACUUM ANALYZE treinamento.enrollments;
+VACUUM ANALYZE treinamento.courses;
+VACUUM ANALYZE treinamento.turmas;
 ```
 
 ### 13.3 Documentação Final
@@ -2628,7 +2628,7 @@ VACUUM ANALYZE public.turmas;
 pg_dump -h HOST -U USER -d DATABASE -F c -f backup.dump
 
 # Backup de tabela específica
-pg_dump -h HOST -U USER -d DATABASE -t public.users -F c -f users_backup.dump
+pg_dump -h HOST -U USER -d DATABASE -t treinamento.users -F c -f users_backup.dump
 
 # Restore
 pg_restore -h HOST -U USER -d DATABASE -c backup.dump

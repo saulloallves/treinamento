@@ -1,11 +1,12 @@
 
-project_id = "tctkacgbhqvkqovctrzf"
+# This is the project reference for your Supabase project on supabase.com.
+# It was automatically set by `supabase link`.
+project_id = "wpuwsocezhlqlqxifpyk"
 
 [api]
-enabled = true
 port = 54321
-schemas = ["public", "graphql_public"]
-extra_search_path = ["public", "extensions"]
+schemas = ["public", "graphql_public", "treinamento"] # Adicionado o schema treinamento
+extra_search_path = ["public", "extensions", "treinamento"] # Adicionado o schema treinamento
 max_rows = 1000
 
 [db]
@@ -14,9 +15,7 @@ shadow_port = 54320
 major_version = 15
 
 [studio]
-enabled = true
 port = 54323
-api_url = "http://localhost:54321"
 
 [inbucket]
 enabled = true
@@ -26,65 +25,33 @@ pop3_port = 54326
 
 [storage]
 enabled = true
-port = 54327
-image_transformation = true
-duplicate_functions = false
+file_size_limit = "50MB"
 
 [auth]
 enabled = true
-port = 54328
+# O schema de autenticação é sempre 'auth'.
+# O schema 'treinamento' é para seus dados.
 
-[edge_functions]
-enabled = true
-port = 54329
+[functions]
+# Configurações para todas as Edge Functions.
+# Por exemplo, para verificar JWT em todas por padrão:
+# verify_jwt = true
 
-[functions.api]
-verify_jwt = false
-
-[functions.create-enrollment]
-verify_jwt = false
-
-[functions.notify-franchisee]
-verify_jwt = false
-
-[functions.approve-collaborator]
-verify_jwt = false
-
-[functions.bulk-create-franchisees]
-verify_jwt = false
-
-[functions.fix-email-formatting]
-verify_jwt = false
-
-[functions.reset-franchisee-password]
-verify_jwt = false
-
-[functions.register-collaborator]
-verify_jwt = false
-
-[functions.whatsapp-scheduler]
-verify_jwt = false
-
-[functions.create-collaborator-group]
-verify_jwt = false
-
-[functions.create-franchisee]
-verify_jwt = false
-
-[functions.update-franchisee]
-verify_jwt = false
-
-[functions.add-collaborator-to-group]
-verify_jwt = false
-
-[functions.remove-collaborator-from-group]
-verify_jwt = false
-
-[functions.migrate-all-users]
-verify_jwt = false
+# Você pode substituir por função, como já está fazendo abaixo.
+# Exemplo:
+# [functions.my-function]
+#   verify_jwt = false
 
 [functions.admin-send-recovery-emails]
 verify_jwt = false
 
-[functions.admin-import-users]
-verify_jwt = false
+# ... (outras funções podem ser listadas aqui se precisarem de configurações específicas)
+
+[analytics]
+enabled = false
+port = 54329
+vector_port = 54330
+# As configurações de functions foram movidas para uma seção [functions] mais limpa.
+# As portas de edge_functions e realtime foram consolidadas ou removidas em versões mais recentes.
+# A CLI gerencia isso de forma mais automática.
+

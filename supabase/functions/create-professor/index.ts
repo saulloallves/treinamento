@@ -1,5 +1,5 @@
 // Supabase Edge Function: create-professor
-// Creates an auth user (Professor) and inserts the corresponding profile in public.users
+// Creates an auth user (Professor) and inserts the corresponding profile in treinamento.users
 // Only admins can call this function
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -85,7 +85,7 @@ serve(async (req) => {
       });
     }
 
-    // Tentar localizar usuário pelo e-mail na tabela public.users
+    // Tentar localizar usuário pelo e-mail na tabela treinamento.users
     const { data: existingUserByEmail, error: userLookupError } = await supabaseAdmin
       .from("users")
       .select("id, user_type")
@@ -190,7 +190,7 @@ serve(async (req) => {
         authUserId = createUserData.user.id;
       }
 
-      // Inserir perfil em public.users
+      // Inserir perfil em treinamento.users
       const { data: insertedProfile, error: profileError } = await supabaseAdmin
         .from("users")
         .insert({

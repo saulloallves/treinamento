@@ -44,7 +44,7 @@ export const useApi = () => {
   // Auth methods
   const auth = {
     login: (email: string, password: string) =>
-      call('/auth/login', { method: 'POST', body: { email, password } }),
+      call('/auth/auth', { method: 'POST', body: { email, password } }),
     
     me: (token: string) =>
       call('/auth/me', { headers: { authorization: `Bearer ${token}` } }),

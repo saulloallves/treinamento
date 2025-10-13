@@ -1610,7 +1610,7 @@ function generateOpenApiSpec() {
     },
     servers: [{ url: serverUrl }],
     paths: {
-      '/auth/login': { post: { summary: 'Login admin', requestBody: { required: true }, responses: { '200': { description: 'Sessão' } } } },
+      '/auth/auth': { post: { summary: 'Login admin', requestBody: { required: true }, responses: { '200': { description: 'Sessão' } } } },
       '/auth/me': { get: { summary: 'Dados do admin logado', responses: { '200': { description: 'Usuário' } } } },
       '/unidades/{codigo}': { get: { summary: 'Buscar unidade por código', parameters: [{ name: 'codigo', in: 'path', required: true }], responses: { '200': { description: 'Unidade' } } } },
       '/unidades/{codigo}/colaboradores': { get: { summary: 'Listar colaboradores da unidade', parameters: [{ name: 'codigo', in: 'path', required: true }], responses: { '200': { description: 'Lista de usuários' } } } },
@@ -1709,7 +1709,7 @@ serve(async (req) => {
           available_endpoints: [
             'GET /openapi.json',
             'GET /docs',
-            'POST /auth/login',
+            'POST /auth/auth',
             'GET /auth/me',
             'GET /unidades/{codigo}',
             'GET /unidades/{codigo}/colaboradores',

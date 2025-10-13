@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [lastAuthBlocked, setLastAuthBlocked] = useState<string | null>(null);
   const [suppressAuthEvents, setSuppressAuthEvents] = useState(false);
 
-  // Ensure a row exists in public.users for this auth user
+  // Ensure a row exists in treinamento.users for this auth user
   const ensureProfile = async (authUser: User) => {
     try {
       const { data: existing, error: existErr } = await supabase

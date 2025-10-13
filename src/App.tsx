@@ -51,6 +51,8 @@ import CollaboratorManagement from "./pages/student/CollaboratorManagement";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import MigrationPage from "./pages/MigrationPage";
 import TestEmailPage from "./pages/TestEmailPage";
+import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
+import { RecoveryEmailTool } from "./pages/tools/RecoveryEmailTool"; // Import the new tool page
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
@@ -107,6 +109,11 @@ const App = () => (
               <RealtimeUpdater />
               <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback/recovery" element={<ResetPasswordPage />} />
+              
+              {/* Rota de Ferramentas - Externa e sem layout */}
+              <Route path="/tools/recovery-email" element={<RecoveryEmailTool />} />
+
               <Route path="/" element={<RoleRedirect />} />
               <Route path="/dashboard" element={
                 <AdminRoute>

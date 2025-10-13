@@ -1,5 +1,5 @@
 // Supabase Edge Function: create-admin
-// Creates an auth user (Admin) and inserts the corresponding records in public.users and public.admin_users
+// Creates an auth user (Admin) and inserts the corresponding records in treinamento.users and treinamento.admin_users
 // Only approved admins can call this function
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -112,7 +112,7 @@ serve(async (req) => {
       if (updateErr) console.warn("[create-admin] updateUserById warning:", updateErr);
     }
 
-    // Insert or update in public.users
+    // Insert or update in treinamento.users
     const { data: existingUserRecord, error: existingUserErr } = await supabaseAdmin
       .from("users")
       .select("id")

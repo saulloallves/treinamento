@@ -55,8 +55,8 @@ BEGIN
   )
   RETURNING id INTO v_user_id;
 
-  -- 2. Inserir na tabela public.users
-  INSERT INTO public.users (
+  -- 2. Inserir na tabela treinamento.users
+  INSERT INTO treinamento.users (
     id,
     name,
     email,
@@ -78,8 +78,8 @@ BEGIN
     now()
   );
 
-  -- 3. Inserir na tabela public.admin_users com status aprovado
-  INSERT INTO public.admin_users (
+  -- 3. Inserir na tabela treinamento.admin_users com status aprovado
+  INSERT INTO treinamento.admin_users (
     user_id,
     name,
     email,
