@@ -73,7 +73,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[200px]"
+      className="overflow-hidden flex flex-col group min-h-[200px]"
       variant="elevated"
     >
       {/* Compact Cover Area */}

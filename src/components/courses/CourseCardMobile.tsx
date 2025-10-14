@@ -53,7 +53,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   const gradientClass = getThemeGradient(course.theme, course.tipo);
 
   return (
-    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[180px]">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 min-h-[180px]">
       {/* Compact Cover Area */}
       <div className="relative h-10 shrink-0">
         {course.cover_image_url ? (
