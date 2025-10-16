@@ -105,24 +105,18 @@ async function handleUnidades(request: Request, path: string[]) {
   
   if (request.method === 'GET' && codigo && path[2] === 'colaboradores') {
     // GET /unidades/{codigo}/colaboradores
-    const { data: unit } = await supabase
-      .from('units')
-      .select('id')
-      .eq('code', codigo)
-      .single()
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('unit_code', codigo)
+      .eq('active', true)
 
-    if (!unit) {
-      return new Response(JSON.stringify({ error: 'Unit not found' }), { 
-        status: 404,
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), { 
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-
-    const { data: users } = await supabase
-      .from('users')
-      .select('*')
-      .eq('unit_id', unit.id)
-      .eq('active', true)
 
     return new Response(JSON.stringify(users), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -132,9 +126,9 @@ async function handleUnidades(request: Request, path: string[]) {
   if (request.method === 'GET' && codigo) {
     // GET /unidades/{codigo}
     const { data: unit } = await supabase
-      .from('units')
+      .from('unidades')
       .select('*')
-      .eq('code', codigo)
+      .eq('group_code', codigo)
       .single()
 
     if (!unit) {
@@ -155,7 +149,7 @@ async function handleUnidades(request: Request, path: string[]) {
     const unitData = await request.json()
 
     const { data, error } = await supabase
-      .from('units')
+      .from('unidades')
       .insert([unitData])
       .select()
       .single()
@@ -221,7 +215,7 @@ async function handleUsuarios(request: Request, path: string[]) {
       .from('users')
       .select(`
         *,
-        units (name, code)
+        unidades (group_name, group_code)
       `)
       .eq('id', userId)
       .single()

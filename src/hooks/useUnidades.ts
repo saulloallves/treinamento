@@ -1,22 +1,53 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabasePublic } from "@/integrations/supabase/client";
 
 export interface Unidade {
   id: string;
-  grupo?: string;
-  codigo_grupo?: number;
-  endereco?: string;
-  telefone?: number;
+  group_name: string;
+  group_code: number;
+  ai_agent_id?: string;
+  notion_page_id?: string;
+  phone?: string;
   email?: string;
-  cidade?: string;
-  estado?: string;
+  operation_mon?: string;
+  operation_tue?: string;
+  operation_wed?: string;
+  operation_thu?: string;
+  operation_fri?: string;
+  operation_sat?: string;
+  operation_sun?: string;
+  operation_hol?: string;
+  drive_folder_id?: string;
+  drive_folder_link?: string;
+  docs_folder_id?: string;
+  docs_folder_link?: string;
+  store_model: string;
+  store_phase: string;
+  store_imp_phase?: string;
+  address?: string;
+  number_address?: string;
+  address_complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
   uf?: string;
-  cep?: string;
-  fase_loja?: string;
-  etapa_loja?: string;
-  modelo_loja?: string;
-  grupo_colaborador?: string;
-  created_at?: string;
+  postal_code?: string;
+  instagram_profile?: string;
+  has_parking?: boolean;
+  parking_spots?: number;
+  has_partner_parking?: boolean;
+  partner_parking_address?: string;
+  purchases_active?: boolean;
+  sales_active?: boolean;
+  cnpj?: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  fantasy_name?: string;
+  user_instagram?: string;
+  id_unidade?: string;
+  password_instagram?: string;
+  bearer?: string;
   hasUsers?: boolean;
 }
 
@@ -26,11 +57,11 @@ export const useUnidades = () => {
     queryFn: async () => {
       // Buscar unidades e usuários (franqueados e colaboradores) em paralelo
       const [unidadesResult, usersResult] = await Promise.all([
-        supabase
+        supabasePublic // <-- Use o cliente 'public' para buscar unidades
           .from("unidades")
           .select("*")
-          .order("grupo", { ascending: true }),
-        supabase
+          .order("group_name", { ascending: true }),
+        supabase // <-- Use o cliente padrão ('treinamento') para buscar usuários
           .from("users")
           .select("unit_code, unit_codes, role")
           .in("role", ["Franqueado", "Colaborador"])
@@ -62,7 +93,7 @@ export const useUnidades = () => {
       // Mapear unidades com informação se tem usuários vinculados
       const unidadesComStatus = (unidadesResult.data || []).map(unidade => ({
         ...unidade,
-        hasUsers: unitCodesWithUsers.has(unidade.codigo_grupo?.toString()) || false
+        hasUsers: unitCodesWithUsers.has(unidade.group_code.toString()) || false
       }));
 
       return unidadesComStatus as (Unidade & { hasUsers: boolean })[];
@@ -76,7 +107,7 @@ export const useUnidadeDetails = (id: string) => {
   return useQuery({
     queryKey: ["unidade", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic // <-- Use o cliente 'public'
         .from("unidades")
         .select("*")
         .eq("id", id)
@@ -117,7 +148,7 @@ export const useDeleteUnidade = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await supabasePublic // <-- Use o cliente 'public'
         .from("unidades")
         .delete()
         .eq("id", id);

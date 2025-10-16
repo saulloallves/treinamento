@@ -38,12 +38,12 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
           <div className="flex-1 min-w-0">
             <h3 
               className="font-semibold text-lg text-foreground leading-tight"
-              title={unidade.grupo || "N/A"}
+              title={unidade.group_name || "N/A"}
             >
-              {unidade.grupo || "N/A"}
+              {unidade.group_name || "N/A"}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {unidade.codigo_grupo || "N/A"}
+              {unidade.group_code || "N/A"}
             </p>
           </div>
           
@@ -68,27 +68,27 @@ const UnidadeCard = ({ unidade, onViewDetails }: UnidadeCardProps) => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
           <MapPin className="h-4 w-4 shrink-0" />
           <span className="truncate">
-            {unidade.cidade && unidade.uf 
-              ? `${unidade.cidade} / ${unidade.uf}` 
+            {unidade.city && unidade.uf 
+              ? `${unidade.city} / ${unidade.uf}` 
               : "N/A"}
           </span>
         </div>
         
         <div className="flex flex-wrap gap-2">
-          {unidade.fase_loja && (
-            <Badge variant={getFaseBadgeVariant(unidade.fase_loja)}>
-              {unidade.fase_loja}
+          {unidade.store_phase && (
+            <Badge variant={getFaseBadgeVariant(unidade.store_phase)}>
+              {unidade.store_phase}
             </Badge>
           )}
-          {unidade.modelo_loja && (
+          {unidade.store_model && (
             <Badge variant="outline" className="text-xs">
-              {unidade.modelo_loja}
+              {unidade.store_model}
             </Badge>
           )}
         </div>
         
         <div className="text-xs text-muted-foreground">
-          {unidade.etapa_loja || "N/A"}
+          {unidade.store_imp_phase || "N/A"}
         </div>
       </CardContent>
     </Card>

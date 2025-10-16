@@ -27,28 +27,24 @@ const CollaboratorApprovals = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('collaboration_approvals')
-        .select(`
-          id,
-          collaborator_id,
-          unit_code,
-          status,
-          created_at,
-          users!collaboration_approvals_collaborator_id_fkey(name, email)
-        `)
+        .select('*, users(name, email)')
         .eq('status', 'pendente')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return data?.map(approval => ({
-        id: approval.id,
-        collaborator_id: approval.collaborator_id,
-        unit_code: approval.unit_code,
-        status: approval.status,
-        created_at: approval.created_at,
-        collaborator_name: (approval.users as any)?.name || 'Nome não informado',
-        collaborator_email: (approval.users as any)?.email || 'Email não informado'
-      })) || [];
+      return data?.map(approval => {
+        const user = Array.isArray(approval.users) ? approval.users[0] : approval.users;
+        return {
+          id: approval.id,
+          collaborator_id: approval.collaborator_id,
+          unit_code: approval.unit_code,
+          status: approval.status,
+          created_at: approval.created_at,
+          collaborator_name: user?.name || 'Nome não informado',
+          collaborator_email: user?.email || 'Email não informado'
+        }
+      }) || [];
     },
   });
 

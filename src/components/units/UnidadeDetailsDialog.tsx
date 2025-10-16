@@ -43,10 +43,10 @@ const UnidadeDetailsDialog = ({
 }: UnidadeDetailsDialogProps) => {
   const [editFranchiseeOpen, setEditFranchiseeOpen] = useState(false);
   const { data: colaboradores = [] } = useUnidadeCollaborators(
-    unidade?.codigo_grupo || 0
+    unidade?.group_code || 0
   );
   const { data: pendingApprovalsCount = 0 } = useUnitApprovalCount(
-    unidade?.codigo_grupo?.toString() || ""
+    unidade?.group_code?.toString() || ""
   );
   const deleteUnidade = useDeleteUnidade();
   const { toast } = useToast();
@@ -102,8 +102,8 @@ const UnidadeDetailsDialog = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
-              <span>{unidade.grupo}</span>
-              <Badge variant="outline">{unidade.codigo_grupo}</Badge>
+              <span>{unidade.group_name}</span>
+              <Badge variant="outline">{unidade.group_code}</Badge>
             </DialogTitle>
             <div className="flex items-center gap-2">
               {onEdit && (
@@ -143,7 +143,7 @@ const UnidadeDetailsDialog = ({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Tem certeza que deseja excluir a unidade "{unidade.grupo}"? 
+                      Tem certeza que deseja excluir a unidade "{unidade.group_name}"? 
                       Esta ação não pode ser desfeita e todos os dados relacionados à unidade serão perdidos.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -180,21 +180,21 @@ const UnidadeDetailsDialog = ({
               <div>
                 <span className="text-sm font-medium">Código da Unidade:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.codigo_grupo || "N/A"}
+                  {unidade.group_code || "N/A"}
                 </p>
               </div>
               
               <div>
                 <span className="text-sm font-medium">Grupo:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.grupo || "N/A"}
+                  {unidade.group_name || "N/A"}
                 </p>
               </div>
               
               <div>
                 <span className="text-sm font-medium">Modelo:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.modelo_loja || "N/A"}
+                  {unidade.store_model || "N/A"}
                 </p>
               </div>
               
@@ -202,12 +202,12 @@ const UnidadeDetailsDialog = ({
                 <span className="text-sm font-medium">Fase:</span>
                 <Badge
                   variant={
-                    unidade.fase_loja?.toUpperCase() === "OPERAÇÃO"
+                    unidade.store_phase?.toUpperCase() === "OPERAÇÃO"
                       ? "default"
                       : "secondary"
                   }
                 >
-                  {unidade.fase_loja || "N/A"}
+                  {unidade.store_phase || "N/A"}
                 </Badge>
               </div>
               
@@ -215,13 +215,13 @@ const UnidadeDetailsDialog = ({
                 <span className="text-sm font-medium">Grupo de Colaboradores:</span>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge
-                    variant={unidade.grupo_colaborador ? "default" : "secondary"}
+                    variant={unidade.bearer ? "default" : "secondary"}
                   >
-                    {unidade.grupo_colaborador ? "Criado" : "Não criado"}
+                    {unidade.bearer ? "Criado" : "Não criado"}
                   </Badge>
-                  {unidade.grupo_colaborador && (
+                  {unidade.bearer && (
                     <span className="text-xs text-muted-foreground">
-                      ID: {unidade.grupo_colaborador}
+                      ID: {unidade.bearer}
                     </span>
                   )}
                 </div>
@@ -250,7 +250,7 @@ const UnidadeDetailsDialog = ({
               <div>
                 <span className="text-sm font-medium">Cidade:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.cidade || "N/A"}
+                  {unidade.city || "N/A"}
                 </p>
               </div>
               
@@ -264,14 +264,14 @@ const UnidadeDetailsDialog = ({
               <div>
                 <span className="text-sm font-medium">Endereço:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.endereco || "N/A"}
+                  {unidade.address || "N/A"}
                 </p>
               </div>
               
               <div>
                 <span className="text-sm font-medium">CEP:</span>
                 <p className="text-sm text-muted-foreground">
-                  {unidade.cep || "N/A"}
+                  {unidade.postal_code || "N/A"}
                 </p>
               </div>
             </CardContent>
@@ -293,7 +293,7 @@ const UnidadeDetailsDialog = ({
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
                 <span className="text-sm">
-                  {unidade.telefone || "N/A"}
+                  {unidade.phone || "N/A"}
                 </span>
               </div>
             </CardContent>

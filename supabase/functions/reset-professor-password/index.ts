@@ -44,7 +44,7 @@ serve(async (req) => {
       });
     }
 
-    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("is_admin", {
+    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("treinamento.is_admin", {
       _user: authData.user.id,
     });
 

@@ -1,112 +1,88 @@
-# SCRIPT 3: SUBIR DADOS E APLICAR PERMISSÕES (SEM REDEFINIÇÃO DE SENHA)
-$ErrorActionPreference = "Stop"
+# ===================================================================================
+# SCRIPT DE MIGRAÇÃO SUPABASE - EXPORTAÇÃO E PROCESSAMENTO
+# ===================================================================================
+# Este script executa os Passos 1, 2 e 3 do processo de migração:
+# 1. Exporta dados de autenticação e armazenamento do banco de dados de ORIGEM.
+# 2. Exporta o schema da aplicação (ex: 'public') do banco de dados de ORIGEM.
+# 3. Processa o arquivo de schema SQL para aplicar correções necessárias.
+# ===================================================================================
 
-# ===================================================================
-# CONFIGURAÇÃO - Verifique se estas variáveis estão corretas
-# ===================================================================
-$ORIGEM  = "postgresql://postgres:OrM4B4ywp1tgbg6B@db.tctkacgbhqvkqovctrzf.supabase.co:5432/postgres"
-$DESTINO = "postgresql://postgres:usg42RbUUYw1H4xI@db.wpuwsocezhlqlqxifpyk.supabase.co:5432/postgres"
-$TARGET_SCHEMA = "treinamento"
-$WORK_DIR = "C:\tmp\migracao_postgres"
-$PG_BIN_PATH = 'C:\Program Files\PostgreSQL\17\bin'
-# ===================================================================
+# --- Configuração ---
+$ORIGEM_DB_URL   = "postgresql://postgres:4D5FmdQ9cTgM54PS@db.zqexpclhdrbnevxheiax.supabase.co:5432/postgres"
+$DESTINO_DB_URL  = "postgresql://postgres:usg42RbUUYw1H4xI@db.wpuwsocezhlqlqxifpyk.supabase.co:5432/postgres"
+$SOURCE_APP_SCHEMA = "public"
+$TARGET_APP_SCHEMA = "public" # Mantenha como public se o destino for public
+$WORK_DIR = Join-Path $env:TEMP "migracao_supabase"
+$PG_BIN_PATH = 'C:\Program Files\PostgreSQL\17\bin' # Verifique seu caminho
 
-# --- LÓGICA DO SCRIPT (NÃO EDITAR ABAIXO) ---
+# --- Validação ---
 $PSQL_PATH = Join-Path $PG_BIN_PATH 'psql.exe'
+$PG_DUMP_PATH = Join-Path $PG_BIN_PATH 'pg_dump.exe'
+
+if (-not (Test-Path $PG_DUMP_PATH)) {
+    Write-Host "ERRO: pg_dump.exe não encontrado em '$PG_DUMP_PATH'. Verifique a variável PG_BIN_PATH." -ForegroundColor Red
+    exit 1
+}
 if (-not (Test-Path $PSQL_PATH)) {
-  Write-Host "Binário 'psql.exe' não encontrado. Verifique a variável `$PG_BIN_PATH." -ForegroundColor Red
-  exit 1
+    Write-Host "ERRO: psql.exe não encontrado em '$PSQL_PATH'. Verifique a variável PG_BIN_PATH." -ForegroundColor Red
+    exit 1
 }
 
-# Nomes dos arquivos de entrada
-$dumpAuthUsersData = Join-Path $WORK_DIR "dump_origem_auth_users_data.sql"
-$dmpPublicConv = Join-Path $WORK_DIR "dump_formatado_para_treinamento.sql"
-
-if ((-not (Test-Path $dumpAuthUsersData)) -or (-not (Test-Path $dmpPublicConv))) {
-  Write-Host "ERRO: Arquivos de dump não encontrados. Execute os scripts 01 e 02 primeiro." -ForegroundColor Red
-  exit 1
+# --- Início ---
+Write-Host "Iniciando processo de migração..."
+if (-not (Test-Path $WORK_DIR)) {
+    New-Item -ItemType Directory -Force -Path $WORK_DIR | Out-Null
+    Write-Host "Diretório de trabalho criado em: $WORK_DIR"
 }
 
-Write-Host "PASSO 3: Subir dados e configurar permissões para o DESTINO" -ForegroundColor Cyan
-Write-Host "-------------------------------------------------------------"
-Write-Host "Destino: $($DESTINO.Split('@')[1])" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "ATENÇÃO! Esta ação irá:" -ForegroundColor Red
-Write-Host "1. (ASSUMIDO) Que você já limpou a tabela 'auth.users' no destino." -ForegroundColor Yellow
-Write-Host "2. APAGAR COMPLETAMENTE o schema '$TARGET_SCHEMA' do destino." -ForegroundColor Red
-Write-Host "3. Importar os usuários da origem para 'auth.users'." -ForegroundColor Red
-Write-Host "4. (PULADO) A redefinição de senha foi desativada." -ForegroundColor Yellow
-Write-Host "5. Importar os dados da aplicação para o schema '$TARGET_SCHEMA'." -ForegroundColor Red
-Write-Host "6. APLICAR PERMISSÕES da API (anon, authenticated) ao schema '$TARGET_SCHEMA'." -ForegroundColor Red
+# ===================================================================================
+# PASSO 1: EXPORTAR DADOS DE AUTENTICAÇÃO E ARMAZENAMENTO (DA ORIGEM)
+# ===================================================================================
+Write-Host "`n--- PASSO 1: Exportando dados de autenticação e armazenamento... ---"
+$tablesToDump = @(
+    "auth.users",
+    "storage.buckets",
+    "storage.objects"
+)
+foreach ($tbl in $tablesToDump) {
+    $file = Join-Path $WORK_DIR ("arquivo_1_dados_" + $tbl.Replace('.', '_') + ".sql")
+    Write-Host "Exportando tabela '$tbl' para '$file'..."
+    & $PG_DUMP_PATH --data-only --column-inserts --no-owner --no-privileges --table=$tbl --dbname=$ORIGEM_DB_URL > $file
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERRO ao exportar '$tbl'." -ForegroundColor Red
+        exit 1
+    }
+}
+Write-Host "✅ Dados de autenticação e armazenamento exportados com sucesso." -ForegroundColor Green
 
-$confirm = Read-Host "`nConfirmar e iniciar a restauração completa? (s/N)"
-if ($confirm -notin @("s","S")) { exit 0 }
+# ===================================================================================
+# PASSO 2: EXPORTAR SCHEMA DA APLICAÇÃO (DA ORIGEM)
+# ===================================================================================
+Write-Host "`n--- PASSO 2: Exportando o schema '$SOURCE_APP_SCHEMA' da aplicação... ---"
+$dmpFileSchema = Join-Path $WORK_DIR "arquivo_2_schema_app.sql"
+& $PG_DUMP_PATH --schema=$SOURCE_APP_SCHEMA --no-owner --no-privileges --format=plain --create --clean --if-exists --dbname=$ORIGEM_DB_URL > $dmpFileSchema
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERRO ao exportar o schema '$SOURCE_APP_SCHEMA'." -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ Schema da aplicação exportado com sucesso para: $dmpFileSchema" -ForegroundColor Green
 
-# A ETAPA DA EXTENSÃO pgcrypto FOI REMOVIDA POIS NÃO É MAIS NECESSÁRIA PARA ESTE SCRIPT
+# ===================================================================================
+# PASSO 3: PROCESSAR E CORRIGIR O SCHEMA EXPORTADO
+# ===================================================================================
+Write-Host "`n--- PASSO 3: Processando e corrigindo o arquivo de schema... ---"
+$processorScript = Join-Path $PSScriptRoot "step3_process.ps1"
+if (-not (Test-Path $processorScript)) {
+    Write-Host "ERRO: O script 'step3_process.ps1' não foi encontrado no mesmo diretório." -ForegroundColor Red
+    exit 1
+}
 
-# =====================================================================================
-# ETAPA 1: Restaurar os dados de 'auth.users'
-# =====================================================================================
-Write-Host "`n[ETAPA 1/3] Restaurando dados da tabela 'auth.users'..." -ForegroundColor Cyan
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -f "$dumpAuthUsersData"
-if ($LASTEXITCODE -ne 0) { throw "Falha ao restaurar dados de 'auth.users'." }
-Write-Host "   OK - Dados de 'auth.users' restaurados." -ForegroundColor Green
+# Executa o script de processamento, passando o diretório de trabalho
+& $processorScript -WorkDir $WORK_DIR
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERRO durante o processamento do schema." -ForegroundColor Red
+    exit 1
+}
 
-# =====================================================================================
-# ETAPA 2: Redefinir todas as senhas (DESATIVADA)
-# =====================================================================================
-<#
-Write-Host "[ETAPA 2/4] Redefinindo a senha de TODOS os usuários..." -ForegroundColor Cyan
-$sqlUpdatePasswords = "UPDATE auth.users SET password = crypt('NOVA_SENHA', gen_salt('bf'));"
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -c $sqlUpdatePasswords
-if ($LASTEXITCODE -ne 0) { throw "Falha ao redefinir senhas." }
-Write-Host "   OK - Senhas redefinidas." -ForegroundColor Green
-#>
-Write-Host "[ETAPA 2/3] Pulando redefinição de senha conforme solicitado." -ForegroundColor Yellow
-Write-Host "   - Lembrete: usuários precisarão usar a função 'Esqueci minha senha'." -ForegroundColor Yellow
-
-# =====================================================================================
-# ETAPA 3: Restaurar os dados da aplicação ('public' -> 'treinamento')
-# =====================================================================================
-Write-Host "[ETAPA 3/3] Restaurando dados da aplicação para o schema '$TARGET_SCHEMA'..." -ForegroundColor Cyan
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -f "$dmpPublicConv"
-if ($LASTEXITCODE -ne 0) { throw "Falha ao restaurar dados de '$TARGET_SCHEMA'." }
-Write-Host "   OK - Dados da aplicação restaurados." -ForegroundColor Green
-
-# =====================================================================================
-# ETAPA 4: Conceder Permissões para a API (GRANTs)
-# =====================================================================================
-Write-Host "[ETAPA 4/4] Concedendo permissões da API ao schema '$TARGET_SCHEMA'..." -ForegroundColor Cyan
-
-# Permite que os papéis da API "vejam" o schema.
-$sqlGrantUsage = "GRANT USAGE ON SCHEMA $TARGET_SCHEMA TO anon, authenticated;"
-Write-Host "   - Concedendo USAGE ON SCHEMA..."
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -c $sqlGrantUsage
-
-# Permissões para usuários LOGADOS
-$sqlGrantTablesAuth = "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA $TARGET_SCHEMA TO authenticated;"
-Write-Host "   - Concedendo permissões em tabelas para o papel 'authenticated'..."
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -c $sqlGrantTablesAuth
-
-# Permissões para usuários NÃO LOGADOS
-$sqlGrantTablesAnon = "GRANT SELECT ON ALL TABLES IN SCHEMA $TARGET_SCHEMA TO anon;"
-Write-Host "   - Concedendo permissões em tabelas para o papel 'anon' (apenas leitura)..."
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -c $sqlGrantTablesAnon
-
-# Permissões para SEQUÊNCIAS (IDs automáticos)
-$sqlGrantSequencesAuth = "GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA $TARGET_SCHEMA TO authenticated;"
-Write-Host "   - Concedendo permissões em sequências para o papel 'authenticated'..."
-& $PSQL_PATH -v ON_ERROR_STOP=1 -d "$DESTINO" -c $sqlGrantSequencesAuth
-
-Write-Host "   OK - Permissões da API aplicadas com sucesso." -ForegroundColor Green
-
-# =====================================================================================
-# ETAPA FINAL: Verificação
-# =====================================================================================
-Write-Host "`nVerificando contagem de usuários e tabelas..." -ForegroundColor Cyan
-& $PSQL_PATH -d "$DESTINO" -c "SELECT (SELECT COUNT(*) FROM auth.users) AS total_usuarios, (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$TARGET_SCHEMA') AS tabelas_treinamento;"
-
-Write-Host "`nPROCESSO DE MIGRAÇÃO COMPLETO." -ForegroundColor Magenta
-Write-Host "`nLEMBRETE IMPORTANTE:" -ForegroundColor Yellow
-Write-Host "Não se esqueça de expor o schema '$TARGET_SCHEMA' na API do Supabase!" -ForegroundColor Yellow
-Write-Host "Caminho no Dashboard: API Docs > Settings > Exposed schemas > Adicione '$TARGET_SCHEMA' e salve." -ForegroundColor Yellow
+Write-Host "`n🎉 Processo de exportação e preparação concluído com sucesso!" -ForegroundColor Cyan
+Write-Host "O próximo passo é executar o script 'subir_dados.ps1' para importar os dados para o banco de destino."

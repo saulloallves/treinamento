@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabasePublic } from "@/integrations/supabase/client";
 
 export interface DashboardStats {
   usersActive: number;
@@ -37,7 +37,7 @@ export const useDashboardStats = () => {
         supabase.from("users").select("*", { count: "exact", head: true }).eq("active", true),
         supabase.from("courses").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
         supabase.from("certificates").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("unidades").select("*", { count: "exact", head: true }),
+        supabasePublic.from("unidades").select("*", { count: "exact", head: true }), // <-- Use supabasePublic
         supabase.from("whatsapp_dispatches").select("*", { count: "exact", head: true }),
         supabase.from("lessons").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
         supabase

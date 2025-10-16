@@ -48,7 +48,7 @@ export const useTurmas = (courseId?: string) => {
         .from('turmas')
         .select(`
           *,
-          responsavel_user:users!responsavel_user_id(id, name, email)
+          responsavel_user:users!turmas_responsavel_user_id_fkey(id, name, email)
         `)
         .order('created_at', { ascending: false });
 
@@ -315,7 +315,7 @@ export const useTurmasForEnrollment = (courseId: string) => {
         .from('turmas')
         .select(`
           *,
-          responsavel_user:users!responsavel_user_id(id, name, email)
+          responsavel_user:users!turmas_responsavel_user_id_fkey(id, name, email)
         `)
         .eq('course_id', courseId)
         .in('status', ['agendada', 'inscricoes_abertas', 'em_andamento']) // Include turmas that can accept enrollments

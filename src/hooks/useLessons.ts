@@ -70,7 +70,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
             turma_id,
             turmas (
               responsavel_name,
-              responsavel_user:users!responsavel_user_id (id, name)
+              responsavel_user:users!turmas_responsavel_user_id_fkey (id, name)
             )
           )
         `)
@@ -148,7 +148,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
               .from('turmas')
               .select(`
                 responsavel_name,
-                responsavel_user:users!responsavel_user_id(id, name)
+                responsavel_user:users!turmas_responsavel_user_id_fkey(id, name)
               `)
               .eq('course_id', lesson.course_id)
               .in('status', ['agendada', 'em_andamento'])

@@ -23,19 +23,19 @@ const UnidadesList = () => {
   const { data: unidades = [], isLoading, error } = useUnidades();
 
   const filteredUnidades = unidades.filter((unidade) => {
-    const matchesSearch = 
-      unidade.grupo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      unidade.cidade?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      unidade.group_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      unidade.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       unidade.uf?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      unidade.codigo_grupo?.toString().includes(searchTerm);
-    
-    const matchesFase = faseFilter === "all" || unidade.fase_loja === faseFilter;
-    
-    const matchesUsers = 
-      usersFilter === "all" || 
+      unidade.group_code?.toString().includes(searchTerm);
+
+    const matchesFase = faseFilter === "all" || unidade.store_phase === faseFilter;
+
+    const matchesUsers =
+      usersFilter === "all" ||
       (usersFilter === "with_users" && unidade.hasUsers) ||
       (usersFilter === "without_users" && !unidade.hasUsers);
-    
+
     return matchesSearch && matchesFase && matchesUsers;
   });
 
@@ -60,7 +60,7 @@ const UnidadesList = () => {
   };
 
   // Get unique fases for filter
-  const uniqueFases = Array.from(new Set(unidades.map(u => u.fase_loja).filter(Boolean)));
+  const uniqueFases = Array.from(new Set(unidades.map(u => u.store_phase).filter(Boolean)));
 
   if (error) {
     return (

@@ -47,14 +47,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: existing, error: existErr } = await supabase
         .from('users')
         .select('id')
-        .eq('id', authUser.id)
+        .eq('id', authUser.id as any)
         .maybeSingle();
       if (existErr) throw existErr;
       
       const meta = authUser.user_metadata || {} as any;
       
       // Se já existe, atualizar dados (caso seja um signup repetido com novos dados)
-      if (existing?.id) {
+      if (existing && 'id' in existing && existing.id) {
         const unitCodeStr: string | undefined = meta.unit_code;
         let unitCodesArray: string[] | null = null;
         
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Atualizar dados se houver novos metadados
         if (meta.phone || meta.cpf || unitCodesArray || meta.full_name || meta.role) {
-          const updateData: any = { updated_at: new Date().toISOString() };
+          const updateData: Partial<Database['treinamento']['Tables']['users']['Row']> = { updated_at: new Date().toISOString() };
           
           if (meta.phone) updateData.phone = meta.phone;
           if (meta.cpf) updateData.cpf = meta.cpf;
@@ -77,11 +77,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             updateData.unit_code = unitCodesArray[0];
           }
           if (meta.full_name) updateData.name = meta.full_name;
-          if (meta.role) updateData.role = meta.role;
+          if (meta.role) updateData.role = meta.role as Database['treinamento']['Enums']['user_role_type'];
           
           await supabase
             .from('users')
-            .update(updateData)
+            .update(updateData as any)
             .eq('id', authUser.id);
         }
         return; // Profile already exists and updated if needed
@@ -100,35 +100,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           unitCodesArray = [unitCode.trim()];
         }
       }
-      
-      let unitId: string | null = null;
-      if (unitCode && meta.role !== 'Franqueado') {
-        const { data: unit, error: unitErr } = await supabase
-          .from('units')
-          .select('id')
-          .eq('code', unitCode.trim())
-          .maybeSingle();
-        if (!unitErr && unit?.id) unitId = unit.id as string;
-      }
 
       const profile = {
         id: authUser.id,
         name: (meta.full_name as string) || (authUser.email as string),
         email: authUser.email,
-        user_type: (meta.user_type as string) || 'Aluno',
-        role: (meta.role as string) || null,
+        user_type: (meta.user_type as any) || 'Aluno',
+        role: (meta.role as any) || null,
         position: (meta.position as string) || null,
-        unit_id: unitId,
         unit_code: unitCodesArray && unitCodesArray.length > 0 ? unitCodesArray[0] : null,
         unit_codes: unitCodesArray,
         phone: (meta.phone as string) || null,
         cpf: (meta.cpf as string) || null,
-        approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado',
-        visible_password: null, // ⚠️ Será preenchida quando a senha for definida
+        approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado' as any,
         active: true,
-      } as any;
+      };
 
-      const { error: insertErr } = await supabase.from('users').insert([profile]);
+      const { error: insertErr } = await supabase.from('users').insert([profile] as any);
       if (insertErr) throw insertErr;
 
       // IMPORTANTE: Vincular automaticamente inscrições existentes com o mesmo email
@@ -136,8 +124,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('Vinculando inscrições existentes para:', authUser.email);
         const { data: linkedEnrollments, error: linkError } = await supabase
           .from('enrollments')
-          .update({ user_id: authUser.id })
-          .eq('student_email', authUser.email)
+          .update({ user_id: authUser.id } as any)
+          .eq('student_email', authUser.email as any)
           .is('user_id', null)
           .select('id, course_id');
 
@@ -158,12 +146,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           user_id: authUser.id,
           name: (meta.full_name as string) || (authUser.email as string),
           email: authUser.email,
-          role: 'admin',
-          status: 'pending',
+          role: 'admin' as any,
+          status: 'pending' as any,
           active: true,
         };
 
-        const { error: adminErr } = await supabase.from('admin_users').insert([adminRecord]);
+        const { error: adminErr } = await supabase.from('admin_users').insert([adminRecord] as any);
         if (adminErr) {
           console.error('Failed to create admin record:', adminErr);
           // Mesmo com erro na criação do admin, não impede o cadastro do usuário
@@ -319,8 +307,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         console.log('✅ Login - Email encontrado:', emailData);
-        loginEmail = emailData;
-      } catch (phoneError) {
+        loginEmail = emailData as string;
+      } catch (phoneError: any) {
         console.error('❌ Error finding user by phone:', phoneError);
         toast.error("Erro no login", {
           description: "Não foi possível encontrar o usuário com este telefone.",
@@ -344,7 +332,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             body: { email: loginEmail }
           });
 
-          if (!resetError && resetResult?.success) {
+          if (!resetError && (resetResult as any)?.success) {
             console.log('Reset de senha realizado com sucesso, tentando login novamente...');
             
             // Aguardar um momento para garantir que a senha foi atualizada
@@ -379,7 +367,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const { data: adminData } = await supabase
             .from('admin_users')
             .select('status')
-            .eq('email', loginEmail)
+            .eq('email', loginEmail as any)
             .single();
           
           if (adminData?.status === 'pending') {
@@ -410,7 +398,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: userData } = await supabase
           .from('users')
           .select('approval_status, role, active')
-          .eq('id', data.user.id)
+          .eq('id', data.user.id as any)
           .single();
         
         // Verificar se o usuário foi pausado (inactive)
@@ -450,7 +438,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setAuthProcessing(false);
           return { error: { message: "Access denied" } };
         }
-      } catch (userCheckError) {
+      } catch (userCheckError: any) {
         console.error('Error checking user approval status:', userCheckError);
         
         // If user doesn't exist in users table but exists in auth, show incomplete registration message
@@ -476,7 +464,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { data: adminUser } = await supabase
           .from('admin_users')
           .select('status')
-          .eq('user_id', data.user.id)
+          .eq('user_id', data.user.id as any)
           .single();
 
         // Se tem registro de admin mas não foi aprovado, bloquear acesso

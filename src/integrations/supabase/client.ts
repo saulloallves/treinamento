@@ -18,3 +18,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+/**
+ * A separate Supabase client instance configured to interact with the 'public' schema.
+ * This is used specifically for operations on tables like 'unidades' that reside in the public schema,
+ * while the primary 'supabase' client defaults to the 'treinamento' schema.
+ */
+export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  db: {
+    schema: 'public',
+  },
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});

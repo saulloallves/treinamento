@@ -62,40 +62,7 @@ import { toast } from 'sonner';
 
 const queryClient = new QueryClient();
 
-const RealtimeUpdater = () => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    console.log('Setting up Supabase Realtime listener for unidades...');
-
-    const channel = supabase
-      .channel('unidades-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'unidades' },
-        (payload) => {
-          console.log('Realtime update received for unidades:', payload);
-          toast.info('A lista de unidades foi atualizada em tempo real.');
-          queryClient.invalidateQueries({ queryKey: ['unidades'] });
-        }
-      )
-      .subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to unidades changes!');
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error('Realtime channel error:', err);
-        }
-      });
-
-    return () => {
-      console.log('Unsubscribing from unidades changes.');
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  return null; // This component does not render anything
-};
+// Componente RealtimeUpdater removido pois os dados agora estão no schema local
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -106,7 +73,6 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <ProfileProvider>
-              <RealtimeUpdater />
               <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/callback/recovery" element={<ResetPasswordPage />} />
