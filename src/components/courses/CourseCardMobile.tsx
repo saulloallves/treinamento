@@ -3,19 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  BookOpen, 
-  Users, 
   Edit, 
   Trash2, 
   Eye,
-  PlayCircle,
   FileText,
-  Award,
-  Clock
+  Award
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
-import { useCourseAccess } from '@/hooks/useCourseAccess';
-import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 
 interface CourseCardMobileProps {
   course: Course;
@@ -57,25 +51,9 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
   onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
-  const { positionNames } = useCourseAccess(course.id);
-  const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
-  
-  // Get correct public target label
-  const getCorrectPublicTargetLabel = () => {
-    if (positionNames && positionNames.length > 0) {
-      return positionNames.slice(0, 1).join(', ') + (positionNames.length > 1 ? '...' : '');
-    }
-    // Fallback to basic labels
-    switch (course.public_target) {
-      case "franqueado": return "Franqueado";
-      case "colaborador": return "Colaborador"; 
-      case "ambos": return "Ambos";
-      default: return course.public_target;
-    }
-  };
 
   return (
-    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 h-[220px]">
+    <Card className="overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition-all duration-200 min-h-[180px]">
       {/* Compact Cover Area */}
       <div className="relative h-10 shrink-0">
         {course.cover_image_url ? (
@@ -110,7 +88,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
       </div>
 
       {/* Content - Optimized for mobile */}
-      <CardContent className="p-1.5 flex-1 flex flex-col">
+      <CardContent className="p-2 flex-1 flex flex-col">
         {/* Title */}
         <div className="mb-1.5">
           <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
@@ -137,18 +115,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Main Info */}
-        <div className="space-y-1 flex-1">
-          {/* Course Meta - Compact row */}
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {getCorrectPublicTargetLabel()}
-            </span>
-          </div>
-
+        <div className="space-y-1.5 flex-1">
           {/* Instructor - Only if available */}
           {course.instructor && (
             <div className="text-[10px]">
@@ -186,8 +153,8 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
         </div>
 
         {/* Actions - Mobile optimized */}
-        <div className="pt-1 mt-auto">
-          <div className="space-y-0.5">
+        <div className="pt-1.5 mt-auto">
+          <div className="space-y-1">
             {/* Details button only for treinamentos (gravado) */}
             {course.tipo === 'gravado' && (
               <Button
@@ -200,7 +167,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                     onViewDetails(course);
                   }
                 }}
-                className="w-full h-5 text-xs font-medium"
+                className="w-full h-6 text-xs font-medium"
               >
                 <Eye className="w-2.5 h-2.5 mr-1.5" />
                 Detalhes
@@ -213,7 +180,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-4 px-2 text-xs"
+                className="h-5 px-2 text-xs"
                 title="Editar"
               >
                 <Edit className="w-2.5 h-2.5" />
@@ -222,7 +189,7 @@ export const CourseCardMobile: React.FC<CourseCardMobileProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-4 px-2 text-xs"
+                className="h-5 px-2 text-xs"
                 title="Excluir"
               >
                 <Trash2 className="w-2.5 h-2.5" />

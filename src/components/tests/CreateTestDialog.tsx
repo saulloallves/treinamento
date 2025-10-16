@@ -141,13 +141,15 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated, preSelecte
                   {loadingTurmas ? (
                     <SelectItem value="loading" disabled>Carregando turmas...</SelectItem>
                   ) : turmas && turmas.length > 0 ? (
-                    turmas.map((turma) => (
-                      <SelectItem key={turma.id} value={turma.id}>
-                        {turma.name}
-                      </SelectItem>
-                    ))
+                    turmas
+                      .filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento')
+                      .map((turma) => (
+                        <SelectItem key={turma.id} value={turma.id}>
+                          {turma.name}
+                        </SelectItem>
+                      ))
                   ) : (
-                    <SelectItem value="no-turmas" disabled>Nenhuma turma encontrada</SelectItem>
+                    <SelectItem value="no-turmas" disabled>Nenhuma turma agendada ou em andamento</SelectItem>
                   )}
                 </SelectContent>
               </Select>

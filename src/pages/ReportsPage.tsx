@@ -7,27 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EvaluationReports } from "@/components/reports/EvaluationReports";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 const ReportsPage = () => {
   const [selectedTurma, setSelectedTurma] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("30");
-  const [statusFilter, setStatusFilter] = useState("ativas");
   
   const { data: turmas } = useTurmas();
   const { data: courses } = useCourses();
-
-  // Filter turmas by status
-  const filteredTurmas = turmas?.filter(turma => {
-    if (statusFilter === "ativas") {
-      return turma.status === 'em_andamento' || turma.status === 'agendada';
-    } else if (statusFilter === "arquivadas") {
-      return turma.status === 'encerrada' || turma.status === 'cancelada';
-    } else {
-      return turma.status === statusFilter;
-    }
-  }) || [];
 
   return (
     <BaseLayout title="Relatórios de Avaliações">
@@ -57,15 +44,6 @@ const ReportsPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Status Filters */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status da Turma</label>
-              <TurmaStatusFilters 
-                statusFilter={statusFilter}
-                onStatusChange={setStatusFilter}
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Turma</label>
@@ -74,12 +52,14 @@ const ReportsPage = () => {
                     <SelectValue placeholder="Selecione uma turma" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as turmas filtradas</SelectItem>
-                    {filteredTurmas?.map((turma) => (
-                      <SelectItem key={turma.id} value={turma.id}>
-                        {turma.name || turma.code}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">Todas as turmas</SelectItem>
+                    {turmas
+                      ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento' || turma.status === 'encerrada')
+                      ?.map((turma) => (
+                        <SelectItem key={turma.id} value={turma.id}>
+                          {turma.name || turma.code}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -131,8 +111,7 @@ const ReportsPage = () => {
               filters={{
                 turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
                 courseId: selectedCourse !== "all" ? selectedCourse : undefined,
-                statusFilter: statusFilter,
-                startDate: selectedPeriod !== "all" ? 
+                startDate: selectedPeriod !== "all" ?
                   new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
                   undefined
               }}
@@ -145,8 +124,7 @@ const ReportsPage = () => {
               filters={{
                 turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
                 courseId: selectedCourse !== "all" ? selectedCourse : undefined,
-                statusFilter: statusFilter,
-                startDate: selectedPeriod !== "all" ? 
+                startDate: selectedPeriod !== "all" ?
                   new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
                   undefined
               }}

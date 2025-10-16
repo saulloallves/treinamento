@@ -8,7 +8,6 @@ import { ptBR } from "date-fns/locale";
 import { CreateTurmaDialog } from "./CreateTurmaDialog";
 import { EnrollStudentDialog } from "./EnrollStudentDialog";
 import { useState } from "react";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface TurmasListProps {
   courseId: string;
@@ -35,20 +34,10 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
   const concludeTurma = useConcludeTurma();
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedTurmaId, setSelectedTurmaId] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState("ativas");
 
-  // Filter turmas by status (same logic as other components)
+  // Show only active turmas (em_andamento and agendada)
   const filteredTurmas = turmas?.filter(turma => {
-    if (statusFilter === "ativas") {
-      // Default active view: show 'em_andamento' and 'agendada' only
-      return turma.status === 'em_andamento' || turma.status === 'agendada';
-    } else if (statusFilter === "arquivadas") {
-      // Archive view: show 'encerrada' and 'cancelada'
-      return turma.status === 'encerrada' || turma.status === 'cancelada';
-    } else {
-      // Specific status filter
-      return turma.status === statusFilter;
-    }
+    return turma.status === 'em_andamento' || turma.status === 'agendada';
   }) || [];
 
   const handleStartTurma = (turmaId: string) => {
@@ -73,12 +62,6 @@ export const TurmasList = ({ courseId }: TurmasListProps) => {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Turmas</h3>
       </div>
-
-      {/* Quick Status Filters */}
-      <TurmaStatusFilters 
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-      />
 
       {!filteredTurmas || filteredTurmas.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">

@@ -6,7 +6,6 @@ import { useTurmas, Turma } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
 import { useQuiz } from "@/hooks/useQuiz";
 import TurmaQuizCard from "./TurmaQuizCard";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface TurmaQuizListProps {
   onSelectTurma: (turma: Turma) => void;
@@ -15,7 +14,6 @@ interface TurmaQuizListProps {
 const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("ativas");
 
   const { data: turmas = [], isLoading: turmasLoading } = useTurmas();
   const { data: courses = [] } = useCourses();
@@ -43,18 +41,8 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
     
     const matchesCourse = !selectedCourse || selectedCourse === "all" || turma.course_id === selectedCourse;
     
-    // Updated status filter logic
-    let matchesStatus;
-    if (selectedStatus === "ativas") {
-      // Default active view: show 'em_andamento' and 'agendada' only
-      matchesStatus = turma.status === 'em_andamento' || turma.status === 'agendada';
-    } else if (selectedStatus === "arquivadas") {
-      // Archive view: show 'encerrada' and 'cancelada'
-      matchesStatus = turma.status === 'encerrada' || turma.status === 'cancelada';
-    } else {
-      // Specific status filter
-      matchesStatus = turma.status === selectedStatus;
-    }
+    // Show only active turmas (em_andamento and agendada)
+    const matchesStatus = turma.status === 'em_andamento' || turma.status === 'agendada';
     
     return matchesSearch && matchesCourse && matchesStatus;
   });
@@ -74,13 +62,7 @@ const TurmaQuizList = ({ onSelectTurma }: TurmaQuizListProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Status Filters - Mais compacto */}
-      <TurmaStatusFilters 
-        statusFilter={selectedStatus}
-        onStatusChange={setSelectedStatus}
-      />
-
-      {/* Search and Filter Row - Melhor organizado */}
+      {/* Search and Filter Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

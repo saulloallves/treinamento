@@ -960,6 +960,24 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       quiz: {
         Row: {
           correct_answer: string | null
@@ -1246,6 +1264,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sync_audit_log: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          operation: string
+          raw_data: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          operation: string
+          raw_data?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          operation?: string
+          raw_data?: Json | null
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
@@ -1672,7 +1717,7 @@ export type Database = {
           bairro: string | null
           cep: string | null
           cidade: string | null
-          codigo_grupo: number | null
+          codigo_grupo: number
           complemento: string | null
           contrato: string | null
           created_at: string | null
@@ -1688,7 +1733,7 @@ export type Database = {
           grupo_colaborador: string | null
           has_parking: string | null
           has_partner_parking: string | null
-          id: string | null
+          id: string
           id_agente_ia: string | null
           id_grupo_amarelo: string | null
           id_grupo_azul: string | null
@@ -1698,6 +1743,7 @@ export type Database = {
           id_grupo_notificacoes: string | null
           id_grupo_reclame_aqui: string | null
           id_grupo_vermelho: string | null
+          id_matriz: string | null
           id_page_notion: string | null
           id_pasta_documentos: string | null
           id_pasta_unidade: string | null
@@ -1709,7 +1755,9 @@ export type Database = {
           parking_spots: string | null
           partner_parking_address: string | null
           purchases_active: Json | null
+          raw_payload_matriz: Json | null
           sales_active: Json | null
+          sincronizado_em: string | null
           telefone: number | null
           uf: string | null
           updated_at: string | null
@@ -1718,7 +1766,7 @@ export type Database = {
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
-          codigo_grupo?: number | null
+          codigo_grupo: number
           complemento?: string | null
           contrato?: string | null
           created_at?: string | null
@@ -1734,7 +1782,7 @@ export type Database = {
           grupo_colaborador?: string | null
           has_parking?: string | null
           has_partner_parking?: string | null
-          id?: string | null
+          id: string
           id_agente_ia?: string | null
           id_grupo_amarelo?: string | null
           id_grupo_azul?: string | null
@@ -1744,6 +1792,7 @@ export type Database = {
           id_grupo_notificacoes?: string | null
           id_grupo_reclame_aqui?: string | null
           id_grupo_vermelho?: string | null
+          id_matriz?: string | null
           id_page_notion?: string | null
           id_pasta_documentos?: string | null
           id_pasta_unidade?: string | null
@@ -1755,7 +1804,9 @@ export type Database = {
           parking_spots?: string | null
           partner_parking_address?: string | null
           purchases_active?: Json | null
+          raw_payload_matriz?: Json | null
           sales_active?: Json | null
+          sincronizado_em?: string | null
           telefone?: number | null
           uf?: string | null
           updated_at?: string | null
@@ -1764,7 +1815,7 @@ export type Database = {
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
-          codigo_grupo?: number | null
+          codigo_grupo?: number
           complemento?: string | null
           contrato?: string | null
           created_at?: string | null
@@ -1780,7 +1831,7 @@ export type Database = {
           grupo_colaborador?: string | null
           has_parking?: string | null
           has_partner_parking?: string | null
-          id?: string | null
+          id?: string
           id_agente_ia?: string | null
           id_grupo_amarelo?: string | null
           id_grupo_azul?: string | null
@@ -1790,6 +1841,7 @@ export type Database = {
           id_grupo_notificacoes?: string | null
           id_grupo_reclame_aqui?: string | null
           id_grupo_vermelho?: string | null
+          id_matriz?: string | null
           id_page_notion?: string | null
           id_pasta_documentos?: string | null
           id_pasta_unidade?: string | null
@@ -1801,46 +1853,12 @@ export type Database = {
           parking_spots?: string | null
           partner_parking_address?: string | null
           purchases_active?: Json | null
+          raw_payload_matriz?: Json | null
           sales_active?: Json | null
+          sincronizado_em?: string | null
           telefone?: number | null
           uf?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      units: {
-        Row: {
-          active: boolean
-          address: string | null
-          code: string
-          created_at: string
-          id: string
-          manager_name: string | null
-          name: string
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          address?: string | null
-          code: string
-          created_at?: string
-          id?: string
-          manager_name?: string | null
-          name: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          address?: string | null
-          code?: string
-          created_at?: string
-          id?: string
-          manager_name?: string | null
-          name?: string
-          phone?: string | null
-          updated_at?: string
         }
         Relationships: []
       }
@@ -1861,7 +1879,6 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role_type"] | null
           unit_code: string | null
           unit_codes: string[] | null
-          unit_id: string | null
           updated_at: string
           user_type: string
           visible_password: string | null
@@ -1884,7 +1901,6 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
           unit_codes?: string[] | null
-          unit_id?: string | null
           updated_at?: string
           user_type: string
           visible_password?: string | null
@@ -1907,7 +1923,6 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role_type"] | null
           unit_code?: string | null
           unit_codes?: string[] | null
-          unit_id?: string | null
           updated_at?: string
           user_type?: string
           visible_password?: string | null
@@ -1918,13 +1933,6 @@ export type Database = {
             columns: ["approved_by"]
             isOneToOne: false
             referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "users_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -2156,6 +2164,27 @@ export type Database = {
           updated_at: string
           whatsapp_notifications: boolean
         }[]
+      }
+      upsert_unidade_from_matriz: {
+        Args: {
+          p_cep: string
+          p_cidade: string
+          p_codigo_grupo: number
+          p_created_at_matriz: string
+          p_email: string
+          p_endereco: string
+          p_estado: string
+          p_etapa_loja: string
+          p_fase_loja: string
+          p_grupo: string
+          p_id_matriz: string
+          p_modelo_loja: string
+          p_raw_payload: Json
+          p_telefone: string
+          p_uf: string
+          p_updated_at_matriz: string
+        }
+        Returns: undefined
       }
       user_can_access_turma: {
         Args: { _turma_id: string; _user_id: string }
