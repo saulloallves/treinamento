@@ -165,6 +165,92 @@ serve(async (req) => {
       }
     }
 
+    // 4. Check if collaborator group exists for unit, if not create it
+    console.log('Verificando grupo de colaboradores da unidade...');
+    console.log('Unit code recebido:', collaboratorData.unitCode, 'tipo:', typeof collaboratorData.unitCode);
+    
+    // Buscar unidade por codigo_grupo (convertendo para número se necessário)
+    const unitCodeNumber = parseInt(collaboratorData.unitCode, 10);
+    console.log('Unit code convertido para número:', unitCodeNumber);
+    
+    const { data: unidade, error: unidadeError } = await supabaseLocal
+      .from('unidades')
+      .select('grupo_colaborador, grupo, codigo_grupo')
+      .eq('codigo_grupo', unitCodeNumber)
+      .maybeSingle();
+    
+    if (unidadeError) {
+      console.error('Erro ao buscar unidade:', unidadeError);
+    }
+    
+    if (!unidade) {
+      console.warn('⚠️ AVISO: Unidade não encontrada para o código:', collaboratorData.unitCode);
+      console.warn('Pulando criação de grupo de colaboradores.');
+    } else {
+      console.log('✅ Unidade encontrada:', {
+        codigo_grupo: unidade.codigo_grupo,
+        grupo: unidade.grupo,
+        grupo_colaborador: unidade.grupo_colaborador
+      });
+      
+      let grupoColaborador = unidade.grupo_colaborador;
+      
+      if (!grupoColaborador) {
+        // Criar grupo se não existe
+        console.log('🔄 Grupo não existe. Iniciando criação...');
+        const { data: groupData, error: groupError } = await supabaseLocal.functions.invoke('create-collaborator-group', {
+          body: {
+            unit_code: collaboratorData.unitCode,
+            grupo: unidade.grupo || `UNIDADE ${collaboratorData.unitCode}`
+          }
+        });
+        
+        if (groupError) {
+          console.error('❌ ERRO ao criar grupo de colaboradores:', groupError);
+          console.error('Detalhes do erro:', JSON.stringify(groupError, null, 2));
+        } else {
+          grupoColaborador = groupData?.groupId;
+          console.log('✅ Grupo de colaboradores criado:', grupoColaborador);
+        }
+      } else {
+        console.log('✅ Grupo já existe:', grupoColaborador);
+      }
+      
+      // 5. Add collaborator to WhatsApp group (apenas se grupo existir)
+      if (grupoColaborador && cleanPhone) {
+        console.log('🔄 Adicionando colaborador ao grupo WhatsApp...');
+        console.log('Dados para adicionar:', {
+          groupId: grupoColaborador,
+          phone: cleanPhone,
+          name: collaboratorData.name
+        });
+        
+        const { error: addToGroupError } = await supabaseLocal.functions.invoke('add-collaborator-to-group', {
+          body: {
+            groupId: grupoColaborador,
+            phone: cleanPhone,
+            name: collaboratorData.name
+          }
+        });
+        
+        if (addToGroupError) {
+          console.error('❌ ERRO ao adicionar colaborador ao grupo:', addToGroupError);
+          console.error('Detalhes do erro:', JSON.stringify(addToGroupError, null, 2));
+        } else {
+          console.log('✅ Colaborador adicionado ao grupo com sucesso.');
+        }
+      } else {
+        if (!grupoColaborador) {
+          console.warn('⚠️ Grupo não existe, não será possível adicionar colaborador ao WhatsApp.');
+        }
+        if (!cleanPhone) {
+          console.warn('⚠️ Telefone não fornecido, não será possível adicionar colaborador ao WhatsApp.');
+        }
+      }
+    }
+    
+    // 6. Call notify-franchisee function
+    console.log('Invocando notificação para o franqueado...');
     const { error: notificationError } = await supabaseLocal.functions.invoke('notify-franchisee', {
       body: {
         collaboratorId: userId,

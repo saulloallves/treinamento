@@ -100,6 +100,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           unitCodesArray = [unitCode.trim()];
         }
       }
+      
+      let unitId: string | null = null;
+      if (unitCode && meta.role !== 'Franqueado') {
+        const { data: unit, error: unitErr } = await supabase
+          .from('unidades')
+          .select('id')
+          .eq('id', unitCode.trim())
+          .maybeSingle();
+        if (!unitErr && unit?.id) unitId = unit.id;
+      }
 
       const profile = {
         id: authUser.id,

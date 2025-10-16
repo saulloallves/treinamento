@@ -97,6 +97,98 @@ serve(async (req) => {
       throw processError
     }
 
+    // Se aprovado, adicionar ao grupo do WhatsApp
+    if (approve) {
+      console.log('Colaborador aprovado, verificando grupo do WhatsApp...')
+      
+      // Buscar dados do colaborador e unidade
+      const { data: collaboratorData, error: collaboratorError } = await supabase
+        .from('users')
+        .select('id, unit_code, phone, name')
+        .eq('id', approval.collaborator_id)
+        .single()
+
+      if (collaboratorError) {
+        console.error('Erro ao buscar dados do colaborador:', collaboratorError)
+      } else {
+        console.log('Dados do colaborador:', collaboratorData)
+
+        // Buscar dados da unidade
+        const unitCodeNumber = parseInt(collaboratorData.unit_code, 10)
+        const { data: unidadeData, error: unidadeError } = await supabase
+          .from('unidades')
+          .select('codigo_grupo, grupo, grupo_colaborador')
+          .eq('codigo_grupo', unitCodeNumber)
+          .maybeSingle()
+
+        if (unidadeError) {
+          console.error('Erro ao buscar unidade:', unidadeError)
+        } else if (!unidadeData) {
+          console.warn('Unidade não encontrada para código:', collaboratorData.unit_code)
+        } else {
+          console.log('Dados da unidade:', unidadeData)
+          
+          let grupoColaborador = unidadeData.grupo_colaborador
+
+          // Se grupo não existe, criar
+          if (!grupoColaborador) {
+            console.log('Grupo não existe, criando...')
+            const { data: groupData, error: groupError } = await supabase.functions.invoke(
+              'create-collaborator-group',
+              {
+                body: {
+                  unit_code: collaboratorData.unit_code,
+                  grupo: unidadeData.grupo || `UNIDADE ${collaboratorData.unit_code}`
+                }
+              }
+            )
+
+            if (groupError) {
+              console.error('Erro ao criar grupo:', groupError)
+            } else {
+              grupoColaborador = groupData?.groupId
+              console.log('Grupo criado:', grupoColaborador)
+              
+              // Aguardar 3 segundos para o grupo ser totalmente criado
+              await new Promise(resolve => setTimeout(resolve, 3000))
+            }
+          }
+
+          // Se tem grupo e telefone, adicionar colaborador
+          if (grupoColaborador && collaboratorData.phone) {
+            console.log('Adicionando colaborador ao grupo...')
+            
+            // Aguardar 2 segundos antes de adicionar
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            
+            const { error: addError } = await supabase.functions.invoke(
+              'add-collaborator-to-group',
+              {
+                body: {
+                  groupId: grupoColaborador,
+                  phone: collaboratorData.phone,
+                  name: collaboratorData.name
+                }
+              }
+            )
+
+            if (addError) {
+              console.error('Erro ao adicionar colaborador ao grupo:', addError)
+            } else {
+              console.log('Colaborador adicionado ao grupo com sucesso')
+            }
+          } else {
+            if (!grupoColaborador) {
+              console.warn('Grupo não criado/encontrado')
+            }
+            if (!collaboratorData.phone) {
+              console.warn('Colaborador sem telefone')
+            }
+          }
+        }
+      }
+    }
+
     const action = approve ? 'aprovado' : 'rejeitado'
     const actionIcon = approve ? '✅' : '❌'
     const actionColor = approve ? '#27ae60' : '#e74c3c'

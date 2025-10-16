@@ -138,110 +138,127 @@ const AutomatedDispatches = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Seção de Mensagens Padrão */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
-            <MessageSquare className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-foreground">Configurar Mensagens Padrão</h2>
-            <p className="text-sm text-muted-foreground">
-              Defina os templates que serão usados para todas as aulas
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Card Mensagem 2 horas */}
-          <Card className="border">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
-                  <Clock className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <span className="text-lg">2 Horas Antes</span>
-                  <p className="text-sm font-normal text-muted-foreground">Lembrete inicial</p>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                id="msg-2h"
-                value={messages['2_hours_before']}
-                onChange={(e) => {
-                  const newMessage = e.target.value;
-                  setMessages(prev => ({ ...prev, '2_hours_before': newMessage }));
-                  updateAllLessonsWithDefaultMessage('2_hours_before', newMessage);
-                }}
-                placeholder="Digite a mensagem que será enviada 2 horas antes da aula..."
-                className="min-h-[80px]"
-                rows={3}
-              />
-              <div className="border-t pt-2 mt-1">
-                <div className="text-[10px] text-muted-foreground/50 space-y-0.5">
-                  <p className="mb-1">Variáveis: <code className="bg-muted/30 px-1 rounded">{'{titulo}'}</code> <code className="bg-muted/30 px-1 rounded">{'{link}'}</code> <code className="bg-muted/30 px-1 rounded">{'{horario}'}</code></p>
-                </div>
+      <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <CardTitle className="flex items-center gap-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-primary" />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Card Mensagem 30 minutos */}
-          <Card className="border">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-8 h-8 bg-primary/10 rounded-lg">
-                  <Zap className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <span className="text-lg">30 Minutos Antes</span>
-                  <p className="text-sm font-normal text-muted-foreground">Lembrete urgente</p>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                id="msg-30m"
-                value={messages['30_minutes_before']}
-                onChange={(e) => {
-                  const newMessage = e.target.value;
-                  setMessages(prev => ({ ...prev, '30_minutes_before': newMessage }));
-                  updateAllLessonsWithDefaultMessage('30_minutes_before', newMessage);
-                }}
-                placeholder="Digite a mensagem que será enviada 30 minutos antes da aula..."
-                className="min-h-[80px]"
-                rows={3}
-              />
-              <div className="border-t pt-2 mt-1">
-                <div className="text-[10px] text-muted-foreground/50 space-y-0.5">
-                  <p className="mb-1">Variáveis: <code className="bg-muted/30 px-1 rounded">{'{titulo}'}</code> <code className="bg-muted/30 px-1 rounded">{'{link}'}</code> <code className="bg-muted/30 px-1 rounded">{'{horario}'}</code></p>
-                </div>
+              <div>
+                <span className="text-xl font-bold">Configurar Mensagens Padrão</span>
+                <p className="text-sm font-normal text-muted-foreground mt-0.5">
+                  Defina os templates que serão usados para todas as aulas
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </CardTitle>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Info className="h-4 w-4" />
+              <span>Atualizações aplicadas em tempo real</span>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Card Mensagem 2 horas */}
+            <Card className="border hover:border-primary/30 transition-colors">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center justify-center w-9 h-9 bg-blue-500/10 rounded-lg">
+                    <Clock className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">2 Horas Antes</h3>
+                    <p className="text-xs text-muted-foreground">Lembrete inicial</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  value={messages['2_hours_before']}
+                  onChange={(e) => {
+                    const newMessage = e.target.value;
+                    setMessages(prev => ({ ...prev, '2_hours_before': newMessage }));
+                    updateAllLessonsWithDefaultMessage('2_hours_before', newMessage);
+                  }}
+                  placeholder="Digite a mensagem que será enviada 2 horas antes da aula..."
+                  className="min-h-[90px] text-sm"
+                  rows={4}
+                />
+                <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-medium mb-0.5">Variáveis disponíveis:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{titulo}'}</code>
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{link}'}</code>
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{horario}'}</code>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card Mensagem 30 minutos */}
+            <Card className="border hover:border-primary/30 transition-colors">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center justify-center w-9 h-9 bg-orange-500/10 rounded-lg">
+                    <Zap className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">30 Minutos Antes</h3>
+                    <p className="text-xs text-muted-foreground">Lembrete urgente</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  value={messages['30_minutes_before']}
+                  onChange={(e) => {
+                    const newMessage = e.target.value;
+                    setMessages(prev => ({ ...prev, '30_minutes_before': newMessage }));
+                    updateAllLessonsWithDefaultMessage('30_minutes_before', newMessage);
+                  }}
+                  placeholder="Digite a mensagem que será enviada 30 minutos antes da aula..."
+                  className="min-h-[90px] text-sm"
+                  rows={4}
+                />
+                <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-medium mb-0.5">Variáveis disponíveis:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{titulo}'}</code>
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{link}'}</code>
+                      <code className="bg-background px-1.5 py-0.5 rounded">{'{horario}'}</code>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Seção de Aulas */}
       <Card className="border">
-        <CardHeader className="bg-muted/30 border-b">
+        <CardHeader className="bg-gradient-to-r from-muted/30 to-background border-b">
           <CardTitle className="flex items-center gap-3">
             <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <span className="text-xl">Gerenciar Aulas</span>
-              <p className="text-sm font-normal text-muted-foreground">
+              <span className="text-xl font-bold">Gerenciar Aulas</span>
+              <p className="text-sm font-normal text-muted-foreground mt-0.5">
                 Configure disparos individuais para cada aula agendada
               </p>
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-
-        <Separator />
 
         {/* Filters and Search */}
         <AutomatedDispatchesFilters

@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AttendanceCard } from "./AttendanceCard";
 import { AttendanceDetailsDialog } from "./AttendanceDetailsDialog";
-import TurmaStatusFilters from "@/components/common/TurmaStatusFilters";
 
 interface AttendanceGroup {
   id: string;
@@ -16,7 +15,6 @@ interface AttendanceGroup {
 const AttendancesByCourse = () => {
   const [selectedGroup, setSelectedGroup] = useState<AttendanceGroup | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("ativas");
 
   const { data: attendances, isLoading } = useQuery({
     queryKey: ["attendance", "by-course"],
@@ -108,19 +106,10 @@ const AttendancesByCourse = () => {
   const groupedAttendances = useMemo(() => {
     if (!attendances) return [];
 
-    // Filter turmas by status
+    // Show only active turmas (em_andamento and agendada)
     const filteredAttendances = attendances.filter(turmaData => {
       const turmaStatus = turmaData.turmaStatus;
-      if (statusFilter === "ativas") {
-        // Default active view: show 'em_andamento' and 'agendada' only
-        return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
-      } else if (statusFilter === "arquivadas") {
-        // Archive view: show 'encerrada' and 'cancelada'
-        return turmaStatus === 'encerrada' || turmaStatus === 'cancelada';
-      } else {
-        // Specific status filter
-        return turmaStatus === statusFilter;
-      }
+      return turmaStatus === 'em_andamento' || turmaStatus === 'agendada';
     });
 
     return filteredAttendances.map((turmaData) => ({
@@ -130,7 +119,7 @@ const AttendancesByCourse = () => {
       courseName: turmaData.courseName,
       items: turmaData.attendances
     })).sort((a, b) => a.courseName.localeCompare(b.courseName));
-  }, [attendances, statusFilter]);
+  }, [attendances]);
 
   const handleCardClick = (group: AttendanceGroup) => {
     setSelectedGroup(group);
@@ -158,11 +147,6 @@ const AttendancesByCourse = () => {
   return (
     <>
       <div className="space-y-6">
-        <TurmaStatusFilters 
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-        />
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {groupedAttendances.map((group) => (
             <AttendanceCard

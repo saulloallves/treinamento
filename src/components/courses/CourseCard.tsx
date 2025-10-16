@@ -4,20 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import TouchCard from '@/components/mobile/TouchCard';
 import { 
-  BookOpen, 
-  Users, 
   Edit, 
   Trash2, 
   Eye,
-  PlayCircle,
   FileText,
-  Award,
-  Clock,
-  Settings
+  Award
 } from 'lucide-react';
 import { Course } from '@/hooks/useCourses';
-import { useCourseAccess } from '@/hooks/useCourseAccess';
-import { useCorrectLessonCount } from '@/hooks/useCorrectLessonCount';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CourseCardMobile } from './CourseCardMobile';
 
@@ -61,8 +54,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onViewRecordedCourses
 }) => {
   const gradientClass = getThemeGradient(course.theme, course.tipo);
-  const { positionNames } = useCourseAccess(course.id);
-  const { data: correctLessonCount } = useCorrectLessonCount(course.id, course.tipo);
   const isMobile = useIsMobile();
   
   // Use mobile-specific component on mobile devices
@@ -79,24 +70,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       />
     );
   }
-  
-  // Get correct public target label
-  const getCorrectPublicTargetLabel = () => {
-    if (positionNames && positionNames.length > 0) {
-      return positionNames.slice(0, 2).join(', ') + (positionNames.length > 2 ? '...' : '');
-    }
-    // Fallback to basic labels
-    switch (course.public_target) {
-      case "franqueado": return "Franqueado";
-      case "colaborador": return "Colaborador"; 
-      case "ambos": return "Ambos";
-      default: return course.public_target;
-    }
-  };
 
   return (
     <TouchCard 
-      className="overflow-hidden flex flex-col group h-[240px]"
+      className="overflow-hidden flex flex-col group min-h-[200px]"
       variant="elevated"
     >
       {/* Compact Cover Area */}
@@ -133,10 +110,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       </div>
 
       {/* Content */}
-      <CardContent className="flex-1 flex flex-col p-2">
+      <CardContent className="flex-1 flex flex-col p-2.5">
         {/* Title */}
-        <div className="mb-1.5">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1 min-h-[2.5rem]">
+        <div className="mb-2">
+          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1.5 min-h-[2.5rem]">
             {course.name}
           </h3>
           
@@ -160,17 +137,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Course Info - More compact */}
-        <div className="space-y-1 flex-1">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <BookOpen className="w-3 h-3 shrink-0" />
-              <span className="font-medium">{correctLessonCount ?? course.lessons_count} aulas</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {getCorrectPublicTargetLabel()}
-            </span>
-          </div>
-
+        <div className="space-y-1.5 flex-1">
           {course.instructor && (
             <div className="text-xs">
               <span className="text-muted-foreground">Instrutor: </span>
@@ -207,8 +174,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="pt-1 mt-auto">
-          <div className="space-y-0.5">
+        <div className="pt-2 mt-auto">
+          <div className="space-y-1">
             {/* Details button only for treinamentos (gravado) */}
             {course.tipo === 'gravado' && (
               <Button
@@ -221,7 +188,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                     onViewDetails(course);
                   }
                 }}
-                className="w-full h-6 text-xs font-medium"
+                className="w-full h-7 text-xs font-medium"
               >
                 <Eye className="w-3 h-3 mr-1.5" />
                 Detalhes
@@ -234,7 +201,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(course)}
-                className="h-5 px-2 text-xs"
+                className="h-6 px-2 text-xs"
                 title="Editar"
               >
                 <Edit className="w-3 h-3" />
@@ -243,7 +210,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(course.id)}
-                className="h-5 px-2 text-xs"
+                className="h-6 px-2 text-xs"
                 title="Excluir"
               >
                 <Trash2 className="w-3 h-3" />

@@ -19,7 +19,6 @@ const TurmasPage = () => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("todos");
-  const [statusFilter, setStatusFilter] = useState("todos");
   const [professorFilter, setProfessorFilter] = useState("todos");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedCourseForCreate, setSelectedCourseForCreate] = useState("");
