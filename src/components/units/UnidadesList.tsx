@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, CheckCircle, XCircle } from "lucide-react";
@@ -21,6 +21,10 @@ const UnidadesList = () => {
 
   const queryClient = useQueryClient();
   const { data: unidades = [], isLoading, error } = useUnidades();
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["unidades"] });
+  }, [queryClient]);
 
   const filteredUnidades = unidades.filter((unidade) => {
     const matchesSearch = 

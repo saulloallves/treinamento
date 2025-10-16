@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -8,19 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogIn, UserPlus, GraduationCap, Shield, Building, BookOpen } from 'lucide-react';
+import { LogIn, UserPlus, GraduationCap, Shield, Building, BookOpen, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-
-
 
 const Auth = () => {
   const { user, signIn, signUp, loading, authProcessing, sendPasswordViaWhatsApp } = useAuth();
   const { setSelectedProfile, clearProfile } = useProfile();
   
-  // Clear any previous profile selection when Auth page loads
   useEffect(() => {
     clearProfile();
   }, []);
@@ -40,40 +35,62 @@ const Auth = () => {
   const [studentPhone, setStudentPhone] = useState('');
   const [isSendingPassword, setIsSendingPassword] = useState(false);
 
+  // Novos estados para endereço
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [isCepLoading, setIsCepLoading] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState('');
+
   const navigate = useNavigate();
 
-  // Redireciona após autenticar: apenas quando checagens terminarem
   useEffect(() => {
-    console.log('🎯 Auth.tsx - Checking redirect:', { 
-      user: !!user, 
-      authProcessing, 
-      loading
-    });
     if (user && !authProcessing && !loading) {
-      console.log('🎯 Auth.tsx - Redirecting to /');
       navigate('/', { replace: true });
     }
   }, [user, authProcessing, loading, navigate]);
 
-  // SEO: título e descrição da página
   useEffect(() => {
     document.title = 'Login e Cadastro | Sistema de Treinamentos';
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute('name', 'description');
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', 'Acesse sua conta ou crie um cadastro no sistema de treinamentos Cresci e Perdi.');
-
-    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (!link) {
-      link = document.createElement('link');
-      link.setAttribute('rel', 'canonical');
-      document.head.appendChild(link);
-    }
-    link.setAttribute('href', window.location.origin + '/auth');
   }, []);
+
+  const handleCepLookup = async () => {
+    const cleanedCep = cep.replace(/\D/g, '');
+    if (cleanedCep.length !== 8) {
+      setCepError('CEP deve conter 8 dígitos.');
+      return;
+    }
+
+    setIsCepLoading(true);
+    setCepError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('cep-lookup', {
+        body: { cep: cleanedCep },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setEndereco(data.logradouro);
+      setBairro(data.bairro);
+      setCidade(data.localidade);
+      setEstado(data.uf);
+      document.getElementById('numero')?.focus();
+    } catch (err: any) {
+      setCepError(err.message || 'Erro ao buscar CEP.');
+      setEndereco('');
+      setBairro('');
+      setCidade('');
+      setEstado('');
+    } finally {
+      setIsCepLoading(false);
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,9 +102,7 @@ const Auth = () => {
   const handleAdminSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference using context
     setSelectedProfile('Admin');
-    console.log('🎯 Auth - Set profile preference to Admin');
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -95,10 +110,7 @@ const Auth = () => {
   const handleStudentSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference using context
     setSelectedProfile('Aluno');
-    console.log('🎯 Auth - Set profile preference to Aluno');
-    // Usar telefone ou email para login
     const loginIdentifier = studentPhone.trim() || email.trim().toLowerCase();
     await signIn(loginIdentifier, password);
     setIsLoading(false);
@@ -118,9 +130,7 @@ const Auth = () => {
   const handleProfessorSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Set profile preference using context
     setSelectedProfile('Professor');
-    console.log('🎯 Auth - Set profile preference to Professor');
     await signIn(email.trim().toLowerCase(), password);
     setIsLoading(false);
   };
@@ -131,7 +141,6 @@ const Auth = () => {
     
     try {
       if (userRole === 'Colaborador') {
-        // Use the new edge function for collaborator registration
         const { data, error } = await supabase.functions.invoke('register-collaborator', {
           body: {
             name: fullName,
@@ -140,13 +149,19 @@ const Auth = () => {
             unitCode,
             position,
             whatsapp,
-            cpf
+            cpf,
+            birth_date: birthDate,
+            cep,
+            endereco,
+            numero,
+            complemento,
+            bairro,
+            cidade,
+            estado,
           }
         });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         if (data?.success) {
           toast.success("Cadastro criado com sucesso!", {
@@ -154,37 +169,19 @@ const Auth = () => {
           });
           
           // Clear form
-          setFullName('');
-          setEmail('');
-          setPassword('');
-          setUnitCode('');
-          setPosition('');
-          setWhatsapp('');
-          setCpf('');
+          setFullName(''); setEmail(''); setPassword(''); setUnitCode(''); setPosition(''); setWhatsapp(''); setCpf('');
+          setBirthDate(''); setCep(''); setEndereco(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setEstado('');
         } else {
           throw new Error(data?.error || 'Erro desconhecido');
         }
       } else {
-        // Franqueado signup - validate additional fields
-        if (!franchiseeWhatsapp.trim()) {
-          toast.error('Por favor, informe o WhatsApp');
+        // Franqueado signup
+        if (!franchiseeWhatsapp.trim() || !franchiseeCpf.trim() || !unitCodes.trim()) {
+          toast.error('Preencha todos os campos obrigatórios para franqueado.');
           setIsLoading(false);
           return;
         }
         
-        if (!franchiseeCpf.trim()) {
-          toast.error('Por favor, informe o CPF');
-          setIsLoading(false);
-          return;
-        }
-        
-        if (!unitCodes.trim()) {
-          toast.error('Por favor, informe ao menos um código de unidade');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Validate CPF format (11 digits)
         const cleanFranchiseeCpf = franchiseeCpf.replace(/\D/g, '');
         if (cleanFranchiseeCpf.length !== 11) {
           toast.error('Por favor, informe um CPF válido');
@@ -192,7 +189,6 @@ const Auth = () => {
           return;
         }
 
-        // Validate WhatsApp format (10 or 11 digits)
         const cleanFranchiseeWhatsapp = franchiseeWhatsapp.replace(/\D/g, '');
         if (cleanFranchiseeWhatsapp.length < 10 || cleanFranchiseeWhatsapp.length > 11) {
           toast.error('Por favor, informe um WhatsApp válido');
@@ -200,7 +196,6 @@ const Auth = () => {
           return;
         }
         
-        // Para franqueados, use o fluxo padrão
         const result = await signUp(email, password, fullName, { 
           userType: 'Aluno', 
           unitCode: unitCodes,
@@ -210,35 +205,21 @@ const Auth = () => {
           position: undefined
         });
         
-        // Se não houver erro, limpar campos
         if (!result.error) {
-          setFranchiseeWhatsapp('');
-          setFranchiseeCpf('');
-          setUnitCodes('');
-          setFullName('');
-          setEmail('');
-          setPassword('');
+          setFranchiseeWhatsapp(''); setFranchiseeCpf(''); setUnitCodes(''); setFullName(''); setEmail(''); setPassword('');
         }
       }
     } catch (error: any) {
-      console.error('Error during signup:', error);
-      
-      // Capturar erro de código de unidade inválido
       let errorMessage = error.message || "Ocorreu um erro inesperado. Tente novamente.";
-      if (errorMessage.includes('Código(s) de unidade inválido(s)') || 
-          errorMessage.includes('violates check constraint') ||
-          errorMessage.includes('unit_codes')) {
+      if (errorMessage.includes('Código(s) de unidade inválido(s)')) {
         errorMessage = "Código de unidade inválido. Por favor, verifique os códigos informados e tente novamente.";
       }
       
-      toast.error("Cadastro não aprovado", {
-        description: errorMessage,
-      });
+      toast.error("Cadastro não aprovado", { description: errorMessage });
     } finally {
       setIsLoading(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -250,18 +231,17 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
-      {/* Subtle gradient orbs */}
       <div className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(60%_60%_at_50%_40%,black,transparent)]">
         <div className="absolute -top-24 -left-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
       </div>
       <div className="w-full max-w-xl space-y-8">
-        {/* Header */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary/10 ring-1 ring-primary/15 mb-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)]">
-            <GraduationCap className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">Cresci e Perdi</h1>
+          <img 
+            src="https://raw.githubusercontent.com/saulloallves/sistema-matriz/refs/heads/main/src/assets/logo-principal.png" 
+            alt="Cresci e Perdi Logo" 
+            className="mx-auto mb-4 w-48"
+          />
           <p className="text-muted-foreground">Sistema de Treinamentos</p>
         </div>
 
@@ -278,31 +258,19 @@ const Auth = () => {
                 aria-label="Seleção de tipo de acesso"
                 className="grid grid-cols-2 md:grid-cols-4 w-full gap-3 mb-6 p-2 rounded-2xl bg-muted/50 ring-1 ring-border h-auto"
               >
-                <TabsTrigger
-                  value="login-student"
-                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
-                >
+                <TabsTrigger value="login-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <LogIn className="h-5 w-5" />
                   <span className="text-center leading-tight font-medium">Login Aluno</span>
                 </TabsTrigger>
-                <TabsTrigger
-                  value="register-student"
-                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
-                >
+                <TabsTrigger value="register-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <Building className="h-5 w-5" />
                   <span className="text-center leading-tight font-medium">Cadastro Aluno</span>
                 </TabsTrigger>
-                <TabsTrigger
-                  value="login-professor"
-                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
-                >
+                <TabsTrigger value="login-professor" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <BookOpen className="h-5 w-5" />
                   <span className="text-center leading-tight font-medium">Login Professor</span>
                 </TabsTrigger>
-                <TabsTrigger
-                  value="login-admin"
-                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
-                >
+                <TabsTrigger value="login-admin" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <Shield className="h-5 w-5" />
                   <span className="text-center leading-tight font-medium">Login Admin</span>
                 </TabsTrigger>
@@ -312,56 +280,15 @@ const Auth = () => {
                 <form onSubmit={handleStudentSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="studentPhone" className="text-foreground font-medium">Telefone</Label>
-                    <Input
-                      id="studentPhone"
-                      type="tel"
-                      placeholder="(11) 99999-9999"
-                      value={studentPhone}
-                      onChange={(e) => {
-                        const cleaned = e.target.value.replace(/\D/g, '');
-                        let formatted = cleaned;
-                        if (cleaned.length > 10) {
-                          formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-                        } else if (cleaned.length > 6) {
-                          formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-                        } else if (cleaned.length > 2) {
-                          formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                        } else if (cleaned.length > 0) {
-                          formatted = cleaned.replace(/^(\d*)/, '($1');
-                        }
-                        setStudentPhone(formatted);
-                      }}
-                      required
-                      maxLength={15}
-                    />
+                    <Input id="studentPhone" type="tel" placeholder="(11) 99999-9999" value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-foreground font-medium">Senha</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
+                    <Input id="password" type="password" placeholder="Sua senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      type="submit" 
-                      className="flex-1" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Entrando..." : "Entrar"}
-                    </Button>
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={handleSendPassword}
-                      disabled={isSendingPassword || !studentPhone.trim()}
-                    >
-                      {isSendingPassword ? "Enviando..." : "Receber Senha"}
-                    </Button>
+                    <Button type="submit" className="flex-1" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar"}</Button>
+                    <Button type="button" variant="outline" onClick={handleSendPassword} disabled={isSendingPassword || !studentPhone.trim()}>{isSendingPassword ? "Enviando..." : "Receber Senha"}</Button>
                   </div>
                 </form>
               </TabsContent>
@@ -371,312 +298,138 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label htmlFor="userRole" className="text-foreground font-medium">Você é *</Label>
                     <Select value={userRole} onValueChange={(value: 'Franqueado' | 'Colaborador') => setUserRole(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione seu papel na unidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Franqueado">Franqueado</SelectItem>
-                        <SelectItem value="Colaborador">Colaborador</SelectItem>
-                      </SelectContent>
+                      <SelectTrigger><SelectValue placeholder="Selecione seu papel na unidade" /></SelectTrigger>
+                      <SelectContent><SelectItem value="Franqueado">Franqueado</SelectItem><SelectItem value="Colaborador">Colaborador</SelectItem></SelectContent>
                     </Select>
                   </div>
 
                   {userRole === 'Colaborador' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
-                      <Input
-                        id="unitCode"
-                        type="text"
-                        placeholder="Ex.: ABC123"
-                        value={unitCode}
-                        onChange={(e) => setUnitCode(e.target.value)}
-                        required
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
+                        <Input id="unitCode" type="text" placeholder="Ex.: ABC123" value={unitCode} onChange={(e) => setUnitCode(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
+                        <Select value={position} onValueChange={setPosition} required>
+                          <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+                          <SelectContent className="z-[100]"><SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem><SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem><SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem><SelectItem value="Avaliadora">Avaliadora</SelectItem><SelectItem value="Repositor(a)">Repositor(a)</SelectItem><SelectItem value="Líder de Loja">Líder de Loja</SelectItem><SelectItem value="Gerente">Gerente</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
+                        <Input id="whatsapp" type="tel" placeholder="(11) 99999-9999" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
+                        <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
+                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
+                      </div>
+                    </>
                   )}
                   
                   {userRole === 'Franqueado' && (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="unitCodes" className="text-foreground font-medium">Código da Unidade *</Label>
-                        <Input
-                          id="unitCodes"
-                          type="text"
-                          placeholder="Ex.: ABC123, DEF456, GHI789"
-                          value={unitCodes}
-                          onChange={(e) => setUnitCodes(e.target.value)}
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Se tiver mais de uma unidade, separe os códigos por vírgula
-                        </p>
+                        <Input id="unitCodes" type="text" placeholder="Ex.: ABC123, DEF456" value={unitCodes} onChange={(e) => setUnitCodes(e.target.value)} required />
+                        <p className="text-xs text-muted-foreground">Se tiver mais de uma unidade, separe os códigos por vírgula</p>
                       </div>
-                      
                       <div className="space-y-2">
                         <Label htmlFor="franchiseeWhatsapp" className="text-foreground font-medium">WhatsApp *</Label>
-                        <Input
-                          id="franchiseeWhatsapp"
-                          type="tel"
-                          placeholder="(11) 99999-9999"
-                          value={franchiseeWhatsapp}
-                          onChange={(e) => {
-                            const cleaned = e.target.value.replace(/\D/g, '');
-                            let formatted = cleaned;
-                            if (cleaned.length > 10) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-                            } else if (cleaned.length > 6) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-                            } else if (cleaned.length > 2) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                            } else if (cleaned.length > 0) {
-                              formatted = cleaned.replace(/^(\d*)/, '($1');
-                            }
-                            setFranchiseeWhatsapp(formatted);
-                          }}
-                          required
-                          maxLength={15}
-                        />
+                        <Input id="franchiseeWhatsapp" type="tel" placeholder="(11) 99999-9999" value={franchiseeWhatsapp} onChange={(e) => setFranchiseeWhatsapp(e.target.value)} required />
                       </div>
-                      
                       <div className="space-y-2">
                         <Label htmlFor="franchiseeCpf" className="text-foreground font-medium">CPF *</Label>
-                        <Input
-                          id="franchiseeCpf"
-                          type="text"
-                          placeholder="000.000.000-00"
-                          value={franchiseeCpf}
-                          onChange={(e) => {
-                            const cleaned = e.target.value.replace(/\D/g, '');
-                            let formatted = cleaned;
-                            if (cleaned.length > 9) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
-                            } else if (cleaned.length > 6) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-                            } else if (cleaned.length > 3) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
-                            } else {
-                              formatted = cleaned;
-                            }
-                            setFranchiseeCpf(formatted);
-                          }}
-                          required
-                          maxLength={14}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {userRole === 'Colaborador' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
-                      <Select value={position} onValueChange={setPosition} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cargo" />
-                        </SelectTrigger>
-                        <SelectContent className="z-[100]">
-                          <SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem>
-                          <SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem>
-                          <SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem>
-                          <SelectItem value="Avaliadora">Avaliadora</SelectItem>
-                          <SelectItem value="Repositor(a)">Repositor(a)</SelectItem>
-                          <SelectItem value="Líder de Loja">Líder de Loja</SelectItem>
-                          <SelectItem value="Gerente">Gerente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  
-                  {userRole === 'Colaborador' && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
-                        <Input
-                          id="whatsapp"
-                          type="tel"
-                          placeholder="(11) 99999-9999"
-                          value={whatsapp}
-                          onChange={(e) => {
-                            // Remove tudo que não é número
-                            const cleaned = e.target.value.replace(/\D/g, '');
-                            // Aplica máscara (XX) XXXXX-XXXX
-                            let formatted = cleaned;
-                            if (cleaned.length > 10) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
-                            } else if (cleaned.length > 6) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
-                            } else if (cleaned.length > 2) {
-                              formatted = cleaned.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
-                            } else if (cleaned.length > 0) {
-                              formatted = cleaned.replace(/^(\d*)/, '($1');
-                            }
-                            setWhatsapp(formatted);
-                          }}
-                          required
-                          maxLength={15}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
-                        <Input
-                          id="cpf"
-                          type="text"
-                          placeholder="000.000.000-00"
-                          value={cpf}
-                          onChange={(e) => {
-                            // Remove tudo que não é número
-                            const cleaned = e.target.value.replace(/\D/g, '');
-                            // Aplica máscara XXX.XXX.XXX-XX
-                            let formatted = cleaned;
-                            if (cleaned.length > 9) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
-                            } else if (cleaned.length > 6) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
-                            } else if (cleaned.length > 3) {
-                              formatted = cleaned.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
-                            } else {
-                              formatted = cleaned;
-                            }
-                            setCpf(formatted);
-                          }}
-                          required
-                          maxLength={14}
-                        />
+                        <Input id="franchiseeCpf" type="text" placeholder="000.000.000-00" value={franchiseeCpf} onChange={(e) => setFranchiseeCpf(e.target.value)} required />
                       </div>
                     </>
                   )}
                   
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-foreground font-medium">Nome Completo *</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                    />
+                    <Input id="fullName" type="text" placeholder="Seu nome completo" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground font-medium">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+                    <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-foreground font-medium">Senha *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                    />
+                    <Input id="password" type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
                   </div>
 
                   {userRole === 'Colaborador' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="cep">CEP *</Label>
+                        <div className="flex items-center gap-2">
+                          <Input id="cep" placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2'))} maxLength={9} onBlur={handleCepLookup} />
+                          {isCepLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        </div>
+                        {cepError && <p className="text-sm text-destructive">{cepError}</p>}
+                      </div>
+
+                      {cidade && (
+                        <div className="space-y-4 animate-fade-in">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Endereço</Label><Input value={endereco} disabled /></div>
+                            <div className="space-y-2"><Label>Bairro</Label><Input value={bairro} disabled /></div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Número *</Label><Input id="numero" value={numero} onChange={(e) => setNumero(e.target.value)} required /></div>
+                            <div className="space-y-2"><Label>Complemento</Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} /></div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Cidade</Label><Input value={cidade} disabled /></div>
+                            <div className="space-y-2"><Label>Estado</Label><Input value={estado} disabled /></div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {userRole === 'Colaborador' && (
                     <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-                      <p className="text-sm text-primary">
-                        <strong>Atenção:</strong> Como colaborador, seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.
-                      </p>
+                      <p className="text-sm text-primary"><strong>Atenção:</strong> Seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.</p>
                     </div>
                   )}
                   
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Cadastrando..." : "Criar Conta"}
-                  </Button>
+                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Cadastrando..." : "Criar Conta"}</Button>
                 </form>
               </TabsContent>
 
               <TabsContent value="login-professor">
                 <form onSubmit={handleProfessorSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-professor-login" className="text-foreground font-medium">Email</Label>
-                    <Input
-                      id="email-professor-login"
-                      type="email"
-                      placeholder="professor@empresa.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-professor-login" className="text-foreground font-medium">Senha</Label>
-                    <Input
-                      id="password-professor-login"
-                      type="password"
-                      placeholder="Sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar como Professor"}
-                  </Button>
+                  <div className="space-y-2"><Label htmlFor="email-professor-login" className="text-foreground font-medium">Email</Label><Input id="email-professor-login" type="email" placeholder="professor@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                  <div className="space-y-2"><Label htmlFor="password-professor-login" className="text-foreground font-medium">Senha</Label><Input id="password-professor-login" type="password" placeholder="Sua senha" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Professor"}</Button>
                   <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de professor aprovado.</p>
                 </form>
               </TabsContent>
 
               <TabsContent value="login-admin">
                 <form onSubmit={handleAdminSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-admin-login" className="text-foreground font-medium">Email</Label>
-                    <Input
-                      id="email-admin-login"
-                      type="email"
-                      placeholder="admin@empresa.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-admin-login" className="text-foreground font-medium">Senha</Label>
-                    <Input
-                      id="password-admin-login"
-                      type="password"
-                      placeholder="Sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Entrando..." : "Entrar como Admin"}
-                  </Button>
+                  <div className="space-y-2"><Label htmlFor="email-admin-login" className="text-foreground font-medium">Email</Label><Input id="email-admin-login" type="email" placeholder="admin@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                  <div className="space-y-2"><Label htmlFor="password-admin-login" className="text-foreground font-medium">Senha</Label><Input id="password-admin-login" type="password" placeholder="Sua senha" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Admin"}</Button>
                   <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de admin aprovado.</p>
                 </form>
               </TabsContent>
-
             </Tabs>
           </CardContent>
         </Card>
 
         <div className="text-center text-sm text-muted-foreground">
           Ao continuar, você concorda com nossos termos de uso
+        </div>
+        <div className="text-center text-xs text-muted-foreground/80 mt-6">
+          &copy; {new Date().getFullYear()} Cresci e Perdi Franchising LTDA
         </div>
       </div>
     </div>

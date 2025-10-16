@@ -14,6 +14,14 @@ interface CollaboratorData {
   position: string;
   whatsapp?: string;
   cpf?: string;
+  birth_date?: string;
+  cep?: string;
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 serve(async (req) => {
@@ -22,39 +30,29 @@ serve(async (req) => {
   }
 
   try {
-    // --- Get Credentials ---
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const MATRIZ_URL = Deno.env.get('MATRIZ_URL');
     const MATRIZ_SERVICE_KEY = Deno.env.get('MATRIZ_SERVICE_KEY');
 
-    console.log('--- START: register-collaborator ---');
-
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Credenciais do Supabase local não configuradas.');
     }
 
-    // --- Create Local Client ---
     const supabaseLocal = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
     const collaboratorData: CollaboratorData = await req.json();
-    console.log('Payload recebido:', { email: collaboratorData.email, unitCode: collaboratorData.unitCode });
-
+    console.log('Received payload for collaborator registration:', collaboratorData);
     let userId: string;
 
-    // 1. Check if user already exists in auth.users
-    console.log('Verificando se usuário já existe no auth...');
     const { data: existingUsers } = await supabaseLocal.auth.admin.listUsers();
     const existingUser = existingUsers.users?.find(u => u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
 
     if (existingUser) {
       userId = existingUser.id;
-      console.log('Usuário já existe no auth:', userId);
     } else {
-      // 2. Create new user in auth.users
-      console.log('Criando novo usuário no auth...');
       const { data: newUser, error: authError } = await supabaseLocal.auth.admin.createUser({
         email: collaboratorData.email,
         password: collaboratorData.password,
@@ -62,18 +60,25 @@ serve(async (req) => {
           full_name: collaboratorData.name,
           user_type: 'Aluno',
           role: 'Colaborador',
-          unit_code: collaboratorData.unitCode
+          unit_code: collaboratorData.unitCode,
+          birth_date: collaboratorData.birth_date,
+          address: {
+            cep: collaboratorData.cep,
+            endereco: collaboratorData.endereco,
+            numero: collaboratorData.numero,
+            complemento: collaboratorData.complemento,
+            bairro: collaboratorData.bairro,
+            cidade: collaboratorData.cidade,
+            estado: collaboratorData.estado,
+          }
         },
         email_confirm: true
       });
       if (authError) throw authError;
       if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
       userId = newUser.user.id;
-      console.log('Novo usuário criado no auth:', userId);
     }
 
-    // 3. Upsert user record in public.users with 'pendente' status
-    console.log('Inserindo/atualizando registro na tabela users...');
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
     const { error: userError } = await supabaseLocal.from('users').upsert({
       id: userId,
@@ -90,50 +95,34 @@ serve(async (req) => {
       active: true,
     }, { onConflict: 'id' });
     if (userError) throw userError;
-    console.log('Registro na tabela users salvo com sucesso.');
 
-    // --- SYNC WITH MATRIZ DATABASE ---
-    console.log('--- INICIANDO SINCRONIZAÇÃO COM A MATRIZ ---');
     if (!MATRIZ_URL || !MATRIZ_SERVICE_KEY) {
       console.error('!!! ERRO CRÍTICO: Credenciais da Matriz não encontradas. Pulando sincronização. !!!');
     } else {
       try {
         const supabaseMatriz = createClient(MATRIZ_URL, MATRIZ_SERVICE_KEY);
-        console.log('Cliente da Matriz criado.');
-
         let positionId: string;
 
-        // a. "Get or Create" logic for position_id in Matriz
-        console.log(`Buscando cargo '${collaboratorData.position}' na Matriz...`);
         const { data: existingCargo, error: cargoSelectError } = await supabaseMatriz
           .from('cargos_loja')
           .select('id')
           .eq('role', collaboratorData.position)
           .maybeSingle();
 
-        if (cargoSelectError) {
-          throw new Error(`Erro ao buscar cargo na Matriz: ${cargoSelectError.message}`);
-        }
+        if (cargoSelectError) throw new Error(`Erro ao buscar cargo na Matriz: ${cargoSelectError.message}`);
 
         if (existingCargo) {
           positionId = existingCargo.id;
-          console.log(`Cargo encontrado na Matriz: ${collaboratorData.position} (ID: ${positionId})`);
         } else {
-          console.log(`Cargo '${collaboratorData.position}' não encontrado. Criando...`);
           const { data: newCargo, error: cargoInsertError } = await supabaseMatriz
             .from('cargos_loja')
             .insert({ role: collaboratorData.position })
             .select('id')
             .single();
-
-          if (cargoInsertError) {
-            throw new Error(`Erro ao criar cargo na Matriz: ${cargoInsertError.message}`);
-          }
+          if (cargoInsertError) throw new Error(`Erro ao criar cargo na Matriz: ${cargoInsertError.message}`);
           positionId = newCargo.id;
-          console.log(`Cargo criado na Matriz: ${collaboratorData.position} (ID: ${positionId})`);
         }
 
-        // b. Prepare record for 'colaboradores_loja'
         const colaboradorLojaRecord = {
           employee_name: collaboratorData.name,
           position_id: positionId,
@@ -145,18 +134,24 @@ serve(async (req) => {
           lgpd_term: true,
           confidentiality_term: true,
           system_term: true,
-          birth_date: null,
+          birth_date: collaboratorData.birth_date || null,
           salary: null,
+          address: collaboratorData.endereco,
+          number_address: collaboratorData.numero,
+          address_complement: collaboratorData.complemento,
+          neighborhood: collaboratorData.bairro,
+          city: collaboratorData.cidade,
+          state: collaboratorData.estado,
+          uf: collaboratorData.estado,
+          postal_code: collaboratorData.cep,
         };
-        console.log('Preparando para inserir colaborador na Matriz...');
 
-        // c. Insert into 'colaboradores_loja'
         const { error: insertMatrizError } = await supabaseMatriz
           .from('colaboradores_loja')
           .insert(colaboradorLojaRecord);
 
         if (insertMatrizError) {
-          if (insertMatrizError.code === '23505') { // unique_violation
+          if (insertMatrizError.code === '23505') {
             console.warn('Colaborador já existe na Matriz (CPF ou Email). Pulando inserção.');
           } else {
             throw insertMatrizError;
@@ -169,7 +164,6 @@ serve(async (req) => {
         console.error(matrizError);
       }
     }
-    console.log('--- FIM DA SINCRONIZAÇÃO COM A MATRIZ ---');
 
     // 4. Check if collaborator group exists for unit, if not create it
     console.log('Verificando grupo de colaboradores da unidade...');
@@ -268,11 +262,8 @@ serve(async (req) => {
     });
     if (notificationError) {
       console.warn('Aviso: Falha ao enviar notificação para o franqueado:', notificationError);
-    } else {
-      console.log('Notificação para o franqueado enviada com sucesso.');
     }
 
-    console.log('--- FIM: register-collaborator ---');
     return new Response(
       JSON.stringify({ 
         success: true, 

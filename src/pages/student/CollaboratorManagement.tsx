@@ -86,7 +86,6 @@ const CollaboratorManagement = () => {
         {/* Content Grid */}
         <div className="grid gap-4 md:gap-6 pb-4">
           <ApprovedCollaboratorsList 
-            unitCode={currentUser.unit_code}
             onRefresh={handleRefresh}
             isRefreshing={isRefetching}
           />
