@@ -28,6 +28,37 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // --- 🔐 AUTENTICAÇÃO SEGURA POR HEADER ---
+  try {
+    const DESTINATION_EDGE_KEY = Deno.env.get('EDGE_FUNCTION_CALL_KEY');
+    if (!DESTINATION_EDGE_KEY) {
+      throw new Error('EDGE_FUNCTION_CALL_KEY não configurada nas variáveis de ambiente.');
+    }
+
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing Authorization header.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (token !== DESTINATION_EDGE_KEY) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: invalid or mismatched token.' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+  } catch (authError) {
+    console.error('Erro na autenticação da Edge Function:', authError);
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized access.' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+    );
+  }
+
+  // --- 🔧 LÓGICA PRINCIPAL ---
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -167,21 +198,20 @@ Deno.serve(async (req) => {
     // 4. Check if collaborator group exists for unit, if not create it
     console.log('Verificando grupo de colaboradores da unidade...');
     console.log('Unit code recebido:', collaboratorData.unitCode, 'tipo:', typeof collaboratorData.unitCode);
-    
-    // Buscar unidade por codigo_grupo (convertendo para número se necessário)
+
     const unitCodeNumber = parseInt(collaboratorData.unitCode, 10);
     console.log('Unit code convertido para número:', unitCodeNumber);
-    
+
     const { data: unidade, error: unidadeError } = await supabaseLocal
       .from('unidades')
       .select('grupo_colaborador, grupo, codigo_grupo')
       .eq('codigo_grupo', unitCodeNumber)
       .maybeSingle();
-    
+
     if (unidadeError) {
       console.error('Erro ao buscar unidade:', unidadeError);
     }
-    
+
     if (!unidade) {
       console.warn('⚠️ AVISO: Unidade não encontrada para o código:', collaboratorData.unitCode);
       console.warn('Pulando criação de grupo de colaboradores.');
@@ -191,11 +221,10 @@ Deno.serve(async (req) => {
         grupo: unidade.grupo,
         grupo_colaborador: unidade.grupo_colaborador
       });
-      
+
       let grupoColaborador = unidade.grupo_colaborador;
-      
+
       if (!grupoColaborador) {
-        // Criar grupo se não existe
         console.log('🔄 Grupo não existe. Iniciando criação...');
         const { data: groupData, error: groupError } = await supabaseLocal.functions.invoke('create-collaborator-group', {
           body: {
@@ -203,10 +232,9 @@ Deno.serve(async (req) => {
             grupo: unidade.grupo || `UNIDADE ${collaboratorData.unitCode}`
           }
         });
-        
+
         if (groupError) {
           console.error('❌ ERRO ao criar grupo de colaboradores:', groupError);
-          console.error('Detalhes do erro:', JSON.stringify(groupError, null, 2));
         } else {
           grupoColaborador = groupData?.groupId;
           console.log('✅ Grupo de colaboradores criado:', grupoColaborador);
@@ -214,16 +242,9 @@ Deno.serve(async (req) => {
       } else {
         console.log('✅ Grupo já existe:', grupoColaborador);
       }
-      
-      // 5. Add collaborator to WhatsApp group (apenas se grupo existir)
+
       if (grupoColaborador && cleanPhone) {
         console.log('🔄 Adicionando colaborador ao grupo WhatsApp...');
-        console.log('Dados para adicionar:', {
-          groupId: grupoColaborador,
-          phone: cleanPhone,
-          name: collaboratorData.name
-        });
-        
         const { error: addToGroupError } = await supabaseLocal.functions.invoke('add-collaborator-to-group', {
           body: {
             groupId: grupoColaborador,
@@ -231,10 +252,9 @@ Deno.serve(async (req) => {
             name: collaboratorData.name
           }
         });
-        
+
         if (addToGroupError) {
           console.error('❌ ERRO ao adicionar colaborador ao grupo:', addToGroupError);
-          console.error('Detalhes do erro:', JSON.stringify(addToGroupError, null, 2));
         } else {
           console.log('✅ Colaborador adicionado ao grupo com sucesso.');
         }
@@ -247,7 +267,7 @@ Deno.serve(async (req) => {
         }
       }
     }
-    
+
     // 6. Call notify-franchisee function
     console.log('Invocando notificação para o franqueado...');
     const { error: notificationError } = await supabaseLocal.functions.invoke('notify-franchisee', {
