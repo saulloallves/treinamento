@@ -23,6 +23,7 @@ export interface TestResponse {
   question_id: string;
   user_id: string;
   selected_option_id?: string;
+  response_text?: string;
   score_obtained: number;
   answered_at: string;
 }
@@ -88,11 +89,13 @@ export const useTestSubmission = () => {
     mutationFn: async ({ 
       submissionId, 
       questionId, 
-      optionId 
+      optionId,
+      responseText
     }: { 
       submissionId: string; 
       questionId: string; 
-      optionId: string; 
+      optionId?: string;
+      responseText?: string;
     }) => {
       if (!currentUser?.id) throw new Error("User not authenticated");
 
@@ -105,50 +108,35 @@ export const useTestSubmission = () => {
 
       if (submissionError) throw submissionError;
 
-      // Buscar score da opção selecionada
-      const { data: option, error: optionError } = await supabase
-        .from("test_question_options")
-        .select("score_value")
-        .eq("id", optionId)
-        .single();
+      let score = 0;
+      if (optionId) {
+        // Buscar score da opção selecionada
+        const { data: option, error: optionError } = await supabase
+          .from("test_question_options")
+          .select("score_value")
+          .eq("id", optionId)
+          .single();
 
-      if (optionError) throw optionError;
-
-      // Verificar se já existe resposta para esta questão
-      const { data: existingResponse } = await supabase
-        .from("test_responses")
-        .select("id")
-        .eq("test_id", submission.test_id)
-        .eq("question_id", questionId)
-        .eq("user_id", currentUser.id)
-        .single();
-
-      if (existingResponse) {
-        // Atualizar resposta existente
-        const { error: updateError } = await supabase
-          .from("test_responses")
-          .update({
-            selected_option_id: optionId,
-            score_obtained: option.score_value,
-            answered_at: new Date().toISOString()
-          })
-          .eq("id", existingResponse.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Criar nova resposta
-        const { error: insertError } = await supabase
-          .from("test_responses")
-          .insert({
-            test_id: submission.test_id,
-            question_id: questionId,
-            user_id: currentUser.id,
-            selected_option_id: optionId,
-            score_obtained: option.score_value
-          });
-
-        if (insertError) throw insertError;
+        if (optionError) throw optionError;
+        score = option.score_value;
       }
+
+      const responsePayload = {
+        test_id: submission.test_id,
+        question_id: questionId,
+        user_id: currentUser.id,
+        selected_option_id: optionId || null,
+        response_text: responseText || null,
+        score_obtained: score,
+        answered_at: new Date().toISOString()
+      };
+
+      // Upsert para criar ou atualizar a resposta
+      const { error: upsertError } = await supabase
+        .from("test_responses")
+        .upsert(responsePayload, { onConflict: 'test_id,question_id,user_id' });
+
+      if (upsertError) throw upsertError;
     },
   });
 
@@ -180,6 +168,8 @@ export const useTestSubmission = () => {
       const { data: questions, error: questionsError } = await supabase
         .from("test_questions")
         .select(`
+          question_type,
+          max_score,
           test_question_options (
             score_value
           )
@@ -189,6 +179,9 @@ export const useTestSubmission = () => {
       if (questionsError) throw questionsError;
 
       const maxPossibleScore = questions?.reduce((sum, q) => {
+        if (q.question_type === 'essay') {
+          return sum + (q.max_score || 0);
+        }
         const maxOptionScore = Math.max(...(q.test_question_options?.map(o => o.score_value) || [0]));
         return sum + maxOptionScore;
       }, 0) || 0;

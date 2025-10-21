@@ -77,8 +77,8 @@ export const useTestQuestions = (testId?: string | null) => {
 
       if (questionError) throw questionError;
 
-      // Create the options
-      if (questionData.options && questionData.options.length > 0) {
+      // Create the options only if it's a multiple choice question
+      if (questionData.question_type === 'multiple_choice' && questionData.options && questionData.options.length > 0) {
         const optionsToInsert = questionData.options.map(option => ({
           question_id: question.id,
           option_text: option.option_text,
@@ -107,8 +107,16 @@ export const useTestQuestions = (testId?: string | null) => {
       ...updates 
     }: { id: string; options?: TestQuestionOption[] } & Partial<TestQuestion>) => {
       
-      // Update options if provided
-      if (options) {
+      // If changing to essay, delete all associated options first.
+      if (updates.question_type === 'essay') {
+        const { error: deleteError } = await supabase
+          .from("test_question_options")
+          .delete()
+          .eq("question_id", id);
+        if (deleteError) throw deleteError;
+      } 
+      // Only update options if it's a multiple choice question and options are provided.
+      else if (options && updates.question_type !== 'essay') { 
         // Delete existing options
         await supabase
           .from("test_question_options")
