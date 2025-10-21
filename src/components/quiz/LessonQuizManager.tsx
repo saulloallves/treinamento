@@ -26,7 +26,7 @@ interface LessonQuizManagerProps {
 const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
   const { toast } = useToast();
   const { data: lessons = [] } = useLessonsByCourse(turma.course_id);
-  const { data: quizQuestions = [], deleteQuestion } = useQuiz({ turmaId: turma.id });
+  const { data: quizQuestions = [], deleteQuestion, deleteQuiz } = useQuiz({ turmaId: turma.id });
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateMultipleDialogOpen, setIsCreateMultipleDialogOpen] = useState(false);
@@ -92,6 +92,32 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
 
   const handleBackToLessons = () => {
     setSelectedLesson(null);
+  };
+
+  const handleDeleteQuiz = async (quizName: string, questionCount: number) => {
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir o quiz "${quizName}" e todas as ${questionCount} perguntas?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteQuiz.mutateAsync({
+        quizName: quizName,
+        turmaId: turma.id,
+      });
+      
+      toast({
+        title: "Quiz excluído",
+        description: "O quiz e todas as suas perguntas foram excluídos com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir o quiz.",
+        variant: "destructive",
+      });
+    }
   };
 
   // If a lesson is selected, show quiz cards view
@@ -208,6 +234,16 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
                           }}
                         >
                           <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteQuiz(quiz.name, quiz.questions.length);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
