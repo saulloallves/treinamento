@@ -2,7 +2,6 @@ import { useState } from "react";
 import { BarChart3, Filter, Download, FileText } from "lucide-react";
 import BaseLayout from "@/components/BaseLayout";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EvaluationReports } from "@/components/reports/EvaluationReports";
@@ -71,7 +70,7 @@ const ProfessorReports = () => {
                   <SelectContent>
                     <SelectItem value="all">Todas as minhas turmas</SelectItem>
                     {professorTurmas
-                      ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento' || turma.status === 'encerrada')
+                      ?.filter((turma) => turma.status === 'agendada' || turma.status === 'em_andamento')
                       ?.map((turma) => (
                         <SelectItem key={turma.id} value={turma.id}>
                           {turma.name || turma.code}
@@ -111,24 +110,17 @@ const ProfessorReports = () => {
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="overview">Relatório das Turmas</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview">
-              <EvaluationReports 
-                professorMode={true}
-                professorId={user?.id}
-                filters={{
-                  turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
-                  startDate: selectedPeriod !== "all" ?
-                    new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
-                    undefined
-                }}
-              />
-            </TabsContent>
-          </Tabs>
+          <EvaluationReports 
+            professorMode={true}
+            professorId={user?.id}
+            filters={{
+              turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
+              statusFilter: "ativas",
+              startDate: selectedPeriod !== "all" ?
+                new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
+                undefined
+            }}
+          />
         )}
       </div>
     </BaseLayout>
