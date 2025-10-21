@@ -94,7 +94,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
     setSelectedLesson(null);
   };
 
-  // If a lesson is selected, show detailed view
+  // If a lesson is selected, show quiz cards view
   if (selectedLesson) {
     const lessonWithQuizzes = lessonQuizzes.find(l => l.id === selectedLesson.id);
     
@@ -138,7 +138,7 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
           </Button>
         </div>
 
-        {/* Quizzes for selected lesson */}
+        {/* Quiz Cards Grid */}
         <div>
           {!lessonWithQuizzes || lessonWithQuizzes.quizzes.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
@@ -147,73 +147,69 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
               <p className="text-sm">Clique em "Nova Pergunta" ou "Quiz Completo" para começar</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lessonWithQuizzes.quizzes.map((quiz) => (
-                <Card key={quiz.name} className="border-l-4 border-l-primary">
+                <Card 
+                  key={quiz.name} 
+                  className="hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-primary group"
+                >
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{quiz.name}</h4>
-                        <Badge variant="outline" className="mt-1">
-                          {quiz.questions.length} pergunta{quiz.questions.length !== 1 ? 's' : ''}
-                        </Badge>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          {quiz.name}
+                        </h4>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Badge variant="default">
+                            {quiz.questions.length} pergunta{quiz.questions.length !== 1 ? 's' : ''}
+                          </Badge>
+                          {quiz.questions.some((q: any) => q.status === 'ativo') && (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                              Ativo
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingQuiz({ name: quiz.name, questions: quiz.questions })}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Editar Quiz
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name })}
-                          className="flex items-center gap-2"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Duplicar
-                        </Button>
-                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                   </CardHeader>
                   
                   <CardContent>
                     <div className="space-y-3">
-                      {quiz.questions.map((question: any, index: number) => (
-                        <div key={question.id} className="flex justify-between items-start p-3 bg-muted rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-muted-foreground">
-                                Pergunta {index + 1}
-                              </span>
-                              <Badge variant={question.question_type === 'essay' ? 'default' : 'secondary'} className="text-xs">
-                                {question.question_type === 'essay' ? 'Dissertativa' : 'Múltipla Escolha'}
-                              </Badge>
-                            </div>
-                            <p className="text-sm">{question.question}</p>
+                      {/* Preview first 2 questions */}
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        {quiz.questions.slice(0, 2).map((question: any, index: number) => (
+                          <div key={question.id} className="truncate">
+                            {index + 1}. {question.question}
                           </div>
-                          <div className="flex gap-1 ml-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingQuestion(question)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(question.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                        ))}
+                        {quiz.questions.length > 2 && (
+                          <div className="text-xs">
+                            ... e mais {quiz.questions.length - 2} pergunta{quiz.questions.length - 2 !== 1 ? 's' : ''}
                           </div>
-                        </div>
-                      ))}
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 pt-3">
+                        <Button
+                          onClick={() => setEditingQuiz({ name: quiz.name, questions: quiz.questions })}
+                          className="flex-1"
+                          variant="default"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Ver/Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name });
+                          }}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
