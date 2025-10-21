@@ -103,6 +103,26 @@ export const useQuiz = (context?: QuizContext) => {
     },
   });
 
+  // Deletar quiz completo (todas perguntas com mesmo quiz_name)
+  const deleteQuiz = useMutation({
+    mutationFn: async ({ quizName, turmaId }: { quizName: string; turmaId?: string }) => {
+      let query = supabase
+        .from("quiz")
+        .delete()
+        .eq("quiz_name", quizName);
+
+      if (turmaId) {
+        query = query.eq("turma_id", turmaId);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quiz-questions"] });
+    },
+  });
+
   return {
     data,
     isLoading,
@@ -110,6 +130,7 @@ export const useQuiz = (context?: QuizContext) => {
     createQuestion,
     updateQuestion,
     deleteQuestion,
+    deleteQuiz,
   };
 };
 

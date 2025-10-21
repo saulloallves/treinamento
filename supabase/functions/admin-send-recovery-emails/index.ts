@@ -30,10 +30,13 @@ Deno.serve(async (req) => {
     
     console.log(`📧 Sending recovery emails with redirect URL: ${recoveryRedirectUrl}`)
     
-    const results = {
-      success: [],
-      failed: []
-    }
+  const results: {
+    success: string[];
+    failed: Array<{ email: string; error: string }>;
+  } = {
+    success: [],
+    failed: []
+  }
 
     for (const email of emails) {
       await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY))

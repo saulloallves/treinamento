@@ -42,7 +42,7 @@ const EditFullQuizDialog = ({
   lessonTitle
 }: EditFullQuizDialogProps) => {
   const { toast } = useToast();
-  const { updateQuestion, deleteQuestion } = useQuiz();
+  const { updateQuestion, deleteQuestion, deleteQuiz } = useQuiz();
   
   const [quizName, setQuizName] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -176,6 +176,36 @@ const EditFullQuizDialog = ({
     }
   };
 
+  const handleDeleteQuiz = async () => {
+    if (!quiz || !quiz.name) return;
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir o quiz "${quiz.name}" e todas as ${quiz.questions.length} perguntas?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteQuiz.mutateAsync({
+        quizName: quiz.name,
+        turmaId: turmaId,
+      });
+      
+      toast({
+        title: "Quiz excluído",
+        description: "O quiz e todas as suas perguntas foram excluídos com sucesso.",
+      });
+      
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir o quiz.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!quiz) return null;
 
   const firstQuestion = quiz.questions[0];
@@ -218,6 +248,16 @@ const EditFullQuizDialog = ({
                       {updateQuestion.isPending ? "Salvando..." : "Salvar Nome"}
                     </Button>
                   </div>
+
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteQuiz}
+                    disabled={deleteQuiz.isPending}
+                    className="w-full mt-2"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    {deleteQuiz.isPending ? "Excluindo..." : "Excluir Quiz Completo"}
+                  </Button>
 
                   {turmaName && courseName && lessonTitle && (
                     <div className="text-sm text-muted-foreground">

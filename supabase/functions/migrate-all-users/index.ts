@@ -48,11 +48,15 @@ Deno.serve(async (req) => {
 
     // Importar usuários em batches de 50
     const batchSize = 50
-    const importResults = {
-      success: [],
-      failed: [],
-      skipped: []
-    }
+  const importResults: {
+    success: Array<{ email: string; user_id: string }>;
+    failed: Array<{ email: string; error: string }>;
+    skipped: Array<{ email: string; reason: string }>;
+  } = {
+    success: [],
+    failed: [],
+    skipped: []
+  }
 
     for (let i = 0; i < usersToMigrate.length; i += batchSize) {
       const batch = usersToMigrate.slice(i, i + batchSize)

@@ -133,7 +133,7 @@ Agora é só acessar a plataforma, fazer login e aproveitar todo o conteúdo que
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message || 'Erro interno do servidor' 
+        error: error instanceof Error ? error.message : 'Erro interno do servidor' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );

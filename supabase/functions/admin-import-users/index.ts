@@ -34,11 +34,15 @@ Deno.serve(async (req) => {
   try {
     const { users } = await req.json() as { users: UserToMigrate[] }
     
-    const results = {
-      success: [],
-      failed: [],
-      skipped: []
-    }
+  const results: {
+    success: Array<{ email: string; user_id: string }>;
+    failed: Array<{ email: string; error: string }>;
+    skipped: Array<{ email: string; reason: string }>;
+  } = {
+    success: [],
+    failed: [],
+    skipped: []
+  }
 
     for (const user of users) {
       await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY))
