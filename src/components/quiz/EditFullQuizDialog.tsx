@@ -249,15 +249,17 @@ const EditFullQuizDialog = ({
                     </Button>
                   </div>
 
-                  <Button
-                    variant="destructive"
-                    onClick={handleDeleteQuiz}
-                    disabled={deleteQuiz.isPending}
-                    className="w-full mt-2"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {deleteQuiz.isPending ? "Excluindo..." : "Excluir Quiz Completo"}
-                  </Button>
+                  <div className="flex justify-end mt-4 pt-4 border-t border-border">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDeleteQuiz}
+                      disabled={deleteQuiz.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {deleteQuiz.isPending ? "Excluindo..." : "Excluir Quiz Completo"}
+                    </Button>
+                  </div>
 
                   {turmaName && courseName && lessonTitle && (
                     <div className="text-sm text-muted-foreground">
