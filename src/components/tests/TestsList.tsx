@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Users, FileText, Plus } from "lucide-react";
+import { Users, FileText, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTests } from "@/hooks/useTests";
 import { ManageTestDialog } from "./ManageTestDialog";
 import { TestResultsDialog } from "./TestResultsDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface TestsListProps {
   refreshTrigger: number;
@@ -14,7 +15,8 @@ interface TestsListProps {
 }
 
 export const TestsList = ({ refreshTrigger, onCreateTest, customTests }: TestsListProps) => {
-  const { data: allTests, isLoading } = useTests();
+  const { data: allTests, isLoading, deleteTest } = useTests();
+  const { toast } = useToast();
   
   // Use custom tests if provided, otherwise use all tests
   const tests = customTests || allTests;
@@ -33,11 +35,35 @@ export const TestsList = ({ refreshTrigger, onCreateTest, customTests }: TestsLi
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const handleDeleteTest = async (testId: string, testName: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir o teste "${testName}"? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteTest(testId);
+      
+      toast({
+        title: "Teste excluído",
+        description: "O teste foi excluído com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir o teste.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleTestClick = (testId: string, event: React.MouseEvent) => {
-    // Prevent event if clicking on results button
-    if ((event.target as HTMLElement).closest('[data-results-button]')) {
-      setSelectedTestId(testId);
-      setResultsDialogOpen(true);
+    // Prevent event if clicking on results button or delete button
+    if ((event.target as HTMLElement).closest('[data-results-button]') ||
+        (event.target as HTMLElement).closest('[data-delete-button]')) {
       return;
     }
     
@@ -92,9 +118,20 @@ export const TestsList = ({ refreshTrigger, onCreateTest, customTests }: TestsLi
           >
             <CardHeader className="pb-3">
               <div className="space-y-1">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg line-clamp-2">{test.name}</CardTitle>
-                  {getStatusBadge(test.status)}
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-2 flex-1">{test.name}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(test.status)}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      data-delete-button="true"
+                      onClick={(e) => handleDeleteTest(test.id, test.name, e)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription className="line-clamp-2">
                   {test.description || "Clique para gerenciar este teste"}
