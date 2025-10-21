@@ -12,6 +12,8 @@ import CreateMultipleQuestionsDialog from "./CreateMultipleQuestionsDialog";
 import EditQuizDialog from "./EditQuizDialog";
 import EditFullQuizDialog from "./EditFullQuizDialog";
 import DuplicateQuizDialog from "./DuplicateQuizDialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface LessonQuizManagerProps {
   turma: Turma & {
@@ -26,7 +28,7 @@ interface LessonQuizManagerProps {
 const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
   const { toast } = useToast();
   const { data: lessons = [] } = useLessonsByCourse(turma.course_id);
-  const { data: quizQuestions = [], deleteQuestion } = useQuiz({ turmaId: turma.id });
+  const { data: quizQuestions = [], deleteQuestion, updateQuizStatus } = useQuiz({ turmaId: turma.id });
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateMultipleDialogOpen, setIsCreateMultipleDialogOpen] = useState(false);
@@ -94,6 +96,19 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
     setSelectedLesson(null);
   };
 
+  const handleStatusChange = (quiz: any, checked: boolean) => {
+    const newStatus = checked ? 'ativo' : 'rascunho';
+    const firstQuestion = quiz.questions[0];
+    if (!firstQuestion) return;
+
+    updateQuizStatus.mutate({
+      quizName: quiz.name,
+      lessonId: firstQuestion.lesson_id,
+      turmaId: firstQuestion.turma_id,
+      status: newStatus,
+    });
+  };
+
   // If a lesson is selected, show detailed view
   if (selectedLesson) {
     const lessonWithQuizzes = lessonQuizzes.find(l => l.id === selectedLesson.id);
@@ -158,25 +173,38 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
                           {quiz.questions.length} pergunta{quiz.questions.length !== 1 ? 's' : ''}
                         </Badge>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingQuiz({ name: quiz.name, questions: quiz.questions })}
-                          className="flex items-center gap-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          Editar Quiz
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name })}
-                          className="flex items-center gap-2"
-                        >
-                          <Copy className="w-4 h-4" />
-                          Duplicar
-                        </Button>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id={`status-${quiz.name}`}
+                            checked={quiz.questions[0]?.status === 'ativo'}
+                            onCheckedChange={(checked) => handleStatusChange(quiz, checked)}
+                            disabled={updateQuizStatus.isPending}
+                          />
+                          <Label htmlFor={`status-${quiz.name}`}>
+                            {quiz.questions[0]?.status === 'ativo' ? 'Ativo' : 'Rascunho'}
+                          </Label>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingQuiz({ name: quiz.name, questions: quiz.questions })}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Editar Quiz
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDuplicatingQuiz({ questions: quiz.questions, quizName: quiz.name })}
+                            className="flex items-center gap-2"
+                          >
+                            <Copy className="w-4 h-4" />
+                            Duplicar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>

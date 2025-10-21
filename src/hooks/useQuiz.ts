@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface QuizContext {
   courseId?: string;
@@ -103,6 +104,35 @@ export const useQuiz = (context?: QuizContext) => {
     },
   });
 
+  // Atualizar status de um quiz inteiro (todas as perguntas)
+  const updateQuizStatus = useMutation({
+    mutationFn: async ({ quizName, lessonId, turmaId, status }: { quizName: string; lessonId: string; turmaId: string | null; status: string }) => {
+      let query = supabase
+        .from('quiz')
+        .update({ status })
+        .eq('quiz_name', quizName)
+        .eq('lesson_id', lessonId);
+
+      if (turmaId) {
+        query = query.eq('turma_id', turmaId);
+      } else {
+        query = query.is('turma_id', null);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["quiz-questions"] });
+      toast.success(`Quiz ${variables.status === 'ativo' ? 'ativado' : 'desativado'} com sucesso!`);
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar status do quiz", {
+        description: error.message,
+      });
+    }
+  });
+
   return {
     data,
     isLoading,
@@ -110,6 +140,7 @@ export const useQuiz = (context?: QuizContext) => {
     createQuestion,
     updateQuestion,
     deleteQuestion,
+    updateQuizStatus,
   };
 };
 
