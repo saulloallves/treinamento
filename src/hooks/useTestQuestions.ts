@@ -107,7 +107,7 @@ export const useTestQuestions = (testId?: string | null) => {
       ...updates 
     }: { id: string; options?: TestQuestionOption[] } & Partial<TestQuestion>) => {
       
-      // If changing to essay, delete all associated options first.
+      // If the question type is being changed to 'essay', we must delete all associated options.
       if (updates.question_type === 'essay') {
         const { error: deleteError } = await supabase
           .from("test_question_options")
@@ -115,15 +115,15 @@ export const useTestQuestions = (testId?: string | null) => {
           .eq("question_id", id);
         if (deleteError) throw deleteError;
       } 
-      // Only update options if it's a multiple choice question and options are provided.
+      // If options are provided and it's not an essay question, update/replace them.
       else if (options && updates.question_type !== 'essay') { 
-        // Delete existing options
+        // Delete existing options to ensure a clean slate
         await supabase
           .from("test_question_options")
           .delete()
           .eq("question_id", id);
 
-        // Insert new options
+        // Insert new/updated options
         if (options.length > 0) {
           const optionsToInsert = options.map(option => ({
             question_id: id,
@@ -140,7 +140,7 @@ export const useTestQuestions = (testId?: string | null) => {
         }
       }
 
-      // Update the question only if there are other updates
+      // Update the question itself if there are other updates
       if (Object.keys(updates).length > 0) {
         const { data, error } = await supabase
           .from("test_questions")
@@ -153,7 +153,7 @@ export const useTestQuestions = (testId?: string | null) => {
         return data;
       }
 
-      // If only updating options, return the question data
+      // If only options were updated, we still need to return the question data
       const { data: questionData, error: questionError } = await supabase
         .from("test_questions")
         .select()
