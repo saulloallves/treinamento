@@ -594,17 +594,19 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className="h-full flex flex-col border-r border-border shadow-xl">
             {/* Header da sidebar */}
             <div className="p-6 border-b border-border mt-16">
-              <div className="flex items-center gap-2">
-                <img 
-                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
-                  alt="Mascote Cresci e Perdi" 
-                  className="h-8 w-auto object-contain"
-                />
-                <div>
-                  <h1 className="text-base font-semibold text-foreground">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center shrink-0 w-10 h-10">
+                  <img 
+                    src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                    alt="Mascote Cresci e Perdi" 
+                    className="w-9 h-9 object-contain"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-base font-semibold text-foreground leading-tight">
                     Cresci e Perdi
                   </h1>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-tight mt-0.5">
                     Sistema de Treinamentos
                   </p>
                 </div>
@@ -655,20 +657,22 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-border shadow-sm`}
       >
         {/* Header da sidebar */}
-        <div className="pt-3 pb-3 border-b border-border relative">
-          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-            <div className={`flex items-center gap-2 ${isCollapsed ? '' : 'flex-1'}`}>
-              <img 
-                src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
-                alt="Mascote Cresci e Perdi" 
-                className={`object-contain transition-all duration-300 ${isCollapsed ? 'h-9' : 'h-8'}`}
-              />
+        <div className={`pt-4 pb-4 border-b border-border relative transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-4'}`}>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between gap-3'}`}>
+            <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'gap-0' : 'gap-3 flex-1'}`}>
+              <div className={`flex items-center justify-center shrink-0 transition-all duration-300 ${isCollapsed ? 'w-10 h-10' : 'w-10 h-10'}`}>
+                <img 
+                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  alt="Mascote Cresci e Perdi" 
+                  className="w-9 h-9 object-contain"
+                />
+              </div>
               {!isCollapsed && (
-                <div className="flex-1">
-                  <h1 className="text-base font-semibold text-foreground">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-base font-semibold text-foreground leading-tight">
                     Cresci e Perdi
                   </h1>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-tight mt-0.5">
                     Sistema de Treinamentos
                   </p>
                 </div>
@@ -680,7 +684,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
               variant="ghost"
               size="icon"
               onClick={toggleCollapsed}
-              className={`h-8 w-8 hover:bg-muted transition-colors flex-shrink-0 ${
+              className={`h-8 w-8 hover:bg-muted transition-all duration-300 flex-shrink-0 ${
                 isCollapsed ? 'absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-md border border-border rounded-full' : ''
               }`}
             >
