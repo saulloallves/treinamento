@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EvaluationReports } from "@/components/reports/EvaluationReports";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useCourses } from "@/hooks/useCourses";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const ReportsPage = () => {
   const [selectedTurma, setSelectedTurma] = useState<string>("all");
@@ -15,6 +16,19 @@ const ReportsPage = () => {
   
   const { data: turmas } = useTurmas();
   const { data: courses } = useCourses();
+  const { profile } = useProfile();
+
+  const isFranchisee = profile?.role === 'Franqueado';
+  const franchiseeUnitCode = isFranchisee ? profile?.unit_code : undefined;
+
+  const filters = {
+    turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
+    courseId: selectedCourse !== "all" ? selectedCourse : undefined,
+    unitCode: franchiseeUnitCode,
+    startDate: selectedPeriod !== "all" ?
+      new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
+      undefined
+  };
 
   return (
     <BaseLayout title="Relatórios de Avaliações">
@@ -107,28 +121,11 @@ const ReportsPage = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <EvaluationReports 
-              filters={{
-                turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
-                courseId: selectedCourse !== "all" ? selectedCourse : undefined,
-                startDate: selectedPeriod !== "all" ?
-                  new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
-                  undefined
-              }}
-            />
+            <EvaluationReports filters={filters} />
           </TabsContent>
 
           <TabsContent value="detailed">
-            <EvaluationReports 
-              detailed={true}
-              filters={{
-                turmaId: selectedTurma !== "all" ? selectedTurma : undefined,
-                courseId: selectedCourse !== "all" ? selectedCourse : undefined,
-                startDate: selectedPeriod !== "all" ?
-                  new Date(Date.now() - parseInt(selectedPeriod) * 24 * 60 * 60 * 1000).toISOString() : 
-                  undefined
-              }}
-            />
+            <EvaluationReports detailed={true} filters={filters} />
           </TabsContent>
         </Tabs>
       </div>
