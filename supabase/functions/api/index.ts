@@ -17,7 +17,9 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Client for admin operations (bypasses RLS)
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
+  db: { schema: 'treinamento' }
+})
 
 // Utility function to verify JWT
 async function verifyAuth(request: Request) {

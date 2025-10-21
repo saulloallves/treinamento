@@ -14,7 +14,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseKey, {
+      db: { schema: 'treinamento' }
+    });
 
     const { phone } = await req.json();
 
@@ -31,7 +33,7 @@ serve(async (req) => {
     console.log('Buscando usuário com telefone:', cleanPhone);
 
     // Buscar usuário pelo telefone
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await supabaseTreinamento
       .from('users')
       .select('id, name, email, visible_password, phone')
       .eq('phone', cleanPhone)

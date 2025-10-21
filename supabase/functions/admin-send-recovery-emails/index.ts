@@ -17,9 +17,12 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const supabaseAdmin = createClient(
+  const supabaseTreinamento = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    {
+      db: { schema: 'treinamento' }
+    }
   )
 
   try {
@@ -40,7 +43,7 @@ Deno.serve(async (req) => {
       
       try {
         // Disparar email de recovery com redirectTo customizado
-        const { data, error: recoveryError } = await supabaseAdmin.auth.admin.generateLink({
+        const { data, error: recoveryError } = await supabaseTreinamento.auth.admin.generateLink({
           type: 'recovery',
           email: email,
           options: {

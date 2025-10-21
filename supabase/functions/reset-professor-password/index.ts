@@ -33,7 +33,9 @@ serve(async (req) => {
   const supabaseUser = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
   });
-  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: 'treinamento' }
+  });
 
   try {
     const { data: authData } = await supabaseUser.auth.getUser();
@@ -44,9 +46,7 @@ serve(async (req) => {
       });
     }
 
-    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("treinamento.is_admin", {
-      _user: authData.user.id,
-    });
+    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("is_admin");
 
     if (isAdminError) {
       console.error("[reset-professor-password] is_admin RPC error:", isAdminError);
@@ -75,17 +75,9 @@ serve(async (req) => {
 
     console.log("[reset-professor-password] Resetting password for:", professorId);
 
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(professorId, {
+    const { error: updateError } = await supabaseTreinamento.auth.admin.updateUserById(professorId, {
       password: newPassword,
     });
-
-    if (!updateError) {
-      // Update visible password in users table - ⚠️ RISCO DE SEGURANÇA
-      await supabaseAdmin
-        .from('users')
-        .update({ visible_password: newPassword })
-        .eq('id', professorId);
-    }
 
     if (updateError) {
       console.error("[reset-professor-password] updateError:", updateError);

@@ -12,9 +12,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     )
 
     const now = new Date().toISOString()
@@ -22,7 +25,7 @@ Deno.serve(async (req) => {
     console.log(`Running turmas window keeper at ${now}`)
 
     // 1) Open enrollments for scheduled turmas
-    const { error: openError } = await supabase.rpc('advance_turmas_open', { 
+    const { error: openError } = await supabaseTreinamento.rpc('advance_turmas_open', { 
       p_now: now 
     })
     
@@ -33,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     // 2) Close enrollments for turmas past deadline
-    const { error: closeError } = await supabase.rpc('advance_turmas_close', { 
+    const { error: closeError } = await supabaseTreinamento.rpc('advance_turmas_close', { 
       p_now: now 
     })
     

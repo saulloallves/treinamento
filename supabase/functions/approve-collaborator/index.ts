@@ -38,10 +38,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
+      db: { schema: 'treinamento' }
+    })
 
     // Find approval by token
-    const { data: approval, error: approvalError } = await supabase
+    const { data: approval, error: approvalError } = await supabaseTreinamento
       .from('collaboration_approvals')
       .select(`
         id,
@@ -86,7 +88,7 @@ serve(async (req) => {
     }
 
     // Call the approve_collaborator function
-    const { error: processError } = await supabase
+    const { error: processError } = await supabaseTreinamento
       .rpc('approve_collaborator', { 
         _approval_id: approval.id, 
         _approve: approve 
@@ -102,7 +104,7 @@ serve(async (req) => {
       console.log('Colaborador aprovado, verificando grupo do WhatsApp...')
       
       // Buscar dados do colaborador e unidade
-      const { data: collaboratorData, error: collaboratorError } = await supabase
+      const { data: collaboratorData, error: collaboratorError } = await supabaseTreinamento
         .from('users')
         .select('id, unit_code, phone, name')
         .eq('id', approval.collaborator_id)
@@ -115,7 +117,7 @@ serve(async (req) => {
 
         // Buscar dados da unidade
         const unitCodeNumber = parseInt(collaboratorData.unit_code, 10)
-        const { data: unidadeData, error: unidadeError } = await supabase
+        const { data: unidadeData, error: unidadeError } = await supabaseTreinamento
           .from('unidades')
           .select('codigo_grupo, grupo, grupo_colaborador')
           .eq('codigo_grupo', unitCodeNumber)
@@ -133,7 +135,7 @@ serve(async (req) => {
           // Se grupo não existe, criar
           if (!grupoColaborador) {
             console.log('Grupo não existe, criando...')
-            const { data: groupData, error: groupError } = await supabase.functions.invoke(
+            const { data: groupData, error: groupError } = await supabaseTreinamento.functions.invoke(
               'create-collaborator-group',
               {
                 body: {
@@ -161,7 +163,7 @@ serve(async (req) => {
             // Aguardar 2 segundos antes de adicionar
             await new Promise(resolve => setTimeout(resolve, 2000))
             
-            const { error: addError } = await supabase.functions.invoke(
+            const { error: addError } = await supabaseTreinamento.functions.invoke(
               'add-collaborator-to-group',
               {
                 body: {

@@ -24,15 +24,16 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     // Cliente com service role para operações administrativas
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
-      }
+      },
+      db: { schema: 'treinamento' }
     });
 
     // Buscar todas as unidades com email
-    const { data: unidades, error: unidadesError } = await supabaseAdmin
+    const { data: unidades, error: unidadesError } = await supabaseTreinamento
       .from("unidades")
       .select("id, grupo, codigo_grupo, email")
       .not("email", "is", null)
@@ -116,13 +117,12 @@ const handler = async (req: Request): Promise<Response> => {
             role: "Franqueado",
             user_type: "Aluno", // Tipo de usuário como Aluno
             approval_status: "aprovado",
-            visible_password: defaultPassword, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
             approved_at: new Date().toISOString()
           });
 
         if (userError) {
           // Se falhar ao criar na tabela users, remover do auth
-          await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+          await supabaseTreinamento.auth.admin.deleteUser(authUser.user.id);
           result.error = `Erro ao criar perfil: ${userError.message}`;
           results.push(result);
           continue;

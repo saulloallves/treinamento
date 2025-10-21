@@ -66,13 +66,15 @@ serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, serviceKey)
+    const supabaseTreinamento = createClient(supabaseUrl, serviceKey, {
+      db: { schema: 'treinamento' }
+    })
 
     let finalCourseId = course_id as string | undefined
 
     // Resolve course by name if needed
     if (!finalCourseId && course_name) {
-      const { data: course, error: courseErr } = await supabase
+      const { data: course, error: courseErr } = await supabaseTreinamento
         .from('courses')
         .select('id, name')
         .ilike('name', course_name)
@@ -89,7 +91,7 @@ serve(async (req: Request) => {
     }
 
     // Prevent duplicate enrollment for same email+course
-    const { data: existing } = await supabase
+    const { data: existing } = await supabaseTreinamento
       .from('enrollments')
       .select('id')
       .eq('student_email', student_email)
@@ -100,7 +102,7 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ ok: true, duplicated: true, enrollment_id: existing.id, course_id: finalCourseId }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { data: inserted, error } = await supabase
+    const { data: inserted, error } = await supabaseTreinamento
       .from('enrollments')
       .insert([{
         course_id: finalCourseId,

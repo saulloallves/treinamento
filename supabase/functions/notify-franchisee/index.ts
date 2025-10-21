@@ -29,10 +29,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
+      db: { schema: 'treinamento' }
+    })
 
     // Find franchisee for this unit
-    const { data: franchisee, error: franchiseeError } = await supabase
+    const { data: franchisee, error: franchiseeError } = await supabaseTreinamento
       .rpc('find_franchisee_by_unit_code', { _unit_code: unitCode })
 
     if (franchiseeError) {
@@ -55,7 +57,7 @@ serve(async (req) => {
     }
 
     // Get franchisee details
-    const { data: franchiseeData, error: franchiseeDataError } = await supabase
+    const { data: franchiseeData, error: franchiseeDataError } = await supabaseTreinamento
       .from('users')
       .select('name, phone')
       .eq('id', franchisee)
@@ -67,7 +69,7 @@ serve(async (req) => {
     }
 
     // Create approval record
-    const { data: approval, error: approvalError } = await supabase
+    const { data: approval, error: approvalError } = await supabaseTreinamento
       .from('collaboration_approvals')
       .insert({
         collaborator_id: collaboratorId,
@@ -121,7 +123,7 @@ serve(async (req) => {
       console.log('ZAPI response:', zapiResult)
 
       // Update notification sent status
-      await supabase
+      await supabaseTreinamento
         .from('collaboration_approvals')
         .update({ notification_sent: true })
         .eq('id', approval.id)

@@ -114,7 +114,6 @@ Deno.serve(async (req) => {
       phone: cleanPhone || null,
       cpf: collaboratorData.cpf || null,
       approval_status: 'pendente',
-      visible_password: collaboratorData.password,
       active: true
     });
     if (userError) throw userError;

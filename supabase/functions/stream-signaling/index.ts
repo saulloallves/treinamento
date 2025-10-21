@@ -20,9 +20,12 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     );
 
     const { message } = await req.json() as { message: StreamMessage };
@@ -32,26 +35,26 @@ serve(async (req) => {
     // Handle different message types
     switch (message.type) {
       case 'join':
-        await handleJoinRoom(supabaseClient, message);
+        await handleJoinRoom(supabaseTreinamento, message);
         break;
       
       case 'leave':
-        await handleLeaveRoom(supabaseClient, message);
+        await handleLeaveRoom(supabaseTreinamento, message);
         break;
       
       case 'offer':
       case 'answer':
       case 'ice-candidate':
-        await relaySignalingMessage(supabaseClient, message);
+        await relaySignalingMessage(supabaseTreinamento, message);
         break;
       
       case 'toggle-audio':
       case 'toggle-video':
-        await updateParticipantStatus(supabaseClient, message);
+        await updateParticipantStatus(supabaseTreinamento, message);
         break;
       
       case 'chat':
-        await handleChatMessage(supabaseClient, message);
+        await handleChatMessage(supabaseTreinamento, message);
         break;
       
       default:

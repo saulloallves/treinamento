@@ -23,15 +23,16 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
-      }
+      },
+      db: { schema: 'treinamento' }
     });
 
     // Buscar todas as unidades com email
-    const { data: unidades, error: unidadesError } = await supabaseAdmin
+    const { data: unidades, error: unidadesError } = await supabaseTreinamento
       .from("unidades")
       .select("id, grupo, email")
       .not("email", "is", null)

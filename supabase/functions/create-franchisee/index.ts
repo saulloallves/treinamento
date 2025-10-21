@@ -20,9 +20,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     )
 
     const { email, name, phone, password, unitCode, unitName }: FranchiseeData = await req.json()
@@ -32,7 +35,7 @@ Deno.serve(async (req) => {
     const firstUnitCode = unitCodes[0]; // Para compatibilidade com unit_code antigo
 
     // Verificar se já existe usuário com este email
-    const { data: existingUser } = await supabaseAdmin
+    const { data: existingUser } = await supabaseTreinamento
       .from('users')
       .select('id, email, role')
       .eq('email', email)
@@ -101,7 +104,6 @@ Deno.serve(async (req) => {
         role: 'Franqueado',
         user_type: 'Aluno',
         approval_status: 'aprovado',
-        visible_password: password,
         approved_at: new Date().toISOString()
       })
 

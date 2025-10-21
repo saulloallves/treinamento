@@ -26,9 +26,12 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const supabaseAdmin = createClient(
+  const supabaseTreinamento = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    {
+      db: { schema: 'treinamento' }
+    }
   )
 
   try {
@@ -45,7 +48,7 @@ Deno.serve(async (req) => {
       
       try {
         // Criar usuário com email confirmado, SEM disparar email
-        const { data: createdUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: createdUser, error: createError } = await supabaseTreinamento.auth.admin.createUser({
           email: user.email,
           email_confirm: true, // CONFIRMA EMAIL MAS NÃO ENVIA
           user_metadata: user.user_metadata || {},

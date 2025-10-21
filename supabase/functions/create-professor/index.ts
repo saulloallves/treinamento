@@ -40,7 +40,9 @@ serve(async (req) => {
   });
 
   // Admin client (service role) for privileged operations
-  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: 'treinamento' }
+  });
 
   try {
     const { data: authData } = await supabaseUser.auth.getUser();
@@ -52,9 +54,7 @@ serve(async (req) => {
     }
 
     // Ensure caller is admin
-    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("treinamento.is_admin", {
-      _user: authData.user.id,
-    });
+    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("is_admin");
 
     if (isAdminError) {
       console.error("is_admin RPC error:", isAdminError);
@@ -121,14 +121,13 @@ serve(async (req) => {
         profile = existingProfile;
       } else {
         // Atualiza o perfil existente para Professor
-        const { data: updatedProfile, error: updateErr } = await supabaseAdmin
+        const { data: updatedProfile, error: updateErr } = await supabaseTreinamento
           .from("users")
           .update({
             name,
             phone,
             position,
             user_type: "Professor",
-            visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
             active: true,
             updated_at: new Date().toISOString(),
           })
@@ -191,7 +190,7 @@ serve(async (req) => {
       }
 
       // Inserir perfil em treinamento.users
-      const { data: insertedProfile, error: profileError } = await supabaseAdmin
+      const { data: insertedProfile, error: profileError } = await supabaseTreinamento
         .from("users")
         .insert({
           id: authUserId,
@@ -200,7 +199,6 @@ serve(async (req) => {
           phone,
           position,
           user_type: "Professor",
-          visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
           active: true,
         })
         .select()
@@ -209,14 +207,13 @@ serve(async (req) => {
       if (profileError) {
         console.error("[create-professor] profile insert error:", profileError);
         // Se já existir, tenta atualizar (idempotência)
-        const { data: updatedProfile, error: updateErr2 } = await supabaseAdmin
+        const { data: updatedProfile, error: updateErr2 } = await supabaseTreinamento
           .from("users")
           .update({ 
             name, 
             phone, 
             position, 
             user_type: "Professor", 
-            visible_password: password, // ⚠️ RISCO DE SEGURANÇA: Senha em texto plano
             active: true, 
             updated_at: new Date().toISOString() 
           })

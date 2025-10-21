@@ -31,25 +31,26 @@ serve(async (req) => {
     // --- Autenticação ---
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
     const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: req.headers.get('Authorization')! } },
+      db: { schema: 'treinamento' }
     });
     const { data: { user } } = await supabaseUser.auth.getUser();
     if (!user) throw new Error("Usuário não autenticado.");
 
-    // --- Conexão com a Matriz ---
-    const MATRIZ_URL = Deno.env.get('MATRIZ_URL');
-    const MATRIZ_SERVICE_KEY = Deno.env.get('MATRIZ_SERVICE_KEY');
-    if (!MATRIZ_URL || !MATRIZ_SERVICE_KEY) {
-      throw new Error('Credenciais da Matriz não configuradas.');
-    }
-    const supabaseMatriz = createClient(MATRIZ_URL, MATRIZ_SERVICE_KEY);
+    // Cliente para o schema 'public' (operações da Matriz)
+    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      db: { schema: 'public' }
+    });
 
     const details: CollaboratorDetails = await req.json();
     console.log('Recebido para atualizar na Matriz:', details);
 
     // --- Lógica de Atualização ---
-    const { error: updateError } = await supabaseMatriz
+    const { error: updateError } = await supabasePublic
       .from('colaboradores_loja')
       .update({
         admission_date: details.admission_date,

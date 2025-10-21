@@ -11,9 +11,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     )
 
     const { email } = await req.json()
@@ -87,8 +90,8 @@ Deno.serve(async (req) => {
       
       targetUser = newUser.user;
       
-      // Create user record with visible password - ⚠️ RISCO DE SEGURANÇA
-      await supabaseAdmin
+      // Create user record
+      await supabaseTreinamento
         .from('users')
         .insert({
           id: targetUser.id,
@@ -96,7 +99,6 @@ Deno.serve(async (req) => {
           email: email,
           user_type: 'Aluno',
           role: 'Franqueado',
-          visible_password: 'Trocar01',
           active: true,
         });
       
@@ -105,21 +107,13 @@ Deno.serve(async (req) => {
     console.log(`Usuário encontrado/criado: ${targetUser.id}`)
 
     // Update user password and confirm email
-    const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    const { data: updatedUser, error: updateError } = await supabaseTreinamento.auth.admin.updateUserById(
       targetUser.id,
       { 
         password: 'Trocar01',
         email_confirm: true
       }
     )
-
-    if (!updateError) {
-      // Update visible password in users table - ⚠️ RISCO DE SEGURANÇA
-      await supabaseAdmin
-        .from('users')
-        .update({ visible_password: 'Trocar01' })
-        .eq('id', targetUser.id);
-    }
 
     if (updateError) {
       console.error('Erro ao atualizar senha:', updateError)

@@ -38,7 +38,9 @@ serve(async (req) => {
   });
 
   // Admin client for privileged operations
-  const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    db: { schema: 'treinamento' }
+  });
 
   try {
     const { data: authData } = await supabaseUser.auth.getUser();
@@ -50,9 +52,7 @@ serve(async (req) => {
     }
 
     // Ensure caller is an approved admin
-    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("treinamento.is_admin", {
-      _user: authData.user.id,
-    });
+    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("is_admin");
 
     if (isAdminError) {
       console.error("[create-admin] is_admin RPC error:", isAdminError);
@@ -82,7 +82,7 @@ serve(async (req) => {
     }
 
     // Check if already exists in users table
-    const { data: existingUser } = await supabaseAdmin
+    const { data: existingUser } = await supabaseTreinamento
       .from("users")
       .select("id, user_type")
       .eq("email", email)
@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // Create or update auth user
     if (!authUserId) {
-      const { data: created, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+      const { data: created, error: createUserError } = await supabaseTreinamento.auth.admin.createUser({
         email,
         password,
         user_metadata: { full_name: name, user_type: "Admin" },
@@ -108,19 +108,19 @@ serve(async (req) => {
       authUserId = created.user.id;
     } else {
       // Ensure password is set for existing auth user
-      const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(authUserId, { password });
+      const { error: updateErr } = await supabaseTreinamento.auth.admin.updateUserById(authUserId, { password });
       if (updateErr) console.warn("[create-admin] updateUserById warning:", updateErr);
     }
 
     // Insert or update in treinamento.users
-    const { data: existingUserRecord, error: existingUserErr } = await supabaseAdmin
+    const { data: existingUserRecord, error: existingUserErr } = await supabaseTreinamento
       .from("users")
       .select("id")
       .eq("id", authUserId!)
       .maybeSingle();
 
     if (existingUserRecord?.id) {
-      const { error: updateUserErr } = await supabaseAdmin
+      const { error: updateUserErr } = await supabaseTreinamento
         .from("users")
         .update({
           name,
@@ -138,7 +138,7 @@ serve(async (req) => {
         );
       }
     } else {
-      const { error: insertUserErr } = await supabaseAdmin
+      const { error: insertUserErr } = await supabaseTreinamento
         .from("users")
         .insert({
           id: authUserId!,
@@ -157,14 +157,14 @@ serve(async (req) => {
     }
 
     // Insert or update admin_users manually
-    const { data: existingAdmin, error: existingAdminErr } = await supabaseAdmin
+    const { data: existingAdmin, error: existingAdminErr } = await supabaseTreinamento
       .from("admin_users")
       .select("id")
       .eq("user_id", authUserId!)
       .maybeSingle();
 
     if (existingAdmin?.id) {
-      const { error: updateAdminErr } = await supabaseAdmin
+      const { error: updateAdminErr } = await supabaseTreinamento
         .from("admin_users")
         .update({
           name,
@@ -183,7 +183,7 @@ serve(async (req) => {
         );
       }
     } else {
-      const { error: insertAdminErr } = await supabaseAdmin
+      const { error: insertAdminErr } = await supabaseTreinamento
         .from("admin_users")
         .insert({
           user_id: authUserId!,

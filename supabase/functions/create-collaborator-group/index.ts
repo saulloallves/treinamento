@@ -24,7 +24,9 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
+      db: { schema: 'treinamento' }
+    })
 
     // Converter unit_code para número se necessário
     const unitCodeNumber = typeof unit_code === 'string' ? parseInt(unit_code, 10) : unit_code;
@@ -32,7 +34,7 @@ serve(async (req) => {
 
     // Verificar se a unidade já tem um grupo de colaboradores
     console.log('Verificando se unidade já tem grupo...');
-    const { data: existingUnit, error: existingUnitError } = await supabase
+    const { data: existingUnit, error: existingUnitError } = await supabaseTreinamento
       .from('unidades')
       .select('grupo_colaborador, grupo, codigo_grupo')
       .eq('codigo_grupo', unitCodeNumber)
@@ -87,7 +89,7 @@ serve(async (req) => {
     }
 
     // Buscar telefone do franqueado para adicionar como participante inicial
-    const { data: franchisee } = await supabase
+    const { data: franchisee } = await supabaseTreinamento
       .from('users')
       .select('phone')
       .eq('unit_code', unit_code)
@@ -244,7 +246,7 @@ serve(async (req) => {
 
     // Buscar e adicionar todos os colaboradores já aprovados da unidade
     console.log('Buscando colaboradores aprovados da unidade...')
-    const { data: approvedCollaborators, error: colabError } = await supabase
+    const { data: approvedCollaborators, error: colabError } = await supabaseTreinamento
       .from('users')
       .select('phone, name')
       .eq('unit_code', unit_code)
@@ -340,7 +342,7 @@ serve(async (req) => {
       // Não lançar erro aqui - grupo já foi criado com sucesso
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseTreinamento
       .from('unidades')
       .update({ grupo_colaborador: groupId })
       .eq('codigo_grupo', unitCodeNumber)

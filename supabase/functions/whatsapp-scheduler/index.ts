@@ -17,7 +17,9 @@ serve(async (req: Request) => {
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
     // Use service role key to bypass RLS for internal processing
-    const supabase = createClient(supabaseUrl, supabaseServiceRole)
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceRole, {
+      db: { schema: 'treinamento' }
+    })
 
     const now = new Date()
     console.log(`WhatsApp Scheduler running at: ${now.toISOString()}`)

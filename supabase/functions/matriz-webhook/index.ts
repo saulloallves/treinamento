@@ -95,20 +95,23 @@ serve(async (req) => {
     }
     // --- End of HMAC Validation ---
 
-    const supabaseAdmin = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     );
 
     console.log(`Processing webhook for table: ${table}`);
 
     // Process data based on the table name
     if (table === 'unidades') {
-      await processarUnidade(supabaseAdmin, record);
+      await processarUnidade(supabaseTreinamento, record);
     } else if (table === 'franqueados') {
-      await processarFranqueado(supabaseAdmin, record);
+      await processarFranqueado(supabaseTreinamento, record);
     } else if (table === 'franqueados_unidades') {
-      await processarVinculo(supabaseAdmin, record);
+      await processarVinculo(supabaseTreinamento, record);
     } else {
       console.log(`No handler for table: ${table}`);
     }

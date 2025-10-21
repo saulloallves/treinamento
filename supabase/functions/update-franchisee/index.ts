@@ -19,9 +19,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     )
 
     const { unitCode, email, name, phone, password }: UpdateFranchiseeData = await req.json()
@@ -79,11 +82,10 @@ Deno.serve(async (req) => {
     if (email) userUpdates.email = email
     if (name) userUpdates.name = name
     if (phone) userUpdates.phone = phone
-    if (password) userUpdates.visible_password = password
 
     // Atualizar na tabela users se houver mudanças
     if (Object.keys(userUpdates).length > 0) {
-      const { error: updateUserError } = await supabaseAdmin
+      const { error: updateUserError } = await supabaseTreinamento
         .from('users')
         .update(userUpdates)
         .eq('id', franchisee.id)

@@ -16,9 +16,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseAdmin = createClient(
+    const supabaseTreinamento = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        db: { schema: 'treinamento' }
+      }
     )
 
     const payload = await req.json() as SyncPasswordPayload
@@ -54,7 +57,7 @@ Deno.serve(async (req) => {
     }
 
     // Verificar se o usuário existe no auth
-    const { data: userData, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(user_id)
+    const { data: userData, error: getUserError } = await supabaseTreinamento.auth.admin.getUserById(user_id)
     
     if (getUserError || !userData.user) {
       console.error(`[sync-password] Usuário não encontrado: ${user_id}`, getUserError)
@@ -71,7 +74,7 @@ Deno.serve(async (req) => {
     }
 
     // Atualizar senha no sistema de autenticação
-    const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+    const { error: updateAuthError } = await supabaseTreinamento.auth.admin.updateUserById(user_id, {
       password: new_password
     })
 
