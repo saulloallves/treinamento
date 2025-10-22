@@ -65,6 +65,9 @@ export const auth = supabase.auth;
 // Helper para storage
 export const storage = supabase.storage;
 
+// Helper para funções RPC (sempre usa o cliente principal)
+export const rpc = supabase.rpc;
+
 // Tipos para clientes específicos
 export type SupabaseClientTreinamento = typeof supabase;
 export type SupabaseClientPublic = typeof supabasePublic;

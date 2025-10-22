@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { treinamento, rpc } from "@/integrations/supabase/helpers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,7 @@ const CollaboratorApprovals = () => {
   const { data: pendingApprovals, isLoading } = useQuery({
     queryKey: ["pending-collaborator-approvals"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collaboration_approvals')
+      const { data, error } = await treinamento.collaboration_approvals()
         .select('*, users(name, email)')
         .eq('status', 'pendente')
         .order('created_at', { ascending: false });
@@ -34,7 +33,9 @@ const CollaboratorApprovals = () => {
       if (error) throw error;
 
       return data?.map(approval => {
-        const user = Array.isArray(approval.users) ? approval.users[0] : approval.users;
+        const user = Array.isArray(approval.users) 
+          ? approval.users[0] 
+          : approval.users as { name?: string; email?: string } | null;
         return {
           id: approval.id,
           collaborator_id: approval.collaborator_id,
@@ -43,7 +44,7 @@ const CollaboratorApprovals = () => {
           created_at: approval.created_at,
           collaborator_name: user?.name || 'Nome não informado',
           collaborator_email: user?.email || 'Email não informado'
-        }
+        };
       }) || [];
     },
   });
@@ -51,7 +52,7 @@ const CollaboratorApprovals = () => {
   // Mutation para aprovar/rejeitar colaborador
   const approveCollaboratorMutation = useMutation({
     mutationFn: async ({ approvalId, approve }: { approvalId: string, approve: boolean }) => {
-      const { error } = await supabase.rpc('approve_collaborator', {
+      const { error } = await rpc('approve_collaborator', {
         _approval_id: approvalId,
         _approve: approve
       });
@@ -67,7 +68,7 @@ const CollaboratorApprovals = () => {
           : "O colaborador foi rejeitado e não terá acesso.",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao processar aprovação",
         description: error.message,
