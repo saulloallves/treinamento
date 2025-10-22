@@ -1,6 +1,6 @@
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { treinamento, auth } from '@/integrations/supabase/helpers';
 import { useToast } from '@/hooks/use-toast';
 import { hasLessonFinished, isLessonUpcoming } from '@/lib/dateUtils';
 
@@ -57,8 +57,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
   return useQuery({
     queryKey: ['lessons', filterType],
     queryFn: async () => {
-      const { data: lessons, error } = await supabase
-        .from('lessons')
+      const { data: lessons, error } = await treinamento.lessons()
         .select(`
           *,
           courses (
@@ -91,7 +90,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
       
       if (filterType === 'upcoming') {
         // Show only active lessons with future dates
-        filteredLessons = lessons.filter((lesson: any) => {
+        filteredLessons = lessons.filter((lesson: Lesson & { courses?: { name?: string; tipo?: string; instructor?: string } }) => {
           if (lesson.status !== 'Ativo') return false;
           
           // If no zoom_start_time, don't show in upcoming (should be in archived or need scheduling)
@@ -109,7 +108,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
         });
       } else if (filterType === 'archived') {
         // Show lessons that have passed their scheduled date
-        filteredLessons = lessons.filter((lesson: any) => {
+        filteredLessons = lessons.filter((lesson: Lesson & { courses?: { name?: string; tipo?: string; instructor?: string } }) => {
           // Never archive the streaming lesson
           if (lesson.title === 'Aula inaugural - Streaming') return false;
           
@@ -130,12 +129,12 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
 
       // Enriquecer com professor (preferir sessão -> turma) e suportar múltiplos nomes
       const lessonsWithProfessor = await Promise.all(
-        filteredLessons.map(async (lesson: any) => {
+        filteredLessons.map(async (lesson: Lesson & { lesson_sessions?: any[]; courses?: { instructor?: string } }) => {
           const namesSet = new Map<string, string>();
 
           // 1) Preferir professores das turmas vinculadas via lesson_sessions
           const sessionNames: string[] = (lesson.lesson_sessions || [])
-            .flatMap((s: any) => {
+            .flatMap((s: { turmas?: { responsavel_user?: { name?: string }; responsavel_name?: string } }) => {
               const raw = s?.turmas?.responsavel_user?.name || s?.turmas?.responsavel_name;
               if (!raw) return [] as string[];
               return String(raw).split(/,|\/|\se\s|\s&\s|;|\+/).map((t) => t.trim()).filter(Boolean);
@@ -144,8 +143,7 @@ export const useLessons = (filterType: 'all' | 'upcoming' | 'archived' = 'all') 
 
           // 2) Fallback: se é curso ao vivo, buscar última turma ativa do curso
           if (namesSet.size === 0 && lesson.courses?.tipo === 'ao_vivo' && lesson.course_id) {
-            const { data: turma } = await supabase
-              .from('turmas')
+            const { data: turma } = await treinamento.turmas()
               .select(`
                 responsavel_name,
                 responsavel_user:users!turmas_responsavel_user_id_fkey(id, name)
@@ -188,8 +186,7 @@ export const useCreateLesson = () => {
     mutationFn: async (lessonData: LessonInput) => {
       // Anti-duplicação: verifica se já existe aula com mesmo curso + título (normalizado) + ordem
       const title = (lessonData.title || '').trim();
-      const { data: existing, error: existErr } = await supabase
-        .from('lessons')
+      const { data: existing, error: existErr } = await treinamento.lessons()
         .select('id')
         .eq('course_id', lessonData.course_id)
         .eq('title', title)
@@ -198,9 +195,8 @@ export const useCreateLesson = () => {
       if (existErr) throw existErr;
 
       if (existing?.id) {
-        const { data, error } = await supabase
-          .from('lessons')
-          .update({ ...lessonData, title, created_by: (await supabase.auth.getUser()).data.user?.id })
+        const { data, error } = await treinamento.lessons()
+          .update({ ...lessonData, title, created_by: (await auth.getUser()).data.user?.id })
           .eq('id', existing.id)
           .select()
           .maybeSingle();
@@ -208,9 +204,8 @@ export const useCreateLesson = () => {
         return data;
       }
 
-      const { data, error } = await supabase
-        .from('lessons')
-        .insert([{ ...lessonData, title, created_by: (await supabase.auth.getUser()).data.user?.id }])
+      const { data, error } = await treinamento.lessons()
+        .insert([{ ...lessonData, title, created_by: (await auth.getUser()).data.user?.id }])
         .select()
         .maybeSingle();
       if (error) throw error;
@@ -224,7 +219,7 @@ export const useCreateLesson = () => {
         description: "A nova aula foi adicionada à lista.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao criar aula",
         description: error.message,
@@ -257,16 +252,15 @@ export const useUpdateLesson = () => {
         'attendance_keyword',
       ];
 
-      const payload: Record<string, any> = {};
+      const payload: Record<string, unknown> = {};
       for (const key of allowedKeys) {
         if (key in lessonData) {
-          payload[key as string] = (lessonData as any)[key as string];
+          payload[key as string] = (lessonData as Record<string, unknown>)[key as string];
         }
       }
       payload.updated_at = new Date().toISOString();
 
-      const { data, error } = await supabase
-        .from('lessons')
+      const { data, error } = await treinamento.lessons()
         .update(payload)
         .eq('id', id)
         .select()
@@ -287,7 +281,7 @@ export const useUpdateLesson = () => {
         description: "As alterações foram salvas.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao atualizar aula",
         description: error.message,
@@ -303,9 +297,8 @@ export const useDeleteLesson = () => {
 
   return useMutation({
     mutationFn: async (lessonId: string) => {
-      // Primeiro, deletar todos os registros de attendance relacionados a esta aula
-      const { error: attendanceError } = await supabase
-        .from('attendance')
+      // Primeiro, deletar todos os registros de presença relacionados a esta aula
+      const { error: attendanceError } = await treinamento.attendance()
         .delete()
         .eq('lesson_id', lessonId);
 
@@ -315,8 +308,7 @@ export const useDeleteLesson = () => {
       }
 
       // Segundo, deletar todos os quizzes relacionados a esta aula
-      const { error: quizError } = await supabase
-        .from('quiz')
+      const { error: quizError } = await treinamento.quiz()
         .delete()
         .eq('lesson_id', lessonId);
 
@@ -326,8 +318,7 @@ export const useDeleteLesson = () => {
       }
 
       // Depois, deletar a aula
-      const { error } = await supabase
-        .from('lessons')
+      const { error } = await treinamento.lessons()
         .delete()
         .eq('id', lessonId);
 
@@ -344,7 +335,7 @@ export const useDeleteLesson = () => {
         description: "A aula foi removida da lista.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao excluir aula",
         description: error.message,

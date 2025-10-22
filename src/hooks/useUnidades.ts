@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, supabasePublic } from "@/integrations/supabase/client";
+import { matriz, treinamento } from "@/integrations/supabase/helpers";
 
 export interface Unidade {
   id: string;
@@ -57,12 +57,10 @@ export const useUnidades = () => {
     queryFn: async () => {
       // Buscar unidades e usuários (franqueados e colaboradores) em paralelo
       const [unidadesResult, usersResult] = await Promise.all([
-        supabasePublic // <-- Use o cliente 'public' para buscar unidades
-          .from("unidades")
+        matriz.unidades() // <-- Use o helper matriz para buscar unidades do schema public
           .select("*")
           .order("group_name", { ascending: true }),
-        supabase // <-- Use o cliente padrão ('treinamento') para buscar usuários
-          .from("users")
+        treinamento.users() // <-- Use o helper treinamento para buscar usuários do schema treinamento
           .select("unit_code, unit_codes, role")
           .in("role", ["Franqueado", "Colaborador"])
       ]);
@@ -107,8 +105,7 @@ export const useUnidadeDetails = (id: string) => {
   return useQuery({
     queryKey: ["unidade", id],
     queryFn: async () => {
-      const { data, error } = await supabasePublic // <-- Use o cliente 'public'
-        .from("unidades")
+      const { data, error } = await matriz.unidades() // <-- Use o helper matriz
         .select("*")
         .eq("id", id)
         .single();
@@ -127,8 +124,7 @@ export const useUnidadeCollaborators = (codigo_grupo: number) => {
   return useQuery({
     queryKey: ["unidade-colaborators", codigo_grupo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("users")
+      const { data, error } = await treinamento.users()
         .select("id, name, email, phone, role, approval_status, created_at")
         .eq("unit_code", codigo_grupo.toString())
         .order("created_at", { ascending: false });
@@ -148,8 +144,7 @@ export const useDeleteUnidade = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabasePublic // <-- Use o cliente 'public'
-        .from("unidades")
+      const { error } = await matriz.unidades() // <-- Use o helper matriz
         .delete()
         .eq("id", id);
 
