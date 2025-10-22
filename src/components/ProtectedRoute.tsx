@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     // If there's a stored Supabase session token, wait for rehydration instead of redirecting immediately
     const hasToken = (() => {
       try {
-        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
+        return !!localStorage.getItem('sb-wpuwsocezhlqlqxifpyk-auth-token');
       } catch {
         return false;
       }

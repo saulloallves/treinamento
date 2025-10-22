@@ -1596,7 +1596,7 @@ async function handleZoom(request: Request, path: string[]) {
 
 // OpenAPI spec and Swagger UI
 function generateOpenApiSpec() {
-  const serverUrl = 'https://tctkacgbhqvkqovctrzf.supabase.co/functions/v1/api'
+  const serverUrl = 'https://wpuwsocezhlqlqxifpyk.supabase.co/functions/v1/api'
   return {
     openapi: '3.0.3',
     info: {

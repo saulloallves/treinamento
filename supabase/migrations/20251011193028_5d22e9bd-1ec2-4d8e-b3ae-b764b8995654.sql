@@ -9,7 +9,7 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-      url:='https://tctkacgbhqvkqovctrzf.supabase.co/functions/v1/whatsapp-scheduler',
+      url:='https://wpuwsocezhlqlqxifpyk.supabase.co/functions/v1/whatsapp-scheduler',
       headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdGthY2diaHF2a3FvdmN0cnpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTExNjMsImV4cCI6MjA3MDA2NzE2M30.Knud71onMpgQdAxjl_kyotWjZq2N0g-vsvqpT9lZqy4"}'::jsonb,
       body:=json_build_object('time', now())::jsonb
     ) as request_id;

@@ -310,7 +310,7 @@ serve(async (req) => {
     console.log('Setting group photo...')
     try {
       // Buscar a imagem do storage e converter para base64
-      const imageResponse = await fetch('https://tctkacgbhqvkqovctrzf.supabase.co/storage/v1/object/public/course-covers/grupo-colaborador-avatar.png')
+      const imageResponse = await fetch('https://wpuwsocezhlqlqxifpyk.supabase.co/storage/v1/object/public/course-covers/grupo-colaborador-avatar.png')
       
       if (!imageResponse.ok) {
         throw new Error('Failed to fetch group avatar image')
