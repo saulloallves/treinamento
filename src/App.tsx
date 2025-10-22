@@ -53,6 +53,7 @@ import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
 import MigrationPage from "./pages/MigrationPage";
 import TestEmailPage from "./pages/TestEmailPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
+import { RecoveryPage } from "./pages/auth/callback/recovery";
 import { RecoveryEmailTool } from "./pages/tools/RecoveryEmailTool"; // Import the new tool page
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
@@ -78,7 +79,7 @@ const App = () => (
               <TestFlowProvider>
                 <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/callback/recovery" element={<ResetPasswordPage />} />
+                <Route path="/auth/callback/recovery" element={<RecoveryPage />} />
                 
                 {/* Rota de Ferramentas - Externa e sem layout */}
                 <Route path="/tools/recovery-email" element={<RecoveryEmailTool />} />
