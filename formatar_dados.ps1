@@ -9,9 +9,9 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = $utf8NoBom
 
 # --- CONFIGURAÇÕES ---
-$DESTINO_DB_URL = "postgresql://postgres:usg42RbUUYw1H4xI@db.wpuwsocezhlqlqxifpyk.supabase.co:5432/postgres"
+$DESTINO_DB_URL = "postgresql://postgres:T25zFGcE0kw05B64@db.wpuwsocezhlqlqxifpyk.supabase.co:5432/postgres"
 $SOURCE_APP_SCHEMA = "public"
-$TARGET_APP_SCHEMA = "treinamento"
+$TARGET_APP_SCHEMA = "moderacao_instagram"
 
 # --- CAMINHOS DAS FERRAMENTAS POSTGRESQL ---
 $PG_BIN_PATH = 'C:\Program Files\PostgreSQL\17\bin' # Verifique sua versão!

@@ -9,7 +9,7 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = $utf8NoBom
 
 # --- CONFIGURAÇÕES ---
-$ORIGEM_DB_URL = "postgresql://postgres:MLM5KOkmr7ESq91A@db.tctkacgbhqvkqovctrzf.supabase.co:5432/postgres"
+$ORIGEM_DB_URL = "postgresql://postgres.fcajwhennqhbmuqfpqji:8eMDbjJdCdA3JOFE@aws-1-sa-east-1.pooler.supabase.com:5432/postgres"
 $SOURCE_APP_SCHEMA = "public"
 
 # --- CAMINHOS DAS FERRAMENTAS POSTGRESQL ---
