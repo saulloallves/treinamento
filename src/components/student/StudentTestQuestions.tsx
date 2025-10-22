@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { Clock, CheckCircle, Circle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useTestFlow } from "@/contexts/TestFlowContext";
 
 const StudentTestQuestions = () => {
   const { testId } = useParams<{ testId: string }>();
@@ -24,6 +25,7 @@ const StudentTestQuestions = () => {
     getCurrentSubmission,
     isLoading: submissionLoading 
   } = useTestSubmission();
+  const { isTestStarted, endTest } = useTestFlow();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, string>>({});
@@ -32,6 +34,31 @@ const StudentTestQuestions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSavingResponse, setIsSavingResponse] = useState(false);
+
+  // Proteção da rota
+  useEffect(() => {
+    if (!isLoading && testId && !isTestStarted(testId)) {
+      toast.warning("Por favor, inicie o teste a partir da página de instruções.");
+      navigate(`/aluno/teste/${testId}`, { replace: true });
+    }
+  }, [isLoading, testId, isTestStarted, navigate]);
+
+  // Lidar com o botão de voltar do navegador
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      event.preventDefault();
+      toast.error("A navegação foi bloqueada durante o teste.");
+      navigate(`/aluno/teste/${testId}/questoes`, { replace: true });
+    };
+
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (testId) endTest(testId);
+    };
+  }, [testId, navigate, endTest]);
 
   // Timer effect
   useEffect(() => {

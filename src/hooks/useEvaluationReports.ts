@@ -30,14 +30,22 @@ export const useEvaluationReports = (filters?: {
   statusFilter?: string;
   startDate?: string;
   endDate?: string;
+  unitCode?: string;
 }) => {
   return useQuery({
     queryKey: ["evaluation-reports", filters],
     queryFn: async () => {
-      // Primeiro, buscar turmas com base no filtro de status
-      const { data: turmasData, error: turmasError } = await supabase
+      let turmasQuery = supabase
         .from("turmas")
-        .select("id, name, code, status, course_id, courses(name)");
+        .select("id, name, code, status, course_id, courses(name, unit_code)");
+
+      // Se for um franqueado, filtrar turmas pelo unit_code do curso
+      if (filters?.unitCode) {
+        turmasQuery = turmasQuery.eq('courses.unit_code', filters.unitCode);
+      }
+
+      // Primeiro, buscar turmas com base no filtro de status
+      const { data: turmasData, error: turmasError } = await turmasQuery;
       
       if (turmasError) throw turmasError;
 

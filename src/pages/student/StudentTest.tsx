@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { Clock, Trophy, AlertTriangle, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { useTestFlow } from "@/contexts/TestFlowContext";
 
 const StudentTest = () => {
   const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
   const { data: test, isLoading, error } = useStudentTest(testId!);
   const [isStarting, setIsStarting] = useState(false);
+  const { startTest } = useTestFlow();
 
   useEffect(() => {
     if (test) {
@@ -30,6 +32,7 @@ const StudentTest = () => {
     
     if (hasInProgress) {
       toast.info("Você já tem um teste em andamento");
+      startTest(test.id);
       navigate(`/aluno/teste/${test.id}/questoes`);
       return;
     }
@@ -42,6 +45,7 @@ const StudentTest = () => {
     setIsStarting(true);
     try {
       toast.success("Redirecionando para o teste...");
+      startTest(test.id);
       navigate(`/aluno/teste/${test.id}/questoes`);
     } catch (error) {
       toast.error("Erro ao iniciar teste");

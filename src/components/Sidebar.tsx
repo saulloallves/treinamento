@@ -146,8 +146,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         { name: 'Cursos', path: '/professor/cursos', icon: GraduationCap },
         { name: 'Turmas', path: '/professor/turmas', icon: Calendar },
         { name: 'Aulas', path: '/professor/aulas', icon: BookOpen },
-        { name: 'Streaming', path: '/streaming', icon: Video },
-      ]
+        isAdmin && { name: 'Streaming', path: '/streaming', icon: Video },
+      ].filter(Boolean)
     },
     {
       id: 'gestaoAlunos',
@@ -200,8 +200,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         { name: 'Cursos', path: '/courses', icon: GraduationCap },
         { name: 'Turmas', path: '/turmas', icon: Calendar },
         { name: 'Aulas', path: '/lessons', icon: BookOpen },
-        { name: 'Streaming', path: '/streaming', icon: Video },
-      ]
+        isAdmin && { name: 'Streaming', path: '/streaming', icon: Video },
+      ].filter(Boolean)
     },
     {
       id: 'gestaoAlunos',
@@ -212,8 +212,8 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
         { name: 'Inscrições', path: '/enrollments', icon: ClipboardList },
         { name: 'Presenças', path: '/attendance', icon: UserCheck },
         { name: 'Progresso', path: '/progress', icon: TrendingUp },
-        { name: 'Certificados', path: '/certificates', icon: Award },
-      ]
+        isAdmin && { name: 'Certificados', path: '/certificates', icon: Award },
+      ].filter(Boolean)
     },
     {
       id: 'avaliacoes',
