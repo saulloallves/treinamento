@@ -1,9 +1,0 @@
-version: '3.8'
-
-services:
-  app:
-    build: .
-    container_name: sistema-treinamento
-    restart: unless-stopped
-    ports:
-      - "3000:80"
