@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
       throw new Error('ZAPI credentials not configured')
     }
 
-    const zapiUrl = `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/add-participant-group`
+    const zapiUrl = `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/add-participant`
     
     const zapiResponse = await fetch(zapiUrl, {
       method: 'POST',

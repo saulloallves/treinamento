@@ -166,7 +166,7 @@ serve(async (req) => {
     }
 
     // 4. Check if collaborator group exists for unit, if not create it
-    console.log('Verificando grupo de colaboradores da unidade...');
+    console.log('=== INICIANDO VERIFICAÇÃO DO GRUPO DE COLABORADORES ===');
     console.log('Unit code recebido:', collaboratorData.unitCode, 'tipo:', typeof collaboratorData.unitCode);
     
     // Buscar unidade por codigo_grupo (convertendo para número se necessário)
@@ -180,12 +180,13 @@ serve(async (req) => {
       .maybeSingle();
     
     if (unidadeError) {
-      console.error('Erro ao buscar unidade:', unidadeError);
+      console.error('❌ Erro ao buscar unidade:', unidadeError);
+      throw new Error(`Erro ao buscar unidade: ${unidadeError.message}`);
     }
     
     if (!unidade) {
       console.warn('⚠️ AVISO: Unidade não encontrada para o código:', collaboratorData.unitCode);
-      console.warn('Pulando criação de grupo de colaboradores.');
+      console.warn('Pulando verificação de grupo de colaboradores.');
     } else {
       console.log('✅ Unidade encontrada:', {
         codigo_grupo: unidade.codigo_grupo,
@@ -198,56 +199,77 @@ serve(async (req) => {
       if (!grupoColaborador) {
         // Criar grupo se não existe
         console.log('🔄 Grupo não existe. Iniciando criação...');
-        const { data: groupData, error: groupError } = await supabaseLocal.functions.invoke('create-collaborator-group', {
-          body: {
-            unit_code: collaboratorData.unitCode,
-            grupo: unidade.grupo || `UNIDADE ${collaboratorData.unitCode}`
+        try {
+          const { data: groupData, error: groupError } = await supabaseLocal.functions.invoke('create-collaborator-group', {
+            body: {
+              unit_code: collaboratorData.unitCode,
+              grupo: unidade.grupo || `UNIDADE ${collaboratorData.unitCode}`
+            }
+          });
+          
+          if (groupError) {
+            console.error('❌ ERRO ao criar grupo de colaboradores:', groupError);
+            console.error('Detalhes do erro:', JSON.stringify(groupError, null, 2));
+          } else {
+            grupoColaborador = groupData?.groupId;
+            console.log('✅ Grupo de colaboradores criado:', grupoColaborador);
           }
-        });
-        
-        if (groupError) {
-          console.error('❌ ERRO ao criar grupo de colaboradores:', groupError);
-          console.error('Detalhes do erro:', JSON.stringify(groupError, null, 2));
-        } else {
-          grupoColaborador = groupData?.groupId;
-          console.log('✅ Grupo de colaboradores criado:', grupoColaborador);
+        } catch (createGroupError) {
+          console.error('❌ EXCEÇÃO ao criar grupo:', createGroupError);
         }
       } else {
         console.log('✅ Grupo já existe:', grupoColaborador);
       }
       
-      // 5. Add collaborator to WhatsApp group (apenas se grupo existir)
+      // 5. Add collaborator to WhatsApp group (apenas se grupo existir E telefone fornecido)
       if (grupoColaborador && cleanPhone) {
-        console.log('🔄 Adicionando colaborador ao grupo WhatsApp...');
+        console.log('=== INICIANDO ADIÇÃO AO GRUPO WHATSAPP ===');
         console.log('Dados para adicionar:', {
           groupId: grupoColaborador,
           phone: cleanPhone,
+          fullPhone: cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`,
           name: collaboratorData.name
         });
         
-        const { error: addToGroupError } = await supabaseLocal.functions.invoke('add-collaborator-to-group', {
-          body: {
-            groupId: grupoColaborador,
-            phone: cleanPhone,
-            name: collaboratorData.name
+        try {
+          const { data: addResult, error: addToGroupError } = await supabaseLocal.functions.invoke('add-collaborator-to-group', {
+            body: {
+              groupId: grupoColaborador,
+              phone: cleanPhone,
+              name: collaboratorData.name
+            }
+          });
+          
+          if (addToGroupError) {
+            console.error('❌ ERRO ao adicionar colaborador ao grupo WhatsApp');
+            console.error('Erro recebido:', JSON.stringify(addToGroupError, null, 2));
+            console.error('Stack:', addToGroupError);
+            // NÃO bloqueia o registro, apenas loga o erro
+          } else {
+            console.log('✅ Colaborador adicionado ao grupo WhatsApp com sucesso!');
+            console.log('Resposta da API:', JSON.stringify(addResult, null, 2));
           }
-        });
-        
-        if (addToGroupError) {
-          console.error('❌ ERRO ao adicionar colaborador ao grupo:', addToGroupError);
-          console.error('Detalhes do erro:', JSON.stringify(addToGroupError, null, 2));
-        } else {
-          console.log('✅ Colaborador adicionado ao grupo com sucesso.');
+        } catch (addException) {
+          console.error('❌ EXCEÇÃO ao adicionar colaborador ao grupo WhatsApp');
+          console.error('Exceção:', addException);
+          console.error('Stack:', addException instanceof Error ? addException.stack : 'N/A');
+          // NÃO bloqueia o registro, apenas loga o erro
         }
       } else {
+        console.warn('=== PULANDO ADIÇÃO AO GRUPO WHATSAPP ===');
         if (!grupoColaborador) {
-          console.warn('⚠️ Grupo não existe, não será possível adicionar colaborador ao WhatsApp.');
+          console.warn('⚠️ Motivo: Grupo não existe para a unidade');
+          console.warn('Unit code:', collaboratorData.unitCode);
         }
         if (!cleanPhone) {
-          console.warn('⚠️ Telefone não fornecido, não será possível adicionar colaborador ao WhatsApp.');
+          console.warn('⚠️ Motivo: Telefone não fornecido ou inválido');
+          console.warn('Telefone recebido:', collaboratorData.whatsapp);
+          console.warn('Telefone limpo:', cleanPhone);
         }
       }
     }
+    
+    console.log('=== FIM DA VERIFICAÇÃO DO GRUPO DE COLABORADORES ===');
     
     // 6. Call notify-franchisee function
     console.log('Invocando notificação para o franqueado...');
