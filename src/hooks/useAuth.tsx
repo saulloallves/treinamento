@@ -254,7 +254,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const hasToken = () => {
       try {
-        return !!localStorage.getItem('sb-tctkacgbhqvkqovctrzf-auth-token');
+        return !!localStorage.getItem('sb-wpuwsocezhlqlqxifpyk-auth-token');
       } catch {
         return false;
       }

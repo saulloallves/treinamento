@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { treinamento } from "@/integrations/supabase/helpers";
 
 export interface Test {
   id: string;
@@ -33,8 +33,7 @@ export const useTests = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ["tests"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tests")
+      const { data, error } = await treinamento.tests()
         .select(`
           *,
           turmas:turma_id (
@@ -59,8 +58,7 @@ export const useTests = () => {
 
   const createTest = useMutation({
     mutationFn: async (testData: CreateTestData) => {
-      const { data, error } = await supabase
-        .from("tests")
+      const { data, error } = await treinamento.tests()
         .insert([testData])
         .select()
         .single();
@@ -75,8 +73,7 @@ export const useTests = () => {
 
   const updateTest = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<Test>) => {
-      const { data, error } = await supabase
-        .from("tests")
+      const { data, error } = await treinamento.tests()
         .update(updates)
         .eq("id", id)
         .select()
@@ -92,7 +89,7 @@ export const useTests = () => {
 
   const deleteTest = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tests").delete().eq("id", id);
+      const { error } = await treinamento.tests().delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -102,8 +99,7 @@ export const useTests = () => {
 
   const activateTest = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase
-        .from("tests")
+      const { data, error } = await treinamento.tests()
         .update({ status: "active" })
         .eq("id", id)
         .select()

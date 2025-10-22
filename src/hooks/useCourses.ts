@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { treinamento, auth } from '@/integrations/supabase/helpers';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Course {
@@ -40,8 +40,7 @@ export const useCourses = () => {
   return useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('courses')
+      const { data, error } = await treinamento.courses()
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -66,11 +65,10 @@ export const useCreateCourse = () => {
 
   return useMutation({
     mutationFn: async (courseData: CourseInput) => {
-      const { data, error } = await supabase
-        .from('courses')
+      const { data, error } = await treinamento.courses()
         .insert([{
           ...courseData,
-          created_by: (await supabase.auth.getUser()).data.user?.id
+          created_by: (await auth.getUser()).data.user?.id
         }])
         .select()
         .maybeSingle();
@@ -89,7 +87,7 @@ export const useCreateCourse = () => {
         description: "O novo curso foi adicionado à lista.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao criar curso",
         description: error.message,
@@ -105,8 +103,7 @@ export const useUpdateCourse = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...courseData }: Course) => {
-      const { data, error } = await supabase
-        .from('courses')
+      const { data, error } = await treinamento.courses()
         .update(courseData)
         .eq('id', id)
         .select()
@@ -126,7 +123,7 @@ export const useUpdateCourse = () => {
         description: "As alterações foram salvas.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao atualizar curso",
         description: error.message,
@@ -142,8 +139,7 @@ export const useDeleteCourse = () => {
 
   return useMutation({
     mutationFn: async (courseId: string) => {
-      const { error } = await supabase
-        .from('courses')
+      const { error } = await treinamento.courses()
         .delete()
         .eq('id', courseId);
 
@@ -159,7 +155,7 @@ export const useDeleteCourse = () => {
         description: "O curso foi removido da lista.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao excluir curso",
         description: error.message,

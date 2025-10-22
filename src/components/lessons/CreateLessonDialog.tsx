@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
 import { Plus, Save, X } from "lucide-react";
@@ -108,7 +109,7 @@ const handleSave = async () => {
       const accessToken = sessionData.session?.access_token;
 
       const res = await fetch(
-        `https://tctkacgbhqvkqovctrzf.functions.supabase.co/api/zoom/aulas/criar`,
+        `https://wpuwsocezhlqlqxifpyk.functions.supabase.co/api/zoom/aulas/criar`,
         {
           method: "POST",
           headers: {

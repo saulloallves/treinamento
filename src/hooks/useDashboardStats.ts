@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase, supabasePublic } from "@/integrations/supabase/client";
+import { matriz, treinamento } from "@/integrations/supabase/helpers";
 
 export interface DashboardStats {
   usersActive: number;
@@ -34,18 +34,17 @@ export const useDashboardStats = () => {
         attendanceRes,
         enrollmentsRes,
       ] = await Promise.all([
-        supabase.from("users").select("*", { count: "exact", head: true }).eq("active", true),
-        supabase.from("courses").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
-        supabase.from("certificates").select("*", { count: "exact", head: true }).eq("status", "active"),
-        supabasePublic.from("unidades").select("*", { count: "exact", head: true }), // <-- Use supabasePublic
-        supabase.from("whatsapp_dispatches").select("*", { count: "exact", head: true }),
-        supabase.from("lessons").select("*", { count: "exact", head: true }).eq("status", "Ativo"),
-        supabase
-          .from("attendance")
+        treinamento.users().select("*", { count: "exact", head: true }).eq("active", true),
+        treinamento.courses().select("*", { count: "exact", head: true }).eq("status", "Ativo"),
+        treinamento.certificates().select("*", { count: "exact", head: true }).eq("status", "active"),
+        matriz.unidades().select("*", { count: "exact", head: true }), // <-- Use helper matriz
+        treinamento.whatsapp_messages().select("*", { count: "exact", head: true }),
+        treinamento.lessons().select("*", { count: "exact", head: true }).eq("status", "Ativo"),
+        treinamento.attendance()
           .select("*", { count: "exact", head: true })
           .gte("confirmed_at", startOfMonth.toISOString())
           .lte("confirmed_at", endOfMonth.toISOString()),
-        supabase.from("enrollments").select("progress_percentage"),
+        treinamento.enrollments().select("progress_percentage"),
       ]);
 
       // Handle potential errors silently with zeros
@@ -60,7 +59,7 @@ export const useDashboardStats = () => {
       const enrollments = enrollmentsRes.data ?? [];
       const avg = enrollments.length
         ? Math.round(
-            enrollments.reduce((acc: number, e: any) => acc + (e.progress_percentage ?? 0), 0) /
+            enrollments.reduce((acc: number, e: { progress_percentage?: number | null }) => acc + (e.progress_percentage ?? 0), 0) /
               enrollments.length
           )
         : 0;
