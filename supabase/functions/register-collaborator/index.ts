@@ -12,16 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, full_name, phone, unit_code, position } = await req.json();
+    // 1. Receber os dados com os nomes enviados pelo frontend
+    const { email, password, name, whatsapp, unitCode, position } = await req.json();
 
-    if (!email || !password || !full_name || !phone || !unit_code || !position) {
+    // 2. Validar usando os nomes recebidos
+    if (!email || !password || !name || !whatsapp || !unitCode || !position) {
+      console.error("Validação falhou. Dados recebidos:", { email, password, name, whatsapp, unitCode, position });
       throw new Error("Todos os campos são obrigatórios para o registro.");
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    // Usar a chave de serviço para criar o usuário no backend
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -29,15 +31,15 @@ serve(async (req) => {
       }
     });
 
-    // 1. Criar o usuário no Supabase Auth
+    // 3. Mapear os nomes do frontend para os nomes esperados pelo Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
-      email_confirm: true, // Auto-confirma o email
+      email_confirm: true,
       user_metadata: {
-        full_name: full_name,
-        phone: phone,
-        unit_code: unit_code,
+        full_name: name,       // Mapeado de 'name'
+        phone: whatsapp,     // Mapeado de 'whatsapp'
+        unit_code: unitCode,   // Mapeado de 'unitCode'
         position: position,
         user_type: 'Aluno',
         role: 'Colaborador'
@@ -53,37 +55,33 @@ serve(async (req) => {
         throw new Error("Criação do usuário não retornou um usuário.");
     }
 
-    // 2. Inserir o registro na tabela 'users' do schema 'treinamento'
     const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
         db: { schema: 'treinamento' }
     });
 
+    // 4. Mapear os nomes para a inserção na tabela 'users' do schema 'treinamento'
     const { error: insertError } = await supabaseTreinamento
       .from('users')
       .insert({
         id: authData.user.id,
         email: email,
-        name: full_name,
-        phone: phone,
+        name: name,          // A tabela 'users' espera 'name', então está correto
+        phone: whatsapp,     // Mapeado de 'whatsapp'
         user_type: 'Aluno',
         role: 'Colaborador',
         position: position,
-        unit_code: unit_code,
-        approval_status: 'pendente', // Status inicial é sempre pendente
-        active: false // O usuário só se torna ativo após aprovação
+        unit_code: unitCode,   // Mapeado de 'unitCode'
+        approval_status: 'pendente',
+        active: false
       });
 
     if (insertError) {
       console.error("Erro ao inserir na tabela de usuários:", insertError);
-      // Se a inserção falhar, devemos deletar o usuário do Auth para evitar inconsistência
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
       throw new Error(`Erro ao salvar dados do colaborador: ${insertError.message}`);
     }
 
-    // --- LÓGICA REMOVIDA ---
-    // A chamada para a função 'create-collaborator-group' foi removida daqui.
-    // A criação do grupo agora ocorrerá apenas após a aprovação pelo franqueado.
-    console.log(`Lógica de criação de grupo desacoplada do registro para o usuário ${email}.`);
+    console.log(`Registro do colaborador ${email} realizado com sucesso, aguardando aprovação.`);
 
     return new Response(JSON.stringify({
       success: true,
