@@ -11,32 +11,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  let payload;
   try {
-    // --- INÍCIO DO BLOCO DE DIAGNÓSTICO ---
-    console.log("--- DIAGNÓSTICO: Função 'create-collaborator-group' foi invocada ---");
-    
-    // Log dos cabeçalhos para identificar o chamador
-    const headersObject = Object.fromEntries(req.headers);
-    console.log("CABEÇALHOS DA REQUISIÇÃO:", JSON.stringify(headersObject, null, 2));
-
-    // Log do método
-    console.log("MÉTODO DA REQUISIÇÃO:", req.method);
-
-    // Tenta extrair o corpo da requisição
-    payload = await req.json();
-    console.log("PAYLOAD RECEBIDO:", JSON.stringify(payload, null, 2));
-    // --- FIM DO BLOCO DE DIAGNÓSTICO ---
-
+    const payload = await req.json();
     const { collaboratorName, collaboratorPhone, franchiseePhone, unitName } = payload;
 
-    // Validação com nova mensagem de erro para diagnóstico
+    // Validação limpa e restaurada
     if (!collaboratorName || !collaboratorPhone || !franchiseePhone || !unitName) {
-      throw new Error(`DIAGNÓSTICO: Dados insuficientes recebidos. O payload foi: ${JSON.stringify(payload)}`);
+      throw new Error("Dados insuficientes para criar o grupo. Faltam informações do colaborador, franqueado ou unidade.");
     }
-
-    // A lógica original de criação de grupo permanece aqui...
-    // (Se a validação passar, o código abaixo será executado)
 
     const zapiInstance = Deno.env.get('ZAPI_INSTANCE_ID');
     const zapiToken = Deno.env.get('ZAPI_TOKEN');
@@ -63,7 +45,8 @@ serve(async (req) => {
 
     if (!createGroupResponse.ok) {
       const errorBody = await createGroupResponse.text();
-      throw new Error(`Erro ao criar grupo na ZAPI: ${errorBody}`);
+      console.error("Erro da API ZAPI:", errorBody);
+      throw new Error(`Erro ao criar grupo na ZAPI.`);
     }
 
     const groupData = await createGroupResponse.json();
@@ -80,7 +63,6 @@ serve(async (req) => {
     console.error(`Erro na função create-collaborator-group: ${error.message}`);
     return new Response(JSON.stringify({
       success: false,
-      // Retorna a mensagem de erro de diagnóstico
       error: error.message 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
