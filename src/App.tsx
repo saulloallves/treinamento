@@ -59,7 +59,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import RoleRedirect from "@/components/RoleRedirect";
 import ProfessorRoute from "@/components/ProfessorRoute";
-import AdminOrFranchiseeRoute from "@/components/AdminOrFranchiseeRoute";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -116,9 +115,9 @@ const App = () => (
                   </AdminRoute>
                 } />
                 <Route path="/reports" element={
-                  <AdminOrFranchiseeRoute>
+                  <ProtectedRoute>
                     <ReportsPage />
-                  </AdminOrFranchiseeRoute>
+                  </ProtectedRoute>
                 } />
                 <Route path="/enrollments" element={
                   <AdminRoute>
