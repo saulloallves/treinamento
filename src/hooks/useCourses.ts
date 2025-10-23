@@ -1,166 +1,94 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types'
+import { toast } from 'sonner'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { treinamento, auth } from '@/integrations/supabase/helpers';
-import { useToast } from '@/hooks/use-toast';
+type Course = Tables<'courses'>
+type NewCourse = TablesInsert<'courses'>
+type UpdateCourse = TablesUpdate<'courses'>
 
-export interface Course {
-  id: string;
-  name: string;
-  description?: string;
-  theme: string[];
-  public_target: string;
-  mandatory: boolean;
-  has_quiz: boolean;
-  generates_certificate: boolean;
-  lessons_count: number;
-  status: string;
-  tipo: 'ao_vivo' | 'gravado';
-  instructor?: string;
-  cover_image_url?: string;
-  created_at: string;
-  updated_at: string;
-}
+const fetchCourses = async () => {
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
+    .neq('status', 'arquivado')
+    .order('name', { ascending: true })
 
-export interface CourseInput {
-  name: string;
-  description?: string;
-  theme: string[];
-  public_target: string;
-  has_quiz: boolean;
-  generates_certificate: boolean;
-  tipo: 'ao_vivo' | 'gravado';
-  instructor?: string;
-  status?: string;
-  cover_image_url?: string;
+  if (error) throw new Error(error.message)
+  return data
 }
 
 export const useCourses = () => {
-  const { toast } = useToast();
-  
-  return useQuery({
+  return useQuery<Course[], Error>({
     queryKey: ['courses'],
-    queryFn: async () => {
-      const { data, error } = await treinamento.courses()
-        .select('*')
-        .order('created_at', { ascending: false });
+    queryFn: fetchCourses,
+  })
+}
 
-      if (error) {
-        console.error('Error fetching courses:', error);
-        toast({
-          title: "Erro ao carregar cursos",
-          description: error.message,
-          variant: "destructive",
-        });
-        throw error;
-      }
+// Função para arquivar um curso (a lógica é a mesma, mas o nome muda)
+const deleteCourse = async (courseId: string) => {
+  const { data, error } = await supabase
+    .from('courses')
+    .update({ status: 'arquivado' })
+    .eq('id', courseId)
+    .select()
+    .single()
 
-      return data as Course[];
-    }
-  });
-};
+  if (error) throw new Error(error.message)
+  return data
+}
+
+// Hook renomeado para useDeleteCourse
+export const useDeleteCourse = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteCourse,
+    onSuccess: () => {
+      toast.success('Curso arquivado com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
+    },
+    onError: (error) => {
+      toast.error(`Erro ao arquivar o curso: ${error.message}`)
+    },
+  })
+}
+
+const createCourse = async (newCourse: NewCourse) => {
+  const { data, error } = await supabase.from('courses').insert(newCourse).select().single()
+  if (error) throw new Error(error.message)
+  return data
+}
 
 export const useCreateCourse = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (courseData: CourseInput) => {
-      const { data, error } = await treinamento.courses()
-        .insert([{
-          ...courseData,
-          created_by: (await auth.getUser()).data.user?.id
-        }])
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error creating course:', error);
-        throw error;
-      }
-
-      return data;
-    },
+    mutationFn: createCourse,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast({
-        title: "Curso criado com sucesso!",
-        description: "O novo curso foi adicionado à lista.",
-      });
+      toast.success('Curso criado com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao criar curso",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-};
+    onError: (error) => {
+      toast.error(`Erro ao criar curso: ${error.message}`)
+    },
+  })
+}
+
+const updateCourse = async ({ id, ...updates }: UpdateCourse & { id: string }) => {
+  const { data, error } = await supabase.from('courses').update(updates).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  return data
+}
 
 export const useUpdateCourse = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, ...courseData }: Course) => {
-      const { data, error } = await treinamento.courses()
-        .update(courseData)
-        .eq('id', id)
-        .select()
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error updating course:', error);
-        throw error;
-      }
-
-      return data;
-    },
+    mutationFn: updateCourse,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast({
-        title: "Curso atualizado com sucesso!",
-        description: "As alterações foram salvas.",
-      });
+      toast.success('Curso atualizado com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['courses'] })
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao atualizar curso",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-};
-
-export const useDeleteCourse = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (courseId: string) => {
-      const { error } = await treinamento.courses()
-        .delete()
-        .eq('id', courseId);
-
-      if (error) {
-        console.error('Error deleting course:', error);
-        throw error;
-      }
+    onError: (error) => {
+      toast.error(`Erro ao atualizar curso: ${error.message}`)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast({
-        title: "Curso excluído com sucesso!",
-        description: "O curso foi removido da lista.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao excluir curso",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-};
+  })
+}
