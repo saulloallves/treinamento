@@ -27,6 +27,7 @@ export const FranchiseeCollaboratorApprovals = () => {
   const { data: currentUser } = useCurrentUser();
   const [processingId, setProcessingId] = useState<string | null>(null);
   
+  // Hook corrigido, nos dá as funções 'approve' e 'reject' diretamente
   const { approve, isApproving, reject, isRejecting } = useCollaborationApprovals();
 
   const unitCodes = currentUser?.unit_codes || [];
@@ -37,7 +38,8 @@ export const FranchiseeCollaboratorApprovals = () => {
     enabled: unitCodes.length > 0,
   });
 
-  const handleApprove = (collaborator: any) => {
+  // Esta é a função que estava com erro. Agora ela chama 'approve' diretamente.
+  const handleFinalizeApproval = (collaborator: any) => {
     setProcessingId(collaborator.id);
     approve({ email: collaborator.email }, {
       onSettled: () => setProcessingId(null),
@@ -103,7 +105,7 @@ export const FranchiseeCollaboratorApprovals = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleApprove(collab)}
+                    onClick={() => handleFinalizeApproval(collab)}
                     disabled={isProcessing}
                   >
                     {isProcessing && processingId === collab.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4 text-green-500" />}

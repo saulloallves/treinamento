@@ -36,7 +36,9 @@ export const useCollaborationApprovals = () => {
       toast.success('Colaborador aprovado com sucesso!', {
         description: 'O grupo do WhatsApp será criado em instantes.',
       });
+      // Invalida ambas as queries para garantir que as listas de admin e franqueado sejam atualizadas
       queryClient.invalidateQueries({ queryKey: ['pendingCollaborators'] });
+      queryClient.invalidateQueries({ queryKey: ['allPendingCollaborators'] });
     },
     onError: (error: Error) => {
       toast.error('Falha na Aprovação', {
@@ -50,6 +52,7 @@ export const useCollaborationApprovals = () => {
     onSuccess: () => {
       toast.success('Colaborador rejeitado com sucesso.');
       queryClient.invalidateQueries({ queryKey: ['pendingCollaborators'] });
+      queryClient.invalidateQueries({ queryKey: ['allPendingCollaborators'] });
     },
     onError: (error: Error) => {
       toast.error('Falha ao Rejeitar', {
@@ -64,30 +67,4 @@ export const useCollaborationApprovals = () => {
     reject: rejectionMutation.mutate,
     isRejecting: rejectionMutation.isPending,
   };
-};
-
-// --- ARMADILHAS DE DEPURAÇÃO ---
-export const useCreateCollaborator = () => {
-  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useCreateCollaborator' encontrada!", new Error().stack);
-  return { mutate, isPending: false };
-};
-
-export const useApproveCollaborator = () => {
-  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useApproveCollaborator' encontrada!", new Error().stack);
-  return { mutate, isPending: false };
-};
-
-export const useUnitCollaborationApprovals = () => {
-  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useUnitCollaborationApprovals' encontrada!", new Error().stack);
-  return { mutate, isPending: false };
-};
-
-export const useUnitApprovalCount = () => {
-  console.error("ERRO DE DEPURAÇÃO: Chamada para 'useUnitApprovalCount' encontrada!", new Error().stack);
-  return { data: 0, isLoading: false };
-};
-
-export const useCreateCollaboratorGroup = () => {
-    const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useCreateCollaboratorGroup' encontrada!", new Error().stack);
-    return { mutate, isPending: false };
 };
