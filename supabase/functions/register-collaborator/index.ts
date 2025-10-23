@@ -12,37 +12,53 @@ serve(async (req) => {
   }
 
   try {
-    // 1. Receber os dados com os nomes enviados pelo frontend
-    const { email, password, name, whatsapp, unitCode, position } = await req.json();
+    // 1. Receber todos os dados do frontend, incluindo o CPF
+    const { email, password, name, whatsapp, unitCode, position, cpf } = await req.json();
 
-    // 2. Validar usando os nomes recebidos
-    if (!email || !password || !name || !whatsapp || !unitCode || !position) {
-      console.error("Validação falhou. Dados recebidos:", { email, password, name, whatsapp, unitCode, position });
-      throw new Error("Todos os campos são obrigatórios para o registro.");
+    // 2. Validar todos os campos necessários
+    if (!email || !password || !name || !whatsapp || !unitCode || !position || !cpf) {
+      console.error("Validação falhou. Dados recebidos:", { email, password, name, whatsapp, unitCode, position, cpf });
+      throw new Error("Todos os campos são obrigatórios para o registro, incluindo o CPF.");
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
+      auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 3. Mapear os nomes do frontend para os nomes esperados pelo Supabase Auth
+    // Cliente para o schema 'public' para buscar o nome da unidade
+    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
+        db: { schema: 'public' }
+    });
+
+    // 3. Buscar o nome da unidade usando o unitCode
+    const { data: unidadeData, error: unidadeError } = await supabasePublic
+      .from('unidades')
+      .select('group_name')
+      .eq('group_code', unitCode)
+      .single();
+
+    if (unidadeError || !unidadeData) {
+      console.error(`Erro ao buscar unidade com código ${unitCode}:`, unidadeError);
+      throw new Error(`Unidade com código ${unitCode} não foi encontrada.`);
+    }
+    const unitName = unidadeData.group_name;
+
+    // 4. Criar o usuário no Supabase Auth com metadados completos
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
       email_confirm: true,
       user_metadata: {
-        full_name: name,       // Mapeado de 'name'
-        phone: whatsapp,     // Mapeado de 'whatsapp'
-        unit_code: unitCode,   // Mapeado de 'unitCode'
+        full_name: name,
+        phone: whatsapp,
+        unit_code: unitCode,
         position: position,
         user_type: 'Aluno',
-        role: 'Colaborador'
+        role: 'Colaborador',
+        cpf: cpf
       }
     });
 
@@ -59,18 +75,21 @@ serve(async (req) => {
         db: { schema: 'treinamento' }
     });
 
-    // 4. Mapear os nomes para a inserção na tabela 'users' do schema 'treinamento'
+    // 5. Inserir o registro completo na tabela 'users' do schema 'treinamento'
     const { error: insertError } = await supabaseTreinamento
       .from('users')
       .insert({
         id: authData.user.id,
         email: email,
-        name: name,          // A tabela 'users' espera 'name', então está correto
-        phone: whatsapp,     // Mapeado de 'whatsapp'
+        name: name,
+        phone: whatsapp,
+        cpf: cpf, // Salva o CPF
         user_type: 'Aluno',
         role: 'Colaborador',
         position: position,
-        unit_code: unitCode,   // Mapeado de 'unitCode'
+        unit_code: unitCode,
+        unit_codes: [unitCode], // Salva o código da unidade como um array
+        nomes_unidades: [unitName], // Salva o nome da unidade como um array
         approval_status: 'pendente',
         active: false
       });
@@ -81,7 +100,7 @@ serve(async (req) => {
       throw new Error(`Erro ao salvar dados do colaborador: ${insertError.message}`);
     }
 
-    console.log(`Registro do colaborador ${email} realizado com sucesso, aguardando aprovação.`);
+    console.log(`Registro completo do colaborador ${email} realizado com sucesso.`);
 
     return new Response(JSON.stringify({
       success: true,
