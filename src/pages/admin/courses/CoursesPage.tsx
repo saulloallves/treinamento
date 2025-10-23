@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useCourses, useArchiveCourse } from '@/hooks/useCourses'
+import { useCourses, useDeleteCourse } from '@/hooks/useCourses'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -36,12 +36,12 @@ type Course = Tables<'courses'>
 
 export default function CoursesPage() {
   const { data: courses, isLoading } = useCourses()
-  const archiveCourse = useArchiveCourse()
+  const deleteCourse = useDeleteCourse()
   const [courseToArchive, setCourseToArchive] = useState<Course | null>(null)
 
   const handleArchive = () => {
     if (courseToArchive) {
-      archiveCourse.mutate(courseToArchive.id, {
+      deleteCourse.mutate(courseToArchive.id, {
         onSuccess: () => setCourseToArchive(null),
       })
     }
@@ -136,9 +136,9 @@ export default function CoursesPage() {
             <AlertDialogAction
               onClick={handleArchive}
               className="bg-red-600 hover:bg-red-700"
-              disabled={archiveCourse.isPending}
+              disabled={deleteCourse.isPending}
             >
-              {archiveCourse.isPending ? (
+              {deleteCourse.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
               Sim, Arquivar

@@ -7,12 +7,11 @@ type Course = Tables<'courses'>
 type NewCourse = TablesInsert<'courses'>
 type UpdateCourse = TablesUpdate<'courses'>
 
-// Função para buscar cursos (agora filtra os arquivados)
 const fetchCourses = async () => {
   const { data, error } = await supabase
     .from('courses')
     .select('*')
-    .neq('status', 'arquivado') // <-- FILTRO IMPORTANTE
+    .neq('status', 'arquivado')
     .order('name', { ascending: true })
 
   if (error) throw new Error(error.message)
@@ -26,9 +25,8 @@ export const useCourses = () => {
   })
 }
 
-// Função para arquivar um curso
-const archiveCourse = async (courseId: string) => {
-  // TODO: Adicionar validação para não arquivar cursos com turmas ativas
+// Função para arquivar um curso (a lógica é a mesma, mas o nome muda)
+const deleteCourse = async (courseId: string) => {
   const { data, error } = await supabase
     .from('courses')
     .update({ status: 'arquivado' })
@@ -40,10 +38,11 @@ const archiveCourse = async (courseId: string) => {
   return data
 }
 
-export const useArchiveCourse = () => {
+// Hook renomeado para useDeleteCourse
+export const useDeleteCourse = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: archiveCourse,
+    mutationFn: deleteCourse,
     onSuccess: () => {
       toast.success('Curso arquivado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['courses'] })
@@ -54,7 +53,6 @@ export const useArchiveCourse = () => {
   })
 }
 
-// Manter as outras mutações (create, update) para consistência
 const createCourse = async (newCourse: NewCourse) => {
   const { data, error } = await supabase.from('courses').insert(newCourse).select().single()
   if (error) throw new Error(error.message)
