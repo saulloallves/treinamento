@@ -85,65 +85,88 @@ export const useApproveCollaborator = () => {
 
       if (approveError) throw approveError;
 
-      // Se aprovado, busca os dados necessários em etapas e chama a função para criar o grupo
+      // Se aprovado, lida com a lógica de criação ou adição a grupo do WhatsApp
       if (approve) {
-        // Etapa 1: Buscar detalhes da aprovação, do colaborador e do franqueado
-        const { data: approvalData, error: approvalError } = await supabase
+        // Busca os detalhes da aprovação para obter o ID do colaborador e o código da unidade
+        const { data: approval, error: approvalError } = await supabase
           .from('collaboration_approvals')
-          .select(`
-            unit_code,
-            collaborator:users!collaboration_approvals_collaborator_id_fkey(name, phone),
-            franchisee:users!collaboration_approvals_franchisee_id_fkey(phone)
-          `)
+          .select('unit_code, collaborator_id')
           .eq('id', approvalId)
           .single();
 
-        if (approvalError) throw new Error(`Erro ao buscar detalhes da aprovação: ${approvalError.message}`);
-        if (!approvalData) throw new Error("Detalhes da aprovação não encontrados.");
+        if (approvalError) throw new Error(`Erro ao buscar dados da aprovação: ${approvalError.message}`);
+        if (!approval) return { approvalId, approve };
 
-        // Etapa 2: Buscar detalhes da unidade usando o unit_code obtido
-        const { data: unitData, error: unitError } = await supabase
+        // Busca os detalhes da unidade para obter o nome do grupo e verificar se já existe
+        const { data: unit, error: unitError } = await supabase
           .from('unidades')
-          .select('grupo')
-          .eq('id', approvalData.unit_code)
+          .select('grupo, grupo_colaborador')
+          .eq('id', approval.unit_code)
           .single();
-        
-        if (unitError) throw new Error(`Erro ao buscar detalhes da unidade: ${unitError.message}`);
-        if (!unitData) throw new Error(`Unidade com código ${approvalData.unit_code} não encontrada.`);
 
-        // Etapa 3: Montar o payload e chamar a função
-        const { collaborator, franchisee } = approvalData;
-        const unitName = unitData.grupo;
+        if (unitError) throw new Error(`Erro ao buscar dados da unidade: ${unitError.message}`);
+        if (!unit) return { approvalId, approve };
 
-        // Valida se todos os dados para o payload da função foram encontrados
-        if (!collaborator?.name || !collaborator?.phone || !franchisee?.phone || !unitName) {
-          console.error("Dados insuficientes para criar o grupo:", { collaborator, franchisee, unitName });
-          throw new Error("Não foi possível reunir todas as informações necessárias para criar o grupo do WhatsApp.");
-        }
-
-        // Tenta criar o grupo, mas não impede a aprovação se a criação do grupo falhar
-        try {
-          const { error: groupError } = await supabase.functions.invoke('create-collaborator-group', {
-            body: {
-              collaboratorName: collaborator.name,
-              collaboratorPhone: collaborator.phone,
-              franchiseePhone: franchisee.phone,
-              unitName: unitName,
-            }
-          });
-
-          if (groupError) {
-            // Lança um erro que será capturado pelo bloco catch abaixo
-            throw new Error(`Erro ao criar o grupo no WhatsApp: ${groupError.message}`);
+        // CASO 1: O grupo de colaboradores AINDA NÃO EXISTE para esta unidade
+        if (!unit.grupo_colaborador) {
+          console.log(`Unidade ${approval.unit_code} não possui grupo. Tentando criar...`);
+          try {
+            const { error: groupError } = await supabase.functions.invoke('create-collaborator-group', {
+              body: {
+                unit_code: approval.unit_code,
+                grupo: unit.grupo
+              }
+            });
+            if (groupError) throw new Error(`Erro ao criar o grupo no WhatsApp: ${groupError.message}`);
+          
+          } catch (error) {
+            console.error("Erro durante a invocação da função de criação de grupo:", error);
+            toast({
+              title: "Aviso: Falha ao criar grupo no WhatsApp",
+              description: "O colaborador foi aprovado, mas a criação do grupo falhou. Verifique os logs.",
+              variant: "destructive",
+            });
           }
-        } catch (error) {
-          console.error("Erro durante a invocação da função de criação de grupo:", error);
-          // Exibe um toast de aviso, mas permite que o fluxo de aprovação continue
-          toast({
-            title: "Aviso: Falha ao criar grupo no WhatsApp",
-            description: "O colaborador foi aprovado no sistema, mas a criação do grupo falhou. Verifique os logs da função para mais detalhes.",
-            variant: "destructive",
-          });
+        } 
+        // CASO 2: O grupo de colaboradores JÁ EXISTE. Adiciona o novo membro.
+        else {
+          console.log(`Unidade ${approval.unit_code} já possui o grupo: ${unit.grupo_colaborador}. Adicionando novo colaborador...`);
+          
+          // Busca os dados do colaborador recém-aprovado
+          const { data: collaborator, error: collaboratorError } = await supabase
+            .from('users')
+            .select('name, phone')
+            .eq('id', approval.collaborator_id)
+            .single();
+
+          if (collaboratorError || !collaborator || !collaborator.phone) {
+            console.error("Não foi possível obter os dados do colaborador para adicioná-lo ao grupo.", collaboratorError);
+            toast({
+              title: "Aviso: Falha ao adicionar ao grupo",
+              description: "O colaborador foi aprovado, mas não foi possível adicioná-lo automaticamente ao grupo do WhatsApp.",
+              variant: "destructive",
+            });
+          } else {
+            // Tenta adicionar o colaborador ao grupo existente
+            try {
+              const { error: addToGroupError } = await supabase.functions.invoke('add-collaborator-to-group', {
+                body: {
+                  groupId: unit.grupo_colaborador,
+                  phone: collaborator.phone,
+                  name: collaborator.name
+                }
+              });
+              if (addToGroupError) throw new Error(addToGroupError.message);
+
+            } catch (error) {
+              console.error("Erro ao adicionar colaborador ao grupo existente:", error);
+              toast({
+                title: "Aviso: Falha ao adicionar ao grupo",
+                description: "O colaborador foi aprovado, mas houve um erro ao adicioná-lo ao grupo do WhatsApp.",
+                variant: "destructive",
+              });
+            }
+          }
         }
       }
 
