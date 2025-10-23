@@ -1,12 +1,18 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { Tables } from '@/integrations/supabase/types'
+import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types'
+import { toast } from 'sonner'
 
 // Tipos para clareza
 type Unidade = Tables<'unidades'>
+type NewUnidade = TablesInsert<'unidades'>
+type UpdatedUnidade = TablesUpdate<'unidades'>
 type User = Tables<'users'>
 
-// 1. Hook para buscar TODAS as unidades (CORRIGIDO)
+// =================================
+// QUERIES (Read operations)
+// =================================
+
 const fetchUnidades = async (): Promise<Unidade[]> => {
   const { data, error } = await supabase
     .from('unidades')
@@ -28,7 +34,6 @@ export const useUnidades = () => {
   })
 }
 
-// 2. Hook para buscar UMA unidade por ID (ADICIONADO)
 const fetchUnidadeById = async (id: string): Promise<Unidade | null> => {
   if (!id) return null
 
@@ -39,7 +44,6 @@ const fetchUnidadeById = async (id: string): Promise<Unidade | null> => {
     .single()
 
   if (error) {
-    // It's okay if no row is found, single() will throw an error for that
     if (error.code === 'PGRST116') {
       return null
     }
@@ -58,7 +62,6 @@ export const useUnidade = (id: string) => {
   })
 }
 
-// 3. Hook para buscar colaboradores de uma unidade (RESTAURADO)
 const fetchUnidadeCollaborators = async (unitCode: string | number): Promise<Partial<User>[]> => {
   if (!unitCode) return []
 
@@ -81,5 +84,90 @@ export const useUnidadeCollaborators = (unitCode: string | number) => {
     queryKey: ['collaborators', unitCode],
     queryFn: () => fetchUnidadeCollaborators(unitCode),
     enabled: !!unitCode,
+  })
+}
+
+// =================================
+// MUTATIONS (Write operations)
+// =================================
+
+const createUnidade = async (newUnidade: NewUnidade): Promise<Unidade> => {
+  const { data, error } = await supabase
+    .from('unidades')
+    .insert(newUnidade)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating unidade:', error)
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const useCreateUnidade = () => {
+  const queryClient = useQueryClient()
+  return useMutation<Unidade, Error, NewUnidade>({
+    mutationFn: createUnidade,
+    onSuccess: () => {
+      toast.success('Unidade criada com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['unidades'] })
+    },
+    onError: (error) => {
+      toast.error(`Erro ao criar unidade: ${error.message}`)
+    },
+  })
+}
+
+const updateUnidade = async ({ id, ...updateData }: UpdatedUnidade & { id: string }): Promise<Unidade> => {
+  const { data, error } = await supabase
+    .from('unidades')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating unidade:', error)
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export const useUpdateUnidade = () => {
+  const queryClient = useQueryClient()
+  return useMutation<Unidade, Error, UpdatedUnidade & { id: string }>({
+    mutationFn: updateUnidade,
+    onSuccess: (data) => {
+      toast.success('Unidade atualizada com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['unidades'] })
+      queryClient.invalidateQueries({ queryKey: ['unidade', data.id] })
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atualizar unidade: ${error.message}`)
+    },
+  })
+}
+
+const deleteUnidade = async (id: string): Promise<void> => {
+  const { error } = await supabase.from('unidades').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error deleting unidade:', error)
+    throw new Error(error.message)
+  }
+}
+
+export const useDeleteUnidade = () => {
+  const queryClient = useQueryClient()
+  return useMutation<void, Error, string>({
+    mutationFn: deleteUnidade,
+    onSuccess: () => {
+      toast.success('Unidade removida com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['unidades'] })
+    },
+    onError: (error) => {
+      toast.error(`Erro ao remover unidade: ${error.message}`)
+    },
   })
 }
