@@ -75,11 +75,7 @@ export const useCreateCollaborator = () => {
       description: "Uma função obsoleta foi chamada. Verifique o console para mais detalhes.",
     });
   };
-
-  return {
-    mutate,
-    isPending: false,
-  };
+  return { mutate, isPending: false };
 };
 
 // --- ARMADILHA DE DEPURAÇÃO 2 ---
@@ -91,9 +87,17 @@ export const useApproveCollaborator = () => {
       description: "Uma função obsoleta 'useApproveCollaborator' foi chamada. Verifique o console.",
     });
   };
+  return { mutate, isPending: false };
+};
 
-  return {
-    mutate,
-    isPending: false,
+// --- ARMADILHA DE DEPURAÇÃO 3 ---
+export const useUnitCollaborationApprovals = () => {
+  const mutate = () => {
+    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useUnitCollaborationApprovals' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
+    console.error(errorMessage, new Error().stack);
+    toast.error("Erro de Desenvolvimento Detectado", {
+      description: "Uma função obsoleta 'useUnitCollaborationApprovals' foi chamada. Verifique o console.",
+    });
   };
+  return { mutate, isPending: false };
 };
