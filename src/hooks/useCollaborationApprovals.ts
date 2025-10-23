@@ -66,14 +66,29 @@ export const useCollaborationApprovals = () => {
   };
 };
 
-// --- ARMADILHA DE DEPURAÇÃO ---
-// Esta função existe apenas para satisfazer a importação inválida e nos ajudar a encontrar o arquivo culpado.
+// --- ARMADILHA DE DEPURAÇÃO 1 ---
 export const useCreateCollaborator = () => {
   const mutate = () => {
     const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useCreateCollaborator' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
     console.error(errorMessage, new Error().stack);
     toast.error("Erro de Desenvolvimento Detectado", {
       description: "Uma função obsoleta foi chamada. Verifique o console para mais detalhes.",
+    });
+  };
+
+  return {
+    mutate,
+    isPending: false,
+  };
+};
+
+// --- ARMADILHA DE DEPURAÇÃO 2 ---
+export const useApproveCollaborator = () => {
+  const mutate = () => {
+    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useApproveCollaborator' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
+    console.error(errorMessage, new Error().stack);
+    toast.error("Erro de Desenvolvimento Detectado", {
+      description: "Uma função obsoleta 'useApproveCollaborator' foi chamada. Verifique o console.",
     });
   };
 
