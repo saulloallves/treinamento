@@ -9,7 +9,6 @@ const approveCollaborator = async (collaborator: { email: string }) => {
   });
 
   if (error) {
-    // O erro da edge function já é detalhado, então apenas o repassamos
     throw new Error(error.message);
   }
   return { success: true };
@@ -64,5 +63,22 @@ export const useCollaborationApprovals = () => {
     isApproving: approvalMutation.isPending,
     reject: rejectionMutation.mutate,
     isRejecting: rejectionMutation.isPending,
+  };
+};
+
+// --- ARMADILHA DE DEPURAÇÃO ---
+// Esta função existe apenas para satisfazer a importação inválida e nos ajudar a encontrar o arquivo culpado.
+export const useCreateCollaborator = () => {
+  const mutate = () => {
+    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useCreateCollaborator' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
+    console.error(errorMessage, new Error().stack);
+    toast.error("Erro de Desenvolvimento Detectado", {
+      description: "Uma função obsoleta foi chamada. Verifique o console para mais detalhes.",
+    });
+  };
+
+  return {
+    mutate,
+    isPending: false,
   };
 };
