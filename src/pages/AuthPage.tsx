@@ -60,11 +60,14 @@ export default function AuthPage() {
 
     setIsCepLoading(true)
     try {
-      // ===== A CORREÇÃO ESTÁ AQUI =====
-      // O payload (o CEP) agora é enviado dentro de um objeto { body: ... },
-      // que é o formato que a Edge Function espera.
+      // ===== CORREÇÃO APLICADA AQUI =====
+      // Adicionamos o cabeçalho 'Content-Type' para garantir que o servidor
+      // entenda que estamos enviando um JSON.
       const { data, error } = await supabase.functions.invoke('cep-lookup', {
         body: { cep: cleanedCep },
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
 
       if (error) {
@@ -94,8 +97,6 @@ export default function AuthPage() {
 
   async function onSubmit(values: z.infer<typeof registerFormSchema>) {
     setIsSubmitting(true)
-    // A lógica de cadastro do usuário iria aqui.
-    // Por enquanto, é apenas uma simulação.
     console.log("Dados do formulário:", values)
     toast.success("Cadastro enviado com sucesso! (Simulação)")
     setIsSubmitting(false)
