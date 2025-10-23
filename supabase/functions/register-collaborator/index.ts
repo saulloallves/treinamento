@@ -171,31 +171,7 @@ Deno.serve(async (req) => {
       console.error(publicSchemaError);
     }
 
-    // Lógica de grupos e notificações (usando o cliente 'treinamento')
-    const unitCodeNumber = parseInt(collaboratorData.unitCode, 10);
-    const { data: unidade } = await supabaseTreinamento.from('unidades').select('grupo_colaborador, grupo, codigo_grupo').eq('codigo_grupo', unitCodeNumber).maybeSingle();
-    
-    if (unidade) {
-      let grupoColaborador = unidade.grupo_colaborador;
-      if (!grupoColaborador) {
-        const { data: groupData, error: groupError } = await supabaseTreinamento.functions.invoke('create-collaborator-group', {
-          body: { unit_code: collaboratorData.unitCode, grupo: unidade.grupo || `UNIDADE ${collaboratorData.unitCode}` }
-        });
-        if (groupError) console.error('❌ ERRO ao criar grupo de colaboradores:', groupError);
-        else grupoColaborador = groupData?.groupId;
-      }
-      
-      if (grupoColaborador && cleanPhone) {
-        const { error: addToGroupError } = await supabaseTreinamento.functions.invoke('add-collaborator-to-group', {
-          body: { groupId: grupoColaborador, phone: cleanPhone, name: collaboratorData.name }
-        });
-        if (addToGroupError) console.error('❌ ERRO ao adicionar colaborador ao grupo:', addToGroupError);
-        else console.log('✅ Colaborador adicionado ao grupo com sucesso.');
-      }
-    } else {
-      console.warn('⚠️ AVISO: Unidade não encontrada para o código:', collaboratorData.unitCode);
-    }
-    
+    // Apenas notifica o franqueado, sem criar ou adicionar a grupos.
     const { error: notificationError } = await supabaseTreinamento.functions.invoke('notify-franchisee', {
       body: {
         collaboratorId: userId,

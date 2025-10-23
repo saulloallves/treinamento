@@ -85,79 +85,65 @@ export const useApproveCollaborator = () => {
 
       if (approveError) throw approveError;
 
-      // If approved, handle WhatsApp group management
+      // Se aprovado, busca os dados necessários em etapas e chama a função para criar o grupo
       if (approve) {
-        // Get approval details
-        const { data: approval } = await supabase
+        // Etapa 1: Buscar detalhes da aprovação, do colaborador e do franqueado
+        const { data: approvalData, error: approvalError } = await supabase
           .from('collaboration_approvals')
-          .select('unit_code, collaborator_id')
+          .select(`
+            unit_code,
+            collaborator:users!collaboration_approvals_collaborator_id_fkey(name, phone),
+            franchisee:users!collaboration_approvals_franchisee_id_fkey(phone)
+          `)
           .eq('id', approvalId)
           .single();
 
-        if (!approval) return { approvalId, approve };
+        if (approvalError) throw new Error(`Erro ao buscar detalhes da aprovação: ${approvalError.message}`);
+        if (!approvalData) throw new Error("Detalhes da aprovação não encontrados.");
 
-        // Get unit details
-        const { data: unit } = await supabase
+        // Etapa 2: Buscar detalhes da unidade usando o unit_code obtido
+        const { data: unitData, error: unitError } = await supabase
           .from('unidades')
-          .select('id, grupo, id_grupo_colab')
-          .eq('id', approval.unit_code)
+          .select('grupo')
+          .eq('id', approvalData.unit_code)
           .single();
+        
+        if (unitError) throw new Error(`Erro ao buscar detalhes da unidade: ${unitError.message}`);
+        if (!unitData) throw new Error(`Unidade com código ${approvalData.unit_code} não encontrada.`);
 
-        if (!unit) return { approvalId, approve };
+        // Etapa 3: Montar o payload e chamar a função
+        const { collaborator, franchisee } = approvalData;
+        const unitName = unitData.grupo;
 
-        let grupoColaborador = unit.id_grupo_colab;
-
-        // Verificar se já existe um grupo de colaboradores para esta unidade
-        if (!grupoColaborador || grupoColaborador === '') {
-          console.log(`Grupo de colaboradores não existe para unidade ${approval.unit_code}. Criando novo grupo...`);
-          try {
-            const { data: groupData } = await supabase.functions.invoke('create-collaborator-group', {
-              body: {
-                unit_code: approval.unit_code,
-                grupo: unit.grupo
-              }
-            });
-
-            if (groupData?.groupId) {
-              grupoColaborador = groupData.groupId;
-              console.log(`Grupo criado com sucesso! ID: ${grupoColaborador}`);
-            }
-          } catch (error) {
-            console.error('Error creating collaborator group:', error);
-          }
-        } else {
-          console.log(`Grupo de colaboradores já existe para unidade ${approval.unit_code}. Usando grupo existente: ${grupoColaborador}`);
+        // Valida se todos os dados para o payload da função foram encontrados
+        if (!collaborator?.name || !collaborator?.phone || !franchisee?.phone || !unitName) {
+          console.error("Dados insuficientes para criar o grupo:", { collaborator, franchisee, unitName });
+          throw new Error("Não foi possível reunir todas as informações necessárias para criar o grupo do WhatsApp.");
         }
 
-        // Adicionar todos os colaboradores aprovados ao grupo (incluindo o novo aprovado)
-        if (grupoColaborador && grupoColaborador !== '') {
-          const { data: collaborators } = await treinamento
-            .from('users')
-            .select('phone, name')
-            .eq('unit_code', approval.unit_code)
-            .eq('role', 'Colaborador')
-            .eq('approval_status', 'aprovado')
-            .eq('active', true)
-            .not('phone', 'is', null);
-
-          if (collaborators && collaborators.length > 0) {
-            console.log(`Adicionando ${collaborators.length} colaborador(es) ao grupo ${grupoColaborador}`);
-            for (const collaborator of collaborators) {
-              try {
-                console.log(`Adicionando colaborador ${collaborator.name} (${collaborator.phone}) ao grupo...`);
-                await supabase.functions.invoke('add-collaborator-to-group', {
-                  body: {
-                    groupId: grupoColaborador,
-                    phone: collaborator.phone,
-                    name: collaborator.name
-                  }
-                });
-                console.log(`✅ Colaborador ${collaborator.name} adicionado com sucesso ao grupo!`);
-              } catch (error) {
-                console.error(`❌ Erro ao adicionar colaborador ${collaborator.name} ao grupo:`, error);
-              }
+        // Tenta criar o grupo, mas não impede a aprovação se a criação do grupo falhar
+        try {
+          const { error: groupError } = await supabase.functions.invoke('create-collaborator-group', {
+            body: {
+              collaboratorName: collaborator.name,
+              collaboratorPhone: collaborator.phone,
+              franchiseePhone: franchisee.phone,
+              unitName: unitName,
             }
+          });
+
+          if (groupError) {
+            // Lança um erro que será capturado pelo bloco catch abaixo
+            throw new Error(`Erro ao criar o grupo no WhatsApp: ${groupError.message}`);
           }
+        } catch (error) {
+          console.error("Erro durante a invocação da função de criação de grupo:", error);
+          // Exibe um toast de aviso, mas permite que o fluxo de aprovação continue
+          toast({
+            title: "Aviso: Falha ao criar grupo no WhatsApp",
+            description: "O colaborador foi aprovado no sistema, mas a criação do grupo falhou. Verifique os logs da função para mais detalhes.",
+            variant: "destructive",
+          });
         }
       }
 
