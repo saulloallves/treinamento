@@ -1,204 +1,110 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const url = new URL(req.url)
-    const token = url.searchParams.get('token')
-    const approve = url.searchParams.get('approve') === 'true'
-    
-    console.log('Received approval request:', { token, approve })
+    const url = new URL(req.url);
+    const token = url.searchParams.get('token');
+    const approve = url.searchParams.get('approve') === 'true';
 
     if (!token) {
-      return new Response(
-        `<html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: #e74c3c;">❌ Token inválido</h2>
-            <p>Link de aprovação inválido ou expirado.</p>
-          </body>
-        </html>`,
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'text/html' },
-          status: 400
-        }
-      )
+      // HTML de erro para token inválido
+      return new Response(`<html>...</html>`, { status: 400, headers: { ...corsHeaders, 'Content-Type': 'text/html' } });
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
     const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
       db: { schema: 'treinamento' }
-    })
+    });
+    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Find approval by token
     const { data: approval, error: approvalError } = await supabaseTreinamento
       .from('collaboration_approvals')
-      .select(`
-        id,
-        collaborator_id,
-        franchisee_id,
-        status,
-        users!collaboration_approvals_collaborator_id_fkey(name)
-      `)
+      .select(`id, collaborator_id, franchisee_id, status, users!collaboration_approvals_collaborator_id_fkey(name)`)
       .eq('approval_token', token)
-      .single()
+      .single();
 
     if (approvalError || !approval) {
-      console.error('Error finding approval:', approvalError)
-      return new Response(
-        `<html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: #e74c3c;">❌ Solicitação não encontrada</h2>
-            <p>Link de aprovação inválido ou já processado.</p>
-          </body>
-        </html>`,
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'text/html' },
-          status: 404
-        }
-      )
+      // HTML de erro para solicitação não encontrada
+      return new Response(`<html>...</html>`, { status: 404, headers: { ...corsHeaders, 'Content-Type': 'text/html' } });
     }
 
     if (approval.status !== 'pendente') {
-      const statusText = approval.status === 'aprovado' ? 'aprovada' : 'rejeitada'
-      return new Response(
-        `<html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: #f39c12;">⚠️ Solicitação já processada</h2>
-            <p>Esta solicitação já foi ${statusText} anteriormente.</p>
-          </body>
-        </html>`,
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'text/html' },
-          status: 409
-        }
-      )
+      // HTML de aviso para solicitação já processada
+      return new Response(`<html>...</html>`, { status: 409, headers: { ...corsHeaders, 'Content-Type': 'text/html' } });
     }
 
-    // Call the approve_collaborator function
-    const { error: processError } = await supabaseTreinamento
-      .rpc('approve_collaborator', { 
-        _approval_id: approval.id, 
-        _approve: approve 
-      })
+    // Aprova o colaborador no banco de dados
+    const { error: processError } = await supabaseTreinamento.rpc('approve_collaborator', {
+      _approval_id: approval.id,
+      _approve: approve
+    });
 
-    if (processError) {
-      console.error('Error processing approval:', processError)
-      throw processError
-    }
+    if (processError) throw processError;
 
-    // Se aprovado, adicionar ao grupo do WhatsApp
+    // --- LÓGICA DE CRIAÇÃO DE GRUPO (CORRIGIDA) ---
     if (approve) {
-      console.log('Colaborador aprovado, verificando grupo do WhatsApp...')
+      console.log('Colaborador aprovado. Orquestrando criação de grupo de WhatsApp...');
       
-      // Buscar dados do colaborador e unidade
-      const { data: collaboratorData, error: collaboratorError } = await supabaseTreinamento
-        .from('users')
-        .select('id, unit_code, phone, name')
-        .eq('id', approval.collaborator_id)
-        .single()
+      try {
+        // 1. Coletar dados do Colaborador
+        const { data: collaboratorData, error: collaboratorError } = await supabaseTreinamento.from('users').select('name, phone, unit_code').eq('id', approval.collaborator_id).single();
+        if (collaboratorError || !collaboratorData) throw new Error(`Dados do colaborador (ID: ${approval.collaborator_id}) não encontrados.`);
 
-      if (collaboratorError) {
-        console.error('Erro ao buscar dados do colaborador:', collaboratorError)
-      } else {
-        console.log('Dados do colaborador:', collaboratorData)
+        // 2. Coletar dados do Franqueado (A PARTE QUE FALTAVA)
+        const { data: franchiseeData, error: franchiseeError } = await supabaseTreinamento.from('users').select('phone').eq('id', approval.franchisee_id).single();
+        if (franchiseeError || !franchiseeData) throw new Error(`Dados do franqueado (ID: ${approval.franchisee_id}) não encontrados.`);
 
-        // Buscar dados da unidade
-        const unitCodeNumber = parseInt(collaboratorData.unit_code, 10)
-        const { data: unidadeData, error: unidadeError } = await supabaseTreinamento
-          .from('unidades')
-          .select('codigo_grupo, grupo, grupo_colaborador')
-          .eq('codigo_grupo', unitCodeNumber)
-          .maybeSingle()
+        // 3. Coletar dados da Unidade
+        const { data: unidadeData, error: unidadeError } = await supabasePublic.from('unidades').select('group_name').eq('group_code', collaboratorData.unit_code).single();
+        if (unidadeError || !unidadeData) throw new Error(`Dados da unidade (Código: ${collaboratorData.unit_code}) não encontrados.`);
 
-        if (unidadeError) {
-          console.error('Erro ao buscar unidade:', unidadeError)
-        } else if (!unidadeData) {
-          console.warn('Unidade não encontrada para código:', collaboratorData.unit_code)
+        // 4. Montar o Payload CORRETO
+        const groupPayload = {
+          collaboratorName: collaboratorData.name,
+          collaboratorPhone: collaboratorData.phone,
+          franchiseePhone: franchiseeData.phone,
+          unitName: unidadeData.group_name
+        };
+
+        console.log('Payload final para create-collaborator-group:', JSON.stringify(groupPayload, null, 2));
+
+        // 5. Invocar a função de criação de grupo UMA ÚNICA VEZ
+        const { error: invokeError } = await supabaseTreinamento.functions.invoke('create-collaborator-group', {
+          body: groupPayload
+        });
+
+        if (invokeError) {
+          // Apenas loga o erro, não impede a resposta de sucesso da aprovação
+          console.error('Erro ao invocar a criação de grupo, mas a aprovação foi bem-sucedida:', invokeError);
         } else {
-          console.log('Dados da unidade:', unidadeData)
-          
-          let grupoColaborador = unidadeData.grupo_colaborador
-
-          // Se grupo não existe, criar
-          if (!grupoColaborador) {
-            console.log('Grupo não existe, criando...')
-            const { data: groupData, error: groupError } = await supabaseTreinamento.functions.invoke(
-              'create-collaborator-group',
-              {
-                body: {
-                  unit_code: collaboratorData.unit_code,
-                  grupo: unidadeData.grupo || `UNIDADE ${collaboratorData.unit_code}`
-                }
-              }
-            )
-
-            if (groupError) {
-              console.error('Erro ao criar grupo:', groupError)
-            } else {
-              grupoColaborador = groupData?.groupId
-              console.log('Grupo criado:', grupoColaborador)
-              
-              // Aguardar 3 segundos para o grupo ser totalmente criado
-              await new Promise(resolve => setTimeout(resolve, 3000))
-            }
-          }
-
-          // Se tem grupo e telefone, adicionar colaborador
-          if (grupoColaborador && collaboratorData.phone) {
-            console.log('Adicionando colaborador ao grupo...')
-            
-            // Aguardar 2 segundos antes de adicionar
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            
-            const { error: addError } = await supabaseTreinamento.functions.invoke(
-              'add-collaborator-to-group',
-              {
-                body: {
-                  groupId: grupoColaborador,
-                  phone: collaboratorData.phone,
-                  name: collaboratorData.name
-                }
-              }
-            )
-
-            if (addError) {
-              console.error('Erro ao adicionar colaborador ao grupo:', addError)
-            } else {
-              console.log('Colaborador adicionado ao grupo com sucesso')
-            }
-          } else {
-            if (!grupoColaborador) {
-              console.warn('Grupo não criado/encontrado')
-            }
-            if (!collaboratorData.phone) {
-              console.warn('Colaborador sem telefone')
-            }
-          }
+          console.log('✅ Invocação para criar grupo de WhatsApp enviada com sucesso.');
         }
+
+      } catch (groupOrchestrationError) {
+        // Loga qualquer erro na coleta de dados, mas não impede a resposta de sucesso
+        console.error('⚠️ Falha na orquestração da criação de grupo:', groupOrchestrationError.message);
       }
     }
 
-    const action = approve ? 'aprovado' : 'rejeitado'
-    const actionIcon = approve ? '✅' : '❌'
-    const actionColor = approve ? '#27ae60' : '#e74c3c'
-    
-    const collaboratorName = (approval as any).users?.name || 'Colaborador'
+    const action = approve ? 'aprovado' : 'rejeitado';
+    const actionIcon = approve ? '✅' : '❌';
+    const actionColor = approve ? '#27ae60' : '#e74c3c';
+    const collaboratorName = approval.users?.name || 'Colaborador';
 
-    return new Response(
-      `<html>
+    // Retorna a página de sucesso para o franqueado
+    return new Response(`<html>
         <head>
           <title>Resposta de Aprovação</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,9 +118,7 @@ serve(async (req) => {
               O colaborador <strong>${collaboratorName}</strong> foi ${action} com sucesso.
             </p>
             <p style="font-size: 14px; color: #666;">
-              ${approve ? 
-                'O colaborador já pode acessar o sistema de treinamentos.' : 
-                'O colaborador não terá acesso ao sistema.'}
+              ${approve ? 'O colaborador já pode acessar o sistema de treinamentos.' : 'O colaborador não terá acesso ao sistema.'}
             </p>
             <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
             <p style="font-size: 12px; color: #999;">
@@ -222,27 +126,14 @@ serve(async (req) => {
             </p>
           </div>
         </body>
-      </html>`,
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' },
-        status: 200
-      }
-    )
+      </html>`, {
+      headers: { ...corsHeaders, 'Content-Type': 'text/html' },
+      status: 200
+    });
 
   } catch (error) {
-    console.error('Error in approve-collaborator function:', error)
-    return new Response(
-      `<html>
-        <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-          <h2 style="color: #e74c3c;">❌ Erro interno</h2>
-          <p>Ocorreu um erro ao processar a solicitação. Tente novamente.</p>
-          <p style="font-size: 12px; color: #666;">${(error as Error).message}</p>
-        </body>
-      </html>`,
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'text/html' },
-        status: 500
-      }
-    )
+    console.error('Error in approve-collaborator function:', error);
+    // Retorna a página de erro genérica
+    return new Response(`<html>...</html>`, { status: 500, headers: { ...corsHeaders, 'Content-Type': 'text/html' } });
   }
-})
+});

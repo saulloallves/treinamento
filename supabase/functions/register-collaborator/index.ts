@@ -1,75 +1,62 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
-
-interface CollaboratorData {
-  name: string;
-  email: string;
-  password: string;
-  unitCode: string;
-  position: string;
-  whatsapp?: string;
-  cpf?: string;
-  birth_date?: string;
-  cep?: string;
-  endereco?: string;
-  numero?: string;
-  complemento?: string;
-  bairro?: string;
-  cidade?: string;
-  estado?: string;
-}
-
-Deno.serve(async (req) => {
+Deno.serve(async (req)=>{
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
-
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Credenciais do Supabase não configuradas.');
     }
-
     // Cliente para o schema 'treinamento' (principal)
     const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-      db: { schema: 'treinamento' }
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'treinamento'
+      }
     });
-
     // Cliente para o schema 'public', que agora contém a lógica da Matriz
     const supabasePublic = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-      db: { schema: 'public' }
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      }
     });
-
-    const collaboratorData: CollaboratorData = await req.json();
+    const collaboratorData = await req.json();
     console.log('Received payload for collaborator registration:', collaboratorData);
-    
     let userId;
     // 1. Verifica se já existe um usuário de autenticação com o mesmo e-mail
     const { data: { users } } = await supabaseTreinamento.auth.admin.listUsers();
-    const existingUser = users.find((u) => u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
-
+    const existingUser = users.find((u)=>u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
     if (existingUser) {
       userId = existingUser.id;
       // 2. Se o usuário de autenticação existe, verifica se ele já tem um perfil na tabela 'users' do schema 'treinamento'
       const { data: existingProfile, error: profileError } = await supabaseTreinamento.from('users').select('id').eq('id', userId).maybeSingle();
       if (profileError) throw profileError;
-
       // 3. Se o perfil já existe, retorna um erro para evitar sobrescrever os dados.
       if (existingProfile) {
         return new Response(JSON.stringify({
           success: false,
           error: 'Um usuário com este e-mail já possui um perfil cadastrado.'
         }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          },
           status: 409 // HTTP 409 Conflict
         });
       }
@@ -100,7 +87,6 @@ Deno.serve(async (req) => {
       if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
       userId = newUser.user.id;
     }
-
     // 5. Insere o novo perfil na tabela 'users' do schema 'treinamento'.
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
     const { error: userError } = await supabaseTreinamento.from('users').insert({
@@ -117,22 +103,20 @@ Deno.serve(async (req) => {
       active: true
     });
     if (userError) throw userError;
-
     // Sincronização com a Matriz (usando o schema 'public' do mesmo projeto)
     try {
       let positionId;
-
       const { data: existingCargo, error: cargoSelectError } = await supabasePublic.from('cargos_loja').select('id').eq('role', collaboratorData.position).maybeSingle();
       if (cargoSelectError) throw new Error(`Erro ao buscar cargo no schema public: ${cargoSelectError.message}`);
-      
       if (existingCargo) {
         positionId = existingCargo.id;
       } else {
-        const { data: newCargo, error: cargoInsertError } = await supabasePublic.from('cargos_loja').insert({ role: collaboratorData.position }).select('id').single();
+        const { data: newCargo, error: cargoInsertError } = await supabasePublic.from('cargos_loja').insert({
+          role: collaboratorData.position
+        }).select('id').single();
         if (cargoInsertError) throw new Error(`Erro ao criar cargo no schema public: ${cargoInsertError.message}`);
         positionId = newCargo.id;
       }
-
       const colaboradorLojaRecord = {
         employee_name: collaboratorData.name,
         position_id: positionId,
@@ -153,9 +137,8 @@ Deno.serve(async (req) => {
         city: collaboratorData.cidade,
         state: collaboratorData.estado,
         uf: collaboratorData.estado,
-        postal_code: collaboratorData.cep,
+        postal_code: collaboratorData.cep
       };
-
       const { error: insertMatrizError } = await supabasePublic.from('colaboradores_loja').insert(colaboradorLojaRecord);
       if (insertMatrizError) {
         if (insertMatrizError.code === '23505') {
@@ -182,25 +165,29 @@ Deno.serve(async (req) => {
       }
     });
     if (notificationError) console.warn('Aviso: Falha ao enviar notificação para o franqueado:', notificationError);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        userId,
-        message: 'Colaborador criado com sucesso. Aguarde aprovação do franqueado.' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
-
+    return new Response(JSON.stringify({
+      success: true,
+      userId,
+      message: 'Colaborador criado com sucesso. Aguarde aprovação do franqueado.'
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 200
+    });
   } catch (error) {
     console.error('--- ERRO GERAL na função register-collaborator ---');
     console.error(error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: (error as Error).message || 'Erro interno do servidor' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message || 'Erro interno do servidor'
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
   }
 });
