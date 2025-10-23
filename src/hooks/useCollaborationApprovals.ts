@@ -66,38 +66,23 @@ export const useCollaborationApprovals = () => {
   };
 };
 
-// --- ARMADILHA DE DEPURAÇÃO 1 ---
+// --- ARMADILHAS DE DEPURAÇÃO ---
 export const useCreateCollaborator = () => {
-  const mutate = () => {
-    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useCreateCollaborator' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
-    console.error(errorMessage, new Error().stack);
-    toast.error("Erro de Desenvolvimento Detectado", {
-      description: "Uma função obsoleta foi chamada. Verifique o console para mais detalhes.",
-    });
-  };
+  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useCreateCollaborator' encontrada!", new Error().stack);
   return { mutate, isPending: false };
 };
 
-// --- ARMADILHA DE DEPURAÇÃO 2 ---
 export const useApproveCollaborator = () => {
-  const mutate = () => {
-    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useApproveCollaborator' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
-    console.error(errorMessage, new Error().stack);
-    toast.error("Erro de Desenvolvimento Detectado", {
-      description: "Uma função obsoleta 'useApproveCollaborator' foi chamada. Verifique o console.",
-    });
-  };
+  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useApproveCollaborator' encontrada!", new Error().stack);
   return { mutate, isPending: false };
 };
 
-// --- ARMADILHA DE DEPURAÇÃO 3 ---
 export const useUnitCollaborationApprovals = () => {
-  const mutate = () => {
-    const errorMessage = "ERRO DE DEPURAÇÃO: A chamada incorreta para 'useUnitCollaborationApprovals' foi encontrada! Verifique o stack trace no console para ver qual componente está chamando esta função obsoleta.";
-    console.error(errorMessage, new Error().stack);
-    toast.error("Erro de Desenvolvimento Detectado", {
-      description: "Uma função obsoleta 'useUnitCollaborationApprovals' foi chamada. Verifique o console.",
-    });
-  };
+  const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useUnitCollaborationApprovals' encontrada!", new Error().stack);
   return { mutate, isPending: false };
+};
+
+export const useUnitApprovalCount = () => {
+  console.error("ERRO DE DEPURAÇÃO: Chamada para 'useUnitApprovalCount' encontrada!", new Error().stack);
+  return { data: 0, isLoading: false };
 };
