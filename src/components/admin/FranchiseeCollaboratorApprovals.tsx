@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import { Loader2, UserCheck, UserX } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useCollaborationApprovals } from '@/hooks/useCollaborationApprovals';
 
+// Função para buscar colaboradores pendentes
 const fetchPendingCollaborators = async (unitCodes: string[]) => {
   if (!unitCodes || unitCodes.length === 0) return [];
 
@@ -23,12 +24,35 @@ const fetchPendingCollaborators = async (unitCodes: string[]) => {
   return data;
 };
 
+// Função para chamar a nova edge function orquestradora
+const approveCollaborator = async (collaborator: any) => {
+  // Apenas o email é necessário, a função de backend buscará o resto.
+  const { error } = await supabase.functions.invoke('update-collaborator-details', {
+    body: { email: collaborator.email },
+  });
+
+  if (error) {
+    throw new Error(`Erro ao aprovar colaborador: ${error.message}`);
+  }
+
+  return { success: true };
+};
+
+
+const rejectCollaborator = async (userId: string) => {
+    // Lógica para rejeitar (pode ser implementada depois)
+    const { error } = await supabase
+        .from('users')
+        .update({ approval_status: 'rejeitado', active: false })
+        .eq('id', userId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+};
+
 export const FranchiseeCollaboratorApprovals = () => {
   const { data: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
   const [processingId, setProcessingId] = useState<string | null>(null);
-  
-  // Hook corrigido, nos dá as funções 'approve' e 'reject' diretamente
-  const { approve, isApproving, reject, isRejecting } = useCollaborationApprovals();
 
   const unitCodes = currentUser?.unit_codes || [];
 
@@ -38,19 +62,42 @@ export const FranchiseeCollaboratorApprovals = () => {
     enabled: unitCodes.length > 0,
   });
 
-  // Esta é a função que estava com erro. Agora ela chama 'approve' diretamente.
-  const handleFinalizeApproval = (collaborator: any) => {
+  const approvalMutation = useMutation({
+    mutationFn: approveCollaborator,
+    onSuccess: () => {
+      toast.success('Colaborador aprovado com sucesso! O grupo do WhatsApp será criado em breve.');
+      queryClient.invalidateQueries({ queryKey: ['pendingCollaborators'] });
+    },
+    onError: (error) => {
+      toast.error(`Falha na aprovação: ${error.message}`);
+    },
+    onSettled: () => {
+      setProcessingId(null);
+    },
+  });
+
+  const rejectionMutation = useMutation({
+    mutationFn: rejectCollaborator,
+    onSuccess: () => {
+        toast.success('Colaborador rejeitado.');
+        queryClient.invalidateQueries({ queryKey: ['pendingCollaborators'] });
+    },
+    onError: (error) => {
+        toast.error(`Falha ao rejeitar: ${error.message}`);
+    },
+    onSettled: () => {
+        setProcessingId(null);
+    },
+  });
+
+  const handleApprove = (collaborator: any) => {
     setProcessingId(collaborator.id);
-    approve({ email: collaborator.email }, {
-      onSettled: () => setProcessingId(null),
-    });
+    approvalMutation.mutate(collaborator);
   };
 
   const handleReject = (userId: string) => {
     setProcessingId(userId);
-    reject(userId, {
-      onSettled: () => setProcessingId(null),
-    });
+    rejectionMutation.mutate(userId);
   };
 
   if (isLoading) {
@@ -73,8 +120,6 @@ export const FranchiseeCollaboratorApprovals = () => {
       </Card>
     );
   }
-
-  const isProcessing = isApproving || isRejecting;
 
   return (
     <Card>
@@ -105,18 +150,18 @@ export const FranchiseeCollaboratorApprovals = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleFinalizeApproval(collab)}
-                    disabled={isProcessing}
+                    onClick={() => handleApprove(collab)}
+                    disabled={processingId === collab.id}
                   >
-                    {isProcessing && processingId === collab.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4 text-green-500" />}
+                    {processingId === collab.id && approvalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4 text-green-500" />}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => handleReject(collab.id)}
-                    disabled={isProcessing}
+                    disabled={processingId === collab.id}
                   >
-                    {isProcessing && processingId === collab.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="h-4 w-4 text-red-500" />}
+                    {processingId === collab.id && rejectionMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="h-4 w-4 text-red-500" />}
                   </Button>
                 </TableCell>
               </TableRow>
