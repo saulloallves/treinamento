@@ -3,54 +3,34 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 
-interface CollaboratorDetails {
-  email: string;
-  admission_date: string;
-  instagram_profile?: string;
-  meal_voucher_active: boolean;
-  meal_voucher_value?: string;
-  transport_voucher_active: boolean;
-  transport_voucher_value?: string;
-  health_plan: boolean;
-  basic_food_basket_active: boolean;
-  basic_food_basket_value?: string;
-  cost_assistance_active: boolean;
-  cost_assistance_value?: string;
-  salary?: string;
-}
-
-serve(async (req) => {
+serve(async (req)=>{
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // --- Autenticação ---
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // --- Inicialização dos Clientes Supabase ---
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: req.headers.get('Authorization')! } },
+    // Cliente para o schema 'treinamento' (operações internas)
+    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
       db: { schema: 'treinamento' }
     });
-    const { data: { user } } = await supabaseUser.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado.");
 
     // Cliente para o schema 'public' (operações da Matriz)
     const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
       db: { schema: 'public' }
     });
 
-    const details: CollaboratorDetails = await req.json();
-    console.log('Recebido para atualizar na Matriz:', details);
+    const details = await req.json();
+    console.log('Dados recebidos para aprovação:', details);
 
-    // --- Lógica de Atualização ---
-    const { error: updateError } = await supabasePublic
+    // --- ETAPA 1: Atualizar dados na Matriz (schema public) ---
+    const { error: publicUpdateError } = await supabasePublic
       .from('colaboradores_loja')
       .update({
         admission_date: details.admission_date,
@@ -64,27 +44,46 @@ serve(async (req) => {
         basic_food_basket_value: details.basic_food_basket_value,
         cost_assistance_active: details.cost_assistance_active,
         cost_assistance_value: details.cost_assistance_value,
-        salary: details.salary,
+        salary: details.salary
       })
       .eq('email', details.email);
 
-    if (updateError) {
-      console.error('Erro ao atualizar colaborador na Matriz:', updateError);
-      throw new Error(`Falha ao sincronizar com a Matriz: ${updateError.message}`);
+    if (publicUpdateError) {
+      console.error('Erro ao atualizar colaborador na Matriz (public):', publicUpdateError);
+      throw new Error(`Falha ao sincronizar com a Matriz: ${publicUpdateError.message}`);
     }
+    console.log(`✅ Colaborador ${details.email} atualizado na Matriz.`);
 
-    console.log(`✅ Colaborador ${details.email} atualizado na Matriz com sucesso.`);
+    // --- ETAPA 2: Atualizar status no sistema de Treinamento (schema treinamento) ---
+    const { error: treinamentoUpdateError } = await supabaseTreinamento
+      .from('users') // Supondo que a tabela de status seja 'users' no treinamento
+      .update({ approval_status: 'aprovado' })
+      .eq('email', details.email);
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Dados do colaborador atualizados na Matriz.' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
+    if (treinamentoUpdateError) {
+      console.error('Erro ao aprovar colaborador no Treinamento:', treinamentoUpdateError);
+      // Idealmente, aqui teríamos uma lógica para reverter a atualização na Matriz (transação)
+      throw new Error(`Falha ao aprovar colaborador no sistema: ${treinamentoUpdateError.message}`);
+    }
+    console.log(`✅ Status do colaborador ${details.email} atualizado para 'aprovado' no Treinamento.`);
+
+    // --- Resposta de Sucesso ---
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Colaborador aprovado e dados sincronizados com a Matriz.'
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
 
   } catch (error) {
     console.error('Erro na função update-collaborator-details:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: (error as Error).message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    );
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500 // Retornar 500 em caso de erro
+    });
   }
 });
