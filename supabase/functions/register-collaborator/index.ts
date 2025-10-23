@@ -1,122 +1,191 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
-
-serve(async (req) => {
+Deno.serve(async (req)=>{
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
-
   try {
-    // 1. Receber todos os dados do frontend, incluindo o CPF
-    const { email, password, name, whatsapp, unitCode, position, cpf } = await req.json();
-
-    // 2. Validar todos os campos necessários
-    if (!email || !password || !name || !whatsapp || !unitCode || !position || !cpf) {
-      console.error("Validação falhou. Dados recebidos:", { email, password, name, whatsapp, unitCode, position, cpf });
-      throw new Error("Todos os campos são obrigatórios para o registro, incluindo o CPF.");
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Credenciais do Supabase não configuradas.');
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-
-    // Cliente para o schema 'public' para buscar o nome da unidade
-    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
-        db: { schema: 'public' }
-    });
-
-    // 3. Buscar o nome da unidade usando o unitCode
-    const { data: unidadeData, error: unidadeError } = await supabasePublic
-      .from('unidades')
-      .select('group_name')
-      .eq('group_code', unitCode)
-      .single();
-
-    if (unidadeError || !unidadeData) {
-      console.error(`Erro ao buscar unidade com código ${unitCode}:`, unidadeError);
-      throw new Error(`Unidade com código ${unitCode} não foi encontrada.`);
-    }
-    const unitName = unidadeData.group_name;
-
-    // 4. Criar o usuário no Supabase Auth com metadados completos
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email,
-      password: password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: name,
-        phone: whatsapp,
-        unit_code: unitCode,
-        position: position,
-        user_type: 'Aluno',
-        role: 'Colaborador',
-        cpf: cpf
+    // Cliente para o schema 'treinamento' (principal)
+    const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'treinamento'
       }
     });
-
-    if (authError) {
-      console.error("Erro ao criar usuário no Auth:", authError);
-      throw new Error(`Não foi possível registrar o usuário: ${authError.message}`);
-    }
-
-    if (!authData.user) {
-        throw new Error("Criação do usuário não retornou um usuário.");
-    }
-
-    const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
-        db: { schema: 'treinamento' }
+    // Cliente para o schema 'public', que agora contém a lógica da Matriz
+    const supabasePublic = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      db: {
+        schema: 'public'
+      }
     });
-
-    // 5. Inserir o registro completo na tabela 'users' do schema 'treinamento'
-    const { error: insertError } = await supabaseTreinamento
-      .from('users')
-      .insert({
-        id: authData.user.id,
-        email: email,
-        name: name,
-        phone: whatsapp,
-        cpf: cpf, // Salva o CPF
-        user_type: 'Aluno',
-        role: 'Colaborador',
-        position: position,
-        unit_code: unitCode,
-        unit_codes: [unitCode], // Salva o código da unidade como um array
-        nomes_unidades: [unitName], // Salva o nome da unidade como um array
-        approval_status: 'pendente',
-        active: false
+    const collaboratorData = await req.json();
+    console.log('Received payload for collaborator registration:', collaboratorData);
+    let userId;
+    // 1. Verifica se já existe um usuário de autenticação com o mesmo e-mail
+    const { data: { users } } = await supabaseTreinamento.auth.admin.listUsers();
+    const existingUser = users.find((u)=>u.email?.toLowerCase() === collaboratorData.email.toLowerCase());
+    if (existingUser) {
+      userId = existingUser.id;
+      // 2. Se o usuário de autenticação existe, verifica se ele já tem um perfil na tabela 'users' do schema 'treinamento'
+      const { data: existingProfile, error: profileError } = await supabaseTreinamento.from('users').select('id').eq('id', userId).maybeSingle();
+      if (profileError) throw profileError;
+      // 3. Se o perfil já existe, retorna um erro para evitar sobrescrever os dados.
+      if (existingProfile) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Um usuário com este e-mail já possui um perfil cadastrado.'
+        }), {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          },
+          status: 409 // HTTP 409 Conflict
+        });
+      }
+    } else {
+      // 4. Se não existe usuário de autenticação, cria um novo.
+      const { data: newUser, error: authError } = await supabaseTreinamento.auth.admin.createUser({
+        email: collaboratorData.email,
+        password: collaboratorData.password,
+        user_metadata: {
+          full_name: collaboratorData.name,
+          user_type: 'Aluno',
+          role: 'Colaborador',
+          unit_code: collaboratorData.unitCode,
+          birth_date: collaboratorData.birth_date,
+          address: {
+            cep: collaboratorData.cep,
+            endereco: collaboratorData.endereco,
+            numero: collaboratorData.numero,
+            complemento: collaboratorData.complemento,
+            bairro: collaboratorData.bairro,
+            cidade: collaboratorData.cidade,
+            estado: collaboratorData.estado
+          }
+        },
+        email_confirm: true
       });
-
-    if (insertError) {
-      console.error("Erro ao inserir na tabela de usuários:", insertError);
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      throw new Error(`Erro ao salvar dados do colaborador: ${insertError.message}`);
+      if (authError) throw authError;
+      if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
+      userId = newUser.user.id;
     }
-
-    console.log(`Registro completo do colaborador ${email} realizado com sucesso.`);
-
+    // 5. Insere o novo perfil na tabela 'users' do schema 'treinamento'.
+    const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
+    const { error: userError } = await supabaseTreinamento.from('users').insert({
+      id: userId,
+      name: collaboratorData.name,
+      email: collaboratorData.email,
+      user_type: 'Aluno',
+      role: 'Colaborador',
+      unit_code: collaboratorData.unitCode,
+      position: collaboratorData.position,
+      phone: cleanPhone || null,
+      cpf: collaboratorData.cpf || null,
+      approval_status: 'pendente',
+      active: true
+    });
+    if (userError) throw userError;
+    // Sincronização com a Matriz (usando o schema 'public' do mesmo projeto)
+    try {
+      let positionId;
+      const { data: existingCargo, error: cargoSelectError } = await supabasePublic.from('cargos_loja').select('id').eq('role', collaboratorData.position).maybeSingle();
+      if (cargoSelectError) throw new Error(`Erro ao buscar cargo no schema public: ${cargoSelectError.message}`);
+      if (existingCargo) {
+        positionId = existingCargo.id;
+      } else {
+        const { data: newCargo, error: cargoInsertError } = await supabasePublic.from('cargos_loja').insert({
+          role: collaboratorData.position
+        }).select('id').single();
+        if (cargoInsertError) throw new Error(`Erro ao criar cargo no schema public: ${cargoInsertError.message}`);
+        positionId = newCargo.id;
+      }
+      const colaboradorLojaRecord = {
+        employee_name: collaboratorData.name,
+        position_id: positionId,
+        email: collaboratorData.email,
+        cpf: collaboratorData.cpf || '00000000000',
+        phone: cleanPhone || '00000000000',
+        admission_date: new Date().toISOString(),
+        web_password: collaboratorData.password,
+        lgpd_term: true,
+        confidentiality_term: true,
+        system_term: true,
+        birth_date: collaboratorData.birth_date || null,
+        salary: null,
+        address: collaboratorData.endereco,
+        number_address: collaboratorData.numero,
+        address_complement: collaboratorData.complemento,
+        neighborhood: collaboratorData.bairro,
+        city: collaboratorData.cidade,
+        state: collaboratorData.estado,
+        uf: collaboratorData.estado,
+        postal_code: collaboratorData.cep
+      };
+      const { error: insertMatrizError } = await supabasePublic.from('colaboradores_loja').insert(colaboradorLojaRecord);
+      if (insertMatrizError) {
+        if (insertMatrizError.code === '23505') {
+          console.warn('Colaborador já existe no schema public (CPF ou Email). Pulando inserção.');
+        } else {
+          throw insertMatrizError;
+        }
+      } else {
+        console.log('✅ Colaborador sincronizado com o schema public com sucesso.');
+      }
+    } catch (publicSchemaError) {
+      console.error('--- FALHA NA SINCRONIZAÇÃO COM O SCHEMA PUBLIC (NÃO BLOQUEANTE) ---');
+      console.error(publicSchemaError);
+    }
+    // Apenas notifica o franqueado, sem criar ou adicionar a grupos.
+    const { error: notificationError } = await supabaseTreinamento.functions.invoke('notify-franchisee', {
+      body: {
+        collaboratorId: userId,
+        collaboratorName: collaboratorData.name,
+        collaboratorEmail: collaboratorData.email,
+        collaboratorPosition: collaboratorData.position,
+        unitCode: collaboratorData.unitCode
+      }
+    });
+    if (notificationError) console.warn('Aviso: Falha ao enviar notificação para o franqueado:', notificationError);
     return new Response(JSON.stringify({
       success: true,
-      message: "Registro de colaborador realizado com sucesso. Aguardando aprovação do franqueado."
+      userId,
+      message: 'Colaborador criado com sucesso. Aguarde aprovação do franqueado.'
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
       status: 200
     });
-
   } catch (error) {
-    console.error('Erro na função register-collaborator:', error);
+    console.error('--- ERRO GERAL na função register-collaborator ---');
+    console.error(error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message || 'Erro interno do servidor'
     }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
       status: 500
     });
   }
