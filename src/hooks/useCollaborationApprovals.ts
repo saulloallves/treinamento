@@ -86,3 +86,8 @@ export const useUnitApprovalCount = () => {
   console.error("ERRO DE DEPURAÇÃO: Chamada para 'useUnitApprovalCount' encontrada!", new Error().stack);
   return { data: 0, isLoading: false };
 };
+
+export const useCreateCollaboratorGroup = () => {
+    const mutate = () => console.error("ERRO DE DEPURAÇÃO: Chamada para 'useCreateCollaboratorGroup' encontrada!", new Error().stack);
+    return { mutate, isPending: false };
+};
