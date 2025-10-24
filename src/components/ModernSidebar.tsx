@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { 
   LayoutDashboard, 
   GraduationCap, 
@@ -35,6 +36,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import cabecaImage from '@/assets/cabeca.png';
 
 interface ModernSidebarProps {
   showInMobile?: boolean;
@@ -596,7 +598,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
             <div className="p-6 border-b border-border mt-16">
               <div className="flex items-center gap-2">
                 <img 
-                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  src={cabecaImage}
                   alt="Mascote Cresci e Perdi" 
                   className="h-8 w-auto object-contain"
                 />
@@ -655,11 +657,11 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
         className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white/95 backdrop-blur-sm fixed top-0 left-0 z-30 flex-shrink-0 h-screen flex flex-col border-r border-border shadow-sm`}
       >
         {/* Header da sidebar */}
-        <div className="pt-3 pb-3 border-b border-border relative">
+        <div className={`${isCollapsed ? 'p-2' : 'p-6'} border-b border-border`}>
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-2 ${isCollapsed ? '' : 'flex-1'}`}>
               <img 
-                src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                src={cabecaImage}
                 alt="Mascote Cresci e Perdi" 
                 className={`object-contain transition-all duration-300 ${isCollapsed ? 'h-9' : 'h-8'}`}
               />
@@ -707,7 +709,7 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
           <div className={`flex items-center transition-all duration-300 rounded-lg bg-muted/50 hover:bg-muted ${
             isCollapsed ? 'justify-center p-1 gap-0' : 'p-3 gap-3'
           }`}>
-            <div className="w-8 h-8 min-w-[2rem] h-8 min-h-[2rem] rounded-full bg-primary flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 min-w-[2rem] min-h-[2rem] rounded-full bg-primary flex items-center justify-center shrink-0">
               <span className="text-sm font-medium text-primary-foreground">
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </span>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { 
   LayoutDashboard, 
   GraduationCap, 
@@ -33,6 +34,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import cabecaImage from '@/assets/cabeca.png';
 
 interface SidebarProps {
   showInMobile?: boolean;
@@ -449,7 +451,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
             <div className="p-6 border-b border-gray-200 mt-16">
               <div className="flex items-center gap-3">
                 <img 
-                  src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+                  src={cabecaImage}
                   alt="Mascote Cresci e Perdi" 
                   className="h-8 w-auto object-contain"
                 />
@@ -499,7 +501,7 @@ const Sidebar = ({ showInMobile = true }: SidebarProps) => {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <img 
-            src="https://raw.githubusercontent.com/saulloallves/Gestor-Financeiro-CP/refs/heads/main/src/assets/cabeca.png" 
+            src={cabecaImage}
             alt="Mascote Cresci e Perdi" 
             className="h-8 w-auto object-contain"
           />
