@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -11,6 +12,7 @@ import { LogIn, UserPlus, GraduationCap, Shield, Building, BookOpen, Loader2 } f
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import logoPrincipal from '@/assets/logo-principal.png';
 
 const Auth = () => {
   const { user, signIn, signUp, loading, authProcessing, sendPasswordViaWhatsApp } = useAuth();
@@ -238,7 +240,7 @@ const Auth = () => {
       <div className="w-full max-w-xl space-y-8">
         <div className="text-center">
           <img 
-            src="https://raw.githubusercontent.com/saulloallves/sistema-matriz/refs/heads/main/src/assets/logo-principal.png" 
+            src={logoPrincipal}
             alt="Cresci e Perdi Logo" 
             className="mx-auto mb-4 w-48"
           />
