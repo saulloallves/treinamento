@@ -32,10 +32,14 @@ const handler = async (req: Request): Promise<Response> => {
       db: { schema: 'treinamento' }
     });
 
+    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
+      db: { schema: 'public' }
+    });
+
     // Buscar todas as unidades com email
-    const { data: unidades, error: unidadesError } = await supabaseTreinamento
+    const { data: unidades, error: unidadesError } = await supabasePublic
       .from("unidades")
-      .select("id, grupo, codigo_grupo, email")
+      .select("id, group_name, group_code, email")
       .not("email", "is", null)
       .neq("email", "");
 
@@ -62,8 +66,8 @@ const handler = async (req: Request): Promise<Response> => {
     for (const unidade of unidades) {
       const result: CreateResult = {
         email: unidade.email,
-        unitCode: unidade.codigo_grupo?.toString() || "",
-        unitName: unidade.grupo || "",
+        unitCode: unidade.group_code?.toString() || "",
+        unitName: unidade.group_name || "",
         success: false,
       };
 
@@ -87,8 +91,8 @@ const handler = async (req: Request): Promise<Response> => {
           password: defaultPassword,
           email_confirm: true, // Confirmar email automaticamente
           user_metadata: {
-            name: `Franqueado ${unidade.grupo}`,
-            unit_code: unidade.codigo_grupo?.toString(),
+            name: `Franqueado ${unidade.group_name}`,
+            unit_code: unidade.group_code?.toString(),
             role: "Franqueado",
             user_type: "Aluno" // Definir como Aluno
           }
@@ -112,8 +116,8 @@ const handler = async (req: Request): Promise<Response> => {
           .insert({
             id: authUser.user.id,
             email: unidade.email,
-            name: `Franqueado ${unidade.grupo}`,
-            unit_code: unidade.codigo_grupo?.toString(),
+            name: `Franqueado ${unidade.group_name}`,
+            unit_code: unidade.group_code?.toString(),
             role: "Franqueado",
             user_type: "Aluno", // Tipo de usuário como Aluno
             approval_status: "aprovado",

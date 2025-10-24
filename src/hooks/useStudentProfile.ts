@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabasePublic } from "@/integrations/supabase/client";
 
 export const useStudentProfile = (studentId: string | undefined, enabled: boolean = true) => {
   // Query para buscar dados completos do aluno
@@ -17,14 +17,14 @@ export const useStudentProfile = (studentId: string | undefined, enabled: boolea
       if (userError && userError.code !== 'PGRST116') throw userError;
 
       if (user && user.unit_code) {
-        const { data: unidade } = await supabase
+        const { data: unidade } = await supabasePublic
           .from('unidades')
-          .select('grupo')
-          .eq('codigo_grupo', parseInt(user.unit_code))
+          .select('group_name')
+          .eq('group_code', parseInt(user.unit_code))
           .maybeSingle();
         
         if (unidade) {
-          (user as any).unit = { name: unidade.grupo };
+          (user as any).unit = { name: unidade.group_name };
         }
       }
 

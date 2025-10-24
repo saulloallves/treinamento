@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabasePublic } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Enrollment {
@@ -90,17 +90,17 @@ export const useEnrollments = (courseId?: string) => {
       let unitsMap: Record<string, { id: string; name: string; code: string }> = {};
       
       if (unitCodes.length > 0) {
-        const { data: units } = await supabase
+        const { data: units } = await supabasePublic
           .from('unidades')
-          .select('codigo_grupo, grupo')
-          .in('codigo_grupo', unitCodes.map(code => parseInt(code)));
+          .select('group_code, group_name')
+          .in('group_code', unitCodes.map(code => parseInt(code)));
         
         if (units) {
           units.forEach(unit => {
-            unitsMap[unit.codigo_grupo.toString()] = {
-              id: unit.codigo_grupo.toString(),
-              name: unit.grupo,
-              code: unit.codigo_grupo.toString()
+            unitsMap[unit.group_code.toString()] = {
+              id: unit.group_code.toString(),
+              name: unit.group_name,
+              code: unit.group_code.toString()
             };
           });
         }

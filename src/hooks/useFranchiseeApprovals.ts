@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase, supabasePublic } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 export interface FranchiseeApproval {
@@ -23,16 +23,22 @@ export const useFranchiseeApprovals = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Buscar os códigos de unidade do franqueado
-      const { data: franchiseeData, error: franchiseeError } = await supabasePublic
-        .from('unidades')
-        .select('id')
-        .eq('franchisee_id', user.id);
+      // Buscar os códigos de unidade do franqueado a partir da tabela 'users'
+      const { data: franchiseeData, error: franchiseeError } = await supabase
+        .from('users')
+        .select('unit_code, unit_codes')
+        .eq('id', user.id)
+        .eq('role', 'Franqueado')
+        .single();
 
       if (franchiseeError) throw franchiseeError;
       if (!franchiseeData) return [];
 
-      const unitCodes = franchiseeData.map(unit => unit.id);
+      // Combina unit_code e unit_codes em um array único e sem duplicatas
+      const unitCodes = [
+        ...(franchiseeData.unit_codes || []),
+        ...(franchiseeData.unit_code ? [franchiseeData.unit_code] : [])
+      ].filter((code, index, self) => code && self.indexOf(code) === index);
 
       if (unitCodes.length === 0) return [];
 
@@ -79,16 +85,22 @@ export const useFranchiseeApprovalCount = () => {
     queryFn: async () => {
       if (!user?.id) return 0;
 
-      // Buscar os códigos de unidade do franqueado
-      const { data: franchiseeData, error: franchiseeError } = await supabasePublic
-        .from('unidades')
-        .select('id')
-        .eq('franchisee_id', user.id);
+      // Buscar os códigos de unidade do franqueado a partir da tabela 'users'
+      const { data: franchiseeData, error: franchiseeError } = await supabase
+        .from('users')
+        .select('unit_code, unit_codes')
+        .eq('id', user.id)
+        .eq('role', 'Franqueado')
+        .single();
 
       if (franchiseeError) throw franchiseeError;
       if (!franchiseeData) return 0;
 
-      const unitCodes = franchiseeData.map(unit => unit.id);
+      // Combina unit_code e unit_codes em um array único e sem duplicatas
+      const unitCodes = [
+        ...(franchiseeData.unit_codes || []),
+        ...(franchiseeData.unit_code ? [franchiseeData.unit_code] : [])
+      ].filter((code, index, self) => code && self.indexOf(code) === index);
 
       if (unitCodes.length === 0) return 0;
 

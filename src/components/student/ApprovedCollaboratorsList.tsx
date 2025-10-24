@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabasePublic } from "@/integrations/supabase/client";
 import { Users, UserCheck, Calendar, Pause, Play, Trash2, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -54,10 +54,10 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
     queryKey: ['unit-info', currentUser?.unit_code],
     queryFn: async () => {
       if (!currentUser?.unit_code) return null;
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('unidades')
-        .select('codigo_grupo, grupo, grupo_colaborador')
-        .eq('codigo_grupo', parseInt(currentUser.unit_code))
+        .select('group_code, group_name')
+        .eq('group_code', parseInt(currentUser.unit_code))
         .single();
       
       if (error) throw error;
@@ -168,10 +168,10 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
   });
 
   const handleCreateGroup = () => {
-    if (unitInfo?.grupo && currentUser?.unit_code) {
+    if (unitInfo?.group_name && currentUser?.unit_code) {
       createGroupMutation.mutate({
         unitCode: currentUser.unit_code,
-        grupo: unitInfo.grupo
+        grupo: unitInfo.group_name
       });
     }
   };

@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       let unitId: string | null = null;
       if (unitCode && meta.role !== 'Franqueado') {
-        const { data: unit, error: unitErr } = await supabase
+        const { data: unit, error: unitErr } = await supabasePublic
           .from('unidades')
           .select('id')
           .eq('id', unitCode.trim())
