@@ -1,3 +1,4 @@
+import { useGenerateCertificate } from "@/hooks/useGenerateCertificate";
 import {
   Dialog,
   DialogContent,
@@ -13,15 +14,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Award, Calendar, User } from "lucide-react";
+import { Download, Award, Calendar, User, FileText, Loader2 } from "lucide-react";
 
 interface Certificate {
   id: string;
   studentName: string;
   courseName: string;
-  generatedAt: string;
-  status: string;
+  generatedAt: string | null;
+  status: 'Emitido' | 'Pendente';
   url: string | null;
+  // Dados para geração
+  enrollmentId: string;
+  userId: string;
+  courseId: string;
+  completedLessons: string[];
 }
 
 interface TurmaCertificatesDialogProps {
@@ -39,6 +45,19 @@ const TurmaCertificatesDialog = ({
   professorName,
   certificates
 }: TurmaCertificatesDialogProps) => {
+  const generateCertificateMutation = useGenerateCertificate();
+
+  const handleGenerate = (cert: Certificate) => {
+    generateCertificateMutation.mutate({
+      enrollmentId: cert.enrollmentId,
+      userId: cert.userId,
+      courseId: cert.courseId,
+      studentName: cert.studentName,
+      courseName: cert.courseName,
+      completedLessons: cert.completedLessons,
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
@@ -53,7 +72,7 @@ const TurmaCertificatesDialog = ({
           {certificates.length === 0 ? (
             <div className="text-center py-12">
               <Award className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum certificado emitido ainda</p>
+              <p className="text-muted-foreground">Nenhum aluno elegível para certificado nesta turma.</p>
             </div>
           ) : (
             <Table>
@@ -93,7 +112,7 @@ const TurmaCertificatesDialog = ({
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        String(cert.status).toLowerCase() === 'emitido' 
+                        cert.status === 'Emitido' 
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' 
                           : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                       }`}>
@@ -101,12 +120,26 @@ const TurmaCertificatesDialog = ({
                       </span>
                     </TableCell>
                     <TableCell>
-                      {cert.url && (
+                      {cert.status === 'Emitido' && cert.url ? (
                         <Button variant="outline" size="sm" asChild>
                           <a href={cert.url} target="_blank" rel="noopener noreferrer">
                             <Download className="w-4 h-4 mr-2" />
                             Baixar
                           </a>
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleGenerate(cert)}
+                          disabled={generateCertificateMutation.isPending}
+                        >
+                          {generateCertificateMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <FileText className="w-4 h-4 mr-2" />
+                          )}
+                          Gerar
                         </Button>
                       )}
                     </TableCell>

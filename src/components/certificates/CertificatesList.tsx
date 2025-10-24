@@ -64,13 +64,26 @@ const CertificatesList = () => {
     },
   });
 
-  // Buscar enrollments para relacionar com certificados
-  const enrollmentsQuery = useQuery({
-    queryKey: ["enrollments", "for-certs"],
+  // Buscar todos os enrollments com 100% de progresso para identificar quem está elegível
+  const eligibleEnrollmentsQuery = useQuery({
+    queryKey: ["enrollments", "eligible-for-certs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("enrollments")
-        .select("id, student_name, turma_id");
+        .select("id, student_name, turma_id, user_id, course_id, completed_lessons")
+        .gte("progress_percentage", 100); // Maior ou igual a 100
+      if (error) { console.error('eligible enrollments query error', error); return []; }
+      return data ?? [];
+    },
+  });
+
+  // Buscar todos os enrollments para estatísticas e mapeamento
+  const enrollmentsQuery = useQuery({
+    queryKey: ["enrollments", "for-certs-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id, student_name, turma_id, progress_percentage");
       if (error) { console.error('enrollments query error', error); return []; }
       return data ?? [];
     },
@@ -108,62 +121,67 @@ const CertificatesList = () => {
   const groupedByTurma = useMemo(() => {
     const turmas = (turmasQuery.data ?? []) as any[];
     const certificates = (certsQuery.data ?? []) as any[];
-    
-    // Criar mapa de certificados por turma
-    const certsByTurma = certificates.reduce((acc, cert) => {
-      const enr = enrollmentsMap.get(cert.enrollment_id);
-      if (!enr?.turma_id) return acc;
-      
+    const eligibleEnrollments = (eligibleEnrollmentsQuery.data ?? []) as any[];
+
+    // Mapa para acesso rápido aos certificados existentes por enrollment_id
+    const certsByEnrollmentId = new Map(certificates.map(c => [c.enrollment_id, c]));
+
+    // Agrupa todos os alunos (com ou sem certificado) por turma
+    const allStudentsByTurma = eligibleEnrollments.reduce((acc, enr) => {
       if (!acc[enr.turma_id]) {
         acc[enr.turma_id] = [];
       }
-      
-      acc[enr.turma_id].push({
-        id: cert.id,
-        studentName: enr.student_name ?? "—",
-        courseName: "",
-        generatedAt: cert.generated_at,
-        status: cert.status,
-        url: cert.certificate_url as string | null,
-      });
-      
+      acc[enr.turma_id].push(enr);
       return acc;
     }, {} as Record<string, any[]>);
 
-    // Criar grupos de turmas com seus certificados
+    // Monta a estrutura final
     const grouped = turmas.map((turma) => {
       const courseName = turma.courses?.name ?? "—";
       const turmaName = turma.name || turma.code || "Turma não definida";
       const professorName = turma.responsavel_name || "Professor não definido";
-      const turmaCerts = certsByTurma[turma.id] || [];
       
-      // Adicionar courseName aos certificados
-      turmaCerts.forEach(cert => {
-        cert.courseName = courseName;
+      const studentsInTurma = allStudentsByTurma[turma.id] || [];
+
+      const certificateList = studentsInTurma.map(enr => {
+        const existingCert = certsByEnrollmentId.get(enr.id);
+        return {
+          id: existingCert?.id || enr.id, // Usa o ID do enrollment como fallback
+          studentName: enr.student_name ?? "—",
+          courseName: courseName,
+          generatedAt: existingCert?.generated_at || null,
+          status: existingCert ? 'Emitido' : 'Pendente',
+          url: existingCert?.certificate_url || null,
+          // Adiciona dados necessários para a geração
+          enrollmentId: enr.id,
+          userId: enr.user_id,
+          courseId: enr.course_id,
+          completedLessons: enr.completed_lessons || [],
+        };
       });
-      
+
       return {
         turmaId: turma.id,
         turmaName,
         courseName,
         courseId: turma.course_id,
         professorName,
-        certificates: turmaCerts
+        certificates: certificateList,
       };
     });
 
-    // Filtrar por busca e curso
+    // Filtra por busca e curso
     const q = searchTerm.trim().toLowerCase();
     const filtered = grouped.filter((group) => {
       const matchesCourse = selectedCourse === "todos" || group.courseName === selectedCourse;
       const matchesSearch = !q || group.certificates.some(cert => 
         cert.studentName.toLowerCase().includes(q)
       );
-      return matchesCourse && (!q || matchesSearch);
+      return matchesCourse && matchesSearch;
     });
 
     return filtered.sort((a, b) => a.turmaName.localeCompare(b.turmaName));
-  }, [turmasQuery.data, certsQuery.data, enrollmentsMap, searchTerm, selectedCourse]);
+  }, [turmasQuery.data, certsQuery.data, eligibleEnrollmentsQuery.data, searchTerm, selectedCourse]);
 
   const totalCertificates = useMemo(() => {
     return groupedByTurma.reduce((total, group) => total + group.certificates.length, 0);
