@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { treinamento } from '@/integrations/supabase/helpers';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabasePublic } from '@/integrations/supabase/client';
 
 export interface CollaborationApproval {
   id: string;
@@ -97,8 +97,8 @@ export const useApproveCollaborator = () => {
         if (approvalError) throw new Error(`Erro ao buscar dados da aprovação: ${approvalError.message}`);
         if (!approval) return { approvalId, approve };
 
-        // Busca os detalhes da unidade para obter o nome do grupo e verificar se já existe
-        const { data: unit, error: unitError } = await supabase
+        // Busca os detalhes da unidade no schema 'public'
+        const { data: unit, error: unitError } = await supabasePublic
           .from('unidades')
           .select('grupo, grupo_colaborador')
           .eq('id', approval.unit_code)
