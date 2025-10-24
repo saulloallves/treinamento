@@ -3,7 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase, supabasePublic } from "@/integrations/supabase/client";
-import { Users, UserCheck, Calendar, Pause, Play, Trash2, MessageCircle } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  Calendar,
+  Pause,
+  Play,
+  Trash2,
+  MessageCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { RefreshButton } from "@/components/ui/refresh-button";
@@ -39,45 +47,77 @@ interface ApprovedCollaboratorsListProps {
   isRefreshing?: boolean;
 }
 
-const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollaboratorsListProps) => {
+const ApprovedCollaboratorsList = ({
+  onRefresh,
+  isRefreshing,
+}: ApprovedCollaboratorsListProps) => {
   const queryClient = useQueryClient();
   const createGroupMutation = useCreateCollaboratorGroup();
   const { data: currentUser } = useCurrentUser();
 
   const allUnitCodes = [
     ...(currentUser?.unit_codes || []),
-    ...(currentUser?.unit_code ? [currentUser.unit_code] : [])
+    ...(currentUser?.unit_code ? [currentUser.unit_code] : []),
   ].filter((code, index, self) => code && self.indexOf(code) === index);
 
-  // Query para buscar info da unidade principal
+  // Query para buscar info da unidade principal e grupo de colaboradores
   const { data: unitInfo } = useQuery({
-    queryKey: ['unit-info', currentUser?.unit_code],
+    queryKey: ["unit-info", currentUser?.unit_code],
     queryFn: async () => {
       if (!currentUser?.unit_code) return null;
-      const { data, error } = await supabasePublic
-        .from('unidades')
-        .select('group_code, group_name')
-        .eq('group_code', parseInt(currentUser.unit_code))
+
+      // Buscar dados da unidade
+      const { data: unitData, error: unitError } = await supabasePublic
+        .from("unidades")
+        .select("id, group_code, group_name")
+        .eq("group_code", parseInt(currentUser.unit_code))
         .single();
-      
-      if (error) throw error;
-      return data;
+
+      if (unitError) throw unitError;
+
+      // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
+      const { data: groupData, error: groupError } = await supabasePublic
+        .from("unidades_grupos_whatsapp")
+        .select("group_id")
+        .eq("unit_id", unitData.id)
+        .eq("kind", "colab")
+        .maybeSingle();
+
+      if (groupError && groupError.code !== "PGRST116") {
+        // PGRST116 = no rows returned
+        console.error("Erro ao buscar grupo:", groupError);
+      }
+
+      console.log("🔍 Unit Info:", {
+        unitId: unitData.id,
+        groupCode: unitData.group_code,
+        groupName: unitData.group_name,
+        hasGroup: !!groupData?.group_id,
+        groupId: groupData?.group_id,
+      });
+
+      return {
+        ...unitData,
+        grupo_colaborador: groupData?.group_id || null,
+      };
     },
     enabled: !!currentUser?.unit_code,
   });
-  
+
   const { data: collaborators = [], isLoading } = useQuery({
-    queryKey: ['approved-collaborators', allUnitCodes.join(',')],
+    queryKey: ["approved-collaborators", allUnitCodes.join(",")],
     queryFn: async () => {
       if (allUnitCodes.length === 0) return [];
 
       const { data, error } = await supabase
-        .from('users')
-        .select('id, name, email, role, position, approved_at, created_at, active')
-        .in('unit_code', allUnitCodes)
-        .eq('role', 'Colaborador')
-        .eq('approval_status', 'aprovado')
-        .order('approved_at', { ascending: false });
+        .from("users")
+        .select(
+          "id, name, email, role, position, approved_at, created_at, active"
+        )
+        .in("unit_code", allUnitCodes)
+        .eq("role", "Colaborador")
+        .eq("approval_status", "aprovado")
+        .order("approved_at", { ascending: false });
 
       if (error) throw error;
       return data as ApprovedCollaborator[];
@@ -88,96 +128,113 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
   const pauseCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update({ active: false })
-        .eq('id', collaboratorId);
-      
+        .eq("id", collaboratorId);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
+      queryClient.invalidateQueries({
+        queryKey: ["approved-collaborators", allUnitCodes.join(",")],
+      });
       toast.success("Colaborador pausado com sucesso!");
       if (onRefresh) onRefresh();
     },
     onError: (error) => {
       toast.error("Erro ao pausar colaborador: " + error.message);
-    }
+    },
   });
 
   const activateCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update({ active: true })
-        .eq('id', collaboratorId);
-      
+        .eq("id", collaboratorId);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
+      queryClient.invalidateQueries({
+        queryKey: ["approved-collaborators", allUnitCodes.join(",")],
+      });
       toast.success("Colaborador ativado com sucesso!");
       if (onRefresh) onRefresh();
     },
     onError: (error) => {
       toast.error("Erro ao ativar colaborador: " + error.message);
-    }
+    },
   });
 
   const removeCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
       // Buscar dados do colaborador antes de remover
       const { data: collaborator } = await supabase
-        .from('users')
-        .select('phone, name, unit_code')
-        .eq('id', collaboratorId)
+        .from("users")
+        .select("phone, name, unit_code")
+        .eq("id", collaboratorId)
         .single();
 
       // Buscar o grupo de colaboradores da unidade
       if (collaborator && collaborator.phone && unitInfo?.grupo_colaborador) {
         try {
-          console.log('Removendo colaborador do grupo WhatsApp...');
-          await supabase.functions.invoke('remove-collaborator-from-group', {
+          console.log("Removendo colaborador do grupo WhatsApp...");
+          await supabase.functions.invoke("remove-collaborator-from-group", {
             body: {
               groupId: unitInfo.grupo_colaborador,
               phone: collaborator.phone,
-              name: collaborator.name
-            }
+              name: collaborator.name,
+            },
           });
-          console.log('Colaborador removido do grupo WhatsApp com sucesso!');
+          console.log("Colaborador removido do grupo WhatsApp com sucesso!");
         } catch (error) {
-          console.warn('Erro ao remover do grupo WhatsApp (não bloqueante):', error);
+          console.warn(
+            "Erro ao remover do grupo WhatsApp (não bloqueante):",
+            error
+          );
         }
       }
 
       // Remover do banco de dados
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .delete()
-        .eq('id', collaboratorId);
-      
+        .eq("id", collaboratorId);
+
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['approved-collaborators', allUnitCodes.join(',')] });
+      queryClient.invalidateQueries({
+        queryKey: ["approved-collaborators", allUnitCodes.join(",")],
+      });
       toast.success("Colaborador removido com sucesso!");
       if (onRefresh) onRefresh();
     },
     onError: (error) => {
       toast.error("Erro ao remover colaborador: " + error.message);
-    }
+    },
   });
 
   const handleCreateGroup = () => {
     if (unitInfo?.group_name && currentUser?.unit_code) {
       createGroupMutation.mutate({
         unitCode: currentUser.unit_code,
-        grupo: unitInfo.group_name
+        grupo: unitInfo.group_name,
       });
     }
   };
 
-  const hasGroup = unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== '';
+  const hasGroup =
+    unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== "";
   const showCreateGroupButton = !hasGroup && collaborators.length > 0;
+
+  console.log("🔍 Group Button Logic:", {
+    hasGroup,
+    grupo_colaborador: unitInfo?.grupo_colaborador,
+    collaboratorsCount: collaborators.length,
+    showCreateGroupButton,
+  });
 
   if (isLoading) {
     return (
@@ -189,8 +246,8 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
               Colaboradores Aprovados
             </CardTitle>
             {onRefresh && (
-              <RefreshButton 
-                onClick={onRefresh} 
+              <RefreshButton
+                onClick={onRefresh}
                 isRefreshing={isRefreshing || false}
                 size="sm"
               />
@@ -214,8 +271,8 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
             <Badge variant="secondary">{collaborators.length}</Badge>
           </CardTitle>
           {onRefresh && (
-            <RefreshButton 
-              onClick={onRefresh} 
+            <RefreshButton
+              onClick={onRefresh}
               isRefreshing={isRefreshing || false}
               size="sm"
             />
@@ -233,7 +290,8 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                     Grupo de Colaboradores não criado
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Clique no botão ao lado para criar o grupo no WhatsApp e adicionar automaticamente todos os colaboradores aprovados.
+                    Clique no botão ao lado para criar o grupo no WhatsApp e
+                    adicionar automaticamente todos os colaboradores aprovados.
                   </p>
                 </div>
                 <Button
@@ -249,7 +307,7 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
             </AlertDescription>
           </Alert>
         )}
-        
+
         {collaborators.length === 0 ? (
           <p className="text-muted-foreground">
             Nenhum colaborador aprovado encontrado.
@@ -267,11 +325,12 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                       <h4 className="font-semibold text-foreground text-sm sm:text-base break-words flex-1 min-w-0">
                         {collaborator.name}
                       </h4>
-                      <Badge 
-                        variant={collaborator.active ? "default" : "secondary"} 
-                        className={`text-xs shrink-0 ${collaborator.active 
-                          ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" 
-                          : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
+                      <Badge
+                        variant={collaborator.active ? "default" : "secondary"}
+                        className={`text-xs shrink-0 ${
+                          collaborator.active
+                            ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                            : "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800"
                         }`}
                       >
                         {collaborator.active ? (
@@ -287,7 +346,7 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                         )}
                       </Badge>
                     </div>
-                    
+
                     <div className="space-y-1">
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         <span className="font-medium">Email:</span>{" "}
@@ -295,28 +354,38 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                       </p>
                       {collaborator.position && (
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                          <span className="font-medium">Cargo:</span> {collaborator.position}
+                          <span className="font-medium">Cargo:</span>{" "}
+                          {collaborator.position}
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md w-fit">
                       <Calendar className="h-3 w-3 shrink-0" />
                       <span className="text-xs">
-                        {collaborator.approved_at 
-                          ? `Aprovado em ${format(new Date(collaborator.approved_at), "dd/MM/yyyy", { locale: ptBR })}`
-                          : `Cadastrado em ${format(new Date(collaborator.created_at), "dd/MM/yyyy", { locale: ptBR })}`
-                        }
+                        {collaborator.approved_at
+                          ? `Aprovado em ${format(
+                              new Date(collaborator.approved_at),
+                              "dd/MM/yyyy",
+                              { locale: ptBR }
+                            )}`
+                          : `Cadastrado em ${format(
+                              new Date(collaborator.created_at),
+                              "dd/MM/yyyy",
+                              { locale: ptBR }
+                            )}`}
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-auto">
                     {collaborator.active ? (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => pauseCollaboratorMutation.mutate(collaborator.id)}
+                        onClick={() =>
+                          pauseCollaboratorMutation.mutate(collaborator.id)
+                        }
                         disabled={pauseCollaboratorMutation.isPending}
                         className="text-xs border-orange-200 text-orange-700 hover:bg-orange-50 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-900/20 flex-1 sm:flex-none"
                       >
@@ -327,7 +396,9 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => activateCollaboratorMutation.mutate(collaborator.id)}
+                        onClick={() =>
+                          activateCollaboratorMutation.mutate(collaborator.id)
+                        }
                         disabled={activateCollaboratorMutation.isPending}
                         className="text-xs border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 flex-1 sm:flex-none"
                       >
@@ -335,7 +406,7 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                         Ativar
                       </Button>
                     )}
-                    
+
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -351,14 +422,20 @@ const ApprovedCollaboratorsList = ({ onRefresh, isRefreshing }: ApprovedCollabor
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
                           <AlertDialogDescription className="break-words">
-                            Tem certeza que deseja remover <strong>{collaborator.name}</strong>?
-                            Esta ação irá excluir completamente o cadastro do colaborador e não pode ser desfeita.
+                            Tem certeza que deseja remover{" "}
+                            <strong>{collaborator.name}</strong>? Esta ação irá
+                            excluir completamente o cadastro do colaborador e
+                            não pode ser desfeita.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                          <AlertDialogCancel className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel className="w-full sm:w-auto">
+                            Cancelar
+                          </AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => removeCollaboratorMutation.mutate(collaborator.id)}
+                            onClick={() =>
+                              removeCollaboratorMutation.mutate(collaborator.id)
+                            }
                             disabled={removeCollaboratorMutation.isPending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                           >
