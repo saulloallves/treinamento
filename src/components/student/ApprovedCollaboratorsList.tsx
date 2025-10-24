@@ -88,13 +88,13 @@ const ApprovedCollaboratorsList = ({
         console.error("Erro ao buscar grupo:", groupError);
       }
 
-      console.log("🔍 Unit Info:", {
-        unitId: unitData.id,
-        groupCode: unitData.group_code,
-        groupName: unitData.group_name,
-        hasGroup: !!groupData?.group_id,
-        groupId: groupData?.group_id,
-      });
+      // console.log("🔍 Unit Info:", {
+      //   unitId: unitData.id,
+      //   groupCode: unitData.group_code,
+      //   groupName: unitData.group_name,
+      //   hasGroup: !!groupData?.group_id,
+      //   groupId: groupData?.group_id,
+      // });
 
       return {
         ...unitData,
@@ -229,12 +229,12 @@ const ApprovedCollaboratorsList = ({
     unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== "";
   const showCreateGroupButton = !hasGroup && collaborators.length > 0;
 
-  console.log("🔍 Group Button Logic:", {
-    hasGroup,
-    grupo_colaborador: unitInfo?.grupo_colaborador,
-    collaboratorsCount: collaborators.length,
-    showCreateGroupButton,
-  });
+  // console.log("🔍 Group Button Logic:", {
+  //   hasGroup,
+  //   grupo_colaborador: unitInfo?.grupo_colaborador,
+  //   collaboratorsCount: collaborators.length,
+  //   showCreateGroupButton,
+  // });
 
   if (isLoading) {
     return (
