@@ -70,6 +70,10 @@ Deno.serve(async (req)=>{
           user_type: 'Aluno',
           role: 'Colaborador',
           unit_code: collaboratorData.unitCode,
+          position: collaboratorData.position,
+          cpf: collaboratorData.cpf, // Adicionado CPF
+          phone: collaboratorData.whatsapp, // Adicionado Telefone (de whatsapp)
+          password: collaboratorData.password,
           birth_date: collaboratorData.birth_date,
           address: {
             cep: collaboratorData.cep,
@@ -87,22 +91,11 @@ Deno.serve(async (req)=>{
       if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
       userId = newUser.user.id;
     }
-    // 5. Insere o novo perfil na tabela 'users' do schema 'treinamento'.
+
+    // O gatilho 'on_auth_user_created' agora cuida da inserção na tabela 'treinamento.users'.
+    // A formatação do telefone é reintroduzida aqui para uso na sincronização com a Matriz.
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
-    const { error: userError } = await supabaseTreinamento.from('users').insert({
-      id: userId,
-      name: collaboratorData.name,
-      email: collaboratorData.email,
-      user_type: 'Aluno',
-      role: 'Colaborador',
-      unit_code: collaboratorData.unitCode,
-      position: collaboratorData.position,
-      phone: cleanPhone || null,
-      cpf: collaboratorData.cpf || null,
-      approval_status: 'pendente',
-      active: true
-    });
-    if (userError) throw userError;
+
     // Sincronização com a Matriz (usando o schema 'public' do mesmo projeto)
     try {
       let positionId;
@@ -153,7 +146,6 @@ Deno.serve(async (req)=>{
       console.error('--- FALHA NA SINCRONIZAÇÃO COM O SCHEMA PUBLIC (NÃO BLOQUEANTE) ---');
       console.error(publicSchemaError);
     }
-
     // Apenas notifica o franqueado, sem criar ou adicionar a grupos.
     const { error: notificationError } = await supabaseTreinamento.functions.invoke('notify-franchisee', {
       body: {

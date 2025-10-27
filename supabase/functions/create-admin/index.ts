@@ -65,9 +65,7 @@ Deno.serve(async (req)=>{
     });
   }
   // 3) Verifica se o chamador é admin aprovado
-  const { data: isAdmin, error: isAdminError } = await userClient.rpc("is_admin", {
-    _user: authData.user.id
-  });
+  const { data: isAdmin, error: isAdminError } = await userClient.rpc("is_admin");
   if (isAdminError) {
     console.error("[create-admin] is_admin RPC error:", isAdminError);
     return new Response(JSON.stringify({
@@ -132,75 +130,90 @@ Deno.serve(async (req)=>{
   }
   try {
     // Etapa 1: Verificar se o usuário já existe no Supabase Auth pelo e-mail
-    const { data: { users: existingAuthUsers }, error: listUsersError } = await adminClient.auth.admin.listUsers({ per_page: 1, email: email });
-
+    const { data: { users: existingAuthUsers }, error: listUsersError } = await adminClient.auth.admin.listUsers({
+      per_page: 1,
+      email: email
+    });
     if (listUsersError) {
       console.error("[create-admin] Erro ao listar usuários:", listUsersError);
-      return new Response(JSON.stringify({ success: false, error: "Falha ao verificar usuário existente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Falha ao verificar usuário existente."
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
     }
-
-    let authUserId: string | null = null;
+    let authUserId = null;
     const authUserExists = existingAuthUsers && existingAuthUsers.length > 0;
-
     // Etapa 2: Criar ou atualizar o usuário no Supabase Auth
     if (authUserExists) {
       authUserId = existingAuthUsers[0].id;
       // Se o usuário já existe, atualiza a senha e os metadados para garantir que seja um admin
       const { error: updateErr } = await adminClient.auth.admin.updateUserById(authUserId, {
         password,
-        user_metadata: { full_name: name, user_type: "Admin" }
+        user_metadata: {
+          full_name: name,
+          user_type: "Admin"
+        }
       });
       if (updateErr) {
         console.error("[create-admin] Erro ao atualizar usuário existente:", updateErr);
-        return new Response(JSON.stringify({ success: false, error: updateErr.message || "Falha ao atualizar usuário existente." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({
+          success: false,
+          error: updateErr.message || "Falha ao atualizar usuário existente."
+        }), {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json"
+          }
+        });
       }
     } else {
       // Se o usuário não existe, cria um novo no Auth
       const { data: created, error: createUserError } = await adminClient.auth.admin.createUser({
         email,
         password,
-        user_metadata: { full_name: name, user_type: "Admin" },
+        user_metadata: {
+          full_name: name,
+          user_type: "Admin"
+        },
         email_confirm: true
       });
       if (createUserError) {
         console.error("[create-admin] Erro ao criar novo usuário no Auth:", createUserError);
-        return new Response(JSON.stringify({ success: false, error: createUserError.message || "Falha ao criar usuário." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({
+          success: false,
+          error: createUserError.message || "Falha ao criar usuário."
+        }), {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json"
+          }
+        });
       }
       authUserId = created.user.id;
     }
-
     if (!authUserId) {
-      return new Response(JSON.stringify({ success: false, error: "Não foi possível obter o ID do usuário." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Não foi possível obter o ID do usuário."
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
     }
-
-    // Etapa 3: Fazer o "upsert" do perfil do usuário na tabela treinamento.users
-    const { error: upsertUserErr } = await adminClient.from("users").upsert({
-      id: authUserId,
-      name,
-      email,
-      user_type: "Admin",
-      active: true,
-    }, { onConflict: 'id' });
-
-    if (upsertUserErr) {
-      console.error("[create-admin] Erro no upsert em users:", upsertUserErr);
-      return new Response(JSON.stringify({ success: false, error: upsertUserErr.message || "Falha ao criar ou atualizar o perfil do usuário." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Etapa 4: Fazer o "upsert" dos dados do admin na tabela treinamento.admin_users
-    const { error: upsertAdminErr } = await adminClient.from("admin_users").upsert({
-      user_id: authUserId,
-      name,
-      email,
-      role: "admin",
-      status: "approved",
-      active: true,
-    }, { onConflict: 'user_id' });
-
-    if (upsertAdminErr) {
-      console.error("[create-admin] Erro no upsert em admin_users:", upsertAdminErr);
-      return new Response(JSON.stringify({ success: false, error: upsertAdminErr.message || "Falha ao gravar as permissões de administrador." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    
+    // O gatilho 'on_auth_user_created' agora cuida da inserção/atualização
+    // nas tabelas 'users' e 'admin_users'. O código de upsert foi removido.
 
     // Se tudo correu bem
     return new Response(JSON.stringify({

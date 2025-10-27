@@ -1,179 +1,125 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.54.0";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
-
-interface CreateResult {
-  email: string;
-  unitCode: string;
-  unitName: string;
-  success: boolean;
-  error?: string;
-}
-
-const handler = async (req: Request): Promise<Response> => {
+const handler = async (req)=>{
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
-
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     // Cliente com service role para operações administrativas
     const supabaseTreinamento = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
       },
-      db: { schema: 'treinamento' }
+      db: {
+        schema: 'treinamento'
+      }
     });
-
-    const supabasePublic = createClient(supabaseUrl, supabaseServiceKey, {
-      db: { schema: 'public' }
-    });
-
     // Buscar todas as unidades com email
-    const { data: unidades, error: unidadesError } = await supabasePublic
-      .from("unidades")
-      .select("id, group_name, group_code, email")
-      .not("email", "is", null)
-      .neq("email", "");
-
+    const { data: unidades, error: unidadesError } = await supabaseTreinamento.from("unidades").select("id, grupo, codigo_grupo, email").not("email", "is", null).neq("email", "");
     if (unidadesError) {
       throw new Error(`Erro ao buscar unidades: ${unidadesError.message}`);
     }
-
     if (!unidades || unidades.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          message: "Nenhuma unidade com email encontrada",
-          results: [] 
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
+      return new Response(JSON.stringify({
+        message: "Nenhuma unidade com email encontrada",
+        results: []
+      }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders
         }
-      );
+      });
     }
-
-    const results: CreateResult[] = [];
+    const results = [];
     const defaultPassword = "Trocar01";
-
-    for (const unidade of unidades) {
-      const result: CreateResult = {
+    for (const unidade of unidades){
+      const result = {
         email: unidade.email,
-        unitCode: unidade.group_code?.toString() || "",
-        unitName: unidade.group_name || "",
-        success: false,
+        unitCode: unidade.codigo_grupo?.toString() || "",
+        unitName: unidade.grupo || "",
+        success: false
       };
-
       try {
         // Verificar se já existe usuário com este email
-        const { data: existingUser } = await supabaseAdmin
-          .from("users")
-          .select("id, email, role")
-          .eq("email", unidade.email)
-          .maybeSingle();
-
+        const { data: existingUser } = await supabaseAdmin.from("users").select("id, email, role").eq("email", unidade.email).maybeSingle();
         if (existingUser) {
           result.error = `Usuário já existe com este email`;
           results.push(result);
           continue;
         }
-
         // Criar usuário no auth.users
         const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
           email: unidade.email,
           password: defaultPassword,
-          email_confirm: true, // Confirmar email automaticamente
+          email_confirm: true,
           user_metadata: {
-            name: `Franqueado ${unidade.group_name}`,
-            unit_code: unidade.group_code?.toString(),
+            name: `Franqueado ${unidade.grupo}`,
+            unit_code: unidade.codigo_grupo?.toString(),
             role: "Franqueado",
-            user_type: "Aluno" // Definir como Aluno
+            user_type: "Aluno", // Definir como Aluno
+            password: defaultPassword // Passa a senha para o gatilho
           }
         });
-
         if (authError) {
           result.error = `Erro ao criar auth: ${authError.message}`;
           results.push(result);
           continue;
         }
-
         if (!authUser.user) {
           result.error = "Usuário não foi criado corretamente";
           results.push(result);
           continue;
         }
 
-        // Criar registro na tabela users
-        const { error: userError } = await supabaseAdmin
-          .from("users")
-          .insert({
-            id: authUser.user.id,
-            email: unidade.email,
-            name: `Franqueado ${unidade.group_name}`,
-            unit_code: unidade.group_code?.toString(),
-            role: "Franqueado",
-            user_type: "Aluno", // Tipo de usuário como Aluno
-            approval_status: "aprovado",
-            approved_at: new Date().toISOString()
-          });
-
-        if (userError) {
-          // Se falhar ao criar na tabela users, remover do auth
-          await supabaseTreinamento.auth.admin.deleteUser(authUser.user.id);
-          result.error = `Erro ao criar perfil: ${userError.message}`;
-          results.push(result);
-          continue;
-        }
+        // O gatilho 'on_auth_user_created' agora cuida da inserção na tabela 'users'.
+        // O código de inserção manual foi removido.
 
         result.success = true;
         results.push(result);
-
-      } catch (error: any) {
+      } catch (error) {
         result.error = error.message;
         results.push(result);
       }
     }
-
-    const successCount = results.filter(r => r.success).length;
-    const errorCount = results.filter(r => !r.success).length;
-
-    return new Response(
-      JSON.stringify({
-        message: `Processamento concluído: ${successCount} franqueados criados, ${errorCount} erros`,
-        summary: {
-          total: results.length,
-          success: successCount,
-          errors: errorCount
-        },
-        results
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    const successCount = results.filter((r)=>r.success).length;
+    const errorCount = results.filter((r)=>!r.success).length;
+    return new Response(JSON.stringify({
+      message: `Processamento concluído: ${successCount} franqueados criados, ${errorCount} erros`,
+      summary: {
+        total: results.length,
+        success: successCount,
+        errors: errorCount
+      },
+      results
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders
       }
-    );
-
-  } catch (error: any) {
+    });
+  } catch (error) {
     console.error("Erro na função bulk-create-franchisees:", error);
-    
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        message: "Erro interno do servidor"
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    return new Response(JSON.stringify({
+      error: error.message,
+      message: "Erro interno do servidor"
+    }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders
       }
-    );
+    });
   }
 };
-
 serve(handler);
