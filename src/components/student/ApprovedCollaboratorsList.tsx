@@ -177,50 +177,83 @@ const ApprovedCollaboratorsList = ({
   const removeCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
       // Buscar dados do colaborador antes de remover
-      const { data: collaborator } = await supabase
+      const { data: collaborator, error: fetchError } = await supabase
         .from("users")
         .select("phone, name, unit_code")
         // @ts-expect-error - Supabase type inference issue
         .eq("id", collaboratorId)
         .single();
 
-      // Buscar o grupo de colaboradores da unidade
+      if (fetchError) throw new Error("Erro ao buscar dados do colaborador");
+
+      let whatsappRemoved = false;
+      let whatsappError = null;
+
+      // Tentar remover do grupo WhatsApp se houver grupo e telefone
       // @ts-expect-error - Supabase type inference issue
       if (collaborator && collaborator.phone && unitInfo?.grupo_colaborador) {
         try {
-          console.log("Removendo colaborador do grupo WhatsApp...");
-          await supabase.functions.invoke("remove-collaborator-from-group", {
-            body: {
-              groupId: unitInfo.grupo_colaborador,
-              // @ts-expect-error - Supabase type inference issue
-              phone: collaborator.phone,
-              // @ts-expect-error - Supabase type inference issue
-              name: collaborator.name,
-            },
-          });
-          console.log("Colaborador removido do grupo WhatsApp com sucesso!");
-        } catch (error) {
-          console.warn(
-            "Erro ao remover do grupo WhatsApp (não bloqueante):",
-            error
+          console.log("🔄 Removendo colaborador do grupo WhatsApp...");
+          const { data, error } = await supabase.functions.invoke(
+            "remove-collaborator-from-group",
+            {
+              body: {
+                groupId: unitInfo.grupo_colaborador,
+                // @ts-expect-error - Supabase type inference issue
+                phone: collaborator.phone,
+                // @ts-expect-error - Supabase type inference issue
+                name: collaborator.name,
+              },
+            }
           );
+
+          if (error) {
+            whatsappError = error;
+            console.warn("⚠️ Erro ao remover do WhatsApp:", error);
+          } else {
+            whatsappRemoved = true;
+            console.log("✅ Colaborador removido do WhatsApp com sucesso!");
+          }
+        } catch (error) {
+          whatsappError = error;
+          console.warn("⚠️ Exceção ao remover do WhatsApp:", error);
         }
       }
 
-      // Remover do banco de dados
-      const { error } = await supabase
+      // Remover do banco de dados (sempre executado)
+      const { error: deleteError } = await supabase
         .from("users")
         .delete()
         // @ts-expect-error - Supabase type inference issue
         .eq("id", collaboratorId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      return {
+        whatsappRemoved,
+        whatsappError,
+        // @ts-expect-error - Supabase type inference issue
+        collaboratorName: collaborator.name,
+      };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({
         queryKey: ["approved-collaborators", allUnitCodes.join(",")],
       });
-      toast.success("Colaborador removido com sucesso!");
+
+      // Mensagem de sucesso detalhada
+      if (result.whatsappRemoved) {
+        toast.success(
+          `${result.collaboratorName} foi removido do sistema e do grupo WhatsApp!`
+        );
+      } else if (result.whatsappError) {
+        toast.success(
+          `${result.collaboratorName} foi removido do sistema (não foi possível remover do WhatsApp)`
+        );
+      } else {
+        toast.success(`${result.collaboratorName} foi removido do sistema!`);
+      }
+
       if (onRefresh) onRefresh();
     },
     onError: (error) => {
@@ -433,15 +466,33 @@ const ApprovedCollaboratorsList = ({
                       <AlertDialogContent className="mx-4 max-w-md">
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
-                          <AlertDialogDescription className="break-words">
-                            Tem certeza que deseja remover{" "}
-                            <strong>{collaborator.name}</strong>? Esta ação irá
-                            excluir completamente o cadastro do colaborador e
-                            não pode ser desfeita.
+                          <AlertDialogDescription className="break-words space-y-3">
+                            <p>
+                              Tem certeza que deseja remover{" "}
+                              <strong>{collaborator.name}</strong>?
+                            </p>
+                            
+                            <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
+                              <p className="font-medium text-foreground">Esta ação irá:</p>
+                              <ul className="space-y-1 list-disc list-inside">
+                                {unitInfo?.grupo_colaborador && (
+                                  <li>Remover do grupo WhatsApp</li>
+                                )}
+                                <li>Revogar acesso ao sistema</li>
+                                <li>Excluir completamente o cadastro</li>
+                              </ul>
+                            </div>
+
+                            <p className="text-destructive font-medium">
+                              ⚠️ Esta ação não pode ser desfeita.
+                            </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                          <AlertDialogCancel className="w-full sm:w-auto">
+                          <AlertDialogCancel 
+                            className="w-full sm:w-auto"
+                            disabled={removeCollaboratorMutation.isPending}
+                          >
                             Cancelar
                           </AlertDialogCancel>
                           <AlertDialogAction
@@ -451,7 +502,14 @@ const ApprovedCollaboratorsList = ({
                             disabled={removeCollaboratorMutation.isPending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                           >
-                            Remover
+                            {removeCollaboratorMutation.isPending ? (
+                              <>
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Removendo...
+                              </>
+                            ) : (
+                              "Confirmar remoção"
+                            )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
