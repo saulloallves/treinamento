@@ -220,18 +220,55 @@ const ApprovedCollaboratorsList = ({
         }
       }
 
-      // Remover do banco de dados (sempre executado)
+      // Remover do banco de dados treinamento.users
+      console.log("🔄 Removendo da tabela treinamento.users...");
       const { error: deleteError } = await supabase
         .from("users")
         .delete()
         // @ts-expect-error - Supabase type inference issue
         .eq("id", collaboratorId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error("❌ Erro ao remover de treinamento.users:", deleteError);
+        throw deleteError;
+      }
+      console.log("✅ Removido de treinamento.users com sucesso!");
+
+      // Remover da tabela auth.users usando edge function
+      let authRemoved = false;
+      let authError = null;
+
+      try {
+        console.log("🔄 Removendo da tabela auth.users...");
+        const { data: authData, error: authDeleteError } =
+          await supabase.functions.invoke("delete-user-auth", {
+            body: {
+              userId: collaboratorId,
+              // @ts-expect-error - Supabase type inference issue
+              userName: collaborator.name,
+            },
+          });
+
+        if (authDeleteError) {
+          authError = authDeleteError;
+          console.warn("⚠️ Erro ao remover de auth.users:", authDeleteError);
+        } else if (authData?.error) {
+          authError = authData.error;
+          console.warn("⚠️ Erro retornado pela função:", authData.error);
+        } else {
+          authRemoved = true;
+          console.log("✅ Removido de auth.users com sucesso!");
+        }
+      } catch (error) {
+        authError = error;
+        console.warn("⚠️ Exceção ao remover de auth.users:", error);
+      }
 
       return {
         whatsappRemoved,
         whatsappError,
+        authRemoved,
+        authError,
         // @ts-expect-error - Supabase type inference issue
         collaboratorName: collaborator.name,
       };
@@ -242,16 +279,37 @@ const ApprovedCollaboratorsList = ({
       });
 
       // Mensagem de sucesso detalhada
+      const parts: string[] = [];
+      
       if (result.whatsappRemoved) {
+        parts.push("removido do grupo WhatsApp");
+      }
+      
+      if (result.authRemoved) {
+        parts.push("conta de autenticação excluída");
+      }
+
+      if (parts.length > 0) {
         toast.success(
-          `${result.collaboratorName} foi removido do sistema e do grupo WhatsApp!`
-        );
-      } else if (result.whatsappError) {
-        toast.success(
-          `${result.collaboratorName} foi removido do sistema (não foi possível remover do WhatsApp)`
+          `${result.collaboratorName} foi removido do sistema (${parts.join(", ")})!`
         );
       } else {
-        toast.success(`${result.collaboratorName} foi removido do sistema!`);
+        // Caso base: removido apenas da tabela users
+        let message = `${result.collaboratorName} foi removido do sistema!`;
+        const warnings: string[] = [];
+        
+        if (result.whatsappError) {
+          warnings.push("WhatsApp");
+        }
+        if (result.authError) {
+          warnings.push("autenticação");
+        }
+        
+        if (warnings.length > 0) {
+          message += ` (falha ao remover de: ${warnings.join(", ")})`;
+        }
+        
+        toast.success(message);
       }
 
       if (onRefresh) onRefresh();
@@ -478,6 +536,7 @@ const ApprovedCollaboratorsList = ({
                                 {unitInfo?.grupo_colaborador && (
                                   <li>Remover do grupo WhatsApp</li>
                                 )}
+                                <li>Excluir a conta de autenticação</li>
                                 <li>Revogar acesso ao sistema</li>
                                 <li>Excluir completamente o cadastro</li>
                               </ul>
