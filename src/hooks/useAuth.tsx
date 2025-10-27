@@ -122,8 +122,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         unit_codes: unitCodesArray,
         phone: (meta.phone as string) || null,
         cpf: (meta.cpf as string) || null,
-        // Salva a senha inicial no campo visible_password
-        visible_password: (meta.password as string) || null,
         approval_status: (meta.role === 'Colaborador') ? 'pendente' : 'aprovado' as any,
         active: true,
       };
@@ -519,9 +517,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           position: options?.position,
           unit_code: options?.unitCode,
           phone: options?.phone,
-          cpf: options?.cpf,
-          // Adiciona a senha aos metadados para que possa ser salva em 'visible_password'
-          password: password 
+          cpf: options?.cpf
         }
       },
     });
