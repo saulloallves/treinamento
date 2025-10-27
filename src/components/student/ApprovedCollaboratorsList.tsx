@@ -40,6 +40,7 @@ interface ApprovedCollaborator {
   approved_at?: string;
   created_at: string;
   active: boolean;
+  unit_code?: string;
 }
 
 interface ApprovedCollaboratorsListProps {
@@ -60,50 +61,7 @@ const ApprovedCollaboratorsList = ({
     ...(currentUser?.unit_code ? [currentUser.unit_code] : []),
   ].filter((code, index, self) => code && self.indexOf(code) === index);
 
-  // Query para buscar info da unidade principal e grupo de colaboradores
-  const { data: unitInfo } = useQuery({
-    queryKey: ["unit-info", currentUser?.unit_code],
-    queryFn: async () => {
-      if (!currentUser?.unit_code) return null;
-
-      // Buscar dados da unidade
-      const { data: unitData, error: unitError } = await supabasePublic
-        .from("unidades")
-        .select("id, group_code, group_name")
-        .eq("group_code", parseInt(currentUser.unit_code))
-        .single();
-
-      if (unitError) throw unitError;
-
-      // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
-      const { data: groupData, error: groupError } = await supabasePublic
-        .from("unidades_grupos_whatsapp")
-        .select("group_id")
-        .eq("unit_id", unitData.id)
-        .eq("kind", "colab")
-        .maybeSingle();
-
-      if (groupError && groupError.code !== "PGRST116") {
-        // PGRST116 = no rows returned
-        console.error("Erro ao buscar grupo:", groupError);
-      }
-
-      // console.log("🔍 Unit Info:", {
-      //   unitId: unitData.id,
-      //   groupCode: unitData.group_code,
-      //   groupName: unitData.group_name,
-      //   hasGroup: !!groupData?.group_id,
-      //   groupId: groupData?.group_id,
-      // });
-
-      return {
-        ...unitData,
-        grupo_colaborador: groupData?.group_id || null,
-      };
-    },
-    enabled: !!currentUser?.unit_code,
-  });
-
+  // Query para buscar colaboradores aprovados
   const { data: collaborators = [], isLoading } = useQuery({
     queryKey: ["approved-collaborators", allUnitCodes.join(",")],
     queryFn: async () => {
@@ -112,7 +70,7 @@ const ApprovedCollaboratorsList = ({
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, name, email, role, position, approved_at, created_at, active"
+          "id, name, email, role, position, approved_at, created_at, active, unit_code"
         )
         // @ts-expect-error - Supabase type inference issue
         .in("unit_code", allUnitCodes)
@@ -126,6 +84,64 @@ const ApprovedCollaboratorsList = ({
       return data as ApprovedCollaborator[];
     },
     enabled: allUnitCodes.length > 0,
+  });
+
+  // Determinar a unidade alvo para criação do grupo
+  // Se houver colaboradores, usar o unit_code deles (todos são da mesma unidade nesta lista)
+  // Caso contrário, usar a unidade principal do usuário
+  const targetUnitCode = collaborators.length > 0 
+    ? collaborators[0].unit_code 
+    : currentUser?.unit_code;
+
+  // Query para buscar info da unidade alvo e grupo de colaboradores
+  const { data: unitInfo } = useQuery({
+    queryKey: ["unit-info", targetUnitCode],
+    queryFn: async () => {
+      if (!targetUnitCode) return null;
+
+      console.log("🔍 Buscando informações para unit_code:", targetUnitCode);
+
+      // Buscar dados da unidade
+      const { data: unitData, error: unitError } = await supabasePublic
+        .from("unidades")
+        .select("id, group_code, group_name")
+        .eq("group_code", parseInt(targetUnitCode))
+        .single();
+
+      if (unitError) {
+        console.error("❌ Erro ao buscar unidade:", unitError);
+        throw unitError;
+      }
+
+      console.log("✅ Unidade encontrada:", {
+        id: unitData.id,
+        code: unitData.group_code,
+        name: unitData.group_name,
+      });
+
+      // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
+      const { data: groupData, error: groupError } = await supabasePublic
+        .from("unidades_grupos_whatsapp")
+        .select("group_id")
+        .eq("unit_id", unitData.id)
+        .eq("kind", "colab")
+        .maybeSingle();
+
+      if (groupError && groupError.code !== "PGRST116") {
+        console.error("❌ Erro ao buscar grupo:", groupError);
+      }
+
+      console.log("📱 Grupo WhatsApp:", {
+        exists: !!groupData?.group_id,
+        groupId: groupData?.group_id,
+      });
+
+      return {
+        ...unitData,
+        grupo_colaborador: groupData?.group_id || null,
+      };
+    },
+    enabled: !!targetUnitCode,
   });
 
   const pauseCollaboratorMutation = useMutation({
@@ -177,50 +193,141 @@ const ApprovedCollaboratorsList = ({
   const removeCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
       // Buscar dados do colaborador antes de remover
-      const { data: collaborator } = await supabase
+      const { data: collaborator, error: fetchError } = await supabase
         .from("users")
         .select("phone, name, unit_code")
         // @ts-expect-error - Supabase type inference issue
         .eq("id", collaboratorId)
         .single();
 
-      // Buscar o grupo de colaboradores da unidade
+      if (fetchError) throw new Error("Erro ao buscar dados do colaborador");
+
+      let whatsappRemoved = false;
+      let whatsappError = null;
+
+      // Tentar remover do grupo WhatsApp se houver grupo e telefone
       // @ts-expect-error - Supabase type inference issue
       if (collaborator && collaborator.phone && unitInfo?.grupo_colaborador) {
         try {
-          console.log("Removendo colaborador do grupo WhatsApp...");
-          await supabase.functions.invoke("remove-collaborator-from-group", {
-            body: {
-              groupId: unitInfo.grupo_colaborador,
-              // @ts-expect-error - Supabase type inference issue
-              phone: collaborator.phone,
-              // @ts-expect-error - Supabase type inference issue
-              name: collaborator.name,
-            },
-          });
-          console.log("Colaborador removido do grupo WhatsApp com sucesso!");
-        } catch (error) {
-          console.warn(
-            "Erro ao remover do grupo WhatsApp (não bloqueante):",
-            error
+          console.log("🔄 Removendo colaborador do grupo WhatsApp...");
+          const { data, error } = await supabase.functions.invoke(
+            "remove-collaborator-from-group",
+            {
+              body: {
+                groupId: unitInfo.grupo_colaborador,
+                // @ts-expect-error - Supabase type inference issue
+                phone: collaborator.phone,
+                // @ts-expect-error - Supabase type inference issue
+                name: collaborator.name,
+              },
+            }
           );
+
+          if (error) {
+            whatsappError = error;
+            console.warn("⚠️ Erro ao remover do WhatsApp:", error);
+          } else {
+            whatsappRemoved = true;
+            console.log("✅ Colaborador removido do WhatsApp com sucesso!");
+          }
+        } catch (error) {
+          whatsappError = error;
+          console.warn("⚠️ Exceção ao remover do WhatsApp:", error);
         }
       }
 
-      // Remover do banco de dados
-      const { error } = await supabase
+      // Remover do banco de dados treinamento.users
+      console.log("🔄 Removendo da tabela treinamento.users...");
+      const { error: deleteError } = await supabase
         .from("users")
         .delete()
         // @ts-expect-error - Supabase type inference issue
         .eq("id", collaboratorId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error("❌ Erro ao remover de treinamento.users:", deleteError);
+        throw deleteError;
+      }
+      console.log("✅ Removido de treinamento.users com sucesso!");
+
+      // Remover da tabela auth.users usando edge function
+      let authRemoved = false;
+      let authError = null;
+
+      try {
+        console.log("🔄 Removendo da tabela auth.users...");
+        const { data: authData, error: authDeleteError } =
+          await supabase.functions.invoke("delete-user-auth", {
+            body: {
+              userId: collaboratorId,
+              // @ts-expect-error - Supabase type inference issue
+              userName: collaborator.name,
+            },
+          });
+
+        if (authDeleteError) {
+          authError = authDeleteError;
+          console.warn("⚠️ Erro ao remover de auth.users:", authDeleteError);
+        } else if (authData?.error) {
+          authError = authData.error;
+          console.warn("⚠️ Erro retornado pela função:", authData.error);
+        } else {
+          authRemoved = true;
+          console.log("✅ Removido de auth.users com sucesso!");
+        }
+      } catch (error) {
+        authError = error;
+        console.warn("⚠️ Exceção ao remover de auth.users:", error);
+      }
+
+      return {
+        whatsappRemoved,
+        whatsappError,
+        authRemoved,
+        authError,
+        // @ts-expect-error - Supabase type inference issue
+        collaboratorName: collaborator.name,
+      };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({
         queryKey: ["approved-collaborators", allUnitCodes.join(",")],
       });
-      toast.success("Colaborador removido com sucesso!");
+
+      // Mensagem de sucesso detalhada
+      const parts: string[] = [];
+      
+      if (result.whatsappRemoved) {
+        parts.push("removido do grupo WhatsApp");
+      }
+      
+      if (result.authRemoved) {
+        parts.push("conta de autenticação excluída");
+      }
+
+      if (parts.length > 0) {
+        toast.success(
+          `${result.collaboratorName} foi removido do sistema (${parts.join(", ")})!`
+        );
+      } else {
+        // Caso base: removido apenas da tabela users
+        let message = `${result.collaboratorName} foi removido do sistema!`;
+        const warnings: string[] = [];
+        
+        if (result.whatsappError) {
+          warnings.push("WhatsApp");
+        }
+        if (result.authError) {
+          warnings.push("autenticação");
+        }
+        
+        if (warnings.length > 0) {
+          message += ` (falha ao remover de: ${warnings.join(", ")})`;
+        }
+        
+        toast.success(message);
+      }
+
       if (onRefresh) onRefresh();
     },
     onError: (error) => {
@@ -229,24 +336,39 @@ const ApprovedCollaboratorsList = ({
   });
 
   const handleCreateGroup = () => {
-    if (unitInfo?.group_name && currentUser?.unit_code) {
-      createGroupMutation.mutate({
-        unitCode: currentUser.unit_code,
-        grupo: unitInfo.group_name,
-      });
+    if (!targetUnitCode) {
+      toast.error("Não foi possível identificar a unidade para criar o grupo");
+      return;
     }
+
+    if (!unitInfo?.group_name) {
+      toast.error("Informações da unidade não encontradas");
+      return;
+    }
+
+    console.log("🚀 Criando grupo para:", {
+      unitCode: targetUnitCode,
+      unitName: unitInfo.group_name,
+      collaboratorsCount: collaborators.length,
+    });
+
+    createGroupMutation.mutate({
+      unitCode: targetUnitCode,
+      grupo: unitInfo.group_name,
+    });
   };
 
   const hasGroup =
     unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== "";
   const showCreateGroupButton = !hasGroup && collaborators.length > 0;
 
-  // console.log("🔍 Group Button Logic:", {
-  //   hasGroup,
-  //   grupo_colaborador: unitInfo?.grupo_colaborador,
-  //   collaboratorsCount: collaborators.length,
-  //   showCreateGroupButton,
-  // });
+  console.log("🔍 Group Button Logic:", {
+    targetUnitCode,
+    hasGroup,
+    grupo_colaborador: unitInfo?.grupo_colaborador,
+    collaboratorsCount: collaborators.length,
+    showCreateGroupButton,
+  });
 
   if (isLoading) {
     return (
@@ -281,6 +403,11 @@ const ApprovedCollaboratorsList = ({
             <UserCheck className="h-5 w-5" />
             Colaboradores Aprovados
             <Badge variant="secondary">{collaborators.length}</Badge>
+            {targetUnitCode && unitInfo?.group_name && (
+              <Badge variant="outline" className="text-xs">
+                {unitInfo.group_name}
+              </Badge>
+            )}
           </CardTitle>
           {onRefresh && (
             <RefreshButton
@@ -299,11 +426,11 @@ const ApprovedCollaboratorsList = ({
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1">
                   <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
-                    Grupo de Colaboradores não criado
+                    Grupo de Colaboradores não criado para {unitInfo?.group_name}
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300">
                     Clique no botão ao lado para criar o grupo no WhatsApp e
-                    adicionar automaticamente todos os colaboradores aprovados.
+                    adicionar automaticamente os {collaborators.length} colaborador(es) aprovado(s) desta unidade.
                   </p>
                 </div>
                 <Button
@@ -433,15 +560,34 @@ const ApprovedCollaboratorsList = ({
                       <AlertDialogContent className="mx-4 max-w-md">
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirmar remoção</AlertDialogTitle>
-                          <AlertDialogDescription className="break-words">
-                            Tem certeza que deseja remover{" "}
-                            <strong>{collaborator.name}</strong>? Esta ação irá
-                            excluir completamente o cadastro do colaborador e
-                            não pode ser desfeita.
+                          <AlertDialogDescription className="break-words space-y-3">
+                            <p>
+                              Tem certeza que deseja remover{" "}
+                              <strong>{collaborator.name}</strong>?
+                            </p>
+                            
+                            <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
+                              <p className="font-medium text-foreground">Esta ação irá:</p>
+                              <ul className="space-y-1 list-disc list-inside">
+                                {unitInfo?.grupo_colaborador && (
+                                  <li>Remover do grupo WhatsApp</li>
+                                )}
+                                <li>Excluir a conta de autenticação</li>
+                                <li>Revogar acesso ao sistema</li>
+                                <li>Excluir completamente o cadastro</li>
+                              </ul>
+                            </div>
+
+                            <p className="text-destructive font-medium">
+                              ⚠️ Esta ação não pode ser desfeita.
+                            </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="flex-col-reverse sm:flex-row gap-2">
-                          <AlertDialogCancel className="w-full sm:w-auto">
+                          <AlertDialogCancel 
+                            className="w-full sm:w-auto"
+                            disabled={removeCollaboratorMutation.isPending}
+                          >
                             Cancelar
                           </AlertDialogCancel>
                           <AlertDialogAction
@@ -451,7 +597,14 @@ const ApprovedCollaboratorsList = ({
                             disabled={removeCollaboratorMutation.isPending}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                           >
-                            Remover
+                            {removeCollaboratorMutation.isPending ? (
+                              <>
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                Removendo...
+                              </>
+                            ) : (
+                              "Confirmar remoção"
+                            )}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

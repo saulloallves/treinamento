@@ -1,5 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0'
 
+declare const Deno: {
+  env: {
+    get: (key: string) => string | undefined;
+  };
+  serve: (handler: (req: Request) => Promise<Response> | Response) => void;
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -43,7 +50,15 @@ Deno.serve(async (req) => {
       throw new Error('ZAPI credentials not configured')
     }
 
-    const zapiUrl = `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/remove-participant-group`
+    const zapiUrl = `https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/remove-participant`
+    
+    // Payload corrigido conforme documentação da Z-API
+    const zapiPayload = {
+      groupId: groupId,
+      phones: [fullPhone] // Array de telefones conforme documentação
+    }
+
+    console.log('ZAPI remove participant payload:', JSON.stringify(zapiPayload, null, 2))
     
     const zapiResponse = await fetch(zapiUrl, {
       method: 'POST',
@@ -51,18 +66,23 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
         'Client-Token': Deno.env.get('ZAPI_CLIENT_TOKEN') ?? ''
       },
-      body: JSON.stringify({
-        groupId: groupId,
-        phone: fullPhone
-      })
+      body: JSON.stringify(zapiPayload)
     })
 
     const zapiData = await zapiResponse.json()
     console.log('ZAPI remove participant response:', zapiData)
 
-    if (!zapiResponse.ok) {
-      console.warn(`Failed to remove collaborator from group (non-blocking): ${JSON.stringify(zapiData)}`)
+    if (!zapiResponse.ok || !zapiData.success) {
+      console.warn(`Failed to remove collaborator from group: ${JSON.stringify(zapiData)}`)
       // Não falha a operação se o colaborador já foi removido ou não está no grupo
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          warning: `Colaborador ${name} foi removido do sistema, mas houve um problema ao remover do WhatsApp: ${zapiData.message || 'Erro desconhecido'}`,
+          zapiResponse: zapiData
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     return new Response(
