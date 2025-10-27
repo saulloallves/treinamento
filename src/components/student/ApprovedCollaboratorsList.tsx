@@ -40,6 +40,7 @@ interface ApprovedCollaborator {
   approved_at?: string;
   created_at: string;
   active: boolean;
+  unit_code?: string;
 }
 
 interface ApprovedCollaboratorsListProps {
@@ -60,50 +61,7 @@ const ApprovedCollaboratorsList = ({
     ...(currentUser?.unit_code ? [currentUser.unit_code] : []),
   ].filter((code, index, self) => code && self.indexOf(code) === index);
 
-  // Query para buscar info da unidade principal e grupo de colaboradores
-  const { data: unitInfo } = useQuery({
-    queryKey: ["unit-info", currentUser?.unit_code],
-    queryFn: async () => {
-      if (!currentUser?.unit_code) return null;
-
-      // Buscar dados da unidade
-      const { data: unitData, error: unitError } = await supabasePublic
-        .from("unidades")
-        .select("id, group_code, group_name")
-        .eq("group_code", parseInt(currentUser.unit_code))
-        .single();
-
-      if (unitError) throw unitError;
-
-      // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
-      const { data: groupData, error: groupError } = await supabasePublic
-        .from("unidades_grupos_whatsapp")
-        .select("group_id")
-        .eq("unit_id", unitData.id)
-        .eq("kind", "colab")
-        .maybeSingle();
-
-      if (groupError && groupError.code !== "PGRST116") {
-        // PGRST116 = no rows returned
-        console.error("Erro ao buscar grupo:", groupError);
-      }
-
-      // console.log("🔍 Unit Info:", {
-      //   unitId: unitData.id,
-      //   groupCode: unitData.group_code,
-      //   groupName: unitData.group_name,
-      //   hasGroup: !!groupData?.group_id,
-      //   groupId: groupData?.group_id,
-      // });
-
-      return {
-        ...unitData,
-        grupo_colaborador: groupData?.group_id || null,
-      };
-    },
-    enabled: !!currentUser?.unit_code,
-  });
-
+  // Query para buscar colaboradores aprovados
   const { data: collaborators = [], isLoading } = useQuery({
     queryKey: ["approved-collaborators", allUnitCodes.join(",")],
     queryFn: async () => {
@@ -112,7 +70,7 @@ const ApprovedCollaboratorsList = ({
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, name, email, role, position, approved_at, created_at, active"
+          "id, name, email, role, position, approved_at, created_at, active, unit_code"
         )
         // @ts-expect-error - Supabase type inference issue
         .in("unit_code", allUnitCodes)
@@ -126,6 +84,64 @@ const ApprovedCollaboratorsList = ({
       return data as ApprovedCollaborator[];
     },
     enabled: allUnitCodes.length > 0,
+  });
+
+  // Determinar a unidade alvo para criação do grupo
+  // Se houver colaboradores, usar o unit_code deles (todos são da mesma unidade nesta lista)
+  // Caso contrário, usar a unidade principal do usuário
+  const targetUnitCode = collaborators.length > 0 
+    ? collaborators[0].unit_code 
+    : currentUser?.unit_code;
+
+  // Query para buscar info da unidade alvo e grupo de colaboradores
+  const { data: unitInfo } = useQuery({
+    queryKey: ["unit-info", targetUnitCode],
+    queryFn: async () => {
+      if (!targetUnitCode) return null;
+
+      console.log("🔍 Buscando informações para unit_code:", targetUnitCode);
+
+      // Buscar dados da unidade
+      const { data: unitData, error: unitError } = await supabasePublic
+        .from("unidades")
+        .select("id, group_code, group_name")
+        .eq("group_code", parseInt(targetUnitCode))
+        .single();
+
+      if (unitError) {
+        console.error("❌ Erro ao buscar unidade:", unitError);
+        throw unitError;
+      }
+
+      console.log("✅ Unidade encontrada:", {
+        id: unitData.id,
+        code: unitData.group_code,
+        name: unitData.group_name,
+      });
+
+      // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
+      const { data: groupData, error: groupError } = await supabasePublic
+        .from("unidades_grupos_whatsapp")
+        .select("group_id")
+        .eq("unit_id", unitData.id)
+        .eq("kind", "colab")
+        .maybeSingle();
+
+      if (groupError && groupError.code !== "PGRST116") {
+        console.error("❌ Erro ao buscar grupo:", groupError);
+      }
+
+      console.log("📱 Grupo WhatsApp:", {
+        exists: !!groupData?.group_id,
+        groupId: groupData?.group_id,
+      });
+
+      return {
+        ...unitData,
+        grupo_colaborador: groupData?.group_id || null,
+      };
+    },
+    enabled: !!targetUnitCode,
   });
 
   const pauseCollaboratorMutation = useMutation({
@@ -320,24 +336,39 @@ const ApprovedCollaboratorsList = ({
   });
 
   const handleCreateGroup = () => {
-    if (unitInfo?.group_name && currentUser?.unit_code) {
-      createGroupMutation.mutate({
-        unitCode: currentUser.unit_code,
-        grupo: unitInfo.group_name,
-      });
+    if (!targetUnitCode) {
+      toast.error("Não foi possível identificar a unidade para criar o grupo");
+      return;
     }
+
+    if (!unitInfo?.group_name) {
+      toast.error("Informações da unidade não encontradas");
+      return;
+    }
+
+    console.log("🚀 Criando grupo para:", {
+      unitCode: targetUnitCode,
+      unitName: unitInfo.group_name,
+      collaboratorsCount: collaborators.length,
+    });
+
+    createGroupMutation.mutate({
+      unitCode: targetUnitCode,
+      grupo: unitInfo.group_name,
+    });
   };
 
   const hasGroup =
     unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== "";
   const showCreateGroupButton = !hasGroup && collaborators.length > 0;
 
-  // console.log("🔍 Group Button Logic:", {
-  //   hasGroup,
-  //   grupo_colaborador: unitInfo?.grupo_colaborador,
-  //   collaboratorsCount: collaborators.length,
-  //   showCreateGroupButton,
-  // });
+  console.log("🔍 Group Button Logic:", {
+    targetUnitCode,
+    hasGroup,
+    grupo_colaborador: unitInfo?.grupo_colaborador,
+    collaboratorsCount: collaborators.length,
+    showCreateGroupButton,
+  });
 
   if (isLoading) {
     return (
@@ -372,6 +403,11 @@ const ApprovedCollaboratorsList = ({
             <UserCheck className="h-5 w-5" />
             Colaboradores Aprovados
             <Badge variant="secondary">{collaborators.length}</Badge>
+            {targetUnitCode && unitInfo?.group_name && (
+              <Badge variant="outline" className="text-xs">
+                {unitInfo.group_name}
+              </Badge>
+            )}
           </CardTitle>
           {onRefresh && (
             <RefreshButton
@@ -390,11 +426,11 @@ const ApprovedCollaboratorsList = ({
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1">
                   <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
-                    Grupo de Colaboradores não criado
+                    Grupo de Colaboradores não criado para {unitInfo?.group_name}
                   </p>
                   <p className="text-xs text-blue-700 dark:text-blue-300">
                     Clique no botão ao lado para criar o grupo no WhatsApp e
-                    adicionar automaticamente todos os colaboradores aprovados.
+                    adicionar automaticamente os {collaborators.length} colaborador(es) aprovado(s) desta unidade.
                   </p>
                 </div>
                 <Button

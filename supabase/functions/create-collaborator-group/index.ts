@@ -266,14 +266,49 @@ serve(async (req: Request) => {
     }
     
     // Buscar telefone do franqueado para adicionar como participante inicial
-    const { data: franchisee } = await supabaseTreinamento
+    // O franqueado pode ter esta unidade como principal (unit_code) ou secundária (unit_codes)
+    console.log("🔍 Buscando franqueado para unit_code:", unit_code);
+    
+    const { data: franchisees, error: franchiseeError } = await supabaseTreinamento
       .from("users")
-      .select("phone, name")
-      .eq("unit_code", unit_code)
+      .select("phone, name, unit_code, unit_codes")
       .eq("role", "Franqueado")
       .eq("active", true)
-      .not("phone", "is", null)
-      .maybeSingle();
+      .not("phone", "is", null);
+
+    if (franchiseeError) {
+      console.error("Erro ao buscar franqueados:", franchiseeError);
+    }
+
+    console.log("Franqueados encontrados:", franchisees?.length || 0);
+    
+    // Encontrar o franqueado que tem acesso a esta unidade
+    const franchisee = franchisees?.find((f: { name?: string; phone?: string; unit_code?: string; unit_codes?: string[] }) => {
+      // Verificar se a unidade é a principal
+      if (f.unit_code === unit_code) {
+        console.log(`✅ Franqueado ${f.name || 'Sem nome'} tem ${unit_code} como unidade principal`);
+        return true;
+      }
+      
+      // Verificar se a unidade está nas secundárias
+      if (Array.isArray(f.unit_codes) && f.unit_codes.includes(unit_code)) {
+        console.log(`✅ Franqueado ${f.name || 'Sem nome'} tem ${unit_code} nas unidades secundárias`);
+        return true;
+      }
+      
+      return false;
+    });
+
+    if (!franchisee) {
+      console.warn("⚠️ Nenhum franqueado encontrado com acesso à unidade:", unit_code);
+    } else {
+      console.log("✅ Franqueado identificado:", {
+        name: franchisee.name,
+        phone: franchisee.phone,
+        unit_code: franchisee.unit_code,
+        unit_codes: franchisee.unit_codes,
+      });
+    }
 
     // Número padrão que sempre será adicionado aos grupos
     const defaultPhone = "5511940477721";
