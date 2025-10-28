@@ -69,20 +69,54 @@ export const useSelfEnroll = () => {
 
       // Buscar uma turma disponível para o curso com inscrições abertas
       const now = new Date().toISOString();
-      const { data: turma, error: turmaErr } = await supabase
+      console.log('[useSelfEnroll] Buscando turma para course_id:', input.course_id, 'em:', now);
+      
+      const { data: turmas, error: turmaErr } = await supabase
         .from('turmas')
-        .select('id')
+        .select('id, enrollment_open_at, enrollment_close_at, status')
         .eq('course_id', input.course_id)
-        .eq('status', 'agendada')
-        .or(`enrollment_open_at.is.null,enrollment_open_at.lte.${now}`)
-        .or(`enrollment_close_at.is.null,enrollment_close_at.gte.${now}`)
-        .limit(1)
-        .maybeSingle();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .in('status', ['agendada', 'em_andamento'] as any);
 
       if (turmaErr) {
-        console.error('Erro ao buscar turma:', turmaErr);
+        console.error('[useSelfEnroll] Erro ao buscar turma:', turmaErr);
         throw turmaErr;
       }
+
+      console.log('[useSelfEnroll] Turmas encontradas:', turmas);
+
+      // Filtrar turmas com inscrições abertas
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const turmasAbertas = (turmas || []).filter((t: any) => {
+        // Se não há datas definidas, considerar como sempre aberta
+        if (!t.enrollment_open_at && !t.enrollment_close_at) {
+          console.log('[useSelfEnroll] Turma sem datas - sempre aberta:', t.id);
+          return true;
+        }
+
+        const nowDate = new Date(now);
+        const openAt = t.enrollment_open_at ? new Date(t.enrollment_open_at) : null;
+        const closeAt = t.enrollment_close_at ? new Date(t.enrollment_close_at) : null;
+
+        const isAfterOpen = !openAt || nowDate >= openAt;
+        const isBeforeClose = !closeAt || nowDate <= closeAt;
+
+        console.log('[useSelfEnroll] Verificando turma:', {
+          turma_id: t.id,
+          nowDate: nowDate.toISOString(),
+          openAt: openAt?.toISOString(),
+          closeAt: closeAt?.toISOString(),
+          isAfterOpen,
+          isBeforeClose,
+          allowed: isAfterOpen && isBeforeClose
+        });
+
+        return isAfterOpen && isBeforeClose;
+      });
+
+      console.log('[useSelfEnroll] Turmas com inscrições abertas:', turmasAbertas);
+
+      const turma = turmasAbertas[0];
 
       if (!turma?.id) {
         throw new Error('Não há turmas com inscrições abertas para este curso no momento.');
@@ -119,10 +153,12 @@ export const useSelfEnroll = () => {
       return data;
     },
     onSuccess: () => {
-      // Invalida qualquer query relacionada a enrollments
-      queryClient.invalidateQueries({
-        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'enrollments',
-      });
+      // Invalida queries relacionadas a enrollments e cursos
+      queryClient.invalidateQueries({ queryKey: ['enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['available-courses'] });
+      queryClient.invalidateQueries({ queryKey: ['available-turmas-for-enrollment'] });
+      
       toast({
         title: 'Inscrição realizada!',
         description: 'Você foi inscrito no curso com sucesso.',

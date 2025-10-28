@@ -137,12 +137,40 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  // Validação de campos obrigatórios para colaborador
+  const isCollaboratorFormValid = () => {
+    if (userRole !== 'Colaborador') return true;
+    
+    // Validar campos básicos
+    if (!fullName.trim() || !email.trim() || !password.trim() || !unitCode.trim() || 
+        !position.trim() || !whatsapp.trim() || !cpf.trim() || !birthDate.trim()) {
+      return false;
+    }
+    
+    // Validar campos de endereço
+    if (!cep.trim() || !endereco.trim() || !numero.trim() || 
+        !bairro.trim() || !cidade.trim() || !estado.trim()) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleStudentSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
       if (userRole === 'Colaborador') {
+        // Validação adicional antes de enviar
+        if (!isCollaboratorFormValid()) {
+          toast.error('Preencha todos os campos obrigatórios', {
+            description: 'Verifique se todos os campos marcados com * foram preenchidos, incluindo o endereço completo.'
+          });
+          setIsLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('register-collaborator', {
           body: {
             name: fullName,
@@ -402,7 +430,13 @@ const Auth = () => {
                     </div>
                   )}
                   
-                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Cadastrando..." : "Criar Conta"}</Button>
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading || (userRole === 'Colaborador' && !isCollaboratorFormValid())}
+                  >
+                    {isLoading ? "Cadastrando..." : "Criar Conta"}
+                  </Button>
                 </form>
               </TabsContent>
 

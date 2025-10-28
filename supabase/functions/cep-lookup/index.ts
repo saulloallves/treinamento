@@ -21,34 +21,50 @@ serve(async (req) => {
       })
     }
 
-    // ===== MUDANÇA DA API =====
-    // Trocamos ViaCEP pela BrasilAPI, que é mais estável em ambientes de nuvem.
-    const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanedCep}`)
+    console.log('Buscando CEP:', cleanedCep)
 
-    if (!response.ok) {
-      // A BrasilAPI retorna 404 para CEP não encontrado, o que é tratado aqui.
-      if (response.status === 404) {
+    // Primeiro tenta BrasilAPI
+    let response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanedCep}`)
+    let data = null
+    let mappedData = null
+
+    if (response.ok) {
+      data = await response.json()
+      console.log('BrasilAPI response:', data)
+      
+      // Mapeamento da resposta da BrasilAPI
+      mappedData = {
+        cep: data.cep,
+        logradouro: data.street,
+        complemento: data.complement || '',
+        bairro: data.neighborhood,
+        localidade: data.city,
+        uf: data.state,
+      }
+    } else {
+      console.log('BrasilAPI falhou, tentando ViaCEP. Status:', response.status)
+      
+      // Fallback para ViaCEP
+      response = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`)
+      
+      if (!response.ok) {
+        console.error('ViaCEP também falhou. Status:', response.status)
+        throw new Error('Falha ao consultar APIs de CEP.')
+      }
+      
+      data = await response.json()
+      console.log('ViaCEP response:', data)
+      
+      // Verifica se o CEP foi encontrado (ViaCEP retorna erro dentro do JSON)
+      if (data.erro) {
         return new Response(JSON.stringify({ error: 'CEP não encontrado.' }), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
-      // Outros erros de servidor da BrasilAPI
-      throw new Error('Falha ao consultar a API de CEP.')
-    }
-
-    const data = await response.json()
-
-    // ===== MAPEAMENTO DA RESPOSTA =====
-    // Mapeamos a resposta da BrasilAPI para o formato do ViaCEP,
-    // assim o frontend não precisa de nenhuma alteração.
-    const mappedData = {
-      cep: data.cep,
-      logradouro: data.street,
-      complemento: data.complement,
-      bairro: data.neighborhood,
-      localidade: data.city,
-      uf: data.state,
+      
+      // ViaCEP já está no formato correto
+      mappedData = data
     }
 
     return new Response(JSON.stringify(mappedData), {
@@ -57,7 +73,8 @@ serve(async (req) => {
     })
   } catch (error) {
     console.error('CEP Lookup Error:', error)
-    return new Response(JSON.stringify({ error: error.message || 'Erro interno do servidor' }), {
+    const errorMessage = error instanceof Error ? error.message : 'Erro interno do servidor'
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

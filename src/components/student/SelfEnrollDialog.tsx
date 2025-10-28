@@ -37,22 +37,35 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     queryKey: ['available-turmas-for-enrollment'],
     queryFn: async () => {
       const now = new Date();
+      console.log('[SelfEnroll] Buscando turmas... Data/hora atual:', now.toISOString());
       
       // Buscar turmas agendadas ou em andamento
       const { data, error } = await supabase
         .from('turmas')
         .select('course_id, enrollment_open_at, enrollment_close_at, status')
-        .in('status', ['agendada', 'em_andamento']);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .in('status', ['agendada', 'em_andamento'] as any); // Cast necessário para o TypeScript
 
       if (error) {
-        console.error('Error fetching available turmas:', error);
+        console.error('[SelfEnroll] Error fetching available turmas:', error);
         return [];
       }
 
+      console.log('[SelfEnroll] Turmas encontradas no banco:', data);
+
       // Filtrar turmas com janela de inscrição aberta
-      const filtered = (data || []).filter((turma) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filtered = (data || []).filter((turma: any) => {
+        console.log('[SelfEnroll] Verificando turma:', {
+          course_id: turma.course_id,
+          enrollment_open_at: turma.enrollment_open_at,
+          enrollment_close_at: turma.enrollment_close_at,
+          status: turma.status
+        });
+
         // Se não há datas definidas, considerar como sempre aberta
         if (!turma.enrollment_open_at && !turma.enrollment_close_at) {
+          console.log('[SelfEnroll] ✅ Turma sem datas de inscrição - sempre aberta');
           return true;
         }
         
@@ -60,12 +73,25 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
         const openAt = turma.enrollment_open_at ? new Date(turma.enrollment_open_at) : null;
         const closeAt = turma.enrollment_close_at ? new Date(turma.enrollment_close_at) : null;
         
+        console.log('[SelfEnroll] Comparação de datas:', {
+          now: now.toISOString(),
+          openAt: openAt?.toISOString(),
+          closeAt: closeAt?.toISOString()
+        });
+        
         const isAfterOpen = !openAt || now >= openAt;
         const isBeforeClose = !closeAt || now <= closeAt;
+        
+        console.log('[SelfEnroll] Resultado:', {
+          isAfterOpen,
+          isBeforeClose,
+          allowed: isAfterOpen && isBeforeClose
+        });
         
         return isAfterOpen && isBeforeClose;
       });
 
+      console.log('[SelfEnroll] Turmas com inscrições abertas:', filtered);
       return filtered;
     },
     enabled: open, // Só busca quando o diálogo está aberto
@@ -75,15 +101,19 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     e.preventDefault();
     if (!courseId) return;
 
-    await selfEnroll.mutateAsync({
-      course_id: courseId,
-      phone: phone.trim() || undefined,
-    });
+    try {
+      await selfEnroll.mutateAsync({
+        course_id: courseId,
+        phone: phone.trim() || undefined,
+      });
 
-    if (!selfEnroll.isError) {
+      // Só limpa e fecha se não houve erro
       setCourseId('');
       setPhone('');
       onOpenChange(false);
+    } catch (error) {
+      // O erro já é tratado pelo onError do mutation
+      console.error('[SelfEnroll] Erro ao inscrever:', error);
     }
   };
 
@@ -97,63 +127,54 @@ const SelfEnrollDialog = ({ open, onOpenChange }: SelfEnrollDialogProps) => {
     onOpenChange(newOpen);
   };
 
-  // Verificar permissões de acesso aos cursos
-  const { data: courseAccessChecks = {} } = useQuery({
-    queryKey: ['course-access-checks', currentUser?.id, courses.map(c => c.id)],
-    queryFn: async () => {
-      if (!currentUser?.id) return {};
-      
-      const checks: Record<string, boolean> = {};
-      
-      // Verificar acesso para cada curso usando a função RPC do banco
-      await Promise.all(
-        courses.map(async (course) => {
-          const { data, error } = await supabase.rpc('can_user_access_course', {
-            p_user_id: currentUser.id,
-            p_course_id: course.id
-          });
-          
-          if (!error) {
-            checks[course.id] = data || false;
-          } else {
-            console.error(`Erro ao verificar acesso ao curso ${course.name}:`, error);
-            checks[course.id] = false;
-          }
-        })
-      );
-      
-      return checks;
-    },
-    enabled: open && !!currentUser?.id && courses.length > 0,
-  });
-  
-  // Filtrar cursos com base em acesso por cargo e permissões
+  // Filtrar cursos com base em acesso e permissões
   const availableCourses = useMemo(() => {
-    const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
-    const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
+    if (!currentUser) return [];
     
-    return courses.filter((course) => {
+    const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const coursesWithOpenEnrollment = new Set(availableTurmas.map((turma: any) => turma.course_id));
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (Array.isArray(courses) ? courses : []).filter((course: any) => {
       // Filtros básicos
       if (course.status !== 'Ativo' || enrolledCourseIds.has(course.id) || !coursesWithOpenEnrollment.has(course.id)) {
         return false;
       }
       
-      // Verificar se o usuário tem permissão para acessar este curso
-      const hasAccess = courseAccessChecks[course.id];
+      // Verificar acesso baseado no public_target do curso
+      const userRole = currentUser.role;
+      const publicTarget = course.public_target;
       
-      return hasAccess === true;
+      // Se o curso é para "ambos", sempre permite (Franqueados E Colaboradores)
+      if (publicTarget === 'ambos') {
+        return true;
+      }
+      
+      // Se o curso é para "franqueado", apenas Franqueados podem se inscrever
+      if (publicTarget === 'franqueado') {
+        return userRole === 'Franqueado';
+      }
+      
+      // Se o curso é para "colaborador", apenas Colaboradores podem se inscrever
+      if (publicTarget === 'colaborador') {
+        return userRole === 'Colaborador';
+      }
+      
+      // Se não tem public_target definido, permite para todos
+      return true;
     });
-  }, [courses, myEnrollments, availableTurmas, courseAccessChecks]);
+  }, [courses, myEnrollments, availableTurmas, currentUser]);
 
   // Dados para debug
   const enrolledCourseIds = new Set(myEnrollments.map(enrollment => enrollment.course_id));
-  const coursesWithOpenEnrollment = new Set(availableTurmas.map(turma => turma.course_id));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const coursesWithOpenEnrollment = new Set(availableTurmas.map((turma: any) => turma.course_id));
 
   // Debug: log para verificar
   console.log('=== DEBUG AUTOINSCRIÇÃO ===');
   console.log('Usuário atual:', currentUser);
   console.log('Todos os cursos:', courses);
-  console.log('Verificações de acesso aos cursos:', courseAccessChecks);
   console.log('Cursos inscritos:', Array.from(enrolledCourseIds));
   console.log('Turmas com inscrições abertas:', availableTurmas);
   console.log('Cursos disponíveis após filtro:', availableCourses);
