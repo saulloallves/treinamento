@@ -41,6 +41,15 @@ interface ApprovedCollaborator {
   created_at: string;
   active: boolean;
   unit_code?: string;
+  phone?: string;
+}
+
+interface UnitGroupInfo {
+  id: number;
+  group_code: number;
+  group_name: string;
+  grupo_colaborador: string | null;
+  group_name_whatsapp?: string | null;
 }
 
 interface ApprovedCollaboratorsListProps {
@@ -70,7 +79,7 @@ const ApprovedCollaboratorsList = ({
       const { data, error } = await supabase
         .from("users")
         .select(
-          "id, name, email, role, position, approved_at, created_at, active, unit_code"
+          "id, name, email, role, position, approved_at, created_at, active, unit_code, phone"
         )
         // @ts-expect-error - Supabase type inference issue
         .in("unit_code", allUnitCodes)
@@ -93,7 +102,68 @@ const ApprovedCollaboratorsList = ({
     ? collaborators[0].unit_code 
     : currentUser?.unit_code;
 
-  // Query para buscar info da unidade alvo e grupo de colaboradores
+  // Query para buscar informações de TODAS as unidades dos colaboradores
+  const uniqueUnitCodes = [...new Set(collaborators.map(c => c.unit_code).filter(Boolean))];
+  
+  const { data: allUnitsInfo = [] } = useQuery({
+    queryKey: ["units-info", uniqueUnitCodes.join(",")],
+    queryFn: async () => {
+      if (uniqueUnitCodes.length === 0) return [];
+
+      console.log("🔍 Buscando informações para unit_codes:", uniqueUnitCodes);
+
+      // Buscar dados de todas as unidades
+      const { data: unitsData, error: unitsError } = await supabasePublic
+        .from("unidades")
+        .select("id, group_code, group_name")
+        .in("group_code", uniqueUnitCodes.map(code => parseInt(code as string)));
+
+      if (unitsError) {
+        console.error("❌ Erro ao buscar unidades:", unitsError);
+        throw unitsError;
+      }
+
+      console.log("✅ Unidades encontradas:", unitsData);
+      console.log("🔍 Unit IDs para buscar grupos:", unitsData.map(u => ({ id: u.id, code: u.group_code })));
+
+      // Buscar grupos de colaboradores para todas as unidades
+      const unitIds = unitsData.map(u => u.id);
+      const { data: groupsData, error: groupsError } = await supabasePublic
+        .from("unidades_grupos_whatsapp")
+        .select("*")
+        .in("unit_id", unitIds)
+        .eq("kind", "colab");
+
+      if (groupsError && groupsError.code !== "PGRST116") {
+        console.error("❌ Erro ao buscar grupos:", groupsError);
+      }
+
+      console.log("📱 Grupos WhatsApp encontrados (raw):", groupsData);
+      console.log("📱 Quantidade de grupos encontrados:", groupsData?.length || 0);
+
+      // Mapear unidades com seus grupos
+      const unitsWithGroups: UnitGroupInfo[] = unitsData.map(unit => {
+        const group = groupsData?.find(g => g.unit_id === unit.id);
+        console.log(`🔗 Mapeando unidade ${unit.group_name} (ID: ${unit.id}):`, {
+          hasGroup: !!group,
+          groupId: group?.group_id,
+          unitIdMatch: group?.unit_id === unit.id
+        });
+        return {
+          ...unit,
+          grupo_colaborador: group?.group_id || null,
+          group_name_whatsapp: null, // Removido group_name que não existe na tabela
+        };
+      });
+
+      console.log("🎯 Resultado final do mapeamento:", unitsWithGroups);
+
+      return unitsWithGroups;
+    },
+    enabled: uniqueUnitCodes.length > 0,
+  });
+
+  // Query para buscar info da unidade alvo para criação do grupo (mantida para compatibilidade)
   const { data: unitInfo } = useQuery({
     queryKey: ["unit-info", targetUnitCode],
     queryFn: async () => {
@@ -122,7 +192,7 @@ const ApprovedCollaboratorsList = ({
       // Buscar grupo de colaboradores na tabela unidades_grupos_whatsapp
       const { data: groupData, error: groupError } = await supabasePublic
         .from("unidades_grupos_whatsapp")
-        .select("group_id")
+        .select("*")
         .eq("unit_id", unitData.id)
         .eq("kind", "colab")
         .maybeSingle();
@@ -131,14 +201,16 @@ const ApprovedCollaboratorsList = ({
         console.error("❌ Erro ao buscar grupo:", groupError);
       }
 
-      console.log("📱 Grupo WhatsApp:", {
+      console.log("📱 Grupo WhatsApp (unitInfo):", {
         exists: !!groupData?.group_id,
         groupId: groupData?.group_id,
+        fullData: groupData,
       });
 
       return {
         ...unitData,
         grupo_colaborador: groupData?.group_id || null,
+        group_name_whatsapp: null, // Removido pois não existe na tabela
       };
     },
     enabled: !!targetUnitCode,
@@ -166,6 +238,12 @@ const ApprovedCollaboratorsList = ({
       toast.error("Erro ao pausar colaborador: " + error.message);
     },
   });
+
+  // Função helper para obter informações do grupo de um colaborador específico
+  const getCollaboratorGroupInfo = (collaborator: ApprovedCollaborator) => {
+    if (!collaborator.unit_code) return null;
+    return allUnitsInfo.find(unit => unit.group_code === parseInt(collaborator.unit_code as string));
+  };
 
   const activateCollaboratorMutation = useMutation({
     mutationFn: async (collaboratorId: string) => {
@@ -205,16 +283,23 @@ const ApprovedCollaboratorsList = ({
       let whatsappRemoved = false;
       let whatsappError = null;
 
+      // Buscar informações do grupo específico deste colaborador
+      // @ts-expect-error - Supabase type inference issue
+      const collaboratorGroupInfo = collaborator?.unit_code 
+        // @ts-expect-error - Supabase type inference issue
+        ? allUnitsInfo.find(unit => unit.group_code === parseInt(collaborator.unit_code))
+        : null;
+
       // Tentar remover do grupo WhatsApp se houver grupo e telefone
       // @ts-expect-error - Supabase type inference issue
-      if (collaborator && collaborator.phone && unitInfo?.grupo_colaborador) {
+      if (collaborator && collaborator.phone && collaboratorGroupInfo?.grupo_colaborador) {
         try {
           console.log("🔄 Removendo colaborador do grupo WhatsApp...");
           const { data, error } = await supabase.functions.invoke(
             "remove-collaborator-from-group",
             {
               body: {
-                groupId: unitInfo.grupo_colaborador,
+                groupId: collaboratorGroupInfo.grupo_colaborador,
                 // @ts-expect-error - Supabase type inference issue
                 phone: collaborator.phone,
                 // @ts-expect-error - Supabase type inference issue
@@ -358,16 +443,16 @@ const ApprovedCollaboratorsList = ({
     });
   };
 
-  const hasGroup =
-    unitInfo?.grupo_colaborador && unitInfo.grupo_colaborador !== "";
-  const showCreateGroupButton = !hasGroup && collaborators.length > 0;
+  // Verificar se há unidades sem grupo criado
+  const unitsWithoutGroup = allUnitsInfo.filter(unit => !unit.grupo_colaborador);
+  const hasUnitsWithoutGroup = unitsWithoutGroup.length > 0;
 
   console.log("🔍 Group Button Logic:", {
     targetUnitCode,
-    hasGroup,
-    grupo_colaborador: unitInfo?.grupo_colaborador,
+    allUnitsInfo,
+    unitsWithoutGroup,
+    hasUnitsWithoutGroup,
     collaboratorsCount: collaborators.length,
-    showCreateGroupButton,
   });
 
   if (isLoading) {
@@ -403,11 +488,6 @@ const ApprovedCollaboratorsList = ({
             <UserCheck className="h-5 w-5" />
             Colaboradores Aprovados
             <Badge variant="secondary">{collaborators.length}</Badge>
-            {targetUnitCode && unitInfo?.group_name && (
-              <Badge variant="outline" className="text-xs">
-                {unitInfo.group_name}
-              </Badge>
-            )}
           </CardTitle>
           {onRefresh && (
             <RefreshButton
@@ -419,29 +499,40 @@ const ApprovedCollaboratorsList = ({
         </div>
       </CardHeader>
       <CardContent>
-        {showCreateGroupButton && (
+        {hasUnitsWithoutGroup && (
           <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
             <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="ml-2">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex flex-col gap-3">
                 <div className="flex-1">
                   <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
-                    Grupo de Colaboradores não criado para {unitInfo?.group_name}
+                    {unitsWithoutGroup.length === 1 
+                      ? "Grupo de Colaboradores não criado"
+                      : `${unitsWithoutGroup.length} Grupos de Colaboradores não criados`
+                    }
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Clique no botão ao lado para criar o grupo no WhatsApp e
-                    adicionar automaticamente os {collaborators.length} colaborador(es) aprovado(s) desta unidade.
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                    As seguintes unidades não possuem grupos no WhatsApp:
                   </p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {unitsWithoutGroup.map(unit => (
+                      <Badge key={unit.group_code} variant="outline" className="text-xs">
+                        {unit.group_name}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-                <Button
-                  onClick={handleCreateGroup}
-                  disabled={createGroupMutation.isPending}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white shrink-0"
-                >
-                  <MessageCircle className="h-3 w-3 mr-2" />
-                  {createGroupMutation.isPending ? "Criando..." : "Criar Grupo"}
-                </Button>
+                {unitsWithoutGroup.length === 1 && (
+                  <Button
+                    onClick={handleCreateGroup}
+                    disabled={createGroupMutation.isPending}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white w-fit"
+                  >
+                    <MessageCircle className="h-3 w-3 mr-2" />
+                    {createGroupMutation.isPending ? "Criando..." : "Criar Grupo"}
+                  </Button>
+                )}
               </div>
             </AlertDescription>
           </Alert>
@@ -453,7 +544,10 @@ const ApprovedCollaboratorsList = ({
           </p>
         ) : (
           <div className="space-y-3">
-            {collaborators.map((collaborator) => (
+            {collaborators.map((collaborator) => {
+              const groupInfo = getCollaboratorGroupInfo(collaborator);
+              
+              return (
               <div
                 key={collaborator.id}
                 className="bg-card border border-border rounded-xl p-3 sm:p-4 hover:shadow-sm transition-shadow"
@@ -496,6 +590,32 @@ const ApprovedCollaboratorsList = ({
                           <span className="font-medium">Cargo:</span>{" "}
                           {collaborator.position}
                         </p>
+                      )}
+                      {groupInfo && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              groupInfo.grupo_colaborador 
+                                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800"
+                                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
+                            }`}
+                          >
+                            <MessageCircle className="h-3 w-3 mr-1" />
+                            {groupInfo.group_name}
+                          </Badge>
+                          {groupInfo.grupo_colaborador ? (
+                            <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                              No grupo WhatsApp
+                            </span>
+                          ) : (
+                            <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                              Grupo não criado
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
 
@@ -569,8 +689,8 @@ const ApprovedCollaboratorsList = ({
                             <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
                               <p className="font-medium text-foreground">Esta ação irá:</p>
                               <ul className="space-y-1 list-disc list-inside">
-                                {unitInfo?.grupo_colaborador && (
-                                  <li>Remover do grupo WhatsApp</li>
+                                {groupInfo?.grupo_colaborador && (
+                                  <li>Remover do grupo WhatsApp ({groupInfo.group_name})</li>
                                 )}
                                 <li>Excluir a conta de autenticação</li>
                                 <li>Revogar acesso ao sistema</li>
@@ -612,7 +732,8 @@ const ApprovedCollaboratorsList = ({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

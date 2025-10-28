@@ -66,13 +66,37 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
     try {
       await deleteQuestion.mutateAsync(id);
       toast({
-        title: "Pergunta excluída",
-        description: "A pergunta foi excluída com sucesso.",
+        title: "Pergunta arquivada",
+        description: "A pergunta foi arquivada com sucesso e não será mais exibida.",
       });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Erro ao excluir pergunta.",
+        description: "Erro ao arquivar pergunta.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteQuiz = async (quiz: { name: string; questions: any[] }) => {
+    if (!confirm(`Tem certeza que deseja arquivar o quiz "${quiz.name}"? Todas as ${quiz.questions.length} pergunta(s) serão arquivadas.`)) {
+      return;
+    }
+
+    try {
+      // Arquivar todas as perguntas do quiz
+      await Promise.all(
+        quiz.questions.map((question) => deleteQuestion.mutateAsync(question.id))
+      );
+      
+      toast({
+        title: "Quiz arquivado",
+        description: `O quiz "${quiz.name}" foi arquivado com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao arquivar quiz.",
         variant: "destructive",
       });
     }
@@ -203,6 +227,15 @@ const LessonQuizManager = ({ turma, onBack }: LessonQuizManagerProps) => {
                           >
                             <Copy className="w-4 h-4" />
                             Duplicar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteQuiz(quiz)}
+                            className="flex items-center gap-2 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Arquivar Quiz
                           </Button>
                         </div>
                       </div>

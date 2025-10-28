@@ -7,7 +7,7 @@ export interface TestSubmission {
   test_id: string;
   user_id: string;
   attempt_number: number;
-  status: 'in_progress' | 'completed' | 'expired';
+  status: 'in_progress' | 'completed' | 'expired' | 'pending_review';
   total_score: number;
   max_possible_score: number;
   percentage: number;
@@ -153,21 +153,11 @@ export const useTestSubmission = () => {
 
       if (submissionError) throw submissionError;
 
-      // Calcular pontuação total
-      const { data: responses, error: responsesError } = await supabase
-        .from("test_responses")
-        .select("score_obtained")
-        .eq("test_id", submission.test_id)
-        .eq("user_id", currentUser.id);
-
-      if (responsesError) throw responsesError;
-
-      const totalScore = responses?.reduce((sum, r) => sum + r.score_obtained, 0) || 0;
-
-      // Buscar pontuação máxima possível
+      // Buscar todas as questões do teste para verificar se há dissertativas
       const { data: questions, error: questionsError } = await supabase
         .from("test_questions")
         .select(`
+          id,
           question_type,
           max_score,
           test_question_options (
@@ -178,6 +168,27 @@ export const useTestSubmission = () => {
 
       if (questionsError) throw questionsError;
 
+      // Verificar se há questões dissertativas
+      const hasEssayQuestions = questions?.some(q => q.question_type === 'essay') || false;
+
+      // Buscar respostas do usuário
+      const { data: responses, error: responsesError } = await supabase
+        .from("test_responses")
+        .select("question_id, score_obtained, response_text")
+        .eq("test_id", submission.test_id)
+        .eq("user_id", currentUser.id);
+
+      if (responsesError) throw responsesError;
+
+      // Verificar se há questões dissertativas não corrigidas (score = 0 e tem texto)
+      const hasUngradedEssays = responses?.some(r => {
+        const question = questions?.find(q => q.id === r.question_id);
+        return question?.question_type === 'essay' && r.response_text && r.score_obtained === 0;
+      }) || false;
+
+      const totalScore = responses?.reduce((sum, r) => sum + r.score_obtained, 0) || 0;
+
+      // Calcular pontuação máxima possível
       const maxPossibleScore = questions?.reduce((sum, q) => {
         if (q.question_type === 'essay') {
           return sum + (q.max_score || 0);
@@ -204,11 +215,16 @@ export const useTestSubmission = () => {
       const submitTime = Date.now();
       const timeTakenMinutes = Math.round((submitTime - startTime) / (1000 * 60));
 
+      // TEMPORÁRIO: Usando 'completed' até que a migration seja aplicada
+      // TODO: Descomentar após aplicar migration que adiciona 'pending_review' ao enum
+      // const finalStatus = hasUngradedEssays ? 'pending_review' : 'completed';
+      const finalStatus = 'completed';
+
       // Atualizar submission
       const { data: updatedSubmission, error: updateError } = await supabase
         .from("test_submissions")
         .update({
-          status: 'completed',
+          status: finalStatus,
           total_score: totalScore,
           max_possible_score: maxPossibleScore,
           percentage: percentage,
@@ -221,7 +237,9 @@ export const useTestSubmission = () => {
         .single();
 
       if (updateError) throw updateError;
-      return updatedSubmission;
+      
+      // Retornar com flag indicando se está pendente de revisão
+      return { ...updatedSubmission, hasUngradedEssays };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student-tests"] });

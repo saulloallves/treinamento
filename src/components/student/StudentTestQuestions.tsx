@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BaseLayout from "@/components/BaseLayout";
 import { useStudentTest } from "@/hooks/useStudentTests";
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import SkeletonCard from "@/components/mobile/SkeletonCard";
 import { Clock, CheckCircle, Circle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -34,31 +35,35 @@ const StudentTestQuestions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSavingResponse, setIsSavingResponse] = useState(false);
+  const [routeProtectionChecked, setRouteProtectionChecked] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false); // Flag para permitir navegação ao finalizar
+  
+  // Ref para armazenar timers de debounce por questão
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
-  // Proteção da rota
+  // Proteção da rota com delay para garantir que sessionStorage foi lido
   useEffect(() => {
-    if (!isLoading && testId && !isTestStarted(testId)) {
-      toast.warning("Por favor, inicie o teste a partir da página de instruções.");
-      navigate(`/aluno/teste/${testId}`, { replace: true });
-    }
-  }, [isLoading, testId, isTestStarted, navigate]);
+    // Aguardar um momento para o contexto ser inicializado do sessionStorage
+    const timer = setTimeout(() => {
+      setRouteProtectionChecked(true);
+      if (!isLoading && testId && !isTestStarted(testId)) {
+        toast.warning("Por favor, inicie o teste a partir da página de instruções.");
+        navigate(`/aluno/teste/${testId}`, { replace: true });
+      }
+    }, 100);
 
-  // Lidar com o botão de voltar do navegador
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, testId]); // Removido navigate e isTestStarted das dependências para evitar loop
+
+  // Cleanup ao desmontar
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      event.preventDefault();
-      toast.error("A navegação foi bloqueada durante o teste.");
-      navigate(`/aluno/teste/${testId}/questoes`, { replace: true });
-    };
-
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', handlePopState);
-
     return () => {
-      window.removeEventListener('popstate', handlePopState);
-      if (testId) endTest(testId);
+      if (testId && !isFinishing) {
+        endTest(testId);
+      }
     };
-  }, [testId, navigate, endTest]);
+  }, [testId, endTest, isFinishing]);
 
   // Timer effect
   useEffect(() => {
@@ -116,43 +121,125 @@ const StudentTestQuestions = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [test?.id]);
 
-  const handleResponseChange = useCallback(async (questionId: string, optionId: string) => {
+  // Limpar timers ao desmontar
+  useEffect(() => {
+    const timers = debounceTimers.current;
+    return () => {
+      Object.values(timers).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
+
+  const handleResponseChange = useCallback(async (questionId: string, answer: { optionId?: string; responseText?: string }) => {
     // Atualizar UI imediatamente
-    setResponses(prev => ({ ...prev, [questionId]: optionId }));
+    const valueToStore = answer.optionId || answer.responseText || "";
+    setResponses(prev => ({ ...prev, [questionId]: valueToStore }));
     
     if (!submissionId) return;
 
-    // Salvar no backend de forma assíncrona sem bloquear UI
-    setIsSavingResponse(true);
-    try {
-      await saveResponse({ submissionId, questionId, optionId });
-    } catch (error) {
-      console.error("Error saving response:", error);
-      // Reverter resposta em caso de erro
-      setResponses(prev => {
-        const updated = { ...prev };
-        delete updated[questionId];
-        return updated;
-      });
-      toast.error("Erro ao salvar resposta. Tente novamente.");
-    } finally {
-      setIsSavingResponse(false);
+    // Se for múltipla escolha (optionId), salvar imediatamente
+    if (answer.optionId) {
+      setIsSavingResponse(true);
+      try {
+        await saveResponse({ submissionId, questionId, ...answer });
+      } catch (error) {
+        console.error("Error saving response:", error);
+        setResponses(prev => {
+          const updated = { ...prev };
+          delete updated[questionId];
+          return updated;
+        });
+        toast.error("Erro ao salvar resposta. Tente novamente.");
+      } finally {
+        setIsSavingResponse(false);
+      }
+      return;
+    }
+
+    // Se for texto (responseText), usar debounce de 1 segundo
+    if (answer.responseText !== undefined) {
+      // Limpar timer anterior desta questão
+      if (debounceTimers.current[questionId]) {
+        clearTimeout(debounceTimers.current[questionId]);
+      }
+
+      // Criar novo timer
+      debounceTimers.current[questionId] = setTimeout(async () => {
+        setIsSavingResponse(true);
+        try {
+          await saveResponse({ submissionId, questionId, responseText: answer.responseText });
+        } catch (error) {
+          console.error("Error saving response:", error);
+          toast.error("Erro ao salvar resposta. Tente novamente.");
+        } finally {
+          setIsSavingResponse(false);
+        }
+      }, 1000); // 1 segundo de debounce
     }
   }, [submissionId, saveResponse]);
 
   const handleSubmitTest = async () => {
-    if (!submissionId) return;
+    if (!submissionId) {
+      console.error("No submissionId found");
+      return;
+    }
 
+    console.log("Starting test submission...", submissionId);
     setIsSubmitting(true);
+    setIsFinishing(true); // Permitir navegação
+    
     try {
+      // Limpar todos os timers pendentes
+      Object.values(debounceTimers.current).forEach(timer => clearTimeout(timer));
+      
+      // Aguardar um momento para garantir que as respostas foram salvas
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log("Submitting test to backend...");
       const result = await submitTest(submissionId);
-      toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
-      navigate(`/aluno/teste/${testId}/resultado`);
-    } catch (error) {
+      console.log("Test submitted successfully:", result);
+      
+      // Limpar o estado do teste do contexto ANTES de navegar
+      if (testId) {
+        console.log("Ending test flow...");
+        endTest(testId);
+      }
+      
+      // Verificar se há questões dissertativas não corrigidas
+      if ((result as any).hasUngradedEssays) {
+        toast.success("Teste enviado com sucesso! Suas respostas dissertativas estão aguardando correção.", {
+          duration: 5000,
+        });
+      } else {
+        toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
+      }
+      
+      console.log("About to navigate...");
+      console.log("Navigate function:", navigate);
+      console.log("Target route: /aluno/testes");
+      
+      // Navegar imediatamente
+      navigate('/aluno/testes', { replace: true });
+      
+      console.log("Navigate called successfully");
+      
+    } catch (error: any) {
       console.error("Error submitting test:", error);
-      toast.error("Erro ao finalizar teste");
-    } finally {
+      console.error("Error details:", {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
+      
+      // Mostrar erro específico se for problema com enum
+      if (error?.code === '22P02' && error?.message?.includes('pending_review')) {
+        toast.error("Erro de configuração do sistema. Por favor, contate o administrador.");
+      } else {
+        toast.error(error?.message || "Erro ao finalizar teste. Por favor, tente novamente.");
+      }
+      
       setIsSubmitting(false);
+      setIsFinishing(false); // Restaurar proteção em caso de erro
     }
   };
 
@@ -164,6 +251,25 @@ const StudentTestQuestions = () => {
 
   const getAnsweredCount = () => {
     return Object.keys(responses).length;
+  };
+
+  const handleQuestionNavigation = (newIndex: number) => {
+    // Limpar timers pendentes da questão atual para salvar imediatamente
+    if (currentQuestion?.id && debounceTimers.current[currentQuestion.id]) {
+      clearTimeout(debounceTimers.current[currentQuestion.id]);
+      
+      // Salvar resposta pendente se houver
+      const currentResponse = responses[currentQuestion.id];
+      if (currentResponse && submissionId) {
+        saveResponse({ 
+          submissionId, 
+          questionId: currentQuestion.id, 
+          responseText: currentResponse 
+        }).catch(console.error);
+      }
+    }
+    
+    setCurrentQuestionIndex(newIndex);
   };
 
   const currentQuestion = test?.test_questions?.[currentQuestionIndex];
@@ -258,29 +364,44 @@ const StudentTestQuestions = () => {
             </CardHeader>
             
             <CardContent>
-              <RadioGroup
-                value={responses[currentQuestion.id] || ""}
-                onValueChange={(value) => handleResponseChange(currentQuestion.id, value)}
-                disabled={isSavingResponse}
-              >
-                {currentQuestion.test_question_options
-                  ?.sort((a, b) => a.option_order - b.option_order)
-                  .map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2 py-1">
-                      <RadioGroupItem 
-                        value={option.id} 
-                        id={option.id}
-                        disabled={isSavingResponse}
-                      />
-                      <Label 
-                        htmlFor={option.id} 
-                        className="flex-1 cursor-pointer p-3 rounded hover:bg-muted/50 transition-colors"
-                      >
-                        {option.option_text}
-                      </Label>
-                    </div>
-                  ))}
-              </RadioGroup>
+              {currentQuestion.question_type === 'multiple_choice' ? (
+                <RadioGroup
+                  value={responses[currentQuestion.id] || ""}
+                  onValueChange={(value) => handleResponseChange(currentQuestion.id, { optionId: value })}
+                  disabled={isSavingResponse}
+                >
+                  {currentQuestion.test_question_options
+                    ?.sort((a, b) => a.option_order - b.option_order)
+                    .map((option) => (
+                      <div key={option.id} className="flex items-center space-x-2 py-1">
+                        <RadioGroupItem 
+                          value={option.id} 
+                          id={option.id}
+                          disabled={isSavingResponse}
+                        />
+                        <Label 
+                          htmlFor={option.id} 
+                          className="flex-1 cursor-pointer p-3 rounded hover:bg-muted/50 transition-colors"
+                        >
+                          {option.option_text}
+                        </Label>
+                      </div>
+                    ))}
+                </RadioGroup>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="essay-response">Sua Resposta</Label>
+                  <Textarea
+                    id="essay-response"
+                    value={responses[currentQuestion.id] || ""}
+                    onChange={(e) => handleResponseChange(currentQuestion.id, { responseText: e.target.value })}
+                    placeholder="Digite sua resposta aqui..."
+                    rows={6}
+                    disabled={isSavingResponse}
+                  />
+                  <p className="text-xs text-muted-foreground">Sua resposta será avaliada por um instrutor.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -299,7 +420,7 @@ const StudentTestQuestions = () => {
                     key={index}
                     variant={isCurrent ? "default" : isAnswered ? "secondary" : "outline"}
                     size="sm"
-                    onClick={() => setCurrentQuestionIndex(index)}
+                    onClick={() => handleQuestionNavigation(index)}
                     className="w-10 h-10 p-0"
                   >
                     {isAnswered ? (
@@ -316,7 +437,7 @@ const StudentTestQuestions = () => {
             <div className="flex justify-between">
               <Button
                 variant="outline"
-                onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                onClick={() => handleQuestionNavigation(Math.max(0, currentQuestionIndex - 1))}
                 disabled={currentQuestionIndex === 0}
               >
                 Anterior
@@ -325,7 +446,7 @@ const StudentTestQuestions = () => {
               <div className="flex gap-2">
                 {currentQuestionIndex < totalQuestions - 1 ? (
                   <Button
-                    onClick={() => setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
+                    onClick={() => handleQuestionNavigation(Math.min(totalQuestions - 1, currentQuestionIndex + 1))}
                   >
                     Próxima
                   </Button>
