@@ -79,12 +79,6 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
   const { data: isAdmin = false } = useIsAdmin(user?.id);
   const { data: isProfessor = false } = useIsProfessor(user?.id);  
   const { data: currentUser } = useCurrentUser();
-  console.log('🔍 ModernSidebar - Menu determination:', {
-    userId: user?.id,
-    isAdmin,
-    isProfessor,
-    selectedProfile
-  });
   
   // Toggle sidebar collapsed state
   const toggleCollapsed = useCallback(() => {

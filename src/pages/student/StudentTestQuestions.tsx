@@ -116,17 +116,35 @@ const StudentTestQuestions = () => {
   }, [submissionId, saveResponse]);
 
   const handleSubmitTest = async () => {
-    if (!submissionId) return;
+    if (!submissionId) {
+      console.error("No submissionId found");
+      return;
+    }
 
+    console.log("Starting test submission...", submissionId);
     setIsSubmitting(true);
+    
     try {
+      console.log("Submitting test to backend...");
       const result = await submitTest(submissionId);
-      toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
-      navigate(`/aluno/teste/${testId}/resultado`);
-    } catch (error) {
+      console.log("Test submitted successfully:", result);
+      
+      // Verificar se há questões dissertativas não corrigidas
+      if ((result as any).hasUngradedEssays) {
+        toast.success("Teste enviado com sucesso! Suas respostas dissertativas estão aguardando correção.", {
+          duration: 5000,
+        });
+      } else {
+        toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
+      }
+      
+      console.log("Navigating to tests page...");
+      // Navegar imediatamente
+      navigate('/aluno/testes', { replace: true });
+      
+    } catch (error: any) {
       console.error("Error submitting test:", error);
-      toast.error("Erro ao finalizar teste");
-    } finally {
+      toast.error(error?.message || "Erro ao finalizar teste. Por favor, tente novamente.");
       setIsSubmitting(false);
     }
   };

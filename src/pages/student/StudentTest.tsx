@@ -33,6 +33,8 @@ const StudentTest = () => {
     if (hasInProgress) {
       toast.info("Você já tem um teste em andamento");
       startTest(test.id);
+      // Aguardar para garantir que o sessionStorage foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 100));
       navigate(`/aluno/teste/${test.id}/questoes`);
       return;
     }
@@ -46,6 +48,8 @@ const StudentTest = () => {
     try {
       toast.success("Redirecionando para o teste...");
       startTest(test.id);
+      // Aguardar para garantir que o sessionStorage foi atualizado
+      await new Promise(resolve => setTimeout(resolve, 150));
       navigate(`/aluno/teste/${test.id}/questoes`);
     } catch (error) {
       toast.error("Erro ao iniciar teste");
