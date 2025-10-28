@@ -262,19 +262,19 @@ const Auth = () => {
               >
                 <TabsTrigger value="login-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <LogIn className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Login Aluno</span>
+                  <span className="text-center leading-tight font-medium">Login Franqueado/Colaborador</span>
                 </TabsTrigger>
                 <TabsTrigger value="register-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <Building className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Cadastro Aluno</span>
+                  <span className="text-center leading-tight font-medium">Cadastro Colaborador/Franqueado</span>
                 </TabsTrigger>
                 <TabsTrigger value="login-professor" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <BookOpen className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Login Professor</span>
+                  <span className="text-center leading-tight font-medium">Login Franquia</span>
                 </TabsTrigger>
                 <TabsTrigger value="login-admin" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
                   <Shield className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Login Admin</span>
+                  <span className="text-center leading-tight font-medium">Login Suporte</span>
                 </TabsTrigger>
               </TabsList>
 

@@ -1,7 +1,6 @@
 // Supabase Edge Function: create-professor
-// Creates an auth user (Professor) and inserts the corresponding profile in treinamento.users
-// Only admins can call this function
-
+// Creates or promotes a user to the 'Professor' role.
+// Relies on the 'handle_new_user_sync' trigger to create the user profile.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -10,239 +9,94 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface CreateProfessorPayload {
-  name: string;
-  email: string;
-  password: string;
-  phone?: string;
-  position?: string;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
-    return new Response(
-      JSON.stringify({ success: false, error: "Missing Supabase environment variables" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-
-  // Client in user context (to check admin permissions via JWT)
-  const supabaseUser = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
-  });
-
-  // Admin client (service role) for privileged operations
-  const supabaseTreinamento = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    db: { schema: 'treinamento' }
-  });
-
   try {
-    const { data: authData } = await supabaseUser.auth.getUser();
-    if (!authData?.user) {
-      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // --- Setup dos Clientes Supabase ---
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? '';
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? '';
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? '';
+
+    // Cliente com a autenticação do usuário que chamou a função
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: req.headers.get("Authorization")! } },
+      db: { schema: 'treinamento' }
+    });
+
+    // Cliente com Service Role para operações de administrador
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // --- Etapa 1: Segurança - Verificar se o chamador é um admin ---
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) throw new Error("Acesso não autorizado.");
+
+    const { data: isAdmin, error: isAdminError } = await userClient.rpc('is_admin', { _user: user.id });
+    if (isAdminError || !isAdmin) {
+      throw new Error("Apenas administradores podem executar esta ação.");
     }
 
-    // Ensure caller is admin
-    const { data: isAdmin, error: isAdminError } = await supabaseUser.rpc("is_admin");
-
-    if (isAdminError) {
-      console.error("is_admin RPC error:", isAdminError);
-      return new Response(JSON.stringify({ success: false, error: "Permission check failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const rawPayload = (await req.json()) as CreateProfessorPayload;
-    const name = rawPayload.name?.trim();
-    const email = rawPayload.email?.trim().toLowerCase();
-    const password = rawPayload.password;
-    const phone = rawPayload.phone?.trim();
-    const position = rawPayload.position?.trim();
-
+    // --- Etapa 2: Processar Payload ---
+    const { name, email, password, phone, position } = await req.json();
     if (!name || !email || !password) {
-      return new Response(JSON.stringify({ success: false, error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      throw new Error("Nome, e-mail e senha são obrigatórios.");
     }
 
-    // Tentar localizar usuário pelo e-mail na tabela treinamento.users
-    const { data: existingUserByEmail, error: userLookupError } = await supabaseAdmin
-      .from("users")
-      .select("id, user_type")
-      .eq("email", email)
-      .maybeSingle();
+    // --- Etapa 3: Lógica de Criação/Atualização no Auth ---
+    let authUserId: string;
 
-    if (userLookupError) {
-      console.error("[create-professor] users lookup error:", userLookupError);
-    }
+    // Verifica se um usuário já existe com este e-mail
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers({ email });
+    if (listError) throw new Error(`Erro ao verificar usuário existente: ${listError.message}`);
+    
+    const existingUser = users && users.length > 0 ? users[0] : null;
 
-    let authUserId: string | null = null;
-    let profile: any = null;
+    const userMetadata = {
+      full_name: name,
+      phone: phone,
+      position: position,
+      password: password, // Passa a senha para o gatilho
+      user_type: 'Professor',
+      role: 'Professor',
+    };
 
-    if (existingUserByEmail) {
-      // Usuário já existe no sistema: promover para Professor
-      authUserId = existingUserByEmail.id;
-
-      // Atualiza a senha no Auth (best-effort)
-      const { error: passwordUpdateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId!, { 
-        password: password || 'TrocarSenha123'
+    if (existingUser) {
+      // Se o usuário já existe, promove a Professor atualizando seus metadados e senha
+      authUserId = existingUser.id;
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(authUserId, {
+        password: password,
+        user_metadata: userMetadata,
       });
-      if (passwordUpdateError) {
-        console.warn("[create-professor] Password update warning:", passwordUpdateError);
-      }
-
-      // Se já é Professor, apenas confirma e retorna
-      if (existingUserByEmail.user_type === "Professor") {
-        const { data: existingProfile } = await supabaseAdmin
-          .from("users")
-          .select("id, name, email, user_type, phone, position")
-          .eq("id", authUserId)
-          .single();
-        profile = existingProfile;
-      } else {
-        // Atualiza o perfil existente para Professor
-        const { data: updatedProfile, error: updateErr } = await supabaseTreinamento
-          .from("users")
-          .update({
-            name,
-            phone,
-            position,
-            user_type: "Professor",
-            active: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", authUserId)
-          .select()
-          .single();
-
-        if (updateErr) {
-          console.error("[create-professor] update profile error:", updateErr);
-          return new Response(
-            JSON.stringify({ success: false, error: updateErr.message || "Falha ao atualizar perfil" }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        profile = updatedProfile;
-      }
+      if (updateError) throw new Error(`Falha ao promover usuário a professor: ${updateError.message}`);
+    
     } else {
-      // Usuário não existe na tabela users: criar no Auth e depois inserir perfil
-      console.log("[create-professor] Creating new auth user:", { email, position });
-      const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+      // Se o usuário não existe, cria um novo já com os metadados de Professor
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        user_metadata: { name, position, phone },
+        user_metadata: userMetadata,
         email_confirm: true,
       });
-
-      if (createUserError) {
-        const anyErr: any = createUserError as any;
-        const isEmailExists = anyErr?.status === 422 || anyErr?.code === "email_exists" ||
-          (typeof anyErr?.message === "string" && anyErr.message.toLowerCase().includes("already"));
-        console.error("[create-professor] createUserError:", createUserError);
-
-        if (isEmailExists) {
-          // Fallback: tentar localizar no Auth pela listagem e criar perfil
-          const { data: usersList, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-          if (listErr) {
-            console.error("[create-professor] listUsers error:", listErr);
-            return new Response(
-              JSON.stringify({ success: false, error: "E-mail já cadastrado. Não foi possível localizar o usuário para promoção." }),
-              { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          const existing = usersList?.users?.find((u: any) => u.email?.toLowerCase() === email);
-          if (!existing) {
-            return new Response(
-              JSON.stringify({ success: false, error: "E-mail já cadastrado. Faça login uma vez para sincronizar o perfil e tente novamente." }),
-              { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          authUserId = existing.id;
-        } else {
-          return new Response(
-            JSON.stringify({ success: false, error: createUserError.message || "Falha ao criar usuário" }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      } else {
-        authUserId = createUserData.user.id;
-      }
-
-      // Inserir perfil em treinamento.users
-      const { data: insertedProfile, error: profileError } = await supabaseTreinamento
-        .from("users")
-        .insert({
-          id: authUserId,
-          name,
-          email,
-          phone,
-          position,
-          user_type: "Professor",
-          active: true,
-        })
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error("[create-professor] profile insert error:", profileError);
-        // Se já existir, tenta atualizar (idempotência)
-        const { data: updatedProfile, error: updateErr2 } = await supabaseTreinamento
-          .from("users")
-          .update({ 
-            name, 
-            phone, 
-            position, 
-            user_type: "Professor", 
-            active: true, 
-            updated_at: new Date().toISOString() 
-          })
-          .eq("id", authUserId)
-          .select()
-          .maybeSingle();
-        if (updateErr2) {
-          return new Response(
-            JSON.stringify({ success: false, error: profileError.message }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        profile = updatedProfile;
-      } else {
-        profile = insertedProfile;
-      }
+      if (createError) throw new Error(`Falha ao criar novo professor: ${createError.message}`);
+      authUserId = newUser.user.id;
     }
 
-    console.log("[create-professor] Success:", { userId: authUserId });
+    // O gatilho 'on_auth_user_created' (ou um futuro gatilho de update) cuidará de
+    // inserir/atualizar o registro na tabela 'treinamento.users'.
 
+    // --- Etapa 4: Retornar Resposta ---
     return new Response(
-      JSON.stringify({ success: true, userId: authUserId, profile }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: true, userId: authUserId, message: "Operação de professor concluída com sucesso." }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-  } catch (err: any) {
-    console.error("[create-professor] Unexpected error:", err);
+
+  } catch (error) {
+    console.error("[create-professor] Erro inesperado:", error);
     return new Response(
-      JSON.stringify({ success: false, error: err?.message ?? "Unexpected error" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
