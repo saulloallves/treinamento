@@ -27,9 +27,13 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [unitCode, setUnitCode] = useState('');
+  const [userRole, setUserRole] = useState<'Franqueado' | 'Colaborador'>('Colaborador');
   const [position, setPosition] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [cpf, setCpf] = useState('');
+  const [franchiseeWhatsapp, setFranchiseeWhatsapp] = useState('');
+  const [franchiseeCpf, setFranchiseeCpf] = useState('');
+  const [unitCodes, setUnitCodes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [studentPhone, setStudentPhone] = useState('');
   const [isSendingPassword, setIsSendingPassword] = useState(false);
@@ -136,6 +140,8 @@ const Auth = () => {
 
   // Validação de campos obrigatórios para colaborador
   const isCollaboratorFormValid = () => {
+    if (userRole !== 'Colaborador') return true;
+    
     // Validar campos básicos
     if (!fullName.trim() || !email.trim() || !password.trim() || !unitCode.trim() || 
         !position.trim() || !whatsapp.trim() || !cpf.trim() || !birthDate.trim()) {
@@ -156,47 +162,83 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      // Validação adicional antes de enviar
-      if (!isCollaboratorFormValid()) {
-        toast.error('Preencha todos os campos obrigatórios', {
-          description: 'Verifique se todos os campos marcados com * foram preenchidos, incluindo o endereço completo.'
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('register-collaborator', {
-        body: {
-          name: fullName,
-          email: email.trim().toLowerCase(),
-          password,
-          unitCode,
-          position,
-          whatsapp,
-          cpf,
-          birth_date: birthDate,
-          cep,
-          endereco,
-          numero,
-          complemento,
-          bairro,
-          cidade,
-          estado,
+      if (userRole === 'Colaborador') {
+        // Validação adicional antes de enviar
+        if (!isCollaboratorFormValid()) {
+          toast.error('Preencha todos os campos obrigatórios', {
+            description: 'Verifique se todos os campos marcados com * foram preenchidos, incluindo o endereço completo.'
+          });
+          setIsLoading(false);
+          return;
         }
-      });
 
-      if (error) throw error;
+        const { data, error } = await supabase.functions.invoke('register-collaborator', {
+          body: {
+            name: fullName,
+            email: email.trim().toLowerCase(),
+            password,
+            unitCode,
+            position,
+            whatsapp,
+            cpf,
+            birth_date: birthDate,
+            cep,
+            endereco,
+            numero,
+            complemento,
+            bairro,
+            cidade,
+            estado,
+          }
+        });
 
-      if (data?.success) {
-        toast.success("Cadastro criado com sucesso!", {
-          description: "Cadastro em análise. Aguarde aprovação do franqueado da sua unidade para acessar o sistema.",
+        if (error) throw error;
+
+        if (data?.success) {
+          toast.success("Cadastro criado com sucesso!", {
+            description: "Cadastro em análise. Aguarde aprovação do franqueado da sua unidade para acessar o sistema.",
+          });
+          
+          // Clear form
+          setFullName(''); setEmail(''); setPassword(''); setUnitCode(''); setPosition(''); setWhatsapp(''); setCpf('');
+          setBirthDate(''); setCep(''); setEndereco(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setEstado('');
+        } else {
+          throw new Error(data?.error || 'Erro desconhecido');
+        }
+      } else {
+        // Franqueado signup
+        if (!franchiseeWhatsapp.trim() || !franchiseeCpf.trim() || !unitCodes.trim()) {
+          toast.error('Preencha todos os campos obrigatórios para franqueado.');
+          setIsLoading(false);
+          return;
+        }
+        
+        const cleanFranchiseeCpf = franchiseeCpf.replace(/\D/g, '');
+        if (cleanFranchiseeCpf.length !== 11) {
+          toast.error('Por favor, informe um CPF válido');
+          setIsLoading(false);
+          return;
+        }
+
+        const cleanFranchiseeWhatsapp = franchiseeWhatsapp.replace(/\D/g, '');
+        if (cleanFranchiseeWhatsapp.length < 10 || cleanFranchiseeWhatsapp.length > 11) {
+          toast.error('Por favor, informe um WhatsApp válido');
+          setIsLoading(false);
+          return;
+        }
+        
+        const result = await signUp(email, password, fullName, { 
+          userType: 'Aluno', 
+          unitCode: unitCodes,
+          role: userRole,
+          phone: cleanFranchiseeWhatsapp,
+          cpf: cleanFranchiseeCpf,
+          position: undefined
         });
         
-        // Clear form
-        setFullName(''); setEmail(''); setPassword(''); setUnitCode(''); setPosition(''); setWhatsapp(''); setCpf('');
-        setBirthDate(''); setCep(''); setEndereco(''); setNumero(''); setComplemento(''); setBairro(''); setCidade(''); setEstado('');
-      } else {
-        throw new Error(data?.error || 'Erro desconhecido');
+        if (!result.error) {
+          setFranchiseeWhatsapp(''); setFranchiseeCpf(''); setUnitCodes(''); setFullName(''); setEmail(''); setPassword('');
+        }
       }
     } catch (error: any) {
       let errorMessage = error.message || "Ocorreu um erro inesperado. Tente novamente.";
@@ -301,28 +343,58 @@ const Auth = () => {
               <TabsContent value="register-student">
                 <form onSubmit={handleStudentSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
-                    <Input id="unitCode" type="text" placeholder="Ex.: 1724" value={unitCode} onChange={(e) => setUnitCode(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
-                    <Select value={position} onValueChange={setPosition} required>
-                      <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
-                      <SelectContent className="z-[100]"><SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem><SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem><SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem><SelectItem value="Avaliadora">Avaliadora</SelectItem><SelectItem value="Repositor(a)">Repositor(a)</SelectItem><SelectItem value="Líder de Loja">Líder de Loja</SelectItem><SelectItem value="Gerente">Gerente</SelectItem></SelectContent>
+                    <Label htmlFor="userRole" className="text-foreground font-medium">Você é *</Label>
+                    <Select value={userRole} onValueChange={(value: 'Franqueado' | 'Colaborador') => setUserRole(value)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione seu papel na unidade" /></SelectTrigger>
+                      <SelectContent><SelectItem value="Franqueado">Franqueado</SelectItem><SelectItem value="Colaborador">Colaborador</SelectItem></SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
-                    <Input id="whatsapp" type="tel" placeholder="(11) 99999-9999" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
-                    <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
-                    <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
-                  </div>
+
+                  {userRole === 'Colaborador' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
+                        <Input id="unitCode" type="text" placeholder="Ex.: 1724" value={unitCode} onChange={(e) => setUnitCode(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
+                        <Select value={position} onValueChange={setPosition} required>
+                          <SelectTrigger><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+                          <SelectContent className="z-[100]"><SelectItem value="Atendente de Loja">Atendente de Loja</SelectItem><SelectItem value="Mídias Sociais">Mídias Sociais</SelectItem><SelectItem value="Operador(a) de Caixa">Operador(a) de Caixa</SelectItem><SelectItem value="Avaliadora">Avaliadora</SelectItem><SelectItem value="Repositor(a)">Repositor(a)</SelectItem><SelectItem value="Líder de Loja">Líder de Loja</SelectItem><SelectItem value="Gerente">Gerente</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
+                        <Input id="whatsapp" type="tel" placeholder="(11) 99999-9999" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
+                        <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
+                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
+                      </div>
+                    </>
+                  )}
+                  
+                  {userRole === 'Franqueado' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="unitCodes" className="text-foreground font-medium">Código da Unidade *</Label>
+                        <Input id="unitCodes" type="text" placeholder="Ex.: 1724, 1725" value={unitCodes} onChange={(e) => setUnitCodes(e.target.value)} required />
+                        <p className="text-xs text-muted-foreground">Se tiver mais de uma unidade, separe os códigos por vírgula</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="franchiseeWhatsapp" className="text-foreground font-medium">WhatsApp *</Label>
+                        <Input id="franchiseeWhatsapp" type="tel" placeholder="(11) 99999-9999" value={franchiseeWhatsapp} onChange={(e) => setFranchiseeWhatsapp(e.target.value)} required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="franchiseeCpf" className="text-foreground font-medium">CPF *</Label>
+                        <Input id="franchiseeCpf" type="text" placeholder="000.000.000-00" value={franchiseeCpf} onChange={(e) => setFranchiseeCpf(e.target.value)} required />
+                      </div>
+                    </>
+                  )}
                   
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-foreground font-medium">Nome Completo *</Label>
@@ -339,40 +411,46 @@ const Auth = () => {
                     <Input id="password" type="password" placeholder="Mínimo 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cep">CEP *</Label>
-                    <div className="flex items-center gap-2">
-                      <Input id="cep" placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2'))} maxLength={9} onBlur={handleCepLookup} />
-                      {isCepLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                    </div>
-                    {cepError && <p className="text-sm text-destructive">{cepError}</p>}
-                  </div>
+                  {userRole === 'Colaborador' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="cep">CEP *</Label>
+                        <div className="flex items-center gap-2">
+                          <Input id="cep" placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2'))} maxLength={9} onBlur={handleCepLookup} />
+                          {isCepLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                        </div>
+                        {cepError && <p className="text-sm text-destructive">{cepError}</p>}
+                      </div>
 
-                  {cidade && (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Endereço</Label><Input value={endereco} disabled /></div>
-                        <div className="space-y-2"><Label>Bairro</Label><Input value={bairro} disabled /></div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Número *</Label><Input id="numero" value={numero} onChange={(e) => setNumero(e.target.value)} required /></div>
-                        <div className="space-y-2"><Label>Complemento</Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} /></div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Cidade</Label><Input value={cidade} disabled /></div>
-                        <div className="space-y-2"><Label>Estado</Label><Input value={estado} disabled /></div>
-                      </div>
-                    </div>
+                      {cidade && (
+                        <div className="space-y-4 animate-fade-in">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Endereço</Label><Input value={endereco} disabled /></div>
+                            <div className="space-y-2"><Label>Bairro</Label><Input value={bairro} disabled /></div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Número *</Label><Input id="numero" value={numero} onChange={(e) => setNumero(e.target.value)} required /></div>
+                            <div className="space-y-2"><Label>Complemento</Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} /></div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Cidade</Label><Input value={cidade} disabled /></div>
+                            <div className="space-y-2"><Label>Estado</Label><Input value={estado} disabled /></div>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
 
-                  <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
-                    <p className="text-sm text-primary"><strong>Atenção:</strong> Seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.</p>
-                  </div>
+                  {userRole === 'Colaborador' && (
+                    <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+                      <p className="text-sm text-primary"><strong>Atenção:</strong> Seu cadastro ficará pendente até que o franqueado da sua unidade aprove o acesso.</p>
+                    </div>
+                  )}
                   
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isLoading || !isCollaboratorFormValid()}
+                    disabled={isLoading || (userRole === 'Colaborador' && !isCollaboratorFormValid())}
                   >
                     {isLoading ? "Cadastrando..." : "Criar Conta"}
                   </Button>
