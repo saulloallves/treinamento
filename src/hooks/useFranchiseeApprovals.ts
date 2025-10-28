@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -37,7 +38,6 @@ export const useFranchiseeApprovals = () => {
       if (!franchiseeData) return [];
 
       // Combina unit_code e unit_codes em um array único e sem duplicatas
-      // @ts-expect-error - Supabase type inference issue
       const unitCodes = [
         // @ts-expect-error - Supabase type inference issue
         ...(franchiseeData.unit_codes || []),
@@ -71,7 +71,6 @@ export const useFranchiseeApprovals = () => {
         throw error;
       }
 
-      // @ts-expect-error - Supabase type inference issue
       const approvalsFromTable = data?.map(approval => ({
         // @ts-expect-error - Supabase type inference issue
         id: approval.id,
@@ -115,11 +114,9 @@ export const useFranchiseeApprovals = () => {
 
       // Filtrar usuários que NÃO estão em collaboration_approvals
       const existingCollaboratorIds = new Set(approvalsFromTable.map(a => a.collaborator_id));
-      // @ts-expect-error - Supabase type inference issue
       const usersWithoutApproval = (pendingUsers || [])
         // @ts-expect-error - Supabase type inference issue
         .filter(user => !existingCollaboratorIds.has(user.id))
-        // @ts-expect-error - Supabase type inference issue
         .map(user => ({
           // @ts-expect-error - Supabase type inference issue
           id: `temp-${user.id}`, // ID temporário para diferenciar
@@ -176,7 +173,6 @@ export const useFranchiseeApprovalCount = () => {
       if (!franchiseeData) return 0;
 
       // Combina unit_code e unit_codes em um array único e sem duplicatas
-      // @ts-expect-error - Supabase type inference issue
       const unitCodes = [
         // @ts-expect-error - Supabase type inference issue
         ...(franchiseeData.unit_codes || []),
