@@ -121,13 +121,10 @@ const StudentTestQuestions = () => {
       return;
     }
 
-    console.log("Starting test submission...", submissionId);
     setIsSubmitting(true);
     
     try {
-      console.log("Submitting test to backend...");
       const result = await submitTest(submissionId);
-      console.log("Test submitted successfully:", result);
       
       // Verificar se há questões dissertativas não corrigidas
       if ((result as any).hasUngradedEssays) {
@@ -138,7 +135,6 @@ const StudentTestQuestions = () => {
         toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
       }
       
-      console.log("Navigating to tests page...");
       // Navegar imediatamente
       navigate('/aluno/testes', { replace: true });
       

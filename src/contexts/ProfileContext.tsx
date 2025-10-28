@@ -19,7 +19,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const setSelectedProfile = (profile: ProfileType) => {
-    console.log('🎯 ProfileContext - Setting selected profile:', profile);
     setSelectedProfileState(profile);
     
     if (profile) {
@@ -30,7 +29,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearProfile = () => {
-    console.log('🎯 ProfileContext - Clearing profile');
     setSelectedProfileState(null);
     localStorage.removeItem('selected_profile');
   };
@@ -40,7 +38,6 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'selected_profile') {
         const newProfile = e.newValue as ProfileType;
-        console.log('🎯 ProfileContext - Storage changed, updating profile:', newProfile);
         setSelectedProfileState(newProfile);
       }
     };
