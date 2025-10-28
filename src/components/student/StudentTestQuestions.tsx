@@ -183,9 +183,8 @@ const StudentTestQuestions = () => {
       return;
     }
 
-    console.log("Starting test submission...", submissionId);
     setIsSubmitting(true);
-    setIsFinishing(true); // Permitir navegação
+    setIsFinishing(true);
     
     try {
       // Limpar todos os timers pendentes
@@ -194,13 +193,10 @@ const StudentTestQuestions = () => {
       // Aguardar um momento para garantir que as respostas foram salvas
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      console.log("Submitting test to backend...");
       const result = await submitTest(submissionId);
-      console.log("Test submitted successfully:", result);
       
       // Limpar o estado do teste do contexto ANTES de navegar
       if (testId) {
-        console.log("Ending test flow...");
         endTest(testId);
       }
       
@@ -213,23 +209,11 @@ const StudentTestQuestions = () => {
         toast.success(`Teste finalizado! Sua nota: ${result.percentage.toFixed(1)}%`);
       }
       
-      console.log("About to navigate...");
-      console.log("Navigate function:", navigate);
-      console.log("Target route: /aluno/testes");
-      
       // Navegar imediatamente
       navigate('/aluno/testes', { replace: true });
       
-      console.log("Navigate called successfully");
-      
     } catch (error: any) {
       console.error("Error submitting test:", error);
-      console.error("Error details:", {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint
-      });
       
       // Mostrar erro específico se for problema com enum
       if (error?.code === '22P02' && error?.message?.includes('pending_review')) {
@@ -239,7 +223,7 @@ const StudentTestQuestions = () => {
       }
       
       setIsSubmitting(false);
-      setIsFinishing(false); // Restaurar proteção em caso de erro
+      setIsFinishing(false);
     }
   };
 
