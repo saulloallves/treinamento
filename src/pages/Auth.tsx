@@ -224,12 +224,12 @@ const Auth = () => {
         <div className="absolute -top-24 -left-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
       </div>
-      <div className="w-full max-w-xl space-y-8">
+      <div className="w-full max-w-3xl space-y-8">
         <div className="text-center">
           <img 
             src={logoPrincipal}
             alt="Cresci e Perdi Logo" 
-            className="mx-auto mb-4 w-48"
+            className="mx-auto mb-4 w-30"
           />
           <p className="text-muted-foreground">Sistema de Treinamentos</p>
         </div>
@@ -245,22 +245,38 @@ const Auth = () => {
             <Tabs defaultValue="login-student" className="w-full">
               <TabsList
                 aria-label="Seleção de tipo de acesso"
-                className="grid grid-cols-2 md:grid-cols-4 w-full gap-3 mb-6 p-2 rounded-2xl bg-muted/50 ring-1 ring-border h-auto"
+                className="grid grid-cols-2 md:grid-cols-4 w-full gap-2 mb-6 p-2 rounded-2xl bg-muted/50 ring-1 ring-border h-auto"
               >
-                <TabsTrigger value="login-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
-                  <LogIn className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Login Franqueado/Colaborador</span>
+                <TabsTrigger 
+                  value="login-student" 
+                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1.5 px-2 py-3 h-auto min-h-[72px] text-xs text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
+                >
+                  <LogIn className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-center leading-tight font-medium whitespace-normal break-words">
+                    Login<br className="md:hidden" /> Franqueado/<br className="hidden md:inline" />Colaborador
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="register-student" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
-                  <Building className="h-5 w-5" />
-                  <span className="text-center leading-tight font-medium">Cadastro Colaborador/Franqueado</span>
+                <TabsTrigger 
+                  value="register-student" 
+                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1.5 px-2 py-3 h-auto min-h-[72px] text-xs text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
+                >
+                  <Building className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-center leading-tight font-medium whitespace-normal break-words">
+                    Cadastro<br className="md:hidden" /> Colaborador/<br className="hidden md:inline" />Franqueado
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="login-professor" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
-                  <BookOpen className="h-5 w-5" />
+                <TabsTrigger 
+                  value="login-professor" 
+                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1.5 px-2 py-3 h-auto min-h-[72px] text-xs text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
+                >
+                  <BookOpen className="h-4 w-4 flex-shrink-0" />
                   <span className="text-center leading-tight font-medium">Login Franquia</span>
                 </TabsTrigger>
-                <TabsTrigger value="login-admin" className="rounded-xl w-full flex flex-col items-center justify-center gap-1 px-3 h-14 text-xs md:text-sm text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30">
-                  <Shield className="h-5 w-5" />
+                <TabsTrigger 
+                  value="login-admin" 
+                  className="rounded-xl w-full flex flex-col items-center justify-center gap-1.5 px-2 py-3 h-auto min-h-[72px] text-xs text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:border data-[state=active]:border-primary/30"
+                >
+                  <Shield className="h-4 w-4 flex-shrink-0" />
                   <span className="text-center leading-tight font-medium">Login Suporte</span>
                 </TabsTrigger>
               </TabsList>
