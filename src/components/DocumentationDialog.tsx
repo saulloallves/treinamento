@@ -27,13 +27,36 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: isProfessor } = useIsProfessor(user?.id);
 
+  const createIdFromText = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   const convertMarkdownToHtml = (markdown: string) => {
     let html = markdown;
 
-    html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mb-4 mt-6">$1</h1>');
-    html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold mb-3 mt-5">$1</h2>');
-    html = html.replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mb-2 mt-4">$1</h3>');
-    html = html.replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold mb-2 mt-3">$1</h4>');
+    html = html.replace(/^# (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h1 id="${id}" class="text-3xl font-bold mb-4 mt-6">${title}</h1>`;
+    });
+    html = html.replace(/^## (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h2 id="${id}" class="text-2xl font-semibold mb-3 mt-5">${title}</h2>`;
+    });
+    html = html.replace(/^### (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h3 id="${id}" class="text-xl font-semibold mb-2 mt-4">${title}</h3>`;
+    });
+    html = html.replace(/^#### (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h4 id="${id}" class="text-lg font-semibold mb-2 mt-3">${title}</h4>`;
+    });
 
     html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -44,7 +67,8 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
 
     html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
       if (url.startsWith('#')) {
-        return `<a href="${url}" class="text-primary hover:underline" onclick="event.preventDefault(); document.querySelector('${url}')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">${text}</a>`;
+        const targetId = url.substring(1);
+        return `<a href="${url}" class="text-primary hover:underline cursor-pointer" onclick="event.preventDefault(); const el = document.getElementById('${targetId}'); if(el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }">${text}</a>`;
       } else if (url.startsWith('http://') || url.startsWith('https://')) {
         return `<a href="${url}" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">${text}</a>`;
       } else {
