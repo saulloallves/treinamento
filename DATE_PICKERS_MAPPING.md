@@ -311,8 +311,56 @@ O componente Calendar já está configurado para português (pt-BR) via `date-fn
 - ✅ Usuário não fica confuso tentando digitar
 - ✅ UX limpa e profissional
 
+---
+
+## 📅 **SELETOR DE ANO/MÊS + DateTimePicker (29/10/2025)**
+
+### **Problemas Resolvidos:**
+
+#### 1️⃣ **Calendário com Seletor de Ano/Mês**
+❌ **ANTES:** Precisava clicar mês a mês para chegar em anos passados (ex: data de nascimento)
+✅ **AGORA:** Dropdowns para selecionar ano (últimos 100 anos) e mês diretamente
+
+```tsx
+// Calendar.tsx atualizado com controles
+<Select value={month} onValueChange={handleMonthSelect}>
+  <SelectItem>Janeiro, Fevereiro, ...</SelectItem>
+</Select>
+
+<Select value={year} onValueChange={handleYearChange}>
+  <SelectItem>2025, 2024, 2023, ...</SelectItem>
+</Select>
+```
+
+#### 2️⃣ **DateTimePicker para Data + Hora**
+❌ **ANTES:** Input `type="datetime-local"` interativo e editável
+✅ **AGORA:** DateTimePicker com calendário + seletor de hora
+
+**Novo Componente:** `src/components/ui/date-time-picker.tsx`
+
+**Características:**
+- 📅 Calendário completo com seletor de ano/mês
+- 🕐 Seletor de hora (00-23) e minuto (00, 15, 30, 45)
+- 🔐 Input readonly e não-focável
+- 📱 Totalmente responsivo
+- 🎨 Visual consistente com DatePicker
+
+**Componentes Atualizados:**
+1. ✅ **CreateTurmaDialog** - Abertura/Fechamento de inscrições
+2. ✅ **EditTurmaDialog** - Edição de datas de inscrição
+
+### **Resultado:**
+- ✅ Data de nascimento agora é fácil de selecionar (qualquer ano)
+- ✅ Campos datetime-local substituídos por DateTimePicker
+- ✅ Todos os inputs de data/hora não são mais interativos
+- ✅ UX profissional e intuitiva
+
+---
+
 **Status:** ✅ 100% Modernizado
 **Build:** ✅ Testado e aprovado
 **UX:** ✅ Input readonly e não-focável implementado
+**Calendar:** ✅ Seletor de ano/mês implementado
+**DateTime:** ✅ DateTimePicker implementado
 **Última atualização:** 29/10/2025
 **Mapeado e implementado por:** Claude Code

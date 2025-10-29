@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useUpdateTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,21 +177,19 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="enrollment-open">Abertura das Inscrições</Label>
-                <Input
-                  id="enrollment-open"
-                  type="datetime-local"
+                <DateTimePicker
                   value={formData.enrollment_open_at}
-                  onChange={(e) => setFormData({...formData, enrollment_open_at: e.target.value})}
+                  onChange={(value) => setFormData({...formData, enrollment_open_at: value})}
+                  placeholder="Selecione data e hora"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="enrollment-close">Encerramento das Inscrições</Label>
-                <Input
-                  id="enrollment-close"
-                  type="datetime-local"
+                <DateTimePicker
                   value={formData.enrollment_close_at}
-                  onChange={(e) => setFormData({...formData, enrollment_close_at: e.target.value})}
+                  onChange={(value) => setFormData({...formData, enrollment_close_at: value})}
+                  placeholder="Selecione data e hora"
                 />
               </div>
             </div>

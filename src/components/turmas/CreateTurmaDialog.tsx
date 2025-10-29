@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useCreateTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -296,23 +297,19 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="enrollment_open_at">Abertura das Inscrições *</Label>
-                    <Input
-                      id="enrollment_open_at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={formData.enrollment_open_at}
-                      onChange={(e) => setFormData({ ...formData, enrollment_open_at: e.target.value })}
-                      required
+                      onChange={(value) => setFormData({ ...formData, enrollment_open_at: value })}
+                      placeholder="Selecione data e hora"
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="enrollment_close_at">Fechamento das Inscrições *</Label>
-                    <Input
-                      id="enrollment_close_at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={formData.enrollment_close_at}
-                      onChange={(e) => setFormData({ ...formData, enrollment_close_at: e.target.value })}
-                      required
+                      onChange={(value) => setFormData({ ...formData, enrollment_close_at: value })}
+                      placeholder="Selecione data e hora"
                     />
                   </div>
                 </div>
