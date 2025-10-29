@@ -3,7 +3,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -21,7 +21,7 @@ export interface DatePickerProps {
   fromDate?: Date;
   toDate?: Date;
   className?: string;
-  buttonClassName?: string;
+  inputClassName?: string;
   align?: "start" | "center" | "end";
 }
 
@@ -35,7 +35,7 @@ export function DatePicker({
   fromDate,
   toDate,
   className,
-  buttonClassName,
+  inputClassName,
   align = "start",
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
@@ -57,26 +57,32 @@ export function DatePicker({
     return false;
   };
 
+  const displayValue = date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "";
+
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("relative w-full", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={disabled}
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground",
-              buttonClassName
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? (
-              format(date, "dd/MM/yyyy", { locale: ptBR })
-            ) : (
-              <span>{placeholder}</span>
-            )}
-          </Button>
+          <div className="relative">
+            <Input
+              value={displayValue}
+              placeholder={placeholder}
+              readOnly
+              disabled={disabled}
+              className={cn(
+                "pr-10 cursor-pointer",
+                !date && "text-muted-foreground",
+                inputClassName
+              )}
+              onClick={() => !disabled && setOpen(true)}
+            />
+            <CalendarIcon
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none",
+                disabled ? "text-muted-foreground/50" : "text-muted-foreground"
+              )}
+            />
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align={align}>
           <Calendar

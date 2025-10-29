@@ -258,6 +258,9 @@ O componente Calendar já está configurado para português (pt-BR) via `date-fn
 - 🔒 Validações de data (disablePast, disableFuture, fromDate, toDate)
 - ♿ Acessível e responsivo
 - 🎯 Interface consistente em todo o sistema
+- 🔐 **Input readonly** - Não editável via teclado
+- 👆 **Click no input abre o picker** - UX intuitiva
+- 📅 **Ícone de calendário integrado** - Visual consistente
 
 #### Componentes Atualizados:
 1. ✅ **CreateLessonDialog** - Criar Aula (streaming/Zoom)
@@ -273,7 +276,30 @@ O componente Calendar já está configurado para português (pt-BR) via `date-fn
 
 ---
 
+---
+
+## 🎨 **MELHORIA UX - Input ReadOnly (29/10/2025)**
+
+### **Atualização Aplicada:**
+✅ Input agora é **readonly** - não editável via teclado
+✅ Click no input **abre o date picker** automaticamente
+✅ Ícone de calendário **integrado no input** (lado direito)
+✅ UX mais intuitiva e consistente
+
+### **Comportamento:**
+```tsx
+// O usuário não pode digitar a data
+<Input readOnly value={displayValue} />
+
+// Clicar no input abre o picker
+onClick={() => !disabled && setOpen(true)}
+
+// Ícone sempre visível no lado direito
+<CalendarIcon className="absolute right-3 top-1/2" />
+```
+
 **Status:** ✅ 100% Modernizado
 **Build:** ✅ Testado e aprovado
+**UX:** ✅ Input readonly implementado
 **Última atualização:** 29/10/2025
 **Mapeado e implementado por:** Claude Code
