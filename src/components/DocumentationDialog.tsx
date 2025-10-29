@@ -27,13 +27,40 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: isProfessor } = useIsProfessor(user?.id);
 
+  const createIdFromText = (text: string) => {
+    return text
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+  };
+
   const convertMarkdownToHtml = (markdown: string) => {
     let html = markdown;
 
-    html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mb-4 mt-6">$1</h1>');
-    html = html.replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold mb-3 mt-5">$1</h2>');
-    html = html.replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mb-2 mt-4">$1</h3>');
-    html = html.replace(/^#### (.*$)/gim, '<h4 class="text-lg font-semibold mb-2 mt-3">$1</h4>');
+    html = html.replace(/^# (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h1 id="${id}" class="text-3xl font-bold mb-4 mt-6">${title}</h1>`;
+    });
+    html = html.replace(/^## (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h2 id="${id}" class="text-2xl font-semibold mb-3 mt-5">${title}</h2>`;
+    });
+    html = html.replace(/^### (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h3 id="${id}" class="text-xl font-semibold mb-2 mt-4">${title}</h3>`;
+    });
+    html = html.replace(/^#### (.*$)/gim, (match, title) => {
+      const id = createIdFromText(title);
+      return `<h4 id="${id}" class="text-lg font-semibold mb-2 mt-3">${title}</h4>`;
+    });
 
     html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -42,7 +69,16 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
     html = html.replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>');
     html = html.replace(/^(\d+)\. (.*$)/gim, '<li class="ml-4">$2</li>');
 
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>');
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+      if (url.startsWith('#')) {
+        const targetId = url.substring(1);
+        return `<a href="${url}" class="text-primary hover:underline cursor-pointer" onclick="event.preventDefault(); const el = document.getElementById('${targetId}'); if(el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }">${text}</a>`;
+      } else if (url.startsWith('http://') || url.startsWith('https://')) {
+        return `<a href="${url}" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      } else {
+        return `<span class="text-primary">${text}</span>`;
+      }
+    });
 
     html = html.replace(/```(.*?)```/gs, '<pre class="bg-muted p-4 rounded-lg overflow-x-auto my-4"><code>$1</code></pre>');
     html = html.replace(/`(.*?)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm">$1</code>');
@@ -77,20 +113,10 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
       </DialogTrigger>
       <DialogContent className="max-w-5xl h-[85vh] p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl flex items-center gap-2">
-              <BookOpen className="h-6 w-6" />
-              Documentação do Sistema
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            Documentação do Sistema
+          </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
