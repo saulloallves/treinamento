@@ -63,18 +63,21 @@ export function DatePicker({
     <div className={cn("relative w-full", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <div className="relative">
+          <div
+            className="relative"
+            onClick={() => !disabled && setOpen(true)}
+          >
             <Input
               value={displayValue}
               placeholder={placeholder}
               readOnly
               disabled={disabled}
+              tabIndex={-1}
               className={cn(
-                "pr-10 cursor-pointer",
+                "pr-10 cursor-pointer pointer-events-none",
                 !date && "text-muted-foreground",
                 inputClassName
               )}
-              onClick={() => !disabled && setOpen(true)}
             />
             <CalendarIcon
               className={cn(

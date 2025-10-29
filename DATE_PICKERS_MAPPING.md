@@ -278,28 +278,41 @@ O componente Calendar já está configurado para português (pt-BR) via `date-fn
 
 ---
 
-## 🎨 **MELHORIA UX - Input ReadOnly (29/10/2025)**
+## 🎨 **MELHORIA UX - Input ReadOnly e Não-Focável (29/10/2025)**
 
 ### **Atualização Aplicada:**
 ✅ Input agora é **readonly** - não editável via teclado
+✅ Input **não é focável** - `tabIndex={-1}` e `pointer-events-none`
 ✅ Click no input **abre o date picker** automaticamente
 ✅ Ícone de calendário **integrado no input** (lado direito)
+✅ **Sem confusão visual** - cursor não aparece ao clicar
 ✅ UX mais intuitiva e consistente
 
 ### **Comportamento:**
 ```tsx
-// O usuário não pode digitar a data
-<Input readOnly value={displayValue} />
-
-// Clicar no input abre o picker
-onClick={() => !disabled && setOpen(true)}
+// Container captura o click
+<div onClick={() => !disabled && setOpen(true)}>
+  <Input
+    readOnly                        // Não editável
+    tabIndex={-1}                   // Não focável via Tab
+    className="pointer-events-none" // Não captura eventos
+    value={displayValue}
+  />
+</div>
 
 // Ícone sempre visível no lado direito
-<CalendarIcon className="absolute right-3 top-1/2" />
+<CalendarIcon className="absolute right-3 top-1/2 pointer-events-none" />
 ```
+
+### **Resultado:**
+- ✅ Input não mostra cursor ao clicar
+- ✅ Input não pode ser focado com Tab
+- ✅ Click em qualquer lugar do campo abre o picker
+- ✅ Usuário não fica confuso tentando digitar
+- ✅ UX limpa e profissional
 
 **Status:** ✅ 100% Modernizado
 **Build:** ✅ Testado e aprovado
-**UX:** ✅ Input readonly implementado
+**UX:** ✅ Input readonly e não-focável implementado
 **Última atualização:** 29/10/2025
 **Mapeado e implementado por:** Claude Code

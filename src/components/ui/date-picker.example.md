@@ -100,12 +100,15 @@ nextMonth.setMonth(nextMonth.getMonth() + 1);
 ## ✨ Características
 
 - ✅ **Input ReadOnly**: Não permite digitação manual
-- ✅ **Click para abrir**: Clicar no input abre o calendário
+- ✅ **Não Focável**: Input não recebe foco (tabIndex={-1})
+- ✅ **Sem cursor de texto**: Cursor não aparece ao clicar
+- ✅ **Click para abrir**: Clicar em qualquer lugar abre o calendário
 - ✅ **Ícone integrado**: Ícone de calendário sempre visível
 - ✅ **Formato pt-BR**: Exibe datas como dd/MM/yyyy
 - ✅ **Validações flexíveis**: Controle de datas permitidas
-- ✅ **Acessível**: Totalmente navegável por teclado
+- ✅ **Acessível**: Navegável pelo calendário popup
 - ✅ **Responsivo**: Funciona em mobile e desktop
+- ✅ **UX clara**: Usuário não tenta digitar no campo
 
 ## 🎯 Casos de Uso Comuns
 
