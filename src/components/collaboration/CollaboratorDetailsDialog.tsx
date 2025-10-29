@@ -13,7 +13,7 @@ import { CollaborationApproval } from "@/hooks/useCollaborationApprovals";
 import { formatCurrency } from "@/lib/formatting";
 
 const formSchema = z.object({
-  admission_date: z.date({ required_error: "Data de admissão é obrigatória." }),
+  admission_date: z.date({ required_error: "Data de admissão é obrigatória." }).nullable(),
   instagram_profile: z.string().optional(),
   salary: z.string().min(1, { message: "Salário é obrigatório." }),
   meal_voucher_active: z.boolean().default(false),
@@ -41,7 +41,7 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      admission_date: new Date(),
+      admission_date: null,
       instagram_profile: "",
       salary: "",
       meal_voucher_active: false,
