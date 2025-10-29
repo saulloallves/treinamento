@@ -110,9 +110,6 @@ const handleDrop = async (targetStatus: string) => {
   }
 };
 
-  const gridCols = columns.length <= 3 ? 'md:grid-cols-3' : 
-                   columns.length === 4 ? 'md:grid-cols-4' : 
-                   'md:grid-cols-5';
 
   // Show loading state while fetching column configuration
   if (loading) {
@@ -144,7 +141,12 @@ const handleDrop = async (targetStatus: string) => {
       </div>
 
       {/* Kanban Board */}
-      <div className={`grid grid-cols-1 ${gridCols} gap-6 h-full`}>
+      <div
+        className="grid gap-4 h-full"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))'
+        }}
+      >
         {columns.map((column) => (
           <TurmaKanbanColumn
             key={column.id}
@@ -167,7 +169,12 @@ const handleDrop = async (targetStatus: string) => {
       </div>
       
       {/* Summary at bottom */}
-      <div className={`mt-6 grid grid-cols-1 ${gridCols} gap-4 text-center`}>
+      <div
+        className="mt-6 grid gap-4 text-center"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+        }}
+      >
         {columns.map((column) => (
           <div key={column.id} className="bg-card rounded-lg p-4 border">
             <div className="text-2xl font-bold text-foreground">
