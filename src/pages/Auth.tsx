@@ -336,7 +336,17 @@ const Auth = () => {
                 <form onSubmit={handleStudentSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="studentPhone" className="text-foreground font-medium">Telefone</Label>
-                    <Input id="studentPhone" type="tel" placeholder="(11) 99999-9999" value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} required />
+                    <Input
+                      id="studentPhone"
+                      type="tel"
+                      placeholder="(11) 99999-9999"
+                      value={studentPhone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        setStudentPhone(value);
+                      }}
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-foreground font-medium">Senha</Label>
@@ -374,11 +384,31 @@ const Auth = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="whatsapp" className="text-foreground font-medium">WhatsApp *</Label>
-                        <Input id="whatsapp" type="tel" placeholder="(11) 99999-9999" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
+                        <Input
+                          id="whatsapp"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={whatsapp}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setWhatsapp(value);
+                          }}
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="cpf" className="text-foreground font-medium">CPF *</Label>
-                        <Input id="cpf" type="text" placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} required />
+                        <Input
+                          id="cpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={cpf}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setCpf(value);
+                          }}
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
@@ -401,11 +431,31 @@ const Auth = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="franchiseeWhatsapp" className="text-foreground font-medium">WhatsApp *</Label>
-                        <Input id="franchiseeWhatsapp" type="tel" placeholder="(11) 99999-9999" value={franchiseeWhatsapp} onChange={(e) => setFranchiseeWhatsapp(e.target.value)} required />
+                        <Input
+                          id="franchiseeWhatsapp"
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          value={franchiseeWhatsapp}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setFranchiseeWhatsapp(value);
+                          }}
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="franchiseeCpf" className="text-foreground font-medium">CPF *</Label>
-                        <Input id="franchiseeCpf" type="text" placeholder="000.000.000-00" value={franchiseeCpf} onChange={(e) => setFranchiseeCpf(e.target.value)} required />
+                        <Input
+                          id="franchiseeCpf"
+                          type="text"
+                          placeholder="000.000.000-00"
+                          value={franchiseeCpf}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            setFranchiseeCpf(value);
+                          }}
+                          required
+                        />
                       </div>
                     </>
                   )}
