@@ -6,3 +6,10 @@ export { EmptyState } from './EmptyState';
 export { MetricsGrid } from './MetricsGrid';
 export type { MetricData } from './MetricsGrid';
 export { StandardCard } from './StandardCard';
+export {
+  ResponsiveCard,
+  ResponsiveCardHeader,
+  ResponsiveCardContent,
+  ResponsiveText,
+  ResponsiveMobileText
+} from './ResponsiveCard';

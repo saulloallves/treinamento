@@ -113,23 +113,30 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       <CardContent className="flex-1 flex flex-col p-2.5">
         {/* Title */}
         <div className="mb-2">
-          <h3 className="font-bold text-sm leading-tight line-clamp-2 text-foreground mb-1.5 min-h-[2.5rem]">
+          <h3
+            className="font-bold text-[clamp(0.75rem,0.9vw+0.45rem,0.875rem)] leading-tight line-clamp-2 text-foreground mb-1.5 min-h-[2.5rem] break-words hyphens-auto"
+            title={course.name}
+            lang="pt-BR"
+          >
             {course.name}
           </h3>
           
           {/* Themes - Compact */}
           <div className="flex flex-wrap gap-0.5">
             {course.theme.slice(0, 2).map((theme, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="text-[10px] px-1 py-0 h-auto bg-muted/50 text-muted-foreground"
+              <Badge
+                key={index}
+                variant="secondary"
+                className="text-[clamp(0.5rem,0.6vw+0.3rem,0.625rem)] px-1 py-0 h-auto bg-muted/50 text-muted-foreground leading-tight"
               >
                 {theme}
               </Badge>
             ))}
             {course.theme.length > 2 && (
-              <Badge variant="secondary" className="text-[10px] px-1 py-0 h-auto bg-muted/50 text-muted-foreground">
+              <Badge
+                variant="secondary"
+                className="text-[clamp(0.5rem,0.6vw+0.3rem,0.625rem)] px-1 py-0 h-auto bg-muted/50 text-muted-foreground leading-tight"
+              >
                 +{course.theme.length - 2}
               </Badge>
             )}
@@ -139,14 +146,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         {/* Course Info - More compact */}
         <div className="space-y-1.5 flex-1">
           {course.instructor && (
-            <div className="text-xs">
+            <div className="text-[clamp(0.625rem,0.7vw+0.35rem,0.75rem)]">
               <span className="text-muted-foreground">Instrutor: </span>
-              <span className="text-foreground font-medium">{course.instructor}</span>
+              <span className="text-foreground font-medium break-words">{course.instructor}</span>
             </div>
           )}
 
           {/* Features & Status row */}
-          <div className="flex items-center justify-between text-[10px]">
+          <div className="flex items-center justify-between text-[clamp(0.5rem,0.6vw+0.3rem,0.625rem)]">
             <div className="flex items-center gap-2">
               {course.has_quiz && (
                 <div className="flex items-center gap-0.5 text-muted-foreground">
@@ -161,14 +168,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center gap-1">
               <div className={`w-1.5 h-1.5 rounded-full ${
-                course.status === 'Ativo' ? 'bg-green-500' : 
-                course.status === 'Inativo' ? 'bg-red-500' : 
+                course.status === 'Ativo' ? 'bg-green-500' :
+                course.status === 'Inativo' ? 'bg-red-500' :
                 'bg-yellow-500'
               }`} />
-              <span className="text-muted-foreground font-medium">{course.status}</span>
+              <span className="text-muted-foreground font-medium truncate">{course.status}</span>
             </div>
           </div>
         </div>
