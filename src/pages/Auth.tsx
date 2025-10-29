@@ -461,7 +461,7 @@ const Auth = () => {
                 <form onSubmit={handleProfessorSignIn} className="space-y-4">
                   <div className="space-y-2"><Label htmlFor="email-professor-login" className="text-foreground font-medium">Email</Label><Input id="email-professor-login" type="email" placeholder="professor@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
                   <div className="space-y-2"><Label htmlFor="password-professor-login" className="text-foreground font-medium">Senha</Label><Input id="password-professor-login" type="password" placeholder="Sua senha" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Professor"}</Button>
+                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Franquia"}</Button>
                   <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de professor aprovado.</p>
                 </form>
               </TabsContent>
@@ -470,7 +470,7 @@ const Auth = () => {
                 <form onSubmit={handleAdminSignIn} className="space-y-4">
                   <div className="space-y-2"><Label htmlFor="email-admin-login" className="text-foreground font-medium">Email</Label><Input id="email-admin-login" type="email" placeholder="admin@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
                   <div className="space-y-2"><Label htmlFor="password-admin-login" className="text-foreground font-medium">Senha</Label><Input id="password-admin-login" type="password" placeholder="Sua senha" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Admin"}</Button>
+                  <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Entrando..." : "Entrar como Franquia"}</Button>
                   <p className="text-xs text-muted-foreground text-center">Necessário já ter perfil de admin aprovado.</p>
                 </form>
               </TabsContent>
