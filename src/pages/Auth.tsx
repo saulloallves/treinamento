@@ -8,11 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { LogIn, UserPlus, GraduationCap, Shield, Building, BookOpen, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoPrincipal from '@/assets/logo-principal.png';
+import { format } from 'date-fns';
 
 const Auth = () => {
   const { user, signIn, signUp, loading, authProcessing, sendPasswordViaWhatsApp } = useAuth();
@@ -48,7 +50,7 @@ const Auth = () => {
   const [estado, setEstado] = useState('');
   const [isCepLoading, setIsCepLoading] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
-  const [birthDate, setBirthDate] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
 
   const navigate = useNavigate();
 
@@ -144,7 +146,7 @@ const Auth = () => {
     
     // Validar campos básicos
     if (!fullName.trim() || !email.trim() || !password.trim() || !unitCode.trim() || 
-        !position.trim() || !whatsapp.trim() || !cpf.trim() || !birthDate.trim()) {
+        !position.trim() || !whatsapp.trim() || !cpf.trim() || !birthDate) {
       return false;
     }
     
@@ -181,7 +183,7 @@ const Auth = () => {
             position,
             whatsapp,
             cpf,
-            birth_date: birthDate,
+            birth_date: birthDate ? format(birthDate, "yyyy-MM-dd") : "",
             cep,
             endereco,
             numero,
@@ -373,7 +375,12 @@ const Auth = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="birthDate" className="text-foreground font-medium">Data de Nascimento *</Label>
-                        <Input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} required />
+                        <DatePicker
+                          date={birthDate}
+                          onDateChange={setBirthDate}
+                          placeholder="Selecione sua data de nascimento"
+                          disableFuture
+                        />
                       </div>
                     </>
                   )}

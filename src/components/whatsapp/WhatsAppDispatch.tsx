@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PaginationCustom } from "@/components/ui/pagination-custom";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useWhatsAppDispatches, useCreateWhatsAppDispatch } from "@/hooks/useWhatsAppDispatches";
 import { useEnrollments } from "@/hooks/useEnrollments";
 import { useTurmaLessonSessions } from "@/hooks/useTurmaLessonSessions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 
 const WhatsAppDispatch = () => {
@@ -25,7 +27,7 @@ const WhatsAppDispatch = () => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [isScheduled, setIsScheduled] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [scheduledTime, setScheduledTime] = useState('');
 
   const { data: dispatches = [], isLoading: loadingDispatches } = useWhatsAppDispatches();
@@ -134,7 +136,7 @@ const WhatsAppDispatch = () => {
     // Create scheduled_at datetime if scheduled
     let scheduledAt = undefined;
     if (isScheduled && scheduledDate && scheduledTime) {
-      scheduledAt = `${scheduledDate}T${scheduledTime}:00.000Z`;
+      scheduledAt = `${format(scheduledDate, "yyyy-MM-dd")}T${scheduledTime}:00.000Z`;
     }
 
     try {
@@ -383,12 +385,11 @@ const WhatsAppDispatch = () => {
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Data
                     </label>
-                    <input
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    <DatePicker
+                      date={scheduledDate}
+                      onDateChange={setScheduledDate}
+                      placeholder="Selecione a data"
+                      disablePast
                     />
                   </div>
                   <div>

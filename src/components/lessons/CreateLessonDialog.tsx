@@ -14,12 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useCourses } from "@/hooks/useCourses";
 import { useCreateLesson, LessonInput } from "@/hooks/useLessons";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_ATTENDANCE_KEYWORD } from "@/lib/config";
+import { format } from "date-fns";
 
 interface CreateLessonDialogProps {
   open: boolean;
@@ -46,7 +48,7 @@ const CreateLessonDialog = ({
   });
 
   const [streamingType, setStreamingType] = useState<"none" | "zoom">("none");
-  const [liveDate, setLiveDate] = useState<string>("");
+  const [liveDate, setLiveDate] = useState<Date | undefined>(undefined);
   const [liveTime, setLiveTime] = useState<string>("");
   const [isCreatingLive, setIsCreatingLive] = useState(false);
   const queryClient = useQueryClient();
@@ -106,7 +108,7 @@ const CreateLessonDialog = ({
               body: JSON.stringify({
                 curso_id: formData.course_id,
                 titulo: formData.title,
-                data: liveDate,
+                data: liveDate ? format(liveDate, "yyyy-MM-dd") : "",
                 hora: liveTime,
                 duracao: formData.duration_minutes,
                 descricao: formData.description || "",
@@ -358,11 +360,11 @@ const CreateLessonDialog = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="liveDate">Data</Label>
-                  <Input
-                    id="liveDate"
-                    type="date"
-                    value={liveDate}
-                    onChange={(e) => setLiveDate(e.target.value)}
+                  <DatePicker
+                    date={liveDate}
+                    onDateChange={setLiveDate}
+                    placeholder="Selecione a data"
+                    disablePast
                   />
                 </div>
                 <div className="grid gap-2">

@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useUpdateTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { format, parseISO } from "date-fns";
 
 interface EditTurmaDialogProps {
   turma: any;
@@ -19,7 +21,7 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
   const [formData, setFormData] = useState({
     name: "",
     responsavel_user_id: "",
-    completion_deadline: "",
+    completion_deadline: undefined as Date | undefined,
     enrollment_open_at: "",
     enrollment_close_at: "",
     capacity: ""
@@ -55,7 +57,7 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
       setFormData({
         name: turma.name || "",
         responsavel_user_id: turma.responsavel_user_id || "",
-        completion_deadline: turma.completion_deadline ? new Date(turma.completion_deadline).toISOString().split('T')[0] : "",
+        completion_deadline: turma.completion_deadline ? parseISO(turma.completion_deadline) : undefined,
         enrollment_open_at: formatDateTime(turma.enrollment_open_at),
         enrollment_close_at: formatDateTime(turma.enrollment_close_at),
         capacity: turma.capacity?.toString() || ""
@@ -77,7 +79,7 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
       name: formData.name,
       responsavel_user_id: formData.responsavel_user_id || null,
       responsavel_name: selectedProfessor?.name || null,
-      completion_deadline: formData.completion_deadline,
+      completion_deadline: formData.completion_deadline ? format(formData.completion_deadline, "yyyy-MM-dd") : null,
       enrollment_open_at: formData.enrollment_open_at ? new Date(formData.enrollment_open_at).toISOString() : null,
       enrollment_close_at: formData.enrollment_close_at ? new Date(formData.enrollment_close_at).toISOString() : null,
       capacity: formData.capacity ? parseInt(formData.capacity) : null,
@@ -163,12 +165,11 @@ export const EditTurmaDialog = ({ turma, open, onOpenChange }: EditTurmaDialogPr
             
             <div className="space-y-2">
               <Label htmlFor="completion-deadline">Prazo de Conclusão *</Label>
-              <Input
-                id="completion-deadline"
-                type="date"
-                value={formData.completion_deadline}
-                onChange={(e) => setFormData({...formData, completion_deadline: e.target.value})}
-                required
+              <DatePicker
+                date={formData.completion_deadline}
+                onDateChange={(date) => setFormData({...formData, completion_deadline: date})}
+                placeholder="Selecione o prazo"
+                disablePast
               />
             </div>
 
