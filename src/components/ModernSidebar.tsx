@@ -36,6 +36,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DocumentationDialog from "@/components/DocumentationDialog";
 import cabecaImage from '@/assets/cabeca.png';
 
 interface ModernSidebarProps {
@@ -609,11 +610,16 @@ const ModernSidebar = ({ showInMobile = true }: ModernSidebarProps) => {
 
             {/* Menu de navegação */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto sidebar-scroll" style={{ scrollbarGutter: 'stable' }}>
-              {shouldShowAdminMenu 
-                ? renderMenu(adminMenuStructure) 
-                : shouldShowProfessorMenu 
-                ? renderMenu(professorMenuStructure) 
+              {shouldShowAdminMenu
+                ? renderMenu(adminMenuStructure)
+                : shouldShowProfessorMenu
+                ? renderMenu(professorMenuStructure)
                 : renderStudentMenu()}
+
+              {/* Botão de documentação na sidebar mobile */}
+              <div className="pt-2 mt-2 border-t border-border">
+                <DocumentationDialog variant="sidebar" />
+              </div>
             </nav>
 
             {/* Footer da sidebar */}
