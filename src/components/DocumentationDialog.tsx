@@ -113,20 +113,10 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
       </DialogTrigger>
       <DialogContent className="max-w-5xl h-[85vh] p-0 gap-0">
         <DialogHeader className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl flex items-center gap-2">
-              <BookOpen className="h-6 w-6" />
-              Documentação do Sistema
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(false)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            Documentação do Sistema
+          </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
