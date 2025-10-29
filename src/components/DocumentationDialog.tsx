@@ -42,7 +42,15 @@ const DocumentationDialog = ({ variant = "default" }: DocumentationDialogProps) 
     html = html.replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>');
     html = html.replace(/^(\d+)\. (.*$)/gim, '<li class="ml-4">$2</li>');
 
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>');
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+      if (url.startsWith('#')) {
+        return `<a href="${url}" class="text-primary hover:underline" onclick="event.preventDefault(); document.querySelector('${url}')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">${text}</a>`;
+      } else if (url.startsWith('http://') || url.startsWith('https://')) {
+        return `<a href="${url}" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">${text}</a>`;
+      } else {
+        return `<span class="text-primary">${text}</span>`;
+      }
+    });
 
     html = html.replace(/```(.*?)```/gs, '<pre class="bg-muted p-4 rounded-lg overflow-x-auto my-4"><code>$1</code></pre>');
     html = html.replace(/`(.*?)`/g, '<code class="bg-muted px-2 py-1 rounded text-sm">$1</code>');
