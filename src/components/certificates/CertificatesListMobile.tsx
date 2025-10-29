@@ -1,50 +1,54 @@
-import { useState, useMemo, useEffect } from "react";
-import { Search, Download, RefreshCw, Award, Calendar, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useMemo } from "react";
+import { Search, Award, CheckCircle, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-
-const formatBRDateSafe = (date: string | Date | null | undefined): string => {
-  try {
-    if (!date) return "—";
-    const dt = typeof date === "string" ? new Date(date) : date;
-    return isNaN(dt.getTime()) ? "—" : dt.toLocaleDateString("pt-BR");
-  } catch {
-    return "—";
-  }
-};
+import TurmaCertificatesDialog from "./TurmaCertificatesDialog";
 
 const CertificatesListMobile = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourseId, setSelectedCourseId] = useState("all");
-  const isMobile = useIsMobile();
+  const [selectedCourse, setSelectedCourse] = useState("todos");
+  const [selectedTurma, setSelectedTurma] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Reutilização de toda a lógica de busca de dados da versão desktop
+  const turmasQuery = useQuery({
+    queryKey: ["turmas", "active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("turmas")
+        .select("id, name, code, status, responsavel_name, course_id, courses(id, name)")
+        .in("status", ["em_andamento", "agendada"])
+        .order("name", { ascending: true });
+      if (error) { console.error('turmas query error', error); return []; }
+      return data ?? [];
+    },
+  });
 
   const certsQuery = useQuery({
     queryKey: ["certificates", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("certificates")
-        .select(`
-          id,
-          generated_at,
-          status,
-          certificate_url,
-          course_id,
-          enrollment_id,
-          user_id,
-          turma_id
-        `)
+        .select("id, generated_at, status, certificate_url, course_id, enrollment_id, user_id, turma_id")
         .order("generated_at", { ascending: false });
       if (error) { console.error('certificates query error', error); return []; }
       return data ?? [];
     },
   });
 
+  const eligibleEnrollmentsQuery = useQuery({
+    queryKey: ["enrollments", "eligible-for-certs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("enrollments")
+        .select("id, student_name, turma_id, user_id, course_id, completed_lessons")
+        .gte("progress_percentage", 100);
+      if (error) { console.error('eligible enrollments query error', error); return []; }
+      return data ?? [];
+    },
+  });
+  
   const coursesQuery = useQuery({
     queryKey: ["courses", "for-certs"],
     queryFn: async () => {
@@ -57,132 +61,84 @@ const CertificatesListMobile = () => {
     },
   });
 
-  const enrollmentsStatsQuery = useQuery({
-    queryKey: ["enrollments", "stats"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("enrollments")
-        .select("id,progress_percentage");
-      if (error) { console.error('enrollments stats query error', error); return []; }
-      return data ?? [];
-    },
-  });
+  // Reutilização da lógica de agrupamento e filtragem
+  const groupedByTurma = useMemo(() => {
+    const turmas = (turmasQuery.data ?? []) as any[];
+    const certificates = (certsQuery.data ?? []) as any[];
+    const eligibleEnrollments = (eligibleEnrollmentsQuery.data ?? []) as any[];
+    
+    const certsByEnrollmentId = new Map(certificates.map(c => [c.enrollment_id, c]));
 
-  const enrollmentsForCertsQuery = useQuery({
-    queryKey: ["enrollments", "for-certs", certsQuery.data?.length ?? 0],
-    enabled: !!certsQuery.data,
-    queryFn: async () => {
-      const ids = Array.from(new Set((certsQuery.data ?? []).map((c: any) => c.enrollment_id).filter(Boolean)));
-      if (ids.length === 0) return [];
-      const { data, error } = await supabase
-        .from("enrollments")
-        .select(`
-          id,
-          student_name,
-          course_id,
-          turma_id,
-          turmas(id, name, code, responsavel_name)
-        `)
-        .in("id", ids);
-      if (error) { console.error('enrollments for certs query error', error); return []; }
-      return data ?? [];
-    },
-  });
+    const allStudentsByTurma = eligibleEnrollments.reduce((acc, enr) => {
+      if (!acc[enr.turma_id]) {
+        acc[enr.turma_id] = [];
+      }
+      acc[enr.turma_id].push(enr);
+      return acc;
+    }, {} as Record<string, any[]>);
 
-  const coursesMap = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const c of (coursesQuery.data ?? []) as any[]) m.set(c.id, c);
-    return m;
-  }, [coursesQuery.data]);
+    const grouped = turmas.map((turma) => {
+      const courseName = turma.courses?.name ?? "—";
+      const turmaName = turma.name || turma.code || "Turma não definida";
+      const professorName = turma.responsavel_name || "Professor não definido";
+      
+      const studentsInTurma = allStudentsByTurma[turma.id] || [];
+      const issuedCount = studentsInTurma.filter(enr => certsByEnrollmentId.has(enr.id)).length;
 
-  const enrollmentsMap = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const e of (enrollmentsForCertsQuery.data ?? []) as any[]) m.set(e.id, e);
-    return m;
-  }, [enrollmentsForCertsQuery.data]);
-
-  const rows = useMemo(() => {
-    try {
-      const all = (certsQuery.data ?? []) as any[];
-      const enriched = all.map((c) => {
-        const enr = enrollmentsMap.get(c.enrollment_id);
-        const course = coursesMap.get(c.course_id ?? enr?.course_id);
-        const turma = enr?.turmas;
+      const certificateList = studentsInTurma.map(enr => {
+        const existingCert = certsByEnrollmentId.get(enr.id);
         return {
-          id: c.id,
-          studentName: enr?.student_name ?? "—",
-          courseName: course?.name ?? "—",
-          courseId: course?.id ?? c.course_id ?? enr?.course_id ?? null,
-          turmaName: turma?.name || turma?.code || "Turma não definida",
-          professorName: turma?.responsavel_name || "Professor não definido",
-          generatedAt: c.generated_at ?? null,
-          status: String(c.status ?? "—"),
-          url: typeof c.certificate_url === "string" ? c.certificate_url : null,
+          id: existingCert?.id || enr.id,
+          studentName: enr.student_name ?? "—",
+          courseName: courseName,
+          generatedAt: existingCert?.generated_at || null,
+          status: existingCert ? 'Emitido' : 'Pendente',
+          url: existingCert?.certificate_url || null,
+          enrollmentId: enr.id,
+          userId: enr.user_id,
+          courseId: enr.course_id,
+          completedLessons: enr.completed_lessons || [],
         };
       });
-      const q = searchTerm.trim().toLowerCase();
-      const filtered = enriched.filter((r) => {
-        const matchesSearch = !q || (r.studentName || "").toLowerCase().includes(q);
-        const matchesCourse = selectedCourseId === "all" || r.courseId === selectedCourseId;
-        return matchesSearch && matchesCourse;
-      });
-      return filtered;
-    } catch (err) {
-      console.error("certificates-mobile rows error", err, {
-        certs: certsQuery.data,
-        enrollments: enrollmentsForCertsQuery.data,
-        courses: coursesQuery.data,
-      });
-      return [];
-    }
-  }, [certsQuery.data, enrollmentsMap, coursesMap, searchTerm, selectedCourseId, enrollmentsForCertsQuery.data, coursesQuery.data]);
 
-  const stats = useMemo(() => {
-    const total = (certsQuery.data ?? []).length;
-    const now = new Date();
-    const month = (certsQuery.data ?? []).reduce((acc: number, c: any) => {
-      const d = new Date(c.generated_at);
-      if (!isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-        return acc + 1;
-      }
-      return acc;
-    }, 0);
-    const enr = (enrollmentsStatsQuery.data ?? []) as any[];
-    const totalEnr = enr.length || 0;
-    const completed = enr.filter((e) => (e.progress_percentage ?? 0) >= 100).length;
-    const rate = totalEnr ? Math.round((completed / totalEnr) * 100) : 0;
-    const activeCourses = ((coursesQuery.data ?? []) as any[]).filter((c) => c.status === 'Ativo').length;
-    return { total, month, rate, activeCourses };
-  }, [certsQuery.data, enrollmentsStatsQuery.data, coursesQuery.data]);
+      return {
+        turmaId: turma.id,
+        turmaName,
+        courseName,
+        courseId: turma.course_id,
+        professorName,
+        certificates: certificateList,
+        issuedCount,
+        pendingCount: studentsInTurma.length - issuedCount
+      };
+    });
 
-  useEffect(() => {
-    if (!isMobile) return;
-    console.debug("certs", certsQuery.data);
-    console.debug("enrollmentsForCerts", enrollmentsForCertsQuery.data);
-    console.debug("courses", coursesQuery.data);
-    console.debug("rows", rows);
-  }, [isMobile, certsQuery.data, enrollmentsForCertsQuery.data, coursesQuery.data, rows]);
+    const q = searchTerm.trim().toLowerCase();
+    const filtered = grouped.filter((group) => {
+        const matchesCourse = selectedCourse === "todos" || group.courseName === selectedCourse;
+        const matchesSearch = !q || 
+            group.turmaName.toLowerCase().includes(q) ||
+            group.courseName.toLowerCase().includes(q) ||
+            group.certificates.some(cert => cert.studentName.toLowerCase().includes(q));
+        return matchesCourse && matchesSearch;
+    });
+
+    return filtered.sort((a, b) => a.turmaName.localeCompare(b.turmaName));
+
+  }, [turmasQuery.data, certsQuery.data, eligibleEnrollmentsQuery.data, searchTerm, selectedCourse]);
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      {/* Filtros */}
+      <div className="bg-card p-4 rounded-lg border space-y-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-brand-black">Certificados</h1>
-          <p className="text-sm sm:text-base text-brand-gray-dark">Visualizar e gerenciar certificados emitidos</p>
-        </div>
-      </div>
-
-      {/* Filtros Mobile */}
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-brand-black mb-1">
-            Buscar certificado
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Buscar
           </label>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-gray-dark w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="Nome do aluno..."
+              placeholder="Aluno, turma ou curso..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -190,17 +146,17 @@ const CertificatesListMobile = () => {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-brand-black mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Curso
           </label>
           <select
-            value={selectedCourseId}
-            onChange={(e) => setSelectedCourseId(e.target.value)}
-            className="h-10 w-full px-3 rounded-md border border-gray-300 bg-brand-white text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            className="w-full h-10 px-3 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todos os cursos</option>
+            <option value="todos">Todos os cursos</option>
             {(coursesQuery.data ?? []).map((course: any) => (
-              <option key={course.id} value={course.id}>
+              <option key={course.id} value={course.name}>
                 {course.name}
               </option>
             ))}
@@ -208,83 +164,53 @@ const CertificatesListMobile = () => {
         </div>
       </div>
 
-      {/* Lista de Certificados - Mobile Cards */}
+      {/* Lista de Turmas */}
       <div className="space-y-3">
-        {rows.length === 0 ? (
-          <Card className="p-4">
-            <CardContent className="p-0">
-              <p className="text-sm text-muted-foreground">Nenhum certificado encontrado.</p>
-            </CardContent>
-          </Card>
+        <h3 className="text-base font-semibold text-foreground px-1">Turmas Elegíveis</h3>
+        {groupedByTurma.length === 0 ? (
+          <div className="bg-card border rounded-lg p-8 text-center">
+            <Award className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Nenhuma turma encontrada com os filtros atuais.</p>
+          </div>
         ) : (
-          rows.map((r) => (
-            <Card key={r.id as any} className="p-4">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <User className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="font-medium truncate block">{r.studentName}</span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Award className="w-3 h-3 text-primary flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">{r.courseName}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Badge className={`text-xs ${
-                    String(r.status).toLowerCase() === 'emitido' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {r.status}
-                  </Badge>
+          groupedByTurma.map((group) => (
+            <button
+              key={group.turmaId}
+              onClick={() => {
+                setSelectedTurma(group);
+                setDialogOpen(true);
+              }}
+              className="w-full text-left bg-card p-4 rounded-lg border hover:bg-muted transition-colors flex flex-col gap-2"
+            >
+              <div>
+                <p className="font-semibold text-foreground">{group.turmaName}</p>
+                <p className="text-xs text-muted-foreground">{group.courseName}</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs pt-1">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">{group.issuedCount}</span> Emitidos</span>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                  <div>
-                    <span className="font-medium block">Turma:</span>
-                    <span className="truncate block">{r.turmaName}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium block">Professor:</span>
-                    <span className="truncate block">{r.professorName}</span>
-                  </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-orange-500" />
+                  <span className="text-muted-foreground"><span className="font-medium text-foreground">{group.pendingCount}</span> Pendentes</span>
                 </div>
-                
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Calendar className="w-3 h-3 flex-shrink-0" />
-                    <span>{formatBRDateSafe(r.generatedAt)}</span>
-                  </div>
-                  {/* Botões de ação removidos conforme solicitação do usuário */}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </button>
           ))
         )}
       </div>
 
-      {/* Estatísticas Mobile */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="card-clean p-3 text-center">
-          <div className="text-lg sm:text-2xl font-bold text-brand-blue mb-1">{stats.total}</div>
-          <div className="text-xs sm:text-sm text-brand-gray-dark">Total Emitidos</div>
-        </div>
-        <div className="card-clean p-3 text-center">
-          <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1">{stats.month}</div>
-          <div className="text-xs sm:text-sm text-brand-gray-dark">Este Mês</div>
-        </div>
-        <div className="card-clean p-3 text-center">
-          <div className="text-lg sm:text-2xl font-bold text-orange-600 mb-1">{stats.rate}%</div>
-          <div className="text-xs sm:text-sm text-brand-gray-dark">Taxa Conclusão</div>
-        </div>
-        <div className="card-clean p-3 text-center">
-          <div className="text-lg sm:text-2xl font-bold text-purple-600 mb-1">{stats.activeCourses}</div>
-          <div className="text-xs sm:text-sm text-brand-gray-dark">Cursos Ativos</div>
-        </div>
-      </div>
+      {/* Dialog com Certificados da Turma (reutilizado) */}
+      {selectedTurma && (
+        <TurmaCertificatesDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          turmaName={selectedTurma.turmaName}
+          professorName={selectedTurma.professorName}
+          certificates={selectedTurma.certificates}
+        />
+      )}
     </div>
   );
 };
