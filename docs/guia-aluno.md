@@ -1,22 +1,22 @@
-# 📘 Guia do Aluno - Sistema de Treinamento
+# Guia do Aluno - Sistema de Treinamento
 
 Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades disponíveis para você, seja você um **Franqueado** ou um **Colaborador**.
 
 ---
 
-## 🎯 O que você vai aprender:
+## O que você vai aprender:
 
-- [Como se cadastrar no sistema](#-primeiros-passos---cadastro)
-- [Diferença entre Franqueado e Colaborador](#-entendendo-os-papéis)
-- [Como aprovar colaboradores (Franqueados)](#-para-franqueados-aprovar-colaboradores)
-- [Como se inscrever em cursos](#-inscrevendo-se-em-cursos-e-turmas)
-- [Como assistir aulas](#-assistindo-aulas)
-- [Como fazer provas e quizzes](#-fazendo-provas-e-quizzes)
-- [Como solicitar certificados](#-solicitando-certificados)
+- [Como se cadastrar no sistema](#primeiros-passos-cadastro)
+- [Diferença entre Franqueado e Colaborador](#entendendo-os-papeis)
+- [Como aprovar colaboradores (Franqueados)](#para-franqueados-aprovar-colaboradores)
+- [Como se inscrever em cursos](#inscrevendo-se-em-cursos-e-turmas)
+- [Como assistir aulas](#assistindo-aulas)
+- [Como fazer provas e quizzes](#fazendo-provas-e-quizzes)
+- [Como solicitar certificados](#solicitando-certificados)
 
 ---
 
-## 🚀 Primeiros Passos - Cadastro
+## Primeiros Passos - Cadastro
 
 ### **Para Colaboradores:**
 
@@ -34,7 +34,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## 👥 Entendendo os Papéis
+## Entendendo os Papéis
 
 ### **Colaborador:**
 - É um aluno da unidade/franquia
@@ -48,7 +48,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## ✅ Para Franqueados: Aprovar Colaboradores
+## Para Franqueados: Aprovar Colaboradores
 
 ### **Passo 1: Acessar a área de colaboradores**
 
@@ -90,7 +90,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## 📚 Inscrevendo-se em Cursos e Turmas
+## Inscrevendo-se em Cursos e Turmas
 
 ### **Passo 1: Ver cursos disponíveis**
 
@@ -122,7 +122,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## 🎥 Assistindo Aulas
+## Assistindo Aulas
 
 ### **Aulas Ao Vivo:**
 
@@ -152,7 +152,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## 📝 Fazendo Provas e Quizzes
+## Fazendo Provas e Quizzes
 
 ### **O que é a diferença?**
 
@@ -205,7 +205,7 @@ Bem-vindo ao sistema! Este guia vai te ajudar a usar todas as funcionalidades di
 
 ---
 
-## 🎓 Solicitando Certificados
+## Solicitando Certificados
 
 ### **Quando posso solicitar?**
 
@@ -240,7 +240,7 @@ Você pode solicitar certificado quando:
 
 ---
 
-## 📊 Acompanhando seu Progresso
+## Acompanhando seu Progresso
 
 ### **Ver progresso geral:**
 
@@ -263,7 +263,7 @@ Você pode solicitar certificado quando:
 
 ---
 
-## ❓ Dúvidas Frequentes
+## Dúvidas Frequentes
 
 ### **Esqueci minha senha, o que faço?**
 - Na tela de login, clique em "Esqueci minha senha"
@@ -296,7 +296,7 @@ Você pode solicitar certificado quando:
 
 ---
 
-## 📞 Precisa de Ajuda?
+## Precisa de Ajuda?
 
 Se você tiver qualquer dúvida ou problema:
 1. Contate o administrador do sistema
@@ -305,4 +305,4 @@ Se você tiver qualquer dúvida ou problema:
 
 ---
 
-**Bons estudos! 🎉**
+**Bons estudos!**

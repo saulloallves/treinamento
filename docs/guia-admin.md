@@ -1,40 +1,40 @@
-# 📕 Guia do Administrador - Sistema de Treinamento
+# Guia do Administrador - Sistema de Treinamento
 
 Bem-vindo, Administrador! Este é o guia completo para gerenciar todo o sistema de treinamento. Você tem controle total sobre cursos, turmas, professores, alunos e relatórios.
 
 ---
 
-## 🎯 Índice Completo:
+## Índice Completo:
 
 ### Estrutura do Sistema
-- [Entendendo a hierarquia do sistema](#-entendendo-a-hierarquia-do-sistema)
+- [Entendendo a hierarquia do sistema](#entendendo-a-hierarquia-do-sistema)
 
 ### Gestão de Conteúdo
-- [Criando Cursos](#-criando-cursos)
-- [Criando Módulos](#-criando-módulos)
-- [Criando Aulas](#-criando-aulas)
-- [Inserindo aulas gravadas em turmas](#-inserindo-aulas-gravadas-em-turmas-manualmente)
-- [Criando Turmas](#-criando-turmas)
+- [Criando Cursos](#criando-cursos)
+- [Criando Módulos](#criando-modulos)
+- [Criando Aulas](#criando-aulas)
+- [Inserindo aulas gravadas em turmas](#inserindo-aulas-gravadas-em-turmas-manualmente)
+- [Criando Turmas](#criando-turmas)
 
 ### Avaliações
-- [Criando Quizzes](#-criando-quizzes)
-- [Criando Provas](#-criando-provas)
-- [Vinculando avaliações a turmas](#-vinculando-avaliações-a-turmas)
+- [Criando Quizzes](#criando-quizzes)
+- [Criando Provas](#criando-provas)
+- [Vinculando avaliações a turmas](#vinculando-avaliacoes-a-turmas)
 
 ### Gestão de Pessoas
-- [Gerenciando Professores](#-gerenciando-professores)
-- [Gerenciando Alunos](#-gerenciando-alunos)
-- [Gerenciando Unidades e Franquias](#-gerenciando-unidades-e-franquias)
-- [Usando o Kanban de Alunos](#-usando-o-kanban-de-alunos)
+- [Gerenciando Professores](#gerenciando-professores)
+- [Gerenciando Alunos](#gerenciando-alunos)
+- [Gerenciando Unidades e Franquias](#gerenciando-unidades-e-franquias)
+- [Usando o Kanban de Alunos](#usando-o-kanban-de-alunos)
 
 ### Relatórios e Insights
-- [Relatórios de Turmas](#-relatórios-de-turmas)
-- [Relatórios de Avaliações](#-relatórios-de-avaliações)
-- [Dashboard e Métricas](#-dashboard-e-métricas)
+- [Relatórios de Turmas](#relatorios-de-turmas)
+- [Relatórios de Avaliações](#relatorios-de-avaliacoes)
+- [Dashboard e Métricas](#dashboard-e-metricas)
 
 ---
 
-## 🏗️ Entendendo a Hierarquia do Sistema
+## Entendendo a Hierarquia do Sistema
 
 O sistema segue uma estrutura organizada. É **MUITO IMPORTANTE** criar as coisas nesta ordem:
 
@@ -61,7 +61,7 @@ O sistema segue uma estrutura organizada. É **MUITO IMPORTANTE** criar as coisa
 
 ---
 
-## 📚 Criando Cursos
+## Criando Cursos
 
 ### **O que é um curso?**
 Um curso é o programa completo de treinamento. Exemplo: "Marketing Digital", "Vendas Avançadas", "Liderança".
@@ -108,7 +108,7 @@ Agora você pode:
 
 ---
 
-## 📂 Criando Módulos
+## Criando Módulos
 
 ### **O que é um módulo?**
 Módulos são divisões do curso. Cada curso pode ter vários módulos para organizar o conteúdo.
@@ -148,7 +148,7 @@ Agora você pode criar aulas dentro deste módulo.
 
 ---
 
-## 🎥 Criando Aulas
+## Criando Aulas
 
 ### **Tipos de Aulas:**
 
@@ -216,7 +216,7 @@ Agora você pode criar aulas dentro deste módulo.
 
 ---
 
-## 📌 Inserindo Aulas Gravadas em Turmas (MANUALMENTE)
+## Inserindo Aulas Gravadas em Turmas (MANUALMENTE)
 
 ### **⚠️ MUITO IMPORTANTE - Leia com atenção:**
 
@@ -259,7 +259,7 @@ Agora os alunos desta turma podem assistir a aula gravada.
 
 ---
 
-## 👥 Criando Turmas
+## Criando Turmas
 
 ### **O que é uma turma?**
 Uma turma é um grupo de alunos que vai estudar um curso juntos, com datas e horários específicos.
@@ -319,7 +319,7 @@ Após criar, você pode:
 
 ---
 
-## 📝 Criando Quizzes
+## Criando Quizzes
 
 ### **O que é um quiz?**
 Um quiz é uma avaliação curta, geralmente sobre uma aula ou módulo específico. Pode ter questões de múltipla escolha ou dissertativas.
@@ -406,7 +406,7 @@ Um quiz é uma avaliação curta, geralmente sobre uma aula ou módulo específi
 
 ---
 
-## 📋 Criando Provas
+## Criando Provas
 
 ### **O que é uma prova?**
 Uma prova é uma avaliação mais completa, geralmente cobrindo todo o conteúdo de um módulo ou curso.
@@ -428,7 +428,7 @@ O processo é **IDÊNTICO** ao de criar quizzes (veja seção anterior), com as 
 
 ---
 
-## 🔗 Vinculando Avaliações a Turmas
+## Vinculando Avaliações a Turmas
 
 ### **⚠️ IMPORTANTE:**
 Criar um quiz ou prova NÃO o torna automaticamente disponível para alunos. Você precisa **vincular à turma**.
@@ -463,7 +463,7 @@ Criar um quiz ou prova NÃO o torna automaticamente disponível para alunos. Voc
 
 ---
 
-## 👨‍🏫 Gerenciando Professores
+## Gerenciando Professores
 
 ### **Criar novo professor:**
 
@@ -499,7 +499,7 @@ Criar um quiz ou prova NÃO o torna automaticamente disponível para alunos. Voc
 
 ---
 
-## 🎓 Gerenciando Alunos
+## Gerenciando Alunos
 
 ### **Visualizar todos os alunos:**
 
@@ -555,7 +555,7 @@ Normalmente os franqueados aprovam seus próprios colaboradores, mas você como 
 
 ---
 
-## 🏢 Gerenciando Unidades e Franquias
+## Gerenciando Unidades e Franquias
 
 ### **Criar nova unidade:**
 
@@ -593,7 +593,7 @@ Se o franqueado já existe:
 
 ---
 
-## 📊 Usando o Kanban de Alunos
+## Usando o Kanban de Alunos
 
 ### **O que é o Kanban?**
 O Kanban é um quadro visual para organizar e acompanhar o status dos alunos em uma turma.
@@ -636,7 +636,7 @@ O quadro tem colunas padrão como:
 
 ---
 
-## 📈 Relatórios de Turmas
+## Relatórios de Turmas
 
 ### **Relatório Geral da Turma:**
 
@@ -673,7 +673,7 @@ O quadro tem colunas padrão como:
 
 ---
 
-## 📊 Relatórios de Avaliações
+## Relatórios de Avaliações
 
 ### **Relatório de um Quiz/Prova específico:**
 
@@ -708,7 +708,7 @@ O quadro tem colunas padrão como:
 
 ---
 
-## 🎯 Dashboard e Métricas
+## Dashboard e Métricas
 
 ### **Dashboard Principal:**
 
@@ -750,7 +750,7 @@ Ao fazer login, você vê o dashboard com:
 
 ---
 
-## 🔔 Notificações e Comunicação
+## Notificações e Comunicação
 
 ### **Enviar avisos para turma:**
 
@@ -782,7 +782,7 @@ Ao fazer login, você vê o dashboard com:
 
 ---
 
-## 🎓 Emitindo Certificados
+## Emitindo Certificados
 
 ### **Verificar elegibilidade:**
 
@@ -819,7 +819,7 @@ Ao fazer login, você vê o dashboard com:
 
 ---
 
-## 💡 Fluxo de Trabalho Recomendado
+## Fluxo de Trabalho Recomendado
 
 ### **Para iniciar um novo curso completo:**
 
@@ -842,7 +842,7 @@ Ao fazer login, você vê o dashboard com:
 
 ---
 
-## ⚠️ Erros Comuns e Como Evitar
+## Erros Comuns e Como Evitar
 
 ### **❌ Erro: "Alunos não veem a aula gravada"**
 **Causa:** Você criou a aula mas não adicionou à turma
@@ -866,7 +866,7 @@ Ao fazer login, você vê o dashboard com:
 
 ---
 
-## ❓ Perguntas Frequentes (FAQ)
+## Perguntas Frequentes (FAQ)
 
 ### **Posso reutilizar uma aula em várias turmas?**
 Sim! Crie a aula uma vez e adicione a quantas turmas quiser.
@@ -888,7 +888,7 @@ Use a função "Exportar Todos os Dados" no menu de Configurações (se disponí
 
 ---
 
-## 📞 Suporte Técnico
+## Suporte Técnico
 
 Se você encontrar problemas técnicos ou tiver dúvidas não respondidas neste guia:
 
@@ -899,4 +899,4 @@ Se você encontrar problemas técnicos ou tiver dúvidas não respondidas neste 
 
 ---
 
-**Bom trabalho na administração do sistema! 🚀**
+**Bom trabalho na administração do sistema!**

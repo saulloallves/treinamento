@@ -1,22 +1,22 @@
-# 📗 Guia do Professor - Sistema de Treinamento
+# Guia do Professor - Sistema de Treinamento
 
 Bem-vindo, Professor! Este guia vai te ajudar a gerenciar suas turmas, acompanhar seus alunos e ministrar aulas no sistema.
 
 ---
 
-## 🎯 O que você vai aprender:
+## O que você vai aprender:
 
-- [Como fazer login no sistema](#-fazendo-login)
-- [Como visualizar suas turmas](#-visualizando-suas-turmas)
-- [Como gerenciar aulas agendadas](#-gerenciando-aulas-agendadas)
-- [Como iniciar aulas ao vivo](#-iniciando-aulas-ao-vivo)
-- [Como marcar presença dos alunos](#-marcando-presença-dos-alunos)
-- [Como visualizar e corrigir avaliações](#-visualizando-e-corrigindo-avaliações)
-- [Como acompanhar o desempenho da turma](#-acompanhando-o-desempenho-da-turma)
+- [Como fazer login no sistema](#fazendo-login)
+- [Como visualizar suas turmas](#visualizando-suas-turmas)
+- [Como gerenciar aulas agendadas](#gerenciando-aulas-agendadas)
+- [Como iniciar aulas ao vivo](#iniciando-aulas-ao-vivo)
+- [Como marcar presença dos alunos](#marcando-presenca-dos-alunos)
+- [Como visualizar e corrigir avaliações](#visualizando-e-corrigindo-avaliacoes)
+- [Como acompanhar o desempenho da turma](#acompanhando-o-desempenho-da-turma)
 
 ---
 
-## 🔐 Fazendo Login
+## Fazendo Login
 
 1. Acesse o sistema com o endereço fornecido pelo administrador
 2. Digite seu **e-mail** e **senha**
@@ -31,7 +31,7 @@ Bem-vindo, Professor! Este guia vai te ajudar a gerenciar suas turmas, acompanha
 
 ---
 
-## 📚 Visualizando suas Turmas
+## Visualizando suas Turmas
 
 ### **Painel Principal:**
 
@@ -62,7 +62,7 @@ Ao fazer login, você verá:
 
 ---
 
-## 📅 Gerenciando Aulas Agendadas
+## Gerenciando Aulas Agendadas
 
 ### **Ver suas próximas aulas:**
 
@@ -90,7 +90,7 @@ Ao fazer login, você verá:
 
 ---
 
-## 🎥 Iniciando Aulas ao Vivo
+## Iniciando Aulas ao Vivo
 
 ### **Passo 1: Entrar na sala de aula**
 
@@ -124,7 +124,7 @@ Você tem controles para:
 
 ---
 
-## ✅ Marcando Presença dos Alunos
+## Marcando Presença dos Alunos
 
 ### **Por que marcar presença?**
 - Controla a frequência dos alunos
@@ -167,7 +167,7 @@ Você tem controles para:
 
 ---
 
-## 📝 Visualizando e Corrigindo Avaliações
+## Visualizando e Corrigindo Avaliações
 
 ### **Tipos de avaliações:**
 
@@ -220,7 +220,7 @@ Você tem controles para:
 
 ---
 
-## 📊 Acompanhando o Desempenho da Turma
+## Acompanhando o Desempenho da Turma
 
 ### **Relatórios Disponíveis:**
 
@@ -280,7 +280,7 @@ O sistema pode destacar automaticamente alunos que:
 
 ---
 
-## 💡 Dicas para Professores
+## Dicas para Professores
 
 ### **Antes da Aula:**
 - Entre na sala 5-10 minutos antes
@@ -309,7 +309,7 @@ O sistema pode destacar automaticamente alunos que:
 
 ---
 
-## 🔧 Funcionalidades que Você NÃO Tem Acesso
+## Funcionalidades que Você NÃO Tem Acesso
 
 Como professor, você **NÃO PODE:**
 - Criar ou editar cursos
@@ -323,7 +323,7 @@ Como professor, você **NÃO PODE:**
 
 ---
 
-## ❓ Dúvidas Frequentes
+## Dúvidas Frequentes
 
 ### **Não consigo iniciar a aula ao vivo**
 - Verifique se está no horário correto da aula
@@ -355,7 +355,7 @@ Como professor, você **NÃO PODE:**
 
 ---
 
-## 📞 Precisa de Ajuda?
+## Precisa de Ajuda?
 
 Se você tiver qualquer dúvida ou problema técnico:
 1. Contate o administrador do sistema
@@ -364,4 +364,4 @@ Se você tiver qualquer dúvida ou problema técnico:
 
 ---
 
-**Boa aula! 🎓**
+**Boa aula!**
