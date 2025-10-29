@@ -147,6 +147,9 @@ export const useFranchiseeApprovals = () => {
       return allApprovals;
     },
     enabled: !!user?.id,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 };
 
@@ -194,5 +197,8 @@ export const useFranchiseeApprovalCount = () => {
       return count || 0;
     },
     enabled: !!user?.id,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 };

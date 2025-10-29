@@ -93,6 +93,9 @@ const ApprovedCollaboratorsList = ({
       return data as ApprovedCollaborator[];
     },
     enabled: allUnitCodes.length > 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   // Determinar a unidade alvo para criação do grupo
@@ -161,6 +164,9 @@ const ApprovedCollaboratorsList = ({
       return unitsWithGroups;
     },
     enabled: uniqueUnitCodes.length > 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   // Query para buscar info da unidade alvo para criação do grupo (mantida para compatibilidade)
