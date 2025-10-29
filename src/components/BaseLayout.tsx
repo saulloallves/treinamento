@@ -5,6 +5,7 @@ import { useProfile } from "@/contexts/ProfileContext";
 import { Button } from "@/components/ui/button";
 import ModernSidebar from "@/components/ModernSidebar";
 import BottomNavigation from "@/components/mobile/BottomNavigation";
+import DocumentationDialog from "@/components/DocumentationDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useIsProfessor } from "@/hooks/useIsProfessor";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -77,15 +78,18 @@ const BaseLayout = ({ title, children, showBottomNav = true }: BaseLayoutProps) 
                 {title}
               </h1>
             </div>
-            <Button 
-              onClick={signOut}
-              variant="outline"
-              size={isMobile ? "sm" : "default"}
-              className="flex items-center gap-2 ml-3 shrink-0 h-8 md:h-10"
-            >
-              <LogOut className="h-3 w-3 md:h-4 md:w-4" />
-              {!isMobile && "Sair"}
-            </Button>
+            <div className="flex items-center gap-2 ml-3 shrink-0">
+              {!isMobile && <DocumentationDialog />}
+              <Button
+                onClick={signOut}
+                variant="outline"
+                size={isMobile ? "sm" : "default"}
+                className="flex items-center gap-2 h-8 md:h-10"
+              >
+                <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+                {!isMobile && "Sair"}
+              </Button>
+            </div>
           </div>
         </header>
 

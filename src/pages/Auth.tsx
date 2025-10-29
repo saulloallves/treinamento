@@ -13,6 +13,7 @@ import { LogIn, UserPlus, GraduationCap, Shield, Building, BookOpen, Loader2 } f
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import DocumentationDialog from '@/components/DocumentationDialog';
 import logoPrincipal from '@/assets/logo-principal.png';
 import { format } from 'date-fns';
 
@@ -268,11 +269,17 @@ const Auth = () => {
         <div className="absolute -top-24 -left-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 size-[360px] rounded-full bg-primary/10 blur-3xl" />
       </div>
+
+      {/* Botão de documentação no canto superior direito */}
+      <div className="fixed top-4 right-4 z-50">
+        <DocumentationDialog />
+      </div>
+
       <div className="w-full max-w-3xl space-y-8">
         <div className="text-center">
-          <img 
+          <img
             src={logoPrincipal}
-            alt="Cresci e Perdi Logo" 
+            alt="Cresci e Perdi Logo"
             className="mx-auto mb-4 w-30"
           />
           <p className="text-muted-foreground">Sistema de Treinamentos</p>
