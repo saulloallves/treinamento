@@ -45,12 +45,12 @@ const EditCourseDialog = ({ course, open, onOpenChange }: EditCourseDialogProps)
   }, [course]);
 
   useEffect(() => {
-    if (courseAccess.length > 0) {
+    if (open && courseAccess.length > 0) {
       setSelectedPositions(courseAccess.map(access => access.position_code));
-    } else {
+    } else if (open) {
       setSelectedPositions([]);
     }
-  }, [courseAccess]);
+  }, [open, courseAccess.length]);
 
   if (!formData) return null;
 
