@@ -6,10 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { DatePicker } from "@/components/ui/date-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useCreateTurma } from "@/hooks/useTurmas";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Video } from "lucide-react";
+import { format } from "date-fns";
 
 interface CreateTurmaDialogProps {
   courseId?: string;
@@ -24,7 +27,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
     name: "",
     code: "",
     responsavel_user_id: "",
-    completion_deadline: "",
+    completion_deadline: undefined as Date | undefined,
     enrollment_open_at: "",
     enrollment_close_at: "",
     capacity: ""
@@ -116,7 +119,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         code: formData.code || undefined,
         responsavel_user_id: formData.responsavel_user_id,
         responsavel_name: selectedProfessor?.name || "",
-        completion_deadline: formData.completion_deadline,
+        completion_deadline: formData.completion_deadline ? format(formData.completion_deadline, "yyyy-MM-dd") : "",
         enrollment_open_at: formData.enrollment_open_at,
         enrollment_close_at: formData.enrollment_close_at,
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined
@@ -127,7 +130,7 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
         name: "",
         code: "",
         responsavel_user_id: "",
-        completion_deadline: "",
+        completion_deadline: undefined,
         enrollment_open_at: "",
         enrollment_close_at: "",
         capacity: ""
@@ -294,23 +297,19 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="enrollment_open_at">Abertura das Inscrições *</Label>
-                    <Input
-                      id="enrollment_open_at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={formData.enrollment_open_at}
-                      onChange={(e) => setFormData({ ...formData, enrollment_open_at: e.target.value })}
-                      required
+                      onChange={(value) => setFormData({ ...formData, enrollment_open_at: value })}
+                      placeholder="Selecione data e hora"
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="enrollment_close_at">Fechamento das Inscrições *</Label>
-                    <Input
-                      id="enrollment_close_at"
-                      type="datetime-local"
+                    <DateTimePicker
                       value={formData.enrollment_close_at}
-                      onChange={(e) => setFormData({ ...formData, enrollment_close_at: e.target.value })}
-                      required
+                      onChange={(value) => setFormData({ ...formData, enrollment_close_at: value })}
+                      placeholder="Selecione data e hora"
                     />
                   </div>
                 </div>
@@ -318,12 +317,11 @@ export const CreateTurmaDialog = ({ courseId, open, onOpenChange }: CreateTurmaD
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="completion_deadline">Prazo de Conclusão *</Label>
-                    <Input
-                      id="completion_deadline"
-                      type="date"
-                      value={formData.completion_deadline}
-                      onChange={(e) => setFormData({ ...formData, completion_deadline: e.target.value })}
-                      required
+                    <DatePicker
+                      date={formData.completion_deadline}
+                      onDateChange={(date) => setFormData({ ...formData, completion_deadline: date })}
+                      placeholder="Selecione o prazo"
+                      disablePast
                     />
                   </div>
 

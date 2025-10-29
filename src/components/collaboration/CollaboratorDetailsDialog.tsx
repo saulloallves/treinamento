@@ -7,17 +7,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Loader2, Save } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Loader2, Save } from "lucide-react";
 import { CollaborationApproval } from "@/hooks/useCollaborationApprovals";
 import { formatCurrency } from "@/lib/formatting";
 
 const formSchema = z.object({
-  admission_date: z.date({ required_error: "Data de admissão é obrigatória." }),
+  admission_date: z.date({ required_error: "Data de admissão é obrigatória." }).nullable(),
   instagram_profile: z.string().optional(),
   salary: z.string().min(1, { message: "Salário é obrigatório." }),
   meal_voucher_active: z.boolean().default(false),
@@ -45,7 +41,7 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      admission_date: new Date(),
+      admission_date: null,
       instagram_profile: "",
       salary: "",
       meal_voucher_active: false,
@@ -106,35 +102,14 @@ const CollaboratorDetailsDialog = ({ open, onOpenChange, collaborator, onSubmit,
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>Data de Admissão *</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: ptBR })
-                              ) : (
-                                <span>Escolha uma data</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <DatePicker
+                          date={field.value}
+                          onDateChange={field.onChange}
+                          placeholder="Selecione a data de admissão"
+                          disableFuture
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

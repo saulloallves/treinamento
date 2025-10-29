@@ -185,11 +185,15 @@ export const useApproveCollaborator = () => {
       queryClient.invalidateQueries({ queryKey: ['pending-collaborator-approvals'] });
       queryClient.invalidateQueries({ queryKey: ['unidade-colaborators'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['franchisee-approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['franchisee-approval-count'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-collaborators'] });
+      queryClient.invalidateQueries({ queryKey: ['units-info'] });
 
       toast({
         title: variables.approve ? "Colaborador aprovado!" : "Colaborador rejeitado!",
-        description: variables.approve 
-          ? "O colaborador já pode acessar o sistema." 
+        description: variables.approve
+          ? "O colaborador já pode acessar o sistema."
           : "O colaborador foi rejeitado e não terá acesso.",
       });
     },
