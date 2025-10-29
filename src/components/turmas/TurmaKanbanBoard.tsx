@@ -172,7 +172,7 @@ const handleDrop = async (targetStatus: string) => {
       <div
         className="mt-6 grid gap-4 text-center"
         style={{
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
         }}
       >
         {columns.map((column) => (
