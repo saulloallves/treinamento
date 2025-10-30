@@ -12,8 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useTests } from "@/hooks/useTests";
-import { useTestQuestions } from "@/hooks/useTestQuestions";
+import { useTestQuestions, TestQuestionOption } from "@/hooks/useTestQuestions";
 import { supabase } from "@/integrations/supabase/client";
+import { DynamicOptionsEditor } from "./DynamicOptionsEditor";
 
 interface ManageTestDialogProps {
   testId: string | null;
@@ -26,7 +27,7 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   const [isEditing, setIsEditing] = useState(false);
   const [editedTest, setEditedTest] = useState<any>(null);
   const [questionTexts, setQuestionTexts] = useState<Record<string, string>>({});
-  const [optionTexts, setOptionTexts] = useState<Record<string, string>>({});
+  const [questionOptions, setQuestionOptions] = useState<Record<string, TestQuestionOption[]>>({});
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const debounceRefs = useRef<Record<string, NodeJS.Timeout>>({});
 
@@ -46,18 +47,17 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
   useEffect(() => {
     if (questions && open) {
       const initialTexts: Record<string, string> = {};
-      const initialOptionTexts: Record<string, string> = {};
-      
+      const initialOptions: Record<string, TestQuestionOption[]> = {};
+
       questions.forEach(q => {
         initialTexts[q.id] = q.question_text;
-        q.options?.forEach((opt, index) => {
-          const optionKey = opt.id || `temp-${q.id}-${index}`;
-          initialOptionTexts[optionKey] = opt.option_text;
-        });
+        if (q.options && q.options.length > 0) {
+          initialOptions[q.id] = q.options;
+        }
       });
-      
+
       setQuestionTexts(initialTexts);
-      setOptionTexts(initialOptionTexts);
+      setQuestionOptions(initialOptions);
     }
   }, [questions, open]);
 
@@ -86,39 +86,6 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
     }, 1000); // Increased debounce time
   }, [updateQuestion]);
 
-  const debouncedUpdateOption = useCallback((questionId: string, optionId: string, newText: string) => {
-    const debounceKey = `${questionId}-${optionId}`;
-    if (debounceRefs.current[debounceKey]) {
-      clearTimeout(debounceRefs.current[debounceKey]);
-    }
-    
-    debounceRefs.current[debounceKey] = setTimeout(async () => {
-      const question = questions?.find(q => q.id === questionId);
-      if (question) {
-        const updatedOptions = question.options?.map(opt => 
-          opt.id === optionId ? { ...opt, option_text: newText } : opt
-        ) || [];
-        
-        console.log('Updating option:', { questionId, optionId, newText, updatedOptions });
-        
-        try {
-          await updateQuestion({
-            id: questionId,
-            options: updatedOptions
-          });
-          console.log('Option updated successfully');
-        } catch (error) {
-          console.error('Error updating option:', error);
-          // Revert local state on error
-          setOptionTexts(prev => {
-            const newState = { ...prev };
-            delete newState[optionId];
-            return newState;
-          });
-        }
-      }
-    }, 1000); // Increased debounce time
-  }, [questions, updateQuestion]);
 
   const handleSaveTest = async () => {
     if (!testId || !editedTest) return;
@@ -167,14 +134,13 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
         question_type: 'multiple_choice',
         image_urls: [],
         options: [
-          { option_text: "Resposta errada", score_value: 0, option_order: 1 },
-          { option_text: "Resposta mediana", score_value: 1, option_order: 2 },
-          { option_text: "Resposta correta", score_value: 2, option_order: 3 }
+          { option_text: "Alternativa A", score_value: 2, option_order: 1 },
+          { option_text: "Alternativa B", score_value: 0, option_order: 2 }
         ]
       });
-      toast.success("Pergunta adicionada!");
-    } catch (error) {
-      toast.error("Erro ao adicionar pergunta");
+      toast.success("Pergunta adicionada! Edite as alternativas conforme necessário.");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao adicionar pergunta");
     }
   };
 
@@ -333,49 +299,16 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                         )}
 
                         {question.question_type === 'multiple_choice' ? (
-                          <div className="space-y-3">
-                            <Label>Alternativas (Sistema de Pontuação)</Label>
-                            <div className="space-y-3">
-                              {question.options?.map((option, optionIndex) => {
-                                const optionKey = option.id || `temp-${question.id}-${optionIndex}`;
-                                return (
-                                  <div key={optionKey} className="border rounded-lg p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <Label className="text-sm font-medium">
-                                        Alternativa {String.fromCharCode(65 + optionIndex)} - 
-                                        <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                                          option.score_value === 0 ? 'bg-red-100 text-red-800' :
-                                          option.score_value === 1 ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-green-100 text-green-800'
-                                        }`}>
-                                          {option.score_value === 0 ? 'Errada (0 pts)' :
-                                           option.score_value === 1 ? 'Mediana (1 pt)' :
-                                           'Correta (2 pts)'}
-                                        </span>
-                                      </Label>
-                                    </div>
-                                    <Input
-                                      value={
-                                        option.id 
-                                          ? (optionTexts[option.id] ?? option.option_text ?? "")
-                                          : (optionTexts[optionKey] ?? option.option_text ?? "")
-                                      }
-                                      onChange={(e) => {
-                                        const newValue = e.target.value;
-                                        const keyToUse = option.id || optionKey;
-                                        
-                                        setOptionTexts(prev => ({
-                                          ...prev,
-                                          [keyToUse]: newValue
-                                        }));
-                                      }}
-                                      placeholder={`Digite a alternativa ${String.fromCharCode(65 + optionIndex).toLowerCase()}...`}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
+                          <DynamicOptionsEditor
+                            options={questionOptions[question.id] || question.options || []}
+                            onChange={(newOptions) => {
+                              setQuestionOptions(prev => ({
+                                ...prev,
+                                [question.id]: newOptions
+                              }));
+                            }}
+                            disabled={false}
+                          />
                         ) : (
                           <div className="space-y-3">
                             <Label>Configuração da Pergunta Dissertativa</Label>
@@ -465,41 +398,41 @@ export const ManageTestDialog = ({ testId, open, onOpenChange }: ManageTestDialo
                             Adicionar Imagem
                           </Button>
                           
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={async () => {
                               try {
-                                // Prepare question text
                                 const currentText = questionTexts[question.id];
                                 const updates: any = {};
-                                
+
                                 if (currentText && currentText !== question.question_text) {
                                   updates.question_text = currentText;
                                 }
-                                
-                                // Prepare options if it's multiple choice
-                                if (question.question_type === 'multiple_choice' && question.options) {
-                                  const updatedOptions = question.options.map(opt => {
-                                    const optionKey = opt.id || `temp-${question.id}-${question.options?.indexOf(opt)}`;
-                                    const newText = optionTexts[optionKey];
-                                    return { 
-                                      ...opt, 
-                                      option_text: newText !== undefined ? newText : opt.option_text 
-                                    };
-                                  });
-                                  updates.options = updatedOptions;
+
+                                if (question.question_type === 'multiple_choice') {
+                                  const currentOptions = questionOptions[question.id] || question.options || [];
+
+                                  const validOptions = currentOptions.filter(opt =>
+                                    opt.option_text && opt.option_text.trim().length > 0
+                                  );
+
+                                  if (validOptions.length < 2) {
+                                    toast.error("Adicione pelo menos 2 alternativas válidas!");
+                                    return;
+                                  }
+
+                                  updates.options = validOptions;
                                 }
-                                
-                                // Update question with all changes
+
                                 await updateQuestion({
                                   id: question.id,
                                   ...updates
                                 });
-                                
+
                                 toast.success("Pergunta salva com sucesso!");
-                              } catch (error) {
+                              } catch (error: any) {
                                 console.error('Error saving question:', error);
-                                toast.error("Erro ao salvar pergunta");
+                                toast.error(error.message || "Erro ao salvar pergunta");
                               }
                             }}
                           >
