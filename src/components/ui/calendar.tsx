@@ -27,7 +27,10 @@ function Calendar({
     props.onMonthChange?.(newMonth);
   };
 
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear - 99;
+  const endYear = 2030;
+  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => endYear - i);
   const months = [
     "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
