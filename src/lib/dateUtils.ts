@@ -76,6 +76,34 @@ export const isLessonUpcoming = (
   durationMinutes: number = 60
 ): boolean => {
   if (!startTime) return true; // Lessons without scheduled time are considered upcoming
-  
+
   return !hasLessonFinished(startTime, durationMinutes);
+};
+
+/**
+ * Verifica se o acesso à aula está dentro da janela de tolerância
+ * @param lessonDate Data/hora de início da aula
+ * @param toleranceMinutes Minutos de tolerância após o início (padrão: 15)
+ * @returns true se ainda está dentro da janela, false se expirou
+ */
+export const isWithinLessonAccessWindow = (
+  lessonDate: string | Date | null | undefined,
+  toleranceMinutes: number = 15
+): boolean => {
+  if (!lessonDate) return true; // Sem data definida = sempre permitir
+
+  try {
+    const now = new Date();
+    const lessonTime = new Date(lessonDate);
+
+    if (isNaN(lessonTime.getTime())) return true; // Data inválida = permitir
+
+    const diffMs = now.getTime() - lessonTime.getTime();
+    const minutesLate = Math.floor(diffMs / (1000 * 60));
+
+    return minutesLate <= toleranceMinutes;
+  } catch (error) {
+    console.warn('Error checking lesson access window:', error);
+    return true; // Em caso de erro, permitir acesso
+  }
 };

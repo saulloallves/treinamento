@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { isWithinLessonAccessWindow } from '@/lib/dateUtils';
 
 type UUID = string;
 
@@ -190,7 +191,7 @@ export const useMarkAttendance = () => {
       // Buscar dados da aula para verificar se requer palavra-chave
       const { data: lesson, error: lessonErr } = await supabase
         .from('lessons')
-        .select('attendance_keyword, status, title')
+        .select('attendance_keyword, status, title, lesson_date')
         .eq('id', lesson_id)
         .single();
 
@@ -199,23 +200,35 @@ export const useMarkAttendance = () => {
         throw new Error('Não foi possível verificar os dados da aula.');
       }
 
+      // NOVA VALIDAÇÃO: Verificar se está dentro da janela de acesso (15 minutos)
+      if (lesson.lesson_date) {
+        const canAccess = isWithinLessonAccessWindow(lesson.lesson_date, 15);
+
+        if (!canAccess) {
+          throw new Error(
+            'O prazo para marcar presença nesta aula expirou. ' +
+            'Você pode acessar até 15 minutos após o horário de início.'
+          );
+        }
+      }
+
       // Verificar se aula requer palavra-chave (aulas ativas sempre requerem)
       const requiresKeyword = lesson.status === 'Ativo' || lesson.attendance_keyword;
-      
+
       if (requiresKeyword) {
         if (!attendance_keyword) {
           throw new Error('Esta aula requer uma palavra-chave para confirmação de presença.');
         }
-        
+
         const expectedKeyword = lesson.attendance_keyword || 'Cresci e Perdi 2025';
-        
+
         // Normalizar palavras-chave: lowercase, trim e remover espaços extras
-        const normalizeKeyword = (str: string) => 
+        const normalizeKeyword = (str: string) =>
           str.trim().toLowerCase().replace(/\s+/g, ' ');
-        
+
         const providedKeyword = normalizeKeyword(attendance_keyword);
         const requiredKeyword = normalizeKeyword(expectedKeyword);
-        
+
         if (providedKeyword !== requiredKeyword) {
           throw new Error('Palavra-chave incorreta. Verifique com o professor e tente novamente.');
         }
