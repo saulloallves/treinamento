@@ -61,6 +61,26 @@ export const useTestQuestions = (testId?: string | null) => {
 
   const createQuestion = useMutation({
     mutationFn: async (questionData: CreateQuestionData) => {
+      // Validar alternativas antes de criar
+      if (questionData.question_type === 'multiple_choice') {
+        const validOptions = questionData.options.filter(opt =>
+          opt.option_text && opt.option_text.trim().length > 0
+        );
+
+        if (validOptions.length < 2) {
+          throw new Error('Questões de múltipla escolha precisam de pelo menos 2 alternativas');
+        }
+
+        // Verificar pontuações duplicadas
+        const scores = validOptions.map(o => o.score_value);
+        const uniqueScores = new Set(scores);
+        if (scores.length !== uniqueScores.size) {
+          throw new Error('Cada alternativa deve ter uma pontuação única');
+        }
+
+        questionData.options = validOptions;
+      }
+
       // Create the question first
       const { data: question, error: questionError } = await supabase
         .from("test_questions")
@@ -78,12 +98,12 @@ export const useTestQuestions = (testId?: string | null) => {
       if (questionError) throw questionError;
 
       // Create the options only if it's a multiple choice question
-      if (questionData.question_type === 'multiple_choice' && questionData.options && questionData.options.length > 0) {
-        const optionsToInsert = questionData.options.map(option => ({
+      if (questionData.question_type === 'multiple_choice' && questionData.options.length > 0) {
+        const optionsToInsert = questionData.options.map((option, index) => ({
           question_id: question.id,
-          option_text: option.option_text,
+          option_text: option.option_text.trim(),
           score_value: option.score_value,
-          option_order: option.option_order
+          option_order: index + 1
         }));
 
         const { error: optionsError } = await supabase
@@ -114,9 +134,25 @@ export const useTestQuestions = (testId?: string | null) => {
           .delete()
           .eq("question_id", id);
         if (deleteError) throw deleteError;
-      } 
+      }
       // If options are provided and it's not an essay question, update/replace them.
-      else if (options && updates.question_type !== 'essay') { 
+      else if (options && updates.question_type !== 'essay') {
+        // Filtrar apenas opções válidas
+        const validOptions = options.filter(opt =>
+          opt.option_text && opt.option_text.trim().length > 0
+        );
+
+        if (validOptions.length < 2) {
+          throw new Error('Questões de múltipla escolha precisam de pelo menos 2 alternativas');
+        }
+
+        // Verificar pontuações duplicadas
+        const scores = validOptions.map(o => o.score_value);
+        const uniqueScores = new Set(scores);
+        if (scores.length !== uniqueScores.size) {
+          throw new Error('Cada alternativa deve ter uma pontuação única');
+        }
+
         // Delete existing options to ensure a clean slate
         await supabase
           .from("test_question_options")
@@ -124,12 +160,12 @@ export const useTestQuestions = (testId?: string | null) => {
           .eq("question_id", id);
 
         // Insert new/updated options
-        if (options.length > 0) {
-          const optionsToInsert = options.map(option => ({
+        if (validOptions.length > 0) {
+          const optionsToInsert = validOptions.map((option, index) => ({
             question_id: id,
-            option_text: option.option_text,
+            option_text: option.option_text.trim(),
             score_value: option.score_value,
-            option_order: option.option_order
+            option_order: index + 1
           }));
 
           const { error: optionsError } = await supabase

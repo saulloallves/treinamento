@@ -243,15 +243,18 @@ export const CreateTestDialog = ({ open, onOpenChange, onTestCreated, preSelecte
           </div>
 
           {/* Informação sobre Sistema de Pontuação */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Sistema de Pontuação</h4>
-            <div className="text-sm text-blue-800 space-y-1">
-              <p>• <strong>Resposta Errada:</strong> 0 pontos</p>
-              <p>• <strong>Resposta Mediana:</strong> 1 ponto</p>
-              <p>• <strong>Resposta Correta:</strong> 2 pontos</p>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+              <span className="text-lg">💡</span>
+              Sistema de Pontuação Flexível
+            </h4>
+            <div className="text-sm text-blue-800 space-y-2">
+              <p>• <strong>Alternativas dinâmicas:</strong> Adicione quantas alternativas quiser (mínimo 2)</p>
+              <p>• <strong>Pontuação customizada:</strong> Atribua de 0 a 10 pontos para cada alternativa</p>
+              <p>• <strong>Validação automática:</strong> Cada pontuação deve ser única por questão</p>
             </div>
-            <p className="text-xs text-blue-700 mt-2">
-              A nota final será calculada como: (pontos obtidos / pontos totais) × 100%
+            <p className="text-xs text-blue-700 mt-3 pt-2 border-t border-blue-200">
+              <strong>Cálculo da nota:</strong> (pontos obtidos / pontos totais possíveis) × 100%
             </p>
           </div>
 
