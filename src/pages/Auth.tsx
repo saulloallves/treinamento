@@ -373,7 +373,7 @@ const Auth = () => {
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="unitCode" className="text-foreground font-medium">Código da Unidade *</Label>
-                        <Input id="unitCode" type="text" placeholder="Ex.: 1724" value={unitCode} onChange={(e) => setUnitCode(e.target.value)} required />
+                        <Input id="unitCode" type="text" placeholder="Verifique o código da sua unidade com o Franqueado!" value={unitCode} onChange={(e) => setUnitCode(e.target.value)} required />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="position" className="text-foreground font-medium">Cargo *</Label>
