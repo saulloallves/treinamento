@@ -1643,7 +1643,7 @@ async function handleZoom(request, path) {
 }
 // OpenAPI spec and Swagger UI
 function generateOpenApiSpec() {
-  const serverUrl = 'https://wpuwsocezhlqlqxifpyk.supabase.co/functions/v1/api';
+  const serverUrl = 'https://yhjwdoiaafaajhlsxoyt.supabase.co/functions/v1/api';
   return {
     openapi: '3.0.3',
     info: {

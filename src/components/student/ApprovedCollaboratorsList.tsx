@@ -105,21 +105,67 @@ const ApprovedCollaboratorsList = ({
     ? collaborators[0].unit_code 
     : currentUser?.unit_code;
 
+  console.log("🎯 DEBUG - Colaboradores carregados:", {
+    totalColaboradores: collaborators.length,
+    colaboradores: collaborators.map(c => ({
+      name: c.name,
+      unit_code: c.unit_code,
+      unit_code_type: typeof c.unit_code
+    })),
+    targetUnitCode,
+    targetUnitCode_type: typeof targetUnitCode
+  });
+
   // Query para buscar informações de TODAS as unidades dos colaboradores
   const uniqueUnitCodes = [...new Set(collaborators.map(c => c.unit_code).filter(Boolean))];
+  
+  console.log("🔍 DEBUG - Unique Unit Codes:", {
+    uniqueUnitCodes,
+    length: uniqueUnitCodes.length,
+    parsedCodes: uniqueUnitCodes.map(code => ({
+      original: code,
+      parsed: parseInt(code as string),
+      type: typeof parseInt(code as string)
+    }))
+  });
   
   const { data: allUnitsInfo = [] } = useQuery({
     queryKey: ["units-info", uniqueUnitCodes.join(",")],
     queryFn: async () => {
-      if (uniqueUnitCodes.length === 0) return [];
+      if (uniqueUnitCodes.length === 0) {
+        console.log("⚠️ Query allUnitsInfo CANCELADA - uniqueUnitCodes está vazio!");
+        return [];
+      }
 
       console.log("🔍 Buscando informações para unit_codes:", uniqueUnitCodes);
 
       // Buscar dados de todas as unidades
+      const parsedCodes = uniqueUnitCodes.map(code => parseInt(code as string));
+      console.log("🔢 Códigos parseados para busca:", parsedCodes);
+
+      // Tentar busca direta primeiro para debug
+      const { data: testData, error: testError } = await supabasePublic
+        .from("unidades")
+        .select("id, group_code, group_name")
+        .eq("group_code", 1659);
+
+      console.log("🧪 Teste busca direta group_code = 1659:", {
+        testData,
+        testError,
+        total: testData?.length || 0
+      });
+
       const { data: unitsData, error: unitsError } = await supabasePublic
         .from("unidades")
         .select("id, group_code, group_name")
-        .in("group_code", uniqueUnitCodes.map(code => parseInt(code as string)));
+        .in("group_code", parsedCodes);
+
+      console.log("📊 Resultado da busca de unidades:", {
+        unitsData,
+        unitsError,
+        totalUnits: unitsData?.length || 0,
+        queryUsed: `in("group_code", [${parsedCodes.join(", ")}])`
+      });
 
       if (unitsError) {
         console.error("❌ Erro ao buscar unidades:", unitsError);
@@ -164,9 +210,11 @@ const ApprovedCollaboratorsList = ({
       return unitsWithGroups;
     },
     enabled: uniqueUnitCodes.length > 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    staleTime: 0,
+    retry: 1, // Tentar apenas 1 vez em caso de erro
+    retryDelay: 1000, // Aguardar 1 segundo antes de tentar novamente
+    refetchOnMount: false, // Não refazer ao montar
+    refetchOnWindowFocus: false, // Não refazer ao focar
+    staleTime: 60000, // Cache por 1 minuto
   });
 
   // Query para buscar info da unidade alvo para criação do grupo (mantida para compatibilidade)
@@ -177,16 +225,22 @@ const ApprovedCollaboratorsList = ({
 
       console.log("🔍 Buscando informações para unit_code:", targetUnitCode);
 
-      // Buscar dados da unidade
+      // Buscar dados da unidade - CORRIGIDO: removido .single() e adicionado maybeSingle()
       const { data: unitData, error: unitError } = await supabasePublic
         .from("unidades")
         .select("id, group_code, group_name")
         .eq("group_code", parseInt(targetUnitCode))
-        .single();
+        .maybeSingle();
 
       if (unitError) {
         console.error("❌ Erro ao buscar unidade:", unitError);
         throw unitError;
+      }
+
+      // Se não encontrou a unidade, retornar null em vez de dar erro
+      if (!unitData) {
+        console.warn("⚠️ Unidade não encontrada para group_code:", targetUnitCode);
+        return null;
       }
 
       console.log("✅ Unidade encontrada:", {
@@ -220,6 +274,11 @@ const ApprovedCollaboratorsList = ({
       };
     },
     enabled: !!targetUnitCode,
+    retry: 1, // Tentar apenas 1 vez em caso de erro
+    retryDelay: 1000, // Aguardar 1 segundo antes de tentar novamente
+    refetchOnMount: false, // Não refazer ao montar
+    refetchOnWindowFocus: false, // Não refazer ao focar
+    staleTime: 60000, // Cache por 1 minuto
   });
 
   const pauseCollaboratorMutation = useMutation({
@@ -456,9 +515,13 @@ const ApprovedCollaboratorsList = ({
   console.log("🔍 Group Button Logic:", {
     targetUnitCode,
     allUnitsInfo,
+    allUnitsInfoLength: allUnitsInfo.length,
     unitsWithoutGroup,
+    unitsWithoutGroupLength: unitsWithoutGroup.length,
     hasUnitsWithoutGroup,
     collaboratorsCount: collaborators.length,
+    uniqueUnitCodes,
+    shouldShowButton: hasUnitsWithoutGroup && unitsWithoutGroup.length === 1
   });
 
   if (isLoading) {

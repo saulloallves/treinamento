@@ -1,5 +1,7 @@
 // @ts-expect-error - Importado em tempo de execução pelo ambiente Deno
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { sendWelcomeMessage } from "../_shared/whatsapp-messages.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -96,9 +98,9 @@ serve(async (req: Request) => {
     });
     
     // Obter credenciais ZAPI antes de qualquer operação
-    const zapiToken = Deno.env.get("ZAPI_TOKEN");
-    const zapiInstanceId = Deno.env.get("ZAPI_INSTANCE_ID");
-    const zapiClientToken = Deno.env.get("ZAPI_CLIENT_TOKEN");
+    const zapiToken = Deno.env.get("ZAPI_INSTANCE_TOKEN_TREINAMENTO");
+    const zapiInstanceId = Deno.env.get("ZAPI_INSTANCE_ID_TREINAMENTO");
+    const zapiClientToken = Deno.env.get("ZAPI_CLIENT_TOKEN_TREINAMENTO");
     if (!zapiToken || !zapiInstanceId || !zapiClientToken) {
       throw new Error("ZAPI credentials not configured");
     }
@@ -282,8 +284,8 @@ serve(async (req: Request) => {
 
     console.log("Franqueados encontrados:", franchisees?.length || 0);
     
-    // Encontrar o franqueado que tem acesso a esta unidade
-    const franchisee = franchisees?.find((f: { name?: string; phone?: string; unit_code?: string; unit_codes?: string[] }) => {
+    // Encontrar TODOS os franqueados que têm acesso a esta unidade
+    const unitFranchisees = franchisees?.filter((f: { name?: string; phone?: string; unit_code?: string; unit_codes?: string[] }) => {
       // Verificar se a unidade é a principal
       if (f.unit_code === unit_code) {
         console.log(`✅ Franqueado ${f.name || 'Sem nome'} tem ${unit_code} como unidade principal`);
@@ -297,17 +299,17 @@ serve(async (req: Request) => {
       }
       
       return false;
-    });
+    }) || [];
 
-    if (!franchisee) {
+    if (unitFranchisees.length === 0) {
       console.warn("⚠️ Nenhum franqueado encontrado com acesso à unidade:", unit_code);
     } else {
-      console.log("✅ Franqueado identificado:", {
-        name: franchisee.name,
-        phone: franchisee.phone,
-        unit_code: franchisee.unit_code,
-        unit_codes: franchisee.unit_codes,
-      });
+      console.log(`✅ ${unitFranchisees.length} franqueado(s) identificado(s) para a unidade:`, 
+        unitFranchisees.map((f: { name?: string; phone?: string }) => ({
+          name: f.name,
+          phone: f.phone
+        }))
+      );
     }
 
     // Número padrão que sempre será adicionado aos grupos
@@ -348,30 +350,37 @@ serve(async (req: Request) => {
         });
       }
     }
-    // Adiciona o franqueado se tiver telefone
-    if (franchisee?.phone) {
-      const cleanPhone = franchisee.phone.replace(/\D/g, "");
-      const fullPhone = cleanPhone.startsWith("55")
-        ? cleanPhone
-        : `55${cleanPhone}`;
-      console.log("Franqueado encontrado:", {
-        name: franchisee.name,
-        originalPhone: franchisee.phone,
-        cleanPhone: cleanPhone,
-        fullPhone: fullPhone,
-      });
-      if (fullPhone !== treinamentoPhone && fullPhone !== defaultPhone) {
-        phoneMetadata.set(fullPhone, {
-          name: franchisee.name ?? "Franqueado",
-          promote: false,
+    
+    // Adicionar TODOS os franqueados da unidade
+    console.log(`Adicionando ${unitFranchisees.length} franqueado(s) ao grupo...`);
+    for (const franchisee of unitFranchisees) {
+      if (franchisee?.phone) {
+        const cleanPhone = franchisee.phone.replace(/\D/g, "");
+        const fullPhone = cleanPhone.startsWith("55")
+          ? cleanPhone
+          : `55${cleanPhone}`;
+        
+        console.log("Processando franqueado:", {
+          name: franchisee.name,
+          originalPhone: franchisee.phone,
+          cleanPhone: cleanPhone,
+          fullPhone: fullPhone,
         });
-        console.log("✅ Franqueado adicionado ao metadata");
+        
+        if (fullPhone !== treinamentoPhone && fullPhone !== defaultPhone) {
+          phoneMetadata.set(fullPhone, {
+            name: franchisee.name ?? "Franqueado",
+            promote: false,
+          });
+          console.log(`✅ Franqueado ${franchisee.name} adicionado ao metadata`);
+        } else {
+          console.log(`⚠️ Telefone do franqueado ${franchisee.name} é igual a um número padrão, não será adicionado novamente`);
+        }
       } else {
-        console.log("⚠️ Telefone do franqueado é igual a um número padrão, não será adicionado novamente");
+        console.log(`⚠️ Franqueado ${franchisee.name || 'Sem nome'} não tem telefone cadastrado`);
       }
-    } else {
-      console.log("⚠️ Nenhum franqueado encontrado ou sem telefone");
     }
+    
     console.log("=== RESUMO DE PARTICIPANTES ===");
     console.log("Total de participantes no metadata:", phoneMetadata.size);
     console.log("Participantes detalhados:");
@@ -524,6 +533,7 @@ serve(async (req: Request) => {
             groupId,
             phone: participantPhone,
             name: meta.name ?? "Participante",
+            skipWelcomeMessage: true, // Não enviar mensagem agora, será enviada no final
           }),
         });
 
@@ -615,7 +625,7 @@ serve(async (req: Request) => {
     try {
       // Buscar a imagem do storage e converter para base64
       const imageResponse = await fetch(
-        "https://wpuwsocezhlqlqxifpyk.supabase.co/storage/v1/object/public/group-assets/perfil.webp"
+        "https://yhjwdoiaafaajhlsxoyt.supabase.co/storage/v1/object/public/group-assets/perfil.webp"
       );
       if (!imageResponse.ok) {
         throw new Error("Failed to fetch group avatar image");
@@ -695,6 +705,20 @@ serve(async (req: Request) => {
       }
     } catch (settingsError) {
       console.error("Error updating group settings:", settingsError);
+      // Não lançar erro aqui - grupo já foi criado com sucesso
+    }
+    
+    // Enviar mensagem de boas-vindas no grupo
+    console.log("Enviando mensagem de boas-vindas no grupo...");
+    try {
+      const welcomeResult = await sendWelcomeMessage(groupId);
+      if (welcomeResult.success) {
+        console.log("✅ Mensagem de boas-vindas enviada com sucesso!");
+      } else {
+        console.warn("⚠️ Não foi possível enviar mensagem de boas-vindas:", welcomeResult.error);
+      }
+    } catch (welcomeError) {
+      console.error("❌ Erro ao enviar mensagem de boas-vindas:", welcomeError);
       // Não lançar erro aqui - grupo já foi criado com sucesso
     }
     

@@ -62,9 +62,9 @@ serve(async (req) => {
     }
 
     // Enviar senha via WhatsApp usando Z-API
-    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID');
-    const zapiToken = Deno.env.get('ZAPI_TOKEN');
-    const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN') || '';
+    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID_TREINAMENTO');
+    const zapiToken = Deno.env.get('ZAPI_INSTANCE_TOKEN_TREINAMENTO');
+    const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN_TREINAMENTO') || '';
 
     if (!zapiInstanceId || !zapiToken) {
       console.error('Credenciais Z-API não configuradas');

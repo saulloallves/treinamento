@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
     const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
 
     // Chamar API ZAPI para remover participante do grupo
-    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
-    const zapiToken = Deno.env.get('ZAPI_TOKEN')
+    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID_TREINAMENTO')
+    const zapiToken = Deno.env.get('ZAPI_INSTANCE_TOKEN_TREINAMENTO')
 
     if (!zapiInstanceId || !zapiToken) {
       throw new Error('ZAPI credentials not configured')
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Token': Deno.env.get('ZAPI_CLIENT_TOKEN') ?? ''
+        'Client-Token': Deno.env.get('ZAPI_CLIENT_TOKEN_TREINAMENTO') ?? ''
       },
       body: JSON.stringify(zapiPayload)
     })

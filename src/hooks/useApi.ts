@@ -11,7 +11,7 @@ export const useApi = () => {
   const { toast } = useToast();
 
   const call = async (endpoint: string, options: ApiOptions = {}) => {
-    const baseUrl = 'https://wpuwsocezhlqlqxifpyk.supabase.co/functions/v1/api';
+    const baseUrl = 'https://yhjwdoiaafaajhlsxoyt.supabase.co/functions/v1/api';
     
     try {
       const response = await fetch(`${baseUrl}${endpoint}`, {

@@ -1287,9 +1287,9 @@ USING (is_admin(auth.uid()));
 
 Variáveis necessárias:
 ```
-ZAPI_INSTANCE_ID=sua-instance
-ZAPI_TOKEN=seu-token
-ZAPI_CLIENT_TOKEN=seu-client-token
+ZAPI_INSTANCE_ID_TREINAMENTO=sua-instance
+ZAPI_INSTANCE_TOKEN_TREINAMENTO=seu-token
+ZAPI_CLIENT_TOKEN_TREINAMENTO=seu-client-token
 ```
 
 ### Tipos de Disparo

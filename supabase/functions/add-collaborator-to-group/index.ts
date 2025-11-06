@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0'
+import { sendWelcomeMessage } from '../_shared/whatsapp-messages.ts'
 
 declare const Deno: {
   env: {
@@ -16,6 +17,7 @@ interface AddCollaboratorData {
   groupId: string;
   phone: string;
   name: string;
+  skipWelcomeMessage?: boolean; // Opcional: se true, não envia mensagem de boas-vindas
 }
 
 Deno.serve(async (req) => {
@@ -32,9 +34,9 @@ Deno.serve(async (req) => {
       }
     )
 
-    const { groupId, phone, name }: AddCollaboratorData = await req.json()
+    const { groupId, phone, name, skipWelcomeMessage }: AddCollaboratorData = await req.json()
 
-    console.log('Adding collaborator to group:', { groupId, phone, name })
+    console.log('Adding collaborator to group:', { groupId, phone, name, skipWelcomeMessage })
 
     // Limpar o telefone (remover caracteres não numéricos)
     const cleanPhone = phone.replace(/\D/g, '')
@@ -43,8 +45,8 @@ Deno.serve(async (req) => {
     const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`
 
     // Chamar API ZAPI para adicionar participante ao grupo
-    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
-    const zapiToken = Deno.env.get('ZAPI_TOKEN')
+    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID_TREINAMENTO')
+    const zapiToken = Deno.env.get('ZAPI_INSTANCE_TOKEN_TREINAMENTO')
 
     if (!zapiInstanceId || !zapiToken) {
       throw new Error('ZAPI credentials not configured')
@@ -64,7 +66,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Token': Deno.env.get('ZAPI_CLIENT_TOKEN') ?? ''
+        'Client-Token': Deno.env.get('ZAPI_CLIENT_TOKEN_TREINAMENTO') ?? ''
       },
       body: JSON.stringify(zapiPayload)
     })
@@ -104,6 +106,26 @@ Deno.serve(async (req) => {
     }
 
     console.log(`✅ ${name} adicionado com sucesso!`)
+    
+    // Enviar mensagem de boas-vindas no grupo APENAS se não for chamada interna do create-group
+    if (!skipWelcomeMessage) {
+      console.log("Enviando mensagem de boas-vindas no grupo...");
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Aguardar 1 segundo
+        const welcomeResult = await sendWelcomeMessage(groupId);
+        if (welcomeResult.success) {
+          console.log("✅ Mensagem de boas-vindas enviada com sucesso!");
+        } else {
+          console.warn("⚠️ Não foi possível enviar mensagem de boas-vindas:", welcomeResult.error);
+        }
+      } catch (welcomeError) {
+        console.error("❌ Erro ao enviar mensagem de boas-vindas:", welcomeError);
+        // Não retornar erro - colaborador já foi adicionado
+      }
+    } else {
+      console.log("⏭️ Pulando mensagem de boas-vindas (chamada interna do create-group)");
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: true, 

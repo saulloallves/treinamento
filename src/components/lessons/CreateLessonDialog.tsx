@@ -96,7 +96,7 @@ const CreateLessonDialog = ({
           const accessToken = sessionData.session?.access_token;
 
           const res = await fetch(
-            `https://wpuwsocezhlqlqxifpyk.functions.supabase.co/api/zoom/aulas/criar`,
+            `https://yhjwdoiaafaajhlsxoyt.functions.supabase.co/api/zoom/aulas/criar`,
             {
               method: "POST",
               headers: {

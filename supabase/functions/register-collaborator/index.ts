@@ -66,13 +66,13 @@ Deno.serve(async (req)=>{
         email: collaboratorData.email,
         password: collaboratorData.password,
         user_metadata: {
-          full_name: collaboratorData.name,
+          name: collaboratorData.name,
           user_type: 'Aluno',
           role: 'Colaborador',
           unit_code: collaboratorData.unitCode,
           position: collaboratorData.position,
-          cpf: collaboratorData.cpf, // Adicionado CPF
-          phone: collaboratorData.whatsapp, // Adicionado Telefone (de whatsapp)
+          cpf: collaboratorData.cpf,
+          phone: collaboratorData.whatsapp,
           password: collaboratorData.password,
           birth_date: collaboratorData.birth_date,
           address: {
@@ -91,11 +91,9 @@ Deno.serve(async (req)=>{
       if (!newUser.user?.id) throw new Error('Falha ao criar usuário - ID não retornado');
       userId = newUser.user.id;
     }
-
     // O gatilho 'on_auth_user_created' agora cuida da inserção na tabela 'treinamento.users'.
     // A formatação do telefone é reintroduzida aqui para uso na sincronização com a Matriz.
     const cleanPhone = collaboratorData.whatsapp?.replace(/\D/g, '') || '';
-
     // Sincronização com a Matriz (usando o schema 'public' do mesmo projeto)
     try {
       let positionId;

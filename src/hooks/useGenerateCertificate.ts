@@ -40,7 +40,7 @@ export const useGenerateCertificate = () => {
       const fileName = `Certificado_${studentName.replace(/ /g, '_')}_${certificateId}.pdf`;
 
       // 2. Construir a URL pública LONGA do arquivo no Supabase Storage
-      const projectRef = "wpuwsocezhlqlqxifpyk";
+      const projectRef = "yhjwdoiaafaajhlsxoyt";
       const longUrl = `https://${projectRef}.supabase.co/storage/v1/object/public/certificados/${fileName}`;
       
       // 3. Criar nosso próprio slug curto e salvá-lo no banco de dados

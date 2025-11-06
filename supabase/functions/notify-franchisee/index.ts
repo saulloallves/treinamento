@@ -17,8 +17,8 @@ serve(async (req) => {
     console.log('Received notification request:', { collaboratorId, collaboratorName, collaboratorEmail, collaboratorPosition, unitCode })
 
     // Get environment variables
-    const zapiToken = Deno.env.get('ZAPI_TOKEN')
-    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID')
+    const zapiToken = Deno.env.get('ZAPI_INSTANCE_TOKEN_TREINAMENTO')
+    const zapiInstanceId = Deno.env.get('ZAPI_INSTANCE_ID_TREINAMENTO')
     
     if (!zapiToken || !zapiInstanceId) {
       throw new Error('ZAPI credentials not configured')
@@ -105,7 +105,7 @@ serve(async (req) => {
         `Atenciosamente,\n` +
         `Equipe Cresci e Perdi – Sistema de Treinamentos`
 
-      const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN')
+      const zapiClientToken = Deno.env.get('ZAPI_CLIENT_TOKEN_TREINAMENTO')
       
       const zapiResponse = await fetch(`https://api.z-api.io/instances/${zapiInstanceId}/token/${zapiToken}/send-text`, {
         method: 'POST',
