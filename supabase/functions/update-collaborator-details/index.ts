@@ -39,6 +39,21 @@ serve(async (req) => {
     console.log(`Iniciando aprovação para o colaborador: ${collaboratorDetails.email}`);
     console.log(`Dados recebidos do formulário:`, JSON.stringify(collaboratorDetails, null, 2));
 
+    // Buscar unit_code do colaborador ANTES de atualizar a matriz
+    console.log("Buscando unit_code do colaborador no sistema de Treinamento...");
+    const { data: collaboratorData, error: collaboratorError } = await supabaseTreinamento
+      .from('users')
+      .select('unit_code')
+      .eq('email', collaboratorDetails.email)
+      .single();
+
+    if (collaboratorError || !collaboratorData) {
+      throw new Error(`Não foi possível encontrar o colaborador: ${collaboratorError?.message}`);
+    }
+
+    const collaboratorUnitCode = collaboratorData.unit_code;
+    console.log(`✅ Unit code do colaborador: ${collaboratorUnitCode}`);
+
     // Função helper para limpar valores monetários (remover "R$", ".", e manter apenas números e vírgula)
     const cleanCurrencyValue = (value: string | undefined | null): string | null => {
       if (!value) return null;
@@ -56,6 +71,7 @@ serve(async (req) => {
     
     const matrizUpdateData: any = {
       updated_at: new Date().toISOString(),
+      unit_code: collaboratorUnitCode, // Adicionar código da unidade
     };
 
     // Adicionar campos do formulário que foram preenchidos
