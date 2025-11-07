@@ -37,11 +37,63 @@ serve(async (req) => {
         throw new Error("O email do colaborador é necessário para a aprovação.");
     }
     console.log(`Iniciando aprovação para o colaborador: ${collaboratorDetails.email}`);
+    console.log(`Dados recebidos do formulário:`, JSON.stringify(collaboratorDetails, null, 2));
 
-    // --- ETAPA 1: Atualizar e Aprovar Colaborador ---
-    // (Assumindo que a lógica de atualização na Matriz e Treinamento já está ocorrendo
-    // e o objetivo principal agora é corrigir a invocação da criação de grupo)
+    // --- ETAPA 1: Atualizar Dados na Matriz (public.colaboradores_loja) ---
+    console.log("Atualizando dados do colaborador na Matriz...");
     
+    const matrizUpdateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Adicionar campos do formulário que foram preenchidos
+    if (collaboratorDetails.admission_date) {
+      matrizUpdateData.admission_date = collaboratorDetails.admission_date;
+    }
+    if (collaboratorDetails.instagram_profile) {
+      matrizUpdateData.instagram_profile = collaboratorDetails.instagram_profile;
+    }
+    if (collaboratorDetails.salary) {
+      matrizUpdateData.salary = collaboratorDetails.salary;
+    }
+    
+    // Benefícios - sempre salvar boolean e valor condicional
+    matrizUpdateData.meal_voucher_active = collaboratorDetails.meal_voucher_active || false;
+    if (collaboratorDetails.meal_voucher_active && collaboratorDetails.meal_voucher_value) {
+      matrizUpdateData.meal_voucher_value = collaboratorDetails.meal_voucher_value;
+    }
+    
+    matrizUpdateData.transport_voucher_active = collaboratorDetails.transport_voucher_active || false;
+    if (collaboratorDetails.transport_voucher_active && collaboratorDetails.transport_voucher_value) {
+      matrizUpdateData.transport_voucher_value = collaboratorDetails.transport_voucher_value;
+    }
+    
+    matrizUpdateData.health_plan = collaboratorDetails.health_plan || false;
+    
+    matrizUpdateData.basic_food_basket_active = collaboratorDetails.basic_food_basket_active || false;
+    if (collaboratorDetails.basic_food_basket_active && collaboratorDetails.basic_food_basket_value) {
+      matrizUpdateData.basic_food_basket_value = collaboratorDetails.basic_food_basket_value;
+    }
+    
+    matrizUpdateData.cost_assistance_active = collaboratorDetails.cost_assistance_active || false;
+    if (collaboratorDetails.cost_assistance_active && collaboratorDetails.cost_assistance_value) {
+      matrizUpdateData.cost_assistance_value = collaboratorDetails.cost_assistance_value;
+    }
+
+    console.log("Dados a serem atualizados na Matriz:", JSON.stringify(matrizUpdateData, null, 2));
+
+    const { error: matrizUpdateError } = await supabasePublic
+      .from('colaboradores_loja')
+      .update(matrizUpdateData)
+      .eq('email', collaboratorDetails.email);
+
+    if (matrizUpdateError) {
+      console.error('Erro ao atualizar dados na Matriz:', matrizUpdateError);
+      throw new Error(`Falha ao atualizar dados na Matriz: ${matrizUpdateError.message}`);
+    }
+    console.log(`✅ Dados do colaborador ${collaboratorDetails.email} atualizados na Matriz com sucesso.`);
+
+    // --- ETAPA 2: Atualizar e Aprovar Colaborador no Treinamento ---
     const { error: treinamentoUpdateError } = await supabaseTreinamento
       .from('users')
       .update({ approval_status: 'aprovado', active: true })
@@ -53,10 +105,10 @@ serve(async (req) => {
     }
     console.log(`✅ Colaborador ${collaboratorDetails.email} aprovado com sucesso no sistema.`);
 
-    // --- ETAPA 2: Coletar Dados Para o Grupo de WhatsApp ---
+    // --- ETAPA 3: Coletar Dados Para o Grupo de WhatsApp ---
     console.log("Iniciando coleta de dados para criação do grupo...");
 
-    // 2.1 Buscar telefone do Franqueado
+    // 3.1 Buscar telefone do Franqueado
     const { data: franqueadoData, error: franqueadoError } = await supabaseTreinamento
       .from('users')
       .select('phone')
@@ -66,7 +118,7 @@ serve(async (req) => {
     const franchiseePhone = franqueadoData.phone;
     console.log(`- Telefone do Franqueado: ${franchiseePhone}`);
 
-    // 2.2 Buscar dados do Colaborador
+    // 3.2 Buscar dados do Colaborador
     const { data: colaboradorData, error: colaboradorError } = await supabaseTreinamento
       .from('users')
       .select('name, phone, unit_code')
@@ -76,7 +128,7 @@ serve(async (req) => {
     const { name: collaboratorName, phone: collaboratorPhone, unit_code: unitCode } = colaboradorData;
     console.log(`- Dados do Colaborador: ${collaboratorName}, ${collaboratorPhone}, Unidade ${unitCode}`);
 
-    // 2.3 Buscar nome da Unidade
+    // 3.3 Buscar nome da Unidade
     const { data: unidadeData, error: unidadeError } = await supabasePublic
       .from('unidades')
       .select('group_name')
@@ -86,7 +138,7 @@ serve(async (req) => {
     const unitName = unidadeData.group_name;
     console.log(`- Nome da Unidade: ${unitName}`);
 
-    // --- ETAPA 3: Montar Payload e Invocar a Função ---
+    // --- ETAPA 4: Montar Payload e Invocar a Função ---
     const groupPayload = {
       collaboratorName,
       collaboratorPhone,
