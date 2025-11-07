@@ -39,6 +39,18 @@ serve(async (req) => {
     console.log(`Iniciando aprovação para o colaborador: ${collaboratorDetails.email}`);
     console.log(`Dados recebidos do formulário:`, JSON.stringify(collaboratorDetails, null, 2));
 
+    // Função helper para limpar valores monetários (remover "R$", ".", e manter apenas números e vírgula)
+    const cleanCurrencyValue = (value: string | undefined | null): string | null => {
+      if (!value) return null;
+      // Remove "R$", espaços, pontos (separadores de milhar) e mantém apenas números e vírgula
+      const cleaned = value
+        .replace(/R\$/g, '')
+        .replace(/\s/g, '')
+        .replace(/\./g, '')
+        .trim();
+      return cleaned || null;
+    };
+
     // --- ETAPA 1: Atualizar Dados na Matriz (public.colaboradores_loja) ---
     console.log("Atualizando dados do colaborador na Matriz...");
     
@@ -54,30 +66,31 @@ serve(async (req) => {
       matrizUpdateData.instagram_profile = collaboratorDetails.instagram_profile;
     }
     if (collaboratorDetails.salary) {
-      matrizUpdateData.salary = collaboratorDetails.salary;
+      // Limpar formatação monetária antes de salvar
+      matrizUpdateData.salary = cleanCurrencyValue(collaboratorDetails.salary);
     }
     
     // Benefícios - sempre salvar boolean e valor condicional
     matrizUpdateData.meal_voucher_active = collaboratorDetails.meal_voucher_active || false;
     if (collaboratorDetails.meal_voucher_active && collaboratorDetails.meal_voucher_value) {
-      matrizUpdateData.meal_voucher_value = collaboratorDetails.meal_voucher_value;
+      matrizUpdateData.meal_voucher_value = cleanCurrencyValue(collaboratorDetails.meal_voucher_value);
     }
     
     matrizUpdateData.transport_voucher_active = collaboratorDetails.transport_voucher_active || false;
     if (collaboratorDetails.transport_voucher_active && collaboratorDetails.transport_voucher_value) {
-      matrizUpdateData.transport_voucher_value = collaboratorDetails.transport_voucher_value;
+      matrizUpdateData.transport_voucher_value = cleanCurrencyValue(collaboratorDetails.transport_voucher_value);
     }
     
     matrizUpdateData.health_plan = collaboratorDetails.health_plan || false;
     
     matrizUpdateData.basic_food_basket_active = collaboratorDetails.basic_food_basket_active || false;
     if (collaboratorDetails.basic_food_basket_active && collaboratorDetails.basic_food_basket_value) {
-      matrizUpdateData.basic_food_basket_value = collaboratorDetails.basic_food_basket_value;
+      matrizUpdateData.basic_food_basket_value = cleanCurrencyValue(collaboratorDetails.basic_food_basket_value);
     }
     
     matrizUpdateData.cost_assistance_active = collaboratorDetails.cost_assistance_active || false;
     if (collaboratorDetails.cost_assistance_active && collaboratorDetails.cost_assistance_value) {
-      matrizUpdateData.cost_assistance_value = collaboratorDetails.cost_assistance_value;
+      matrizUpdateData.cost_assistance_value = cleanCurrencyValue(collaboratorDetails.cost_assistance_value);
     }
 
     console.log("Dados a serem atualizados na Matriz:", JSON.stringify(matrizUpdateData, null, 2));
